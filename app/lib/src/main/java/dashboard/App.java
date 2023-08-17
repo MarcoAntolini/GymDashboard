@@ -7,7 +7,7 @@ public class App {
 
     static final String USERNAME = "root";
     static final String PASSWORD = "";
-    static final String DATABASE_NAME = "test-db";
+    static final String DATABASE_NAME = "gym-dashboard";
 
     final ConnectionProvider connectionProvider = new ConnectionProvider(USERNAME, PASSWORD, DATABASE_NAME);
     final CustomersTable customerTable = new CustomersTable(connectionProvider.getMySQLConnection());
@@ -15,4 +15,5 @@ public class App {
     public static void main(String[] args) {
         System.out.println("Hello, World!");
     }
+
 }
