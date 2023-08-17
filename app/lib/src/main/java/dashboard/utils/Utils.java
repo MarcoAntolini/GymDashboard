@@ -19,14 +19,25 @@ public final class Utils {
         return date == null ? null : new java.sql.Date(date.getTime());
     }
 
-    public static Optional<java.sql.Date> buildSqlDate(final int day, final int month, final int year) {
+    public static Optional<java.sql.Date> buildOptionalSqlDate(final int day, final int month, final int year) {
         try {
             final String dateString = day + "/" + month + "/" + year;
             final java.util.Date date = new SimpleDateFormat(DATE_FORMAT_STRING).parse(dateString);
-            return Optional.of(dateToSqlDate(date));
+            return dateToSqlDate(date) == null ? Optional.empty() : Optional.of(dateToSqlDate(date));
         } catch (ParseException e) {
             e.printStackTrace();
             return Optional.empty();
+        }
+    }
+
+    public static java.sql.Date buildSqlDate(final int day, final int month, final int year) {
+        try {
+            final String dateString = day + "/" + month + "/" + year;
+            final java.util.Date date = new SimpleDateFormat(DATE_FORMAT_STRING).parse(dateString);
+            return dateToSqlDate(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
