@@ -1,77 +1,109 @@
 package dashboard.database;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Represents a database table, with rows represented by objects of type V
- * and primary key of type K.
- * 
- * @param <V> the type of the objects saved in the table
- * @param <K> the type of the primary key of the table
- */
-public interface Table<V, K> {
+public abstract class Table<V, K> {
 
-	/**
-	 * @return the name of the table
-	 */
-	String getTableName();
+	protected String tableName;
+	protected String primaryKeyName;
 
-	/**
-	 * Creates the database table
-	 * 
-	 * @return false if the table could not be created
-	 */
-	boolean createTable();
+	protected final Connection connection;
 
-	/**
-	 * Drops the database table
-	 * 
-	 * @return false if the table could not be dropped
-	 */
-	boolean dropTable();
+	protected Table(final Connection connection) {
+		this.connection = Objects.requireNonNull(connection);
+	}
 
-	/**
-	 * Finds an object in the table with the given primary key
-	 * 
-	 * @param primaryKey the primary key used to search the object in the underlying
-	 *                   database
-	 * @return an empty optional if there is no object with the given ID in the
-	 *         database
-	 */
-	Optional<V> findByPrimaryKey(final K primaryKey);
+	public String getTableName() {
+		return this.tableName;
+	}
 
-	/**
-	 * @return a list with all the rows of the database
-	 */
-	List<V> findAll();
+	public boolean dropTable() {
+		try (final Statement statement = this.connection.createStatement()) {
+			statement.executeUpdate("DROP TABLE " + this.tableName);
+			return true;
+		} catch (final SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 
-	/**
-	 * Saves an object to the database
-	 * 
-	 * @param value the object to save to the underlying database
-	 * @return false if the object could not be saved (e.g. an object with the same
-	 *         key
-	 *         is already present)
-	 */
-	boolean save(final V value);
+	public List<V> findAll() {
+		try (final PreparedStatement statement = this.connection.prepareStatement("SELECT * FROM " + this.tableName)) {
+			final ResultSet resultSet = statement.executeQuery();
+			return readObjectFromResultSet(resultSet);
+		} catch (final SQLException e) {
+			e.printStackTrace();
+			return List.of();
+		}
+	}
 
-	/**
-	 * Updates an object
-	 * 
-	 * @param updatedValue the object to update
-	 * @return false if the object could not be updated (e.g. there is not already
-	 *         an
-	 *         object with the given primary key in the database)
-	 */
-	boolean update(final V updatedValue);
+	public Optional<V> findByPrimaryKey(final K primaryKey) {
+		try (final PreparedStatement statement = this.connection
+				.prepareStatement("SELECT * FROM " + this.tableName + " WHERE " + this.primaryKeyName + " = ?")) {
+			statement.setObject(1, primaryKey);
+			final ResultSet resultSet = statement.executeQuery();
+			final List<V> object = readObjectFromResultSet(resultSet);
+			return object.isEmpty() ? Optional.empty() : Optional.of(object.get(0));
+		} catch (final SQLException e) {
+			e.printStackTrace();
+			return Optional.empty();
+		}
+	}
 
-	/**
-	 * Deletes from the underlying database the row with the given primary key
-	 * 
-	 * @param primaryKey the primary key of the row to delete
-	 * @return false if the row could not be deleted
-	 */
-	boolean delete(final K primaryKey);
+	public boolean update(int objectPrimaryKey, Map<String, Object> updatedFields) {
+		StringBuilder sql = new StringBuilder("UPDATE " + this.tableName + " SET ");
+		boolean firstField = true;
+		for (String fieldName : updatedFields.keySet()) {
+			if (!firstField) {
+				sql.append(", ");
+			}
+			sql.append(fieldName).append(" = ?");
+			firstField = false;
+		}
+		sql.append(" WHERE " + this.primaryKeyName + " = ?");
+		try (PreparedStatement statement = this.connection.prepareStatement(sql.toString())) {
+			int parameterIndex = 1;
+			for (Object value : updatedFields.values()) {
+				statement.setObject(parameterIndex++, value);
+			}
+			statement.setObject(parameterIndex, objectPrimaryKey);
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public boolean delete(final K primaryKey) {
+		try {
+			if (this.findByPrimaryKey(primaryKey).isEmpty()) {
+				return false;
+			}
+			try (final PreparedStatement statement = this.connection.prepareStatement(
+					"DELETE FROM " + this.tableName + " WHERE id = ?")) {
+				statement.setObject(1, primaryKey);
+				statement.executeUpdate();
+				return true;
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public abstract boolean createTable();
+
+	public abstract boolean save(final V value);
+
+	protected abstract List<V> readObjectFromResultSet(final ResultSet resultSet);
 
 }
