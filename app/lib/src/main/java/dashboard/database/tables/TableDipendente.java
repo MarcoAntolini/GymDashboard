@@ -1,6 +1,7 @@
 package dashboard.database.tables;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,10 +10,10 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import dashboard.database.Table;
+import dashboard.database.SingleKeyTable;
 import dashboard.model.Dipendente;
 
-public class TableDipendente extends Table<Dipendente, Integer> {
+public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 
 	protected TableDipendente(Connection connection) {
 		super(connection);
@@ -25,14 +26,16 @@ public class TableDipendente extends Table<Dipendente, Integer> {
 		try (final Statement statement = this.connection.createStatement()) {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
-							"id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+							"id INT NOT NULL AUTO_INCREMENT, " +
 							"codiceFiscale CHAR(16) NOT NULL, " +
-							"nome CHAR(40), " +
-							"cognome CHAR(40), " +
-							"dataNascita DATETIME, " +
+							"nome CHAR(40) NOT NULL, " +
+							"cognome CHAR(40) NOT NULL, " +
+							"dataNascita DATETIME NOT NULL, " +
 							"telefono CHAR(10), " +
 							"email CHAR(40), " +
-							"dataAssunzione DATETIME" +
+							"dataAssunzione DATETIME NOT NULL" +
+							"stipendio DOUBLE NOT NULL" +
+							"PRIMARY KEY (id)" +
 							")");
 			return true;
 		} catch (final SQLException e) {
@@ -62,7 +65,7 @@ public class TableDipendente extends Table<Dipendente, Integer> {
 				statement.setNull(6, Types.VARCHAR);
 			}
 			statement.setDate(7, dipendente.getDataAssunzione());
-			statement.setInt(8, dipendente.getStipendio());
+			statement.setDouble(8, dipendente.getStipendio());
 			statement.executeUpdate();
 			return true;
 		} catch (final SQLException e) {
@@ -76,20 +79,18 @@ public class TableDipendente extends Table<Dipendente, Integer> {
 		List<Dipendente> dipendenti = new ArrayList<>();
 		try {
 			while (resultSet.next()) {
-				final Dipendente dipendente = new Dipendente(
-						resultSet.getString("codiceFiscale"),
-						resultSet.getString("nome"),
-						resultSet.getString("cognome"),
-						resultSet.getDate("dataNascita"),
-						resultSet.getDate("dataAssunzione"),
-						resultSet.getInt("stipendio"));
-				if (resultSet.getString("telefono") != null) {
-					dipendente.setTelefono(resultSet.getString("telefono"));
-				}
-				if (resultSet.getString("email") != null) {
-					dipendente.setEmail(resultSet.getString("email"));
-				}
-				dipendente.setId(resultSet.getInt("id"));
+				int id = resultSet.getInt("id");
+				String codiceFiscale = resultSet.getString("codiceFiscale");
+				String nome = resultSet.getString("nome");
+				String cognome = resultSet.getString("cognome");
+				Date dataNascita = resultSet.getDate("dataNascita");
+				Date dataAssunzione = resultSet.getDate("dataAssunzione");
+				double stipendio = resultSet.getDouble("stipendio");
+				String telefono = resultSet.getString("telefono");
+				String email = resultSet.getString("email");
+				Dipendente dipendente = new Dipendente(codiceFiscale, nome, cognome, dataNascita, telefono, email,
+						dataAssunzione, stipendio);
+				dipendente.setId(id);
 				dipendenti.add(dipendente);
 			}
 		} catch (final SQLException e) {

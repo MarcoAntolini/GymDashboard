@@ -2,36 +2,44 @@ package dashboard.model;
 
 import java.sql.Date;
 import java.util.Objects;
-import java.util.Optional;
 
 public class Dipendente extends Persona {
 
 	private final Date dataAssunzione;
-	private int stipendio;
+	private double stipendio;
 
 	public Dipendente(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
-			final Optional<String> telefono, final Optional<String> email, final Date dataAssunzione,
-			final int stipendio) {
+			final String telefono, final String email, final Date dataAssunzione, final double stipendio) {
 		super(codiceFiscale, nome, cognome, dataNascita, telefono, email);
 		this.dataAssunzione = Objects.requireNonNull(dataAssunzione);
 		this.stipendio = Objects.requireNonNull(stipendio);
 	}
 
 	public Dipendente(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
-			final Date dataAssunzione, final int stipendio) {
-		this(codiceFiscale, nome, cognome, dataNascita, Optional.empty(), Optional.empty(), dataAssunzione, stipendio);
+			final Date dataAssunzione, final double stipendio) {
+		this(codiceFiscale, nome, cognome, dataNascita, null, null, dataAssunzione, stipendio);
+	}
+
+	@Override
+	public Dipendente addEmail(final String email) {
+		return (Dipendente) super.addEmail(email);
+	}
+
+	@Override
+	public Dipendente addTelefono(final String telefono) {
+		return (Dipendente) super.addTelefono(telefono);
 	}
 
 	public Date getDataAssunzione() {
 		return this.dataAssunzione;
 	}
 
-	public int getStipendio() {
+	public double getStipendio() {
 		return this.stipendio;
 	}
 
 	public void setStipendio(int stipendio) {
-		this.stipendio = stipendio;
+		this.stipendio = Objects.requireNonNull(stipendio);
 	}
 
 	@Override

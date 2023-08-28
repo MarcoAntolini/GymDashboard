@@ -9,12 +9,11 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import dashboard.database.Table;
+import dashboard.database.SingleKeyTable;
 import dashboard.model.Cliente;
 
-public class TableCliente extends Table<Cliente, Integer> {
+public class TableCliente extends SingleKeyTable<Cliente, Integer> {
 
 	public TableCliente(final Connection connection) {
 		super(connection);
@@ -27,14 +26,15 @@ public class TableCliente extends Table<Cliente, Integer> {
 		try (final Statement statement = this.connection.createStatement()) {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
-							"id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+							"id INT NOT NULL AUTO_INCREMENT, " +
 							"codiceFiscale CHAR(16) NOT NULL, " +
-							"nome CHAR(40), " +
-							"cognome CHAR(40), " +
-							"dataNascita DATETIME, " +
+							"nome CHAR(40) NOT NULL, " +
+							"cognome CHAR(40) NOT NULL, " +
+							"dataNascita DATETIME NOT NULL, " +
 							"telefono CHAR(10), " +
 							"email CHAR(40), " +
-							"dataIscrizione DATETIME" +
+							"dataIscrizione DATETIME NOT NULL" +
+							"PRIMARY KEY (id), " +
 							")");
 			return true;
 		} catch (final SQLException e) {
@@ -65,6 +65,7 @@ public class TableCliente extends Table<Cliente, Integer> {
 			}
 			statement.setDate(7, cliente.getDataIscrizione());
 			statement.executeUpdate();
+			cliente.setId(this.getLastPrimaryKeyValue());
 			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
@@ -77,23 +78,35 @@ public class TableCliente extends Table<Cliente, Integer> {
 		List<Cliente> clienti = new ArrayList<>();
 		try {
 			while (resultSet.next()) {
+				final int id = resultSet.getInt("id");
 				final String codiceFiscale = resultSet.getString("codiceFiscale");
 				final String nome = resultSet.getString("nome");
 				final String cognome = resultSet.getString("cognome");
 				final Date dataNascita = resultSet.getDate("dataNascita");
-				final Optional<String> telefono = resultSet.getString("telefono") == null ? Optional.empty()
-						: Optional.of(resultSet.getString("telefono"));
-				final Optional<String> email = resultSet.getString("email") == null ? Optional.empty()
-						: Optional.of(resultSet.getString("email"));
+				final String telefono = resultSet.getString("telefono");
+				final String email = resultSet.getString("email");
 				final Date dataIscrizione = resultSet.getDate("dataIscrizione");
 				final Cliente cliente = new Cliente(codiceFiscale, nome, cognome, dataNascita, telefono, email,
 						dataIscrizione);
+				cliente.setId(id);
 				clienti.add(cliente);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return clienti;
+	}
+
+	public int getLastPrimaryKeyValue() {
+		try (final PreparedStatement statement = this.connection
+				.prepareStatement("SELECT MAX(id) FROM " + this.tableName)) {
+			final ResultSet resultSet = statement.executeQuery();
+			resultSet.next();
+			return resultSet.getInt(1);
+		} catch (final SQLException e) {
+			e.printStackTrace();
+			return -1;
+		}
 	}
 
 }

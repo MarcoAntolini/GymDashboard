@@ -2,21 +2,30 @@ package dashboard.model;
 
 import java.sql.Date;
 import java.util.Objects;
-import java.util.Optional;
 
 public class Cliente extends Persona {
 
 	private final Date dataIscrizione;
 
 	public Cliente(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
-			final Optional<String> telefono, final Optional<String> email, final Date dataIscrizione) {
+			final String telefono, final String email, final Date dataIscrizione) {
 		super(codiceFiscale, nome, cognome, dataNascita, telefono, email);
 		this.dataIscrizione = Objects.requireNonNull(dataIscrizione);
 	}
 
 	public Cliente(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
 			final Date dataIscrizione) {
-		this(codiceFiscale, nome, cognome, dataNascita, Optional.empty(), Optional.empty(), dataIscrizione);
+		this(codiceFiscale, nome, cognome, dataNascita, null, null, dataIscrizione);
+	}
+
+	@Override
+	public Cliente addEmail(final String email) {
+		return (Cliente) super.addEmail(email);
+	}
+
+	@Override
+	public Cliente addTelefono(final String telefono) {
+		return (Cliente) super.addTelefono(telefono);
 	}
 
 	public Date getDataIscrizione() {
