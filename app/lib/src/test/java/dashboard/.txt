@@ -1,0 +1,9 @@
+entrata e uscita senza data per considerare chi fa lo spezzato
+stipulazione contratto perchè non poteva riassumere un dipendente
+tipo abbonamento e tipo pacchetto entrate
+si considera impossibile il bug per cui timbra entrata-entrata-uscita perchè c'è il tornello per entrare e uscire
+
+
+
+javadoc
+testcliente
