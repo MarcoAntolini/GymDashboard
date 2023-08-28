@@ -16,6 +16,9 @@ public final class ConnectionProvider {
 	private final String databaseName;
 
 	/**
+	 * Constructs a new ConnectionProvider object with the given username, password,
+	 * and database name.
+	 * 
 	 * @param username     the username used to connect to the database
 	 * @param password     the password used to connect to the database
 	 * @param databaseName the name of the database to connect to
@@ -24,16 +27,12 @@ public final class ConnectionProvider {
 		this.username = username;
 		this.password = password;
 		this.databaseName = databaseName;
-		try (Connection connection = DriverManager.getConnection(HOST_URI, this.username, this.password);
-				Statement statement = connection.createStatement()) {
-			String createDatabaseQuery = String.format("CREATE DATABASE IF NOT EXISTS `%s`", this.databaseName);
-			statement.executeUpdate(createDatabaseQuery);
-		} catch (SQLException e) {
-			throw new IllegalStateException("Could not establish a connection with " + HOST_URI, e);
-		}
+		this.createDatabase();
 	}
 
 	/**
+	 * Return the connection to the database specified in the class constructor.
+	 * 
 	 * @return a Connection with the database specified in the class constructor
 	 * @throws IllegalStateException if the connection could not be establish
 	 */
@@ -43,6 +42,22 @@ public final class ConnectionProvider {
 			return DriverManager.getConnection(dbUri, this.username, this.password);
 		} catch (SQLException e) {
 			throw new IllegalStateException("Could not establish a connection with " + dbUri, e);
+		}
+	}
+
+	/**
+	 * Creates the database if it does not already exist.
+	 * 
+	 * @throws IllegalStateException if a connection to the database cannot be
+	 *                               established
+	 */
+	private void createDatabase() {
+		try (Connection connection = DriverManager.getConnection(HOST_URI, this.username, this.password);
+				Statement statement = connection.createStatement()) {
+			String createDatabaseQuery = String.format("CREATE DATABASE IF NOT EXISTS `%s`", this.databaseName);
+			statement.executeUpdate(createDatabaseQuery);
+		} catch (SQLException e) {
+			throw new IllegalStateException("Could not establish a connection with " + HOST_URI, e);
 		}
 	}
 
