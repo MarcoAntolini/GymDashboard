@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public abstract class Persona {
 
-	private static final String TELEFONO = "telefono";
-	private static final String EMAIL = "email";
+	public static final String TELEFONO = "telefono";
+	public static final String EMAIL = "email";
 	private final String codiceFiscale;
 	private final String nome;
 	private final String cognome;
@@ -18,18 +18,28 @@ public abstract class Persona {
 	private int id;
 
 	protected Persona(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
-			final Optional<String> telefono, final Optional<String> email) {
+			final String telefono, final String email) {
 		this.codiceFiscale = Objects.requireNonNull(codiceFiscale);
 		this.nome = Objects.requireNonNull(nome);
 		this.cognome = Objects.requireNonNull(cognome);
 		this.dataNascita = Objects.requireNonNull(dataNascita);
 		this.contatto = new HashMap<>();
-		contatto.put(TELEFONO, Optional.of(telefono).orElse(Optional.empty()));
-		contatto.put(EMAIL, Optional.of(email).orElse(Optional.empty()));
+		contatto.put(TELEFONO, Optional.ofNullable(telefono));
+		contatto.put(EMAIL, Optional.ofNullable(email));
 	}
 
 	protected Persona(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita) {
-		this(codiceFiscale, nome, cognome, dataNascita, Optional.empty(), Optional.empty());
+		this(codiceFiscale, nome, cognome, dataNascita, null, null);
+	}
+
+	public Persona addEmail(final String email) {
+		this.setEmail(email);
+		return this;
+	}
+
+	public Persona addTelefono(final String telefono) {
+		this.setTelefono(telefono);
+		return this;
 	}
 
 	public String getCodiceFiscale() {
@@ -49,19 +59,19 @@ public abstract class Persona {
 	}
 
 	public Optional<String> getTelefono() {
-		return this.contatto.get(TELEFONO).isEmpty() ? Optional.empty() : this.contatto.get(TELEFONO);
+		return this.contatto.get(TELEFONO);
 	}
 
 	public Optional<String> getEmail() {
-		return this.contatto.get(EMAIL).isEmpty() ? Optional.empty() : this.contatto.get(EMAIL);
+		return this.contatto.get(EMAIL);
 	}
 
 	public void setTelefono(final String telefono) {
-		this.contatto.put(TELEFONO, Optional.of(telefono));
+		this.contatto.put(TELEFONO, Optional.ofNullable(telefono));
 	}
 
 	public void setEmail(final String email) {
-		this.contatto.put(EMAIL, Optional.of(email));
+		this.contatto.put(EMAIL, Optional.ofNullable(email));
 	}
 
 	public int getId() {
@@ -69,7 +79,7 @@ public abstract class Persona {
 	}
 
 	public void setId(final int id) {
-		this.id = id;
+		this.id = Objects.requireNonNull(id);
 	}
 
 	@Override
