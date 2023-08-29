@@ -17,7 +17,7 @@ public class TipoAbbonamento {
 
 		private final String durata;
 
-		DurataAbbonamento(String durata) {
+		DurataAbbonamento(final String durata) {
 			this.durata = durata;
 		}
 
@@ -32,7 +32,7 @@ public class TipoAbbonamento {
 	private final DurataAbbonamento durata;
 	private final double prezzo;
 
-	public TipoAbbonamento(Year annoListino, DurataAbbonamento durata, double prezzo) {
+	public TipoAbbonamento(final Year annoListino, final DurataAbbonamento durata, final double prezzo) {
 		this.annoListino = Objects.requireNonNull(annoListino);
 		this.durata = Objects.requireNonNull(durata);
 		this.prezzo = Objects.requireNonNull(prezzo);

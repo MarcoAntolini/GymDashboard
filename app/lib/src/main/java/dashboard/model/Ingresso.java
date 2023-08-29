@@ -8,7 +8,7 @@ public class Ingresso {
 	private final int idCliente;
 	private final Date dataOra;
 
-	public Ingresso(int idCliente, Date dataOra) {
+	public Ingresso(final int idCliente, final Date dataOra) {
 		this.idCliente = Objects.requireNonNull(idCliente);
 		this.dataOra = Objects.requireNonNull(dataOra);
 	}

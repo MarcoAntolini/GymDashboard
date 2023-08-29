@@ -38,7 +38,7 @@ public class Dipendente extends Persona {
 		return this.stipendio;
 	}
 
-	public void setStipendio(int stipendio) {
+	public void setStipendio(final int stipendio) {
 		this.stipendio = Objects.requireNonNull(stipendio);
 	}
 

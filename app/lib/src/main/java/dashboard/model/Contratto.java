@@ -12,7 +12,7 @@ public class Contratto {
 
 		private final String tipo;
 
-		TipoContratto(String tipo) {
+		TipoContratto(final String tipo) {
 			this.tipo = tipo;
 		}
 
@@ -29,7 +29,7 @@ public class Contratto {
 	private final TipoContratto tipo;
 	private final double costoOrario;
 
-	public Contratto(int idDipendente, Date dataInizio, Date dataFine, TipoContratto tipo, double costoOrario) {
+	public Contratto(final int idDipendente, final Date dataInizio, final Date dataFine, final TipoContratto tipo, final double costoOrario) {
 		this.idDipendente = Objects.requireNonNull(idDipendente);
 		this.dataInizio = Objects.requireNonNull(dataInizio);
 		this.dataFine = Optional.ofNullable(dataFine);
@@ -37,7 +37,7 @@ public class Contratto {
 		this.costoOrario = Objects.requireNonNull(costoOrario);
 	}
 
-	public Contratto(int idDipendente, Date dataInizio, TipoContratto tipo, double costoOrario) {
+	public Contratto(final int idDipendente, final Date dataInizio, final TipoContratto tipo, final double costoOrario) {
 		this(idDipendente, dataInizio, null, tipo, costoOrario);
 	}
 

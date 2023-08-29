@@ -7,7 +7,7 @@ public class Listino {
 
 	private final Year anno;
 
-	public Listino(int anno) {
+	public Listino(final int anno) {
 		this.anno = Year.of(Objects.requireNonNull(anno));
 	}
 

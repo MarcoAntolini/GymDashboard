@@ -13,7 +13,7 @@ public class Abbonamento {
 	private final int idCliente;
 	private final Date dataAcquisto;
 
-	public Abbonamento(int idCliente, Date dataAcquisto, TipoAbbonamento tipo) {
+	public Abbonamento(final int idCliente, final Date dataAcquisto, final TipoAbbonamento tipo) {
 		this.idCliente = Objects.requireNonNull(idCliente);
 		this.dataAcquisto = Objects.requireNonNull(dataAcquisto);
 		this.tipo = Objects.requireNonNull(tipo);
