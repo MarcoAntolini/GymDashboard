@@ -73,7 +73,7 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 		return timbrature;
 	}
 
-	public boolean updateUscita(int idDipendente) {
+	public boolean updateUscita(final int idDipendente) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"UPDATE " + this.tableName + " SET uscita = NOW() WHERE idDipendente = ? AND entrata = (" +
 						"SELECT MAX(entrata) FROM timbrature WHERE idDipendente = ? AND uscita IS NULL" +
