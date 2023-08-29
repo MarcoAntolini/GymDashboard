@@ -33,7 +33,7 @@ public class TableAbbonamento extends DoubleKeyTable<Abbonamento, Integer, Date>
 						"annoListino YEAR NOT NULL, " +
 						"PRIMARY KEY (idCliente, dataAcquisto), " +
 						"FOREIGN KEY (idCliente) REFERENCES clienti(id), " +
-						"FOREIGN KEY (annoListino) REFERENCES listini(anno)" +
+						"FOREIGN KEY (annoListino, durata) REFERENCES tipiAbbonamento(annoListino, durata)" +
 						")")) {
 			statement.executeUpdate();
 			return true;
@@ -69,13 +69,13 @@ public class TableAbbonamento extends DoubleKeyTable<Abbonamento, Integer, Date>
 				final Date dataAcquisto = resultSet.getDate("dataAcquisto");
 				final String durata = resultSet.getString("durata");
 				final int annoListino = resultSet.getInt("annoListino");
-				final TableTipoAbbonamento tableTipoAbbonamento = new TableTipoAbbonamento(this.connection);
-				final Optional<TipoAbbonamento> tipoAbbonamento = tableTipoAbbonamento
+				final TableTipoAbbonamento tableTipo = new TableTipoAbbonamento(this.connection);
+				final Optional<TipoAbbonamento> tipo = tableTipo
 						.findByPrimaryKeys(Year.of(annoListino), durata);
-				if (tipoAbbonamento.isEmpty()) {
+				if (tipo.isEmpty()) {
 					break;
 				}
-				final Abbonamento abbonamento = new Abbonamento(idCliente, dataAcquisto, tipoAbbonamento.get());
+				final Abbonamento abbonamento = new Abbonamento(idCliente, dataAcquisto, tipo.get());
 				abbonamenti.add(abbonamento);
 			}
 		} catch (final SQLException e) {
