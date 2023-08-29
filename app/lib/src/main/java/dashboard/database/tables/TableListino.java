@@ -35,10 +35,10 @@ public class TableListino extends SingleKeyTable<Listino, Year> {
 	}
 
 	@Override
-	public boolean save(Listino value) {
+	public boolean save(Listino listino) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName + " (anno) VALUES (?)")) {
-			statement.setInt(1, value.getAnno().getValue());
+			statement.setInt(1, listino.getAnno().getValue());
 			statement.executeUpdate();
 			return true;
 		} catch (final SQLException e) {

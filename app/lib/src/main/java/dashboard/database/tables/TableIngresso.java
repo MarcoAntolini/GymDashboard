@@ -56,8 +56,8 @@ public class TableIngresso extends DoubleKeyTable<Ingresso, Integer, Date> {
 		List<Ingresso> ingressi = new ArrayList<>();
 		try {
 			while (resultSet.next()) {
-				int idCliente = resultSet.getInt("idCliente");
-				Date dataOra = resultSet.getDate("dataOra");
+				final int idCliente = resultSet.getInt("idCliente");
+				final Date dataOra = resultSet.getDate("dataOra");
 				Ingresso ingresso = new Ingresso(idCliente, dataOra);
 				ingressi.add(ingresso);
 			}

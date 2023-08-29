@@ -40,11 +40,11 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 	}
 
 	@Override
-	public boolean save(Timbratura value) {
+	public boolean save(Timbratura timbratura) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName + " (idDipendente, entrata) VALUES (?, ?)")) {
-			statement.setInt(1, value.getIdDipendente());
-			statement.setDate(2, value.getEntrata());
+			statement.setInt(1, timbratura.getIdDipendente());
+			statement.setDate(2, timbratura.getEntrata());
 			statement.executeUpdate();
 			return true;
 		} catch (final SQLException e) {
@@ -58,9 +58,9 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 		List<Timbratura> timbrature = new ArrayList<>();
 		try {
 			while (resultSet.next()) {
-				int idDipendente = resultSet.getInt("idDipendente");
-				Date entrata = resultSet.getDate("entrata");
-				Date uscita = resultSet.getDate("uscita");
+				final int idDipendente = resultSet.getInt("idDipendente");
+				final Date entrata = resultSet.getDate("entrata");
+				final Date uscita = resultSet.getDate("uscita");
 				Timbratura timbratura = new Timbratura(idDipendente, entrata);
 				if (uscita != null) {
 					timbratura.setUscita(uscita);

@@ -65,7 +65,7 @@ public class TableCliente extends SingleKeyTable<Cliente, Integer> {
 			}
 			statement.setDate(7, cliente.getDataIscrizione());
 			statement.executeUpdate();
-			cliente.setId(this.getLastPrimaryKeyValue());
+			cliente.setId(this.getLastId());
 			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
@@ -86,7 +86,7 @@ public class TableCliente extends SingleKeyTable<Cliente, Integer> {
 				final String telefono = resultSet.getString("telefono");
 				final String email = resultSet.getString("email");
 				final Date dataIscrizione = resultSet.getDate("dataIscrizione");
-				final Cliente cliente = new Cliente(codiceFiscale, nome, cognome, dataNascita, telefono, email,
+				Cliente cliente = new Cliente(codiceFiscale, nome, cognome, dataNascita, telefono, email,
 						dataIscrizione);
 				cliente.setId(id);
 				clienti.add(cliente);
@@ -97,7 +97,7 @@ public class TableCliente extends SingleKeyTable<Cliente, Integer> {
 		return clienti;
 	}
 
-	public int getLastPrimaryKeyValue() {
+	public int getLastId() {
 		try (final PreparedStatement statement = this.connection
 				.prepareStatement("SELECT MAX(id) FROM " + this.tableName)) {
 			final ResultSet resultSet = statement.executeQuery();

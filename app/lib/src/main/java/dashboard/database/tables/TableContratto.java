@@ -71,12 +71,12 @@ public class TableContratto extends DoubleKeyTable<Contratto, Integer, Date> {
 		List<Contratto> contratti = new ArrayList<>();
 		try {
 			while (resultSet.next()) {
-				int idDipendente = resultSet.getInt("idDipendente");
-				Date dataInizio = resultSet.getDate("dataInizio");
-				Date dataFine = resultSet.getDate("dataFine");
-				TipoContratto tipoContratto = TipoContratto.valueOf(resultSet.getString("tipo"));
-				double costoOrario = resultSet.getDouble("costoOrario");
-				Contratto contratto = new Contratto(idDipendente, dataInizio, dataFine, tipoContratto, costoOrario);
+				final int idDipendente = resultSet.getInt("idDipendente");
+				final Date dataInizio = resultSet.getDate("dataInizio");
+				final Date dataFine = resultSet.getDate("dataFine");
+				final TipoContratto tipoContratto = TipoContratto.valueOf(resultSet.getString("tipo"));
+				final double costoOrario = resultSet.getDouble("costoOrario");
+				final Contratto contratto = new Contratto(idDipendente, dataInizio, dataFine, tipoContratto, costoOrario);
 				contratti.add(contratto);
 			}
 		} catch (final SQLException e) {

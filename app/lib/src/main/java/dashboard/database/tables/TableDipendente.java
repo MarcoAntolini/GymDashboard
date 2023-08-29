@@ -67,6 +67,7 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 			statement.setDate(7, dipendente.getDataAssunzione());
 			statement.setDouble(8, dipendente.getStipendio());
 			statement.executeUpdate();
+			dipendente.setId(this.getLastId());
 			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
@@ -79,15 +80,15 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 		List<Dipendente> dipendenti = new ArrayList<>();
 		try {
 			while (resultSet.next()) {
-				int id = resultSet.getInt("id");
-				String codiceFiscale = resultSet.getString("codiceFiscale");
-				String nome = resultSet.getString("nome");
-				String cognome = resultSet.getString("cognome");
-				Date dataNascita = resultSet.getDate("dataNascita");
-				Date dataAssunzione = resultSet.getDate("dataAssunzione");
-				double stipendio = resultSet.getDouble("stipendio");
-				String telefono = resultSet.getString("telefono");
-				String email = resultSet.getString("email");
+				final int id = resultSet.getInt("id");
+				final String codiceFiscale = resultSet.getString("codiceFiscale");
+				final String nome = resultSet.getString("nome");
+				final String cognome = resultSet.getString("cognome");
+				final Date dataNascita = resultSet.getDate("dataNascita");
+				final Date dataAssunzione = resultSet.getDate("dataAssunzione");
+				final double stipendio = resultSet.getDouble("stipendio");
+				final String telefono = resultSet.getString("telefono");
+				final String email = resultSet.getString("email");
 				Dipendente dipendente = new Dipendente(codiceFiscale, nome, cognome, dataNascita, telefono, email,
 						dataAssunzione, stipendio);
 				dipendente.setId(id);
@@ -97,6 +98,18 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 			e.printStackTrace();
 		}
 		return dipendenti;
+	}
+
+	public int getLastId() {
+		try (final PreparedStatement statement = this.connection
+				.prepareStatement("SELECT MAX(id) FROM " + this.tableName)) {
+			final ResultSet resultSet = statement.executeQuery();
+			resultSet.next();
+			return resultSet.getInt(1);
+		} catch (final SQLException e) {
+			e.printStackTrace();
+			return -1;
+		}
 	}
 
 }
