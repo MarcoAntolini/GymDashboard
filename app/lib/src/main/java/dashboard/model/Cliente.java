@@ -7,25 +7,11 @@ public class Cliente extends Persona {
 
 	private final Date dataIscrizione;
 
-	public Cliente(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
-			final String telefono, final String email, final Date dataIscrizione) {
-		super(codiceFiscale, nome, cognome, dataNascita, telefono, email);
+	public Cliente(
+			final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
+			final Indirizzo indirizzo, final Contatto contatto, final Date dataIscrizione) {
+		super(codiceFiscale, nome, cognome, dataNascita, indirizzo, contatto);
 		this.dataIscrizione = Objects.requireNonNull(dataIscrizione);
-	}
-
-	public Cliente(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
-			final Date dataIscrizione) {
-		this(codiceFiscale, nome, cognome, dataNascita, null, null, dataIscrizione);
-	}
-
-	@Override
-	public Cliente addEmail(final String email) {
-		return (Cliente) super.addEmail(email);
-	}
-
-	@Override
-	public Cliente addTelefono(final String telefono) {
-		return (Cliente) super.addTelefono(telefono);
 	}
 
 	public Date getDataIscrizione() {
@@ -41,10 +27,8 @@ public class Cliente extends Persona {
 
 	@Override
 	public boolean equals(Object other) {
-		return (other instanceof Cliente) && ((Cliente) other).getCodiceFiscale().equals(this.getCodiceFiscale())
-				&& ((Cliente) other).getNome().equals(this.getNome())
-				&& ((Cliente) other).getCognome().equals(this.getCognome())
-				&& ((Cliente) other).getDataNascita().equals(this.getDataNascita())
+		return (super.equals(other))
+				&& (other instanceof Cliente)
 				&& ((Cliente) other).getDataIscrizione().equals(this.getDataIscrizione());
 	}
 
