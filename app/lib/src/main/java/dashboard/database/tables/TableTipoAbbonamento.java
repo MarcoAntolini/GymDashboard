@@ -9,6 +9,7 @@ import java.util.List;
 
 import dashboard.database.DoubleKeyTable;
 import dashboard.model.TipoAbbonamento;
+import dashboard.model.TipoAbbonamento.DurataAbbonamento;
 
 public class TableTipoAbbonamento extends DoubleKeyTable<TipoAbbonamento, Year, String> {
 
@@ -40,8 +41,7 @@ public class TableTipoAbbonamento extends DoubleKeyTable<TipoAbbonamento, Year, 
 	@Override
 	public boolean save(TipoAbbonamento tipoAbbonamento) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName
-						+ " (annoListino, durata, prezzo) VALUES (?, ?, ?)")) {
+				"INSERT INTO " + this.tableName + " (annoListino, durata, prezzo) VALUES (?, ?, ?)")) {
 			statement.setInt(1, tipoAbbonamento.getAnnoListino().getValue());
 			statement.setString(2, tipoAbbonamento.getDurata().toString());
 			statement.setDouble(3, tipoAbbonamento.getPrezzo());
@@ -61,8 +61,8 @@ public class TableTipoAbbonamento extends DoubleKeyTable<TipoAbbonamento, Year, 
 				final Year annoListino = Year.of(resultSet.getInt("annoListino"));
 				final String durata = resultSet.getString("durata");
 				final double prezzo = resultSet.getDouble("prezzo");
-				final TipoAbbonamento tipoAbbonamento = new TipoAbbonamento(annoListino,
-						TipoAbbonamento.DurataAbbonamento.valueOf(durata), prezzo);
+				final TipoAbbonamento tipoAbbonamento = new TipoAbbonamento(
+						annoListino, DurataAbbonamento.valueOf(durata), prezzo);
 				tipiAbbonamento.add(tipoAbbonamento);
 			}
 		} catch (final Exception e) {

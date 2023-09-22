@@ -45,9 +45,8 @@ public class TablePacchettoEntrate extends DoubleKeyTable<PacchettoEntrate, Inte
 
 	@Override
 	public boolean save(PacchettoEntrate pacchettoEntrate) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName
-						+ " (idCliente, dataAcquisto, annoListino, numeroEntrate, entrateRimaste) VALUES (?, ?, ?, ?, ?)")) {
+		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName
+				+ " (idCliente, dataAcquisto, annoListino, numeroEntrate, entrateRimaste) VALUES (?, ?, ?, ?, ?)")) {
 			statement.setInt(1, pacchettoEntrate.getIdCliente());
 			statement.setDate(2, pacchettoEntrate.getDataAcquisto());
 			statement.setInt(3, pacchettoEntrate.getTipo().getAnnoListino().getValue());
@@ -72,13 +71,12 @@ public class TablePacchettoEntrate extends DoubleKeyTable<PacchettoEntrate, Inte
 				final int numeroEntrate = resultSet.getInt("numeroEntrate");
 				final int entrateRimaste = resultSet.getInt("entrateRimaste");
 				final TableTipoPacchettoEntrate tableTipo = new TableTipoPacchettoEntrate(this.connection);
-				final Optional<TipoPacchettoEntrate> tipo = tableTipo.findByPrimaryKeys(Year.of(annoListino),
-						numeroEntrate);
+				final Optional<TipoPacchettoEntrate> tipo = tableTipo.findByPrimaryKeys(Year.of(annoListino), numeroEntrate);
 				if (tipo.isEmpty()) {
 					break;
 				}
-				final PacchettoEntrate pacchettoEntrate = new PacchettoEntrate(idCliente, dataAcquisto,
-						tipo.get(), entrateRimaste);
+				final PacchettoEntrate pacchettoEntrate = new PacchettoEntrate(
+						idCliente, dataAcquisto, tipo.get(), entrateRimaste);
 				pacchettiEntrate.add(pacchettoEntrate);
 			}
 		} catch (final Exception e) {

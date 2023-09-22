@@ -46,8 +46,7 @@ public class TableAbbonamento extends DoubleKeyTable<Abbonamento, Integer, Date>
 	@Override
 	public boolean save(Abbonamento abbonamento) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName
-						+ " (idCliente, dataAcquisto, durata, annoListino) VALUES (?, ?, ?, ?)")) {
+				"INSERT INTO " + this.tableName + " (idCliente, dataAcquisto, durata, annoListino) VALUES (?, ?, ?, ?)")) {
 			statement.setInt(1, abbonamento.getIdCliente());
 			statement.setDate(2, abbonamento.getDataAcquisto());
 			statement.setString(3, abbonamento.getDurata().toString());
@@ -70,8 +69,7 @@ public class TableAbbonamento extends DoubleKeyTable<Abbonamento, Integer, Date>
 				final String durata = resultSet.getString("durata");
 				final int annoListino = resultSet.getInt("annoListino");
 				final TableTipoAbbonamento tableTipo = new TableTipoAbbonamento(this.connection);
-				final Optional<TipoAbbonamento> tipo = tableTipo
-						.findByPrimaryKeys(Year.of(annoListino), durata);
+				final Optional<TipoAbbonamento> tipo = tableTipo.findByPrimaryKeys(Year.of(annoListino), durata);
 				if (tipo.isEmpty()) {
 					break;
 				}

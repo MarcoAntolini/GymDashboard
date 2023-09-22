@@ -41,8 +41,7 @@ public class TableTipoPacchettoEntrate extends DoubleKeyTable<TipoPacchettoEntra
 	@Override
 	public boolean save(TipoPacchettoEntrate tipoPacchettoEntrate) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName
-						+ " (annoListino, numeroEntrate, prezzo) VALUES (?, ?, ?)")) {
+				"INSERT INTO " + this.tableName + " (annoListino, numeroEntrate, prezzo) VALUES (?, ?, ?)")) {
 			statement.setInt(1, tipoPacchettoEntrate.getAnnoListino().getValue());
 			statement.setInt(2, tipoPacchettoEntrate.getNumeroEntrate().getNumero());
 			statement.setDouble(3, tipoPacchettoEntrate.getPrezzo());
@@ -62,8 +61,7 @@ public class TableTipoPacchettoEntrate extends DoubleKeyTable<TipoPacchettoEntra
 				final Year annoListino = Year.of(resultSet.getInt("annoListino"));
 				final NumeroEntrate numeroEntrate = NumeroEntrate.findNumero(resultSet.getInt("numeroEntrate"));
 				final double prezzo = resultSet.getDouble("prezzo");
-				final TipoPacchettoEntrate tipoPacchettoEntrate = new TipoPacchettoEntrate(annoListino, numeroEntrate,
-						prezzo);
+				final TipoPacchettoEntrate tipoPacchettoEntrate = new TipoPacchettoEntrate(annoListino, numeroEntrate, prezzo);
 				tipiPacchettoEntrate.add(tipoPacchettoEntrate);
 			}
 		} catch (final Exception e) {

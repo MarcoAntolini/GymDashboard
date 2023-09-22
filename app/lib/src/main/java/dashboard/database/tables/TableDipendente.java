@@ -47,9 +47,8 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 	@Override
 	@SuppressWarnings("java:S3655")
 	public boolean save(Dipendente dipendente) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName
-						+ " (codiceFiscale, nome, cognome, dataNascita, telefono, email, dataAssunzione, stipendio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName
+				+ " (codiceFiscale, nome, cognome, dataNascita, telefono, email, dataAssunzione, stipendio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
 			statement.setString(1, dipendente.getCodiceFiscale());
 			statement.setString(2, dipendente.getNome());
 			statement.setString(3, dipendente.getCognome());
@@ -89,8 +88,8 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 				final double stipendio = resultSet.getDouble("stipendio");
 				final String telefono = resultSet.getString("telefono");
 				final String email = resultSet.getString("email");
-				Dipendente dipendente = new Dipendente(codiceFiscale, nome, cognome, dataNascita, telefono, email,
-						dataAssunzione, stipendio);
+				Dipendente dipendente = new Dipendente(
+						codiceFiscale, nome, cognome, dataNascita, telefono, email, dataAssunzione, stipendio);
 				dipendente.setId(id);
 				dipendenti.add(dipendente);
 			}
@@ -101,8 +100,8 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 	}
 
 	public int getLastId() {
-		try (final PreparedStatement statement = this.connection
-				.prepareStatement("SELECT MAX(id) FROM " + this.tableName)) {
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT MAX(id) FROM " + this.tableName)) {
 			final ResultSet resultSet = statement.executeQuery();
 			resultSet.next();
 			return resultSet.getInt(1);

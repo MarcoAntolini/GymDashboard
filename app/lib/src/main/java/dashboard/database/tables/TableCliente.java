@@ -46,9 +46,8 @@ public class TableCliente extends SingleKeyTable<Cliente, Integer> {
 	@Override
 	@SuppressWarnings("java:S3655")
 	public boolean save(Cliente cliente) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName
-						+ " (codiceFiscale, nome, cognome, dataNascita, telefono, email, dataIscrizione) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName
+				+ " (codiceFiscale, nome, cognome, dataNascita, telefono, email, dataIscrizione) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
 			statement.setString(1, cliente.getCodiceFiscale());
 			statement.setString(2, cliente.getNome());
 			statement.setString(3, cliente.getCognome());
@@ -86,8 +85,7 @@ public class TableCliente extends SingleKeyTable<Cliente, Integer> {
 				final String telefono = resultSet.getString("telefono");
 				final String email = resultSet.getString("email");
 				final Date dataIscrizione = resultSet.getDate("dataIscrizione");
-				Cliente cliente = new Cliente(codiceFiscale, nome, cognome, dataNascita, telefono, email,
-						dataIscrizione);
+				Cliente cliente = new Cliente(codiceFiscale, nome, cognome, dataNascita, telefono, email, dataIscrizione);
 				cliente.setId(id);
 				clienti.add(cliente);
 			}
@@ -98,8 +96,8 @@ public class TableCliente extends SingleKeyTable<Cliente, Integer> {
 	}
 
 	public int getLastId() {
-		try (final PreparedStatement statement = this.connection
-				.prepareStatement("SELECT MAX(id) FROM " + this.tableName)) {
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT MAX(id) FROM " + this.tableName)) {
 			final ResultSet resultSet = statement.executeQuery();
 			resultSet.next();
 			return resultSet.getInt(1);

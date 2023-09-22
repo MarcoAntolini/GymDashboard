@@ -46,9 +46,8 @@ public class TableContratto extends DoubleKeyTable<Contratto, Integer, Date> {
 	@Override
 	@SuppressWarnings("java:S3655")
 	public boolean save(Contratto contratto) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName
-						+ " (idDipendente, dataInizio, dataFine, tipo, costoOrario) VALUES (?, ?, ?, ?, ?)")) {
+		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName
+				+ " (idDipendente, dataInizio, dataFine, tipo, costoOrario) VALUES (?, ?, ?, ?, ?)")) {
 			statement.setInt(1, contratto.getIdDipendente());
 			statement.setDate(2, contratto.getDataInizio());
 			if (contratto.getDataFine().isPresent()) {

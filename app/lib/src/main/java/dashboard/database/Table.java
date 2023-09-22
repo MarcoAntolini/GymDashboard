@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The abstract Table class represents a database table and provides basic CRUD operations.
+ * The abstract Table class represents a database table and provides basic CRUD
+ * operations.
  *
  * @param <V> the type of objects stored in the table
  * @param <K> the type of the primary key of the table
