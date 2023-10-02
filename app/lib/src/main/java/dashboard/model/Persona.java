@@ -2,11 +2,10 @@ package dashboard.model;
 
 import java.sql.Date;
 import java.util.Objects;
-import java.util.Optional;
 
 public abstract class Persona {
 
-	public class Indirizzo {
+	public static class Indirizzo {
 
 		private final String via;
 		private final String numero;
@@ -58,19 +57,19 @@ public abstract class Persona {
 
 	}
 
-	public class Contatto {
+	public static class Contatto {
 
-		private Optional<String> telefono;
-		private Optional<String> email;
+		private String telefono;
+		private String email;
 
 		public Contatto(final String telefono, final String email) {
-			this.telefono = Optional.ofNullable(telefono);
-			this.email = Optional.ofNullable(email);
+			this.telefono = telefono;
+			this.email = email;
 		}
 
 		public Contatto() {
-			this.telefono = Optional.empty();
-			this.email = Optional.empty();
+			this.telefono = "";
+			this.email = "";
 		}
 
 		public Contatto addTelefono(final String telefono) {
@@ -84,39 +83,39 @@ public abstract class Persona {
 		}
 
 		public void setTelefono(final String telefono) {
-			this.telefono = Optional.ofNullable(telefono);
+			this.telefono = telefono;
 		}
 
 		public void setEmail(final String email) {
-			this.email = Optional.ofNullable(email);
+			this.email = email;
 		}
 
 		public boolean removeTelefono() {
-			if (this.email.isPresent()) {
-				this.telefono = Optional.empty();
+			if (!this.email.equals("")) {
+				this.telefono = "";
 				return true;
 			}
 			return false;
 		}
 
 		public boolean removeEmail() {
-			if (this.telefono.isPresent()) {
-				this.email = Optional.empty();
+			if (!this.email.equals("")) {
+				this.email = "";
 				return true;
 			}
 			return false;
 		}
 
 		public String getTelefono() {
-			return this.telefono.get();
+			return this.telefono;
 		}
 
 		public String getEmail() {
-			return this.email.get();
+			return this.email;
 		}
 
 		public boolean isValid() {
-			return this.telefono.isPresent() || this.email.isPresent();
+			return !this.telefono.equals("") || !this.email.equals("");
 		}
 
 		@Override
@@ -195,8 +194,7 @@ public abstract class Persona {
 	@Override
 	public String toString() {
 		return new StringBuilder().append("(").append(getCodiceFiscale()).append(") ").append(getNome()).append(" ")
-				.append(getCognome()).append(" - ").append(getDataNascita()).append(" - ").append(getContatto())
-				.toString();
+				.append(getCognome()).append(" - ").append(getDataNascita()).append(" - ").append(getContatto()).toString();
 	}
 
 	@Override

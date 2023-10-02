@@ -6,12 +6,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
 import dashboard.database.SingleKeyTable;
 import dashboard.model.Dipendente;
+import dashboard.model.Persona.Contatto;
+import dashboard.model.Persona.Indirizzo;
 
 public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 
@@ -33,6 +34,10 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 							"dataNascita DATETIME NOT NULL, " +
 							"telefono CHAR(10), " +
 							"email CHAR(40), " +
+							"via CHAR(40), " +
+							"numero CHAR(5), " +
+							"città CHAR(40), " +
+							"provincia CHAR(2), " +
 							"dataAssunzione DATETIME NOT NULL" +
 							"stipendio DOUBLE NOT NULL" +
 							"PRIMARY KEY (id)" +
@@ -47,24 +52,21 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 	@Override
 	@SuppressWarnings("java:S3655")
 	public boolean save(Dipendente dipendente) {
-		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName
-				+ " (codiceFiscale, nome, cognome, dataNascita, telefono, email, dataAssunzione, stipendio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName +
+				" (codiceFiscale, nome, cognome, dataNascita, telefono, email, via, numero, città, provincia, dataAssunzione, stipendio)"
+				+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			statement.setString(1, dipendente.getCodiceFiscale());
 			statement.setString(2, dipendente.getNome());
 			statement.setString(3, dipendente.getCognome());
 			statement.setDate(4, dipendente.getDataNascita());
-			if (dipendente.getTelefono().isPresent()) {
-				statement.setString(5, dipendente.getTelefono().get());
-			} else {
-				statement.setNull(5, Types.VARCHAR);
-			}
-			if (dipendente.getEmail().isPresent()) {
-				statement.setString(6, dipendente.getEmail().get());
-			} else {
-				statement.setNull(6, Types.VARCHAR);
-			}
-			statement.setDate(7, dipendente.getDataAssunzione());
-			statement.setDouble(8, dipendente.getStipendio());
+			statement.setString(5, dipendente.getContatto().getTelefono());
+			statement.setString(6, dipendente.getContatto().getEmail());
+			statement.setString(7, dipendente.getIndirizzo().getVia());
+			statement.setString(8, dipendente.getIndirizzo().getNumero());
+			statement.setString(9, dipendente.getIndirizzo().getCitta());
+			statement.setString(10, dipendente.getIndirizzo().getProvincia());
+			statement.setDate(11, dipendente.getDataAssunzione());
+			statement.setDouble(12, dipendente.getStipendio());
 			statement.executeUpdate();
 			dipendente.setId(this.getLastId());
 			return true;
@@ -88,8 +90,14 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 				final double stipendio = resultSet.getDouble("stipendio");
 				final String telefono = resultSet.getString("telefono");
 				final String email = resultSet.getString("email");
-				Dipendente dipendente = new Dipendente(
-						codiceFiscale, nome, cognome, dataNascita, telefono, email, dataAssunzione, stipendio);
+				final Contatto contatto = new Contatto(telefono, email);
+				final String via = resultSet.getString("via");
+				final String numero = resultSet.getString("numero");
+				final String citta = resultSet.getString("città");
+				final String provincia = resultSet.getString("provincia");
+				final Indirizzo indirizzo = new Indirizzo(via, numero, citta, provincia);
+				final Dipendente dipendente = new Dipendente(
+						codiceFiscale, nome, cognome, dataNascita, indirizzo, contatto, dataAssunzione, stipendio);
 				dipendente.setId(id);
 				dipendenti.add(dipendente);
 			}
