@@ -38,21 +38,21 @@
 
 // @BeforeEach
 // void setUp() throws Exception {
-// table.dropTable();
-// table.createTable();
+// table.void dropTable();
+// table.void createTable();
 // }
 
 // @AfterEach
 // void tearDown() throws Exception {
-// table.dropTable();
+// table.void dropTable();
 // }
 
 // @Test
 // void creationAndDropTest() {
-// assertTrue(table.dropTable());
-// assertFalse(table.dropTable());
-// assertTrue(table.createTable());
-// assertFalse(table.createTable());
+// assertTrue(table.void dropTable());
+// assertFalse(table.void dropTable());
+// assertTrue(table.void createTable());
+// assertFalse(table.void createTable());
 // }
 
 // @Test
