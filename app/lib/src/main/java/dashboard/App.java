@@ -1,20 +1,20 @@
 package dashboard;
 
 import dashboard.database.ConnectionProvider;
-import dashboard.database.tables.TableCliente;
+import dashboard.ui.Dashboard;
+
+import javax.swing.SwingUtilities;
 
 public class App {
 
-    static final String USERNAME = "root";
-    static final String PASSWORD = "";
-    static final String DATABASE_NAME = "gym-dashboard";
+	static final String USERNAME = "root";
+	static final String PASSWORD = "";
+	static final String DATABASE_NAME = "gym-dashboard";
 
-    final ConnectionProvider connectionProvider = new ConnectionProvider(USERNAME, PASSWORD, DATABASE_NAME);
-    final TableCliente tableCliente = new TableCliente(connectionProvider.getMySQLConnection());
+	public static final ConnectionProvider CONNECTION = new ConnectionProvider(USERNAME, PASSWORD, DATABASE_NAME);
 
-    public static void main(String[] args) {
-        new YearChooserExample();
-        System.out.println("Hello, World!");
-    }
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(Dashboard::new);
+	}
 
 }
