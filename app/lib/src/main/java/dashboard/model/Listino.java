@@ -15,4 +15,25 @@ public class Listino {
 		return anno;
 	}
 
+	public Object[] toArray() {
+		return new Object[] {
+				getAnno()
+		};
+	}
+
+	@Override
+	public String toString() {
+		return anno.toString();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return (other instanceof Listino) && ((Listino) other).getAnno().equals(this.getAnno());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(anno);
+	}
+
 }

@@ -43,22 +43,28 @@ public class PacchettoEntrate {
 		this.entrateRimaste = entrateRimaste;
 	}
 
+	public Object[] toArray() {
+		return new Object[] {
+				getIdCliente(),
+				getTipo(),
+				getDataAcquisto(),
+				getEntrateRimaste()
+		};
+	}
+
 	@Override
 	public String toString() {
-		return new StringBuilder().append(idCliente).append(" - ").append(dataAcquisto).append(" - ").append(tipo)
-				.append(" - ").append(entrateRimaste).toString();
+		return new StringBuilder().append("(").append(getIdCliente()).append(") ").append(getDataAcquisto())
+				.append(" - ").append(getTipo()).append(" - ").append(getEntrateRimaste()).toString();
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof PacchettoEntrate) {
-			PacchettoEntrate otherPacchettoEntrate = (PacchettoEntrate) other;
-			return idCliente == otherPacchettoEntrate.idCliente
-					&& dataAcquisto.equals(otherPacchettoEntrate.dataAcquisto)
-					&& tipo.equals(otherPacchettoEntrate.tipo)
-					&& entrateRimaste == otherPacchettoEntrate.entrateRimaste;
-		}
-		return false;
+		return (other instanceof PacchettoEntrate)
+				&& ((PacchettoEntrate) other).getIdCliente() == this.getIdCliente()
+				&& ((PacchettoEntrate) other).getDataAcquisto().equals(this.getDataAcquisto())
+				&& ((PacchettoEntrate) other).getTipo().equals(this.getTipo())
+				&& ((PacchettoEntrate) other).getEntrateRimaste() == this.getEntrateRimaste();
 	}
 
 	@Override

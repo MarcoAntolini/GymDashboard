@@ -29,7 +29,8 @@ public class Contratto {
 	private final TipoContratto tipo;
 	private final double costoOrario;
 
-	public Contratto(final int idDipendente, final Date dataInizio, final Date dataFine, final TipoContratto tipo, final double costoOrario) {
+	public Contratto(final int idDipendente, final Date dataInizio, final Date dataFine, final TipoContratto tipo,
+			final double costoOrario) {
 		this.idDipendente = Objects.requireNonNull(idDipendente);
 		this.dataInizio = Objects.requireNonNull(dataInizio);
 		this.dataFine = Optional.ofNullable(dataFine);
@@ -61,10 +62,21 @@ public class Contratto {
 		return costoOrario;
 	}
 
+	public Object[] toArray() {
+		return new Object[] {
+				getIdDipendente(),
+				getTipo(),
+				getCostoOrario(),
+				getDataInizio(),
+				getDataFine()
+		};
+	}
+
 	@Override
 	public String toString() {
-		return "Contratto [idDipendente=" + idDipendente + ", dataInizio=" + dataInizio + ", dataFine=" + dataFine
-				+ ", tipo=" + tipo + ", costoOrario=" + costoOrario + "]";
+		return new StringBuilder().append("(").append(getIdDipendente()).append(") ").append(getDataInizio())
+				.append(" - ").append(getDataFine().orElse(null)).append(" - ").append(getTipo()).append(" - ")
+				.append(getCostoOrario()).toString();
 	}
 
 	@Override

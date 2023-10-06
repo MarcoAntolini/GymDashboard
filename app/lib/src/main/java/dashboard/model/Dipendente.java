@@ -27,6 +27,24 @@ public class Dipendente extends Persona {
 		this.stipendio = Objects.requireNonNull(stipendio);
 	}
 
+	public Object[] toArray() {
+		return new Object[] {
+				getId(),
+				getCodiceFiscale(),
+				getNome(),
+				getCognome(),
+				getDataNascita(),
+				getIndirizzo().getVia(),
+				getIndirizzo().getNumero(),
+				getIndirizzo().getCitta(),
+				getIndirizzo().getProvincia(),
+				getContatto().getTelefono(),
+				getContatto().getEmail(),
+				getDataAssunzione(),
+				getStipendio()
+		};
+	}
+
 	@Override
 	public String toString() {
 		return new StringBuilder().append("(").append(getCodiceFiscale()).append(") ").append(getNome()).append(" ")

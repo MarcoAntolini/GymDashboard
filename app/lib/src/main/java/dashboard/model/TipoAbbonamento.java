@@ -50,6 +50,14 @@ public class TipoAbbonamento {
 		return prezzo;
 	}
 
+	public Object[] toArray() {
+		return new Object[] {
+				getPrezzo(),
+				getDurata(),
+				getAnnoListino()
+		};
+	}
+
 	@Override
 	public String toString() {
 		return new StringBuilder().append(annoListino).append(" - ").append(durata).append(" - ").append(prezzo)

@@ -21,4 +21,27 @@ public class Ingresso {
 		return dataOra;
 	}
 
+	public Object[] toArray() {
+		return new Object[] {
+				getIdCliente(),
+				getDataOra()
+		};
+	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder().append("(").append(getIdCliente()).append(") ").append(getDataOra()).toString();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return (other instanceof Ingresso) && ((Ingresso) other).getIdCliente() == this.getIdCliente()
+				&& ((Ingresso) other).getDataOra().equals(this.getDataOra());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(idCliente, dataOra);
+	}
+
 }

@@ -52,6 +52,14 @@ public class TipoPacchettoEntrate {
 		return prezzo;
 	}
 
+	public Object[] toArray() {
+		return new Object[] {
+				getPrezzo(),
+				getNumeroEntrate(),
+				getAnnoListino()
+		};
+	}
+
 	@Override
 	public String toString() {
 		return new StringBuilder().append(annoListino).append(" - ").append(numeroEntrate).append(" - ").append(prezzo)
@@ -60,13 +68,10 @@ public class TipoPacchettoEntrate {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof TipoPacchettoEntrate) {
-			TipoPacchettoEntrate otherTipoPacchettoEntrate = (TipoPacchettoEntrate) other;
-			return annoListino.equals(otherTipoPacchettoEntrate.annoListino)
-					&& numeroEntrate.equals(otherTipoPacchettoEntrate.numeroEntrate)
-					&& prezzo == otherTipoPacchettoEntrate.prezzo;
-		}
-		return false;
+		return (other instanceof TipoPacchettoEntrate)
+				&& ((TipoPacchettoEntrate) other).getAnnoListino().equals(this.getAnnoListino())
+				&& ((TipoPacchettoEntrate) other).getNumeroEntrate().equals(this.getNumeroEntrate())
+				&& ((TipoPacchettoEntrate) other).getPrezzo() == this.getPrezzo();
 	}
 
 	@Override

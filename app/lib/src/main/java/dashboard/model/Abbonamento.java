@@ -1,11 +1,11 @@
 package dashboard.model;
 
+import dashboard.model.TipoAbbonamento.DurataAbbonamento;
+
 import java.sql.Date;
 import java.time.Year;
 import java.util.Calendar;
 import java.util.Objects;
-
-import dashboard.model.TipoAbbonamento.DurataAbbonamento;
 
 public class Abbonamento {
 
@@ -64,6 +64,36 @@ public class Abbonamento {
 
 	public Year getAnnoListino() {
 		return tipo.getAnnoListino();
+	}
+
+	public Object[] toArray() {
+		return new Object[] {
+				getIdCliente(),
+				getDataAcquisto(),
+				getDurata(),
+				getAnnoListino()
+		};
+	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder().append("(").append(getIdCliente()).append(") ").append(getDataAcquisto())
+				.append(" - ").append(getDataScadenza()).append(" - ").append(getDurata()).append(" - ")
+				.append(getAnnoListino()).toString();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return (other instanceof Abbonamento)
+				&& ((Abbonamento) other).getIdCliente() == this.getIdCliente()
+				&& ((Abbonamento) other).getDataAcquisto().equals(this.getDataAcquisto())
+				&& ((Abbonamento) other).getDurata().equals(this.getDurata())
+				&& ((Abbonamento) other).getAnnoListino().equals(this.getAnnoListino());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(idCliente, dataAcquisto, tipo);
 	}
 
 }
