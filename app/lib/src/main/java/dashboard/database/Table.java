@@ -40,17 +40,45 @@ public abstract class Table<V, K> {
 	}
 
 	/**
-	 * Drops the table from the database.
-	 *
-	 * @return true if the table was dropped successfully, false otherwise
+	 * Returns true if the table exists in the database, false otherwise.
+	 * 
+	 * @return true if the table exists in the database, false otherwise
 	 */
-	public boolean dropTable() {
-		try (final Statement statement = this.connection.createStatement()) {
-			statement.executeUpdate("DROP TABLE " + this.tableName);
-			return true;
+	public boolean exists() {
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ?")) {
+			statement.setString(1, this.connection.getCatalog());
+			statement.setString(2, this.tableName);
+			try (final ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getInt(1) > 0;
+				} else {
+					return false;
+				}
+			}
 		} catch (final SQLException e) {
 			e.printStackTrace();
 			return false;
+		}
+	}
+
+	/**
+	 * Creates the table if it does not already exist.
+	 */
+	public void createTable() {
+		if (!exists()) {
+			create();
+		}
+	}
+
+	/**
+	 * Drops the table from the database.
+	 */
+	public void dropTable() {
+		try (final Statement statement = this.connection.createStatement()) {
+			statement.executeUpdate("DROP TABLE " + this.tableName);
+		} catch (final SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -71,18 +99,15 @@ public abstract class Table<V, K> {
 
 	/**
 	 * Creates the table in the database.
-	 *
-	 * @return true if the table was created successfully, false otherwise
 	 */
-	public abstract boolean createTable();
+	protected abstract void create();
 
 	/**
-	 * Saves the given object to the table.
+	 * Inserts the given object into the table.
 	 *
 	 * @param value the object to save
-	 * @return true if the object was saved successfully, false otherwise
 	 */
-	public abstract boolean save(final V value);
+	public abstract void insert(final V value);
 
 	/**
 	 * Reads objects from the given ResultSet and returns them as a list.

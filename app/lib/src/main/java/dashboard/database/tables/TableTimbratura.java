@@ -1,5 +1,8 @@
 package dashboard.database.tables;
 
+import dashboard.database.DoubleKeyTable;
+import dashboard.model.Timbratura;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -9,12 +12,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import dashboard.database.DoubleKeyTable;
-import dashboard.model.Timbratura;
-
 public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 
-	protected TableTimbratura(Connection connection) {
+	public TableTimbratura(Connection connection) {
 		super(connection);
 		this.tableName = "timbrature";
 		this.primaryKeyNames.add("idDipendente");
@@ -22,7 +22,7 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 	}
 
 	@Override
-	public boolean createTable() {
+	protected void create() {
 		try (final Statement statement = this.connection.createStatement()) {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
@@ -32,24 +32,20 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 							"PRIMARY KEY (idDipendente, entrata), " +
 							"FOREIGN KEY (idDipendente) REFERENCES dipendenti(id)" +
 							")");
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
-	public boolean save(Timbratura timbratura) {
+	public void insert(Timbratura timbratura) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName + " (idDipendente, entrata) VALUES (?, ?)")) {
 			statement.setInt(1, timbratura.getIdDipendente());
 			statement.setDate(2, timbratura.getEntrata());
 			statement.executeUpdate();
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 

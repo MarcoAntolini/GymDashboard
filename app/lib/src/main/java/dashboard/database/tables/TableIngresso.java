@@ -1,5 +1,8 @@
 package dashboard.database.tables;
 
+import dashboard.database.DoubleKeyTable;
+import dashboard.model.Ingresso;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -8,12 +11,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import dashboard.database.DoubleKeyTable;
-import dashboard.model.Ingresso;
-
 public class TableIngresso extends DoubleKeyTable<Ingresso, Integer, Date> {
 
-	protected TableIngresso(Connection connection) {
+	public TableIngresso(Connection connection) {
 		super(connection);
 		this.tableName = "ingressi";
 		this.primaryKeyNames.add("idCliente");
@@ -21,7 +21,7 @@ public class TableIngresso extends DoubleKeyTable<Ingresso, Integer, Date> {
 	}
 
 	@Override
-	public boolean createTable() {
+	protected void create() {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"CREATE TABLE " + this.tableName + " (" +
 						"idCliente INT NOT NULL, " +
@@ -30,24 +30,20 @@ public class TableIngresso extends DoubleKeyTable<Ingresso, Integer, Date> {
 						"FOREIGN KEY (idCliente) REFERENCES clienti(id)" +
 						")")) {
 			statement.executeUpdate();
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
-	public boolean save(Ingresso ingresso) {
+	public void insert(Ingresso ingresso) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName + " (idCliente, dataOra) VALUES (?, ?)")) {
 			statement.setInt(1, ingresso.getIdCliente());
 			statement.setDate(2, ingresso.getDataOra());
 			statement.executeUpdate();
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 

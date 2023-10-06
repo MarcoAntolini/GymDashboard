@@ -1,5 +1,9 @@
 package dashboard.database.tables;
 
+import dashboard.database.DoubleKeyTable;
+import dashboard.model.Contratto;
+import dashboard.model.Contratto.TipoContratto;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -10,13 +14,9 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import dashboard.database.DoubleKeyTable;
-import dashboard.model.Contratto;
-import dashboard.model.Contratto.TipoContratto;
-
 public class TableContratto extends DoubleKeyTable<Contratto, Integer, Date> {
 
-	protected TableContratto(Connection connection) {
+	public TableContratto(Connection connection) {
 		super(connection);
 		this.tableName = "contratti";
 		this.primaryKeyNames.add("idDipendente");
@@ -24,7 +24,7 @@ public class TableContratto extends DoubleKeyTable<Contratto, Integer, Date> {
 	}
 
 	@Override
-	public boolean createTable() {
+	protected void create() {
 		try (final Statement statement = this.connection.createStatement()) {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
@@ -36,16 +36,14 @@ public class TableContratto extends DoubleKeyTable<Contratto, Integer, Date> {
 							"PRIMARY KEY (idDipendente, dataInizio), " +
 							"FOREIGN KEY (idDipendente) REFERENCES dipendenti(id)" +
 							")");
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
 	@SuppressWarnings("java:S3655")
-	public boolean save(Contratto contratto) {
+	public void insert(Contratto contratto) {
 		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName
 				+ " (idDipendente, dataInizio, dataFine, tipo, costoOrario) VALUES (?, ?, ?, ?, ?)")) {
 			statement.setInt(1, contratto.getIdDipendente());
@@ -58,10 +56,8 @@ public class TableContratto extends DoubleKeyTable<Contratto, Integer, Date> {
 			statement.setString(4, contratto.getTipo().toString());
 			statement.setDouble(5, contratto.getCostoOrario());
 			statement.executeUpdate();
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 

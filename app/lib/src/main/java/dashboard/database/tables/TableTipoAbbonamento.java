@@ -1,5 +1,9 @@
 package dashboard.database.tables;
 
+import dashboard.database.DoubleKeyTable;
+import dashboard.model.TipoAbbonamento;
+import dashboard.model.TipoAbbonamento.DurataAbbonamento;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,13 +11,9 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
-import dashboard.database.DoubleKeyTable;
-import dashboard.model.TipoAbbonamento;
-import dashboard.model.TipoAbbonamento.DurataAbbonamento;
-
 public class TableTipoAbbonamento extends DoubleKeyTable<TipoAbbonamento, Year, String> {
 
-	protected TableTipoAbbonamento(Connection connection) {
+	public TableTipoAbbonamento(Connection connection) {
 		super(connection);
 		this.tableName = "tipiAbbonamento";
 		this.primaryKeyNames.add("annoListino");
@@ -21,7 +21,7 @@ public class TableTipoAbbonamento extends DoubleKeyTable<TipoAbbonamento, Year, 
 	}
 
 	@Override
-	public boolean createTable() {
+	protected void create() {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"CREATE TABLE " + this.tableName + " (" +
 						"annoListino YEAR NOT NULL, " +
@@ -31,25 +31,21 @@ public class TableTipoAbbonamento extends DoubleKeyTable<TipoAbbonamento, Year, 
 						"FOREIGN KEY (annoListino) REFERENCES listini(anno)" +
 						")")) {
 			statement.executeUpdate();
-			return true;
 		} catch (final Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
-	public boolean save(TipoAbbonamento tipoAbbonamento) {
+	public void insert(TipoAbbonamento tipoAbbonamento) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName + " (annoListino, durata, prezzo) VALUES (?, ?, ?)")) {
 			statement.setInt(1, tipoAbbonamento.getAnnoListino().getValue());
 			statement.setString(2, tipoAbbonamento.getDurata().toString());
 			statement.setDouble(3, tipoAbbonamento.getPrezzo());
 			statement.executeUpdate();
-			return true;
 		} catch (final Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 

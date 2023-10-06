@@ -1,5 +1,8 @@
 package dashboard.database.tables;
 
+import dashboard.database.SingleKeyTable;
+import dashboard.model.Listino;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,42 +11,35 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
-import dashboard.database.SingleKeyTable;
-import dashboard.model.Listino;
-
 public class TableListino extends SingleKeyTable<Listino, Year> {
 
-	protected TableListino(Connection connection) {
+	public TableListino(Connection connection) {
 		super(connection);
 		this.tableName = "listini";
 		this.primaryKeyName = "anno";
 	}
 
 	@Override
-	public boolean createTable() {
+	protected void create() {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"CREATE TABLE " + this.tableName + " (" +
 						"anno YEAR NOT NULL, " +
 						"PRIMARY KEY (anno)" +
 						")")) {
 			statement.executeUpdate();
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
-	public boolean save(Listino listino) {
+	public void insert(Listino listino) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName + " (anno) VALUES (?)")) {
 			statement.setInt(1, listino.getAnno().getValue());
 			statement.executeUpdate();
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 

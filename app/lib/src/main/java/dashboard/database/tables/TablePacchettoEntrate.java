@@ -1,5 +1,9 @@
 package dashboard.database.tables;
 
+import dashboard.database.DoubleKeyTable;
+import dashboard.model.PacchettoEntrate;
+import dashboard.model.TipoPacchettoEntrate;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -9,13 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import dashboard.database.DoubleKeyTable;
-import dashboard.model.PacchettoEntrate;
-import dashboard.model.TipoPacchettoEntrate;
-
 public class TablePacchettoEntrate extends DoubleKeyTable<PacchettoEntrate, Integer, Date> {
 
-	protected TablePacchettoEntrate(Connection connection) {
+	public TablePacchettoEntrate(Connection connection) {
 		super(connection);
 		this.tableName = "pacchettiEntrate";
 		this.primaryKeyNames.add("idCliente");
@@ -23,7 +23,7 @@ public class TablePacchettoEntrate extends DoubleKeyTable<PacchettoEntrate, Inte
 	}
 
 	@Override
-	public boolean createTable() {
+	protected void create() {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"CREATE TABLE " + this.tableName + " (" +
 						"idCliente INT NOT NULL, " +
@@ -36,15 +36,13 @@ public class TablePacchettoEntrate extends DoubleKeyTable<PacchettoEntrate, Inte
 						"FOREIGN KEY (annoListino, numeroEntrate) REFERENCES tipiPacchettoEntrate(annoListino, numeroEntrate)"
 						+ ")")) {
 			statement.executeUpdate();
-			return true;
 		} catch (final Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
-	public boolean save(PacchettoEntrate pacchettoEntrate) {
+	public void insert(PacchettoEntrate pacchettoEntrate) {
 		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName
 				+ " (idCliente, dataAcquisto, annoListino, numeroEntrate, entrateRimaste) VALUES (?, ?, ?, ?, ?)")) {
 			statement.setInt(1, pacchettoEntrate.getIdCliente());
@@ -53,10 +51,8 @@ public class TablePacchettoEntrate extends DoubleKeyTable<PacchettoEntrate, Inte
 			statement.setInt(4, pacchettoEntrate.getTipo().getNumeroEntrate().getNumero());
 			statement.setInt(5, pacchettoEntrate.getEntrateRimaste());
 			statement.executeUpdate();
-			return true;
 		} catch (final Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 

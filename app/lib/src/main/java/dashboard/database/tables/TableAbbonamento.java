@@ -1,5 +1,9 @@
 package dashboard.database.tables;
 
+import dashboard.database.DoubleKeyTable;
+import dashboard.model.Abbonamento;
+import dashboard.model.TipoAbbonamento;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -10,13 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import dashboard.database.DoubleKeyTable;
-import dashboard.model.Abbonamento;
-import dashboard.model.TipoAbbonamento;
-
 public class TableAbbonamento extends DoubleKeyTable<Abbonamento, Integer, Date> {
 
-	protected TableAbbonamento(Connection connection) {
+	public TableAbbonamento(Connection connection) {
 		super(connection);
 		this.tableName = "abbonamenti";
 		this.primaryKeyNames.add("id");
@@ -24,7 +24,7 @@ public class TableAbbonamento extends DoubleKeyTable<Abbonamento, Integer, Date>
 	}
 
 	@Override
-	public boolean createTable() {
+	protected void create() {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"CREATE TABLE " + this.tableName + " (" +
 						"idCliente INT NOT NULL, " +
@@ -36,15 +36,13 @@ public class TableAbbonamento extends DoubleKeyTable<Abbonamento, Integer, Date>
 						"FOREIGN KEY (annoListino, durata) REFERENCES tipiAbbonamento(annoListino, durata)" +
 						")")) {
 			statement.executeUpdate();
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
-	public boolean save(Abbonamento abbonamento) {
+	public void insert(Abbonamento abbonamento) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName + " (idCliente, dataAcquisto, durata, annoListino) VALUES (?, ?, ?, ?)")) {
 			statement.setInt(1, abbonamento.getIdCliente());
@@ -52,10 +50,8 @@ public class TableAbbonamento extends DoubleKeyTable<Abbonamento, Integer, Date>
 			statement.setString(3, abbonamento.getDurata().toString());
 			statement.setInt(4, abbonamento.getAnnoListino().getValue());
 			statement.executeUpdate();
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 

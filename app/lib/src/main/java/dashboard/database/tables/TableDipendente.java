@@ -1,5 +1,10 @@
 package dashboard.database.tables;
 
+import dashboard.database.SingleKeyTable;
+import dashboard.model.Dipendente;
+import dashboard.model.Persona.Contatto;
+import dashboard.model.Persona.Indirizzo;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -9,21 +14,16 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import dashboard.database.SingleKeyTable;
-import dashboard.model.Dipendente;
-import dashboard.model.Persona.Contatto;
-import dashboard.model.Persona.Indirizzo;
-
 public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 
-	protected TableDipendente(Connection connection) {
+	public TableDipendente(Connection connection) {
 		super(connection);
 		this.tableName = "dipendenti";
 		this.primaryKeyName = "id";
 	}
 
 	@Override
-	public boolean createTable() {
+	protected void create() {
 		try (final Statement statement = this.connection.createStatement()) {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
@@ -42,16 +42,14 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 							"stipendio DOUBLE NOT NULL" +
 							"PRIMARY KEY (id)" +
 							")");
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
 	@SuppressWarnings("java:S3655")
-	public boolean save(Dipendente dipendente) {
+	public void insert(Dipendente dipendente) {
 		try (final PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.tableName +
 				" (codiceFiscale, nome, cognome, dataNascita, telefono, email, via, numero, città, provincia, dataAssunzione, stipendio)"
 				+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
@@ -69,10 +67,8 @@ public class TableDipendente extends SingleKeyTable<Dipendente, Integer> {
 			statement.setDouble(12, dipendente.getStipendio());
 			statement.executeUpdate();
 			dipendente.setId(this.getLastId());
-			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
