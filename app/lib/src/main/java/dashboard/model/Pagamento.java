@@ -29,11 +29,11 @@ public class Pagamento {
 	private final double importo;
 	private final TipoPagamento tipo;
 
-	public Pagamento(final int id, final Date dataOra, final double importo, final TipoPagamento tipo) {
+	public Pagamento(final int id, final Date dataOra, final double importo, final String tipo) {
 		this.id = Objects.requireNonNull(id);
 		this.dataOra = Objects.requireNonNull(dataOra);
 		this.importo = Objects.requireNonNull(importo);
-		this.tipo = Objects.requireNonNull(tipo);
+		this.tipo = Objects.requireNonNull(TipoPagamento.valueOf(tipo));
 	}
 
 	public int getId() {
@@ -48,8 +48,8 @@ public class Pagamento {
 		return importo;
 	}
 
-	public TipoPagamento getTipo() {
-		return tipo;
+	public String getTipo() {
+		return tipo.getTipo();
 	}
 
 	public Object[] toArray() {

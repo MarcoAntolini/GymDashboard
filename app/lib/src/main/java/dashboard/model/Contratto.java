@@ -7,7 +7,8 @@ public class Contratto {
 
 	public enum TipoContratto {
 
-		TEMPO_INDETERMINATO("Tempo indeterminato"), TEMPO_DETERMINATO("Tempo determinato");
+		TEMPO_INDETERMINATO("Tempo indeterminato"),
+		TEMPO_DETERMINATO("Tempo determinato");
 
 		private final String tipo;
 

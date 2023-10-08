@@ -15,6 +15,14 @@ public class Cliente extends Persona {
 		this.entrateRimaste = 0;
 	}
 
+	public Cliente(final int id, final String codiceFiscale, final String nome, final String cognome,
+			final Date dataNascita, final Indirizzo indirizzo, final Contatto contatto, final Date dataIscrizione,
+			final int entrateRimaste) {
+		super(id, codiceFiscale, nome, cognome, dataNascita, indirizzo, contatto);
+		this.dataIscrizione = Objects.requireNonNull(dataIscrizione);
+		this.entrateRimaste = Objects.requireNonNull(entrateRimaste);
+	}
+
 	public Date getDataIscrizione() {
 		return this.dataIscrizione;
 	}

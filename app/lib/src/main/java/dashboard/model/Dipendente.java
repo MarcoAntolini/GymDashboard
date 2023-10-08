@@ -13,6 +13,12 @@ public class Dipendente extends Persona {
 		this.dataAssunzione = Objects.requireNonNull(dataAssunzione);
 	}
 
+	public Dipendente(final int id, final String codiceFiscale, final String nome, final String cognome,
+			final Date dataNascita, final Indirizzo indirizzo, final Contatto contatto, final Date dataAssunzione) {
+		super(id, codiceFiscale, nome, cognome, dataNascita, indirizzo, contatto);
+		this.dataAssunzione = Objects.requireNonNull(dataAssunzione);
+	}
+
 	public Date getDataAssunzione() {
 		return this.dataAssunzione;
 	}

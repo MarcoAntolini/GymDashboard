@@ -10,10 +10,10 @@ public class Listino {
 	private final TipoProdotto tipoProdotto;
 	private final double prezzo;
 
-	public Listino(final Year anno, final String codiceProdotto, final TipoProdotto tipoProdotto, final double prezzo) {
+	public Listino(final Year anno, final String codiceProdotto, final String tipoProdotto, final double prezzo) {
 		this.anno = Objects.requireNonNull(anno);
 		this.codiceProdotto = Objects.requireNonNull(codiceProdotto);
-		this.tipoProdotto = Objects.requireNonNull(tipoProdotto);
+		this.tipoProdotto = Objects.requireNonNull(TipoProdotto.valueOf(tipoProdotto));
 		this.prezzo = Objects.requireNonNull(prezzo);
 	}
 
@@ -25,8 +25,8 @@ public class Listino {
 		return codiceProdotto;
 	}
 
-	public TipoProdotto getTipoProdotto() {
-		return tipoProdotto;
+	public String getTipoProdotto() {
+		return tipoProdotto.getTipo();
 	}
 
 	public double getPrezzo() {
@@ -36,7 +36,7 @@ public class Listino {
 	public Object[] toArray() {
 		return new Object[] {
 				getAnno(),
-				getTipoProdotto().getTipo(),
+				getTipoProdotto(),
 				getCodiceProdotto(),
 				getPrezzo()
 		};

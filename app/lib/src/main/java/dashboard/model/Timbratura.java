@@ -14,6 +14,12 @@ public class Timbratura {
 		this.entrata = Objects.requireNonNull(entrata);
 	}
 
+	public Timbratura(final int idDipendente, final Date entrata, final Date uscita) {
+		this.idDipendente = Objects.requireNonNull(idDipendente);
+		this.entrata = Objects.requireNonNull(entrata);
+		this.uscita = Objects.requireNonNull(uscita);
+	}
+
 	public int getIdDipendente() {
 		return idDipendente;
 	}

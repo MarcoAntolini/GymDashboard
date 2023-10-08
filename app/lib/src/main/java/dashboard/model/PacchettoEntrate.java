@@ -8,11 +8,16 @@ public class PacchettoEntrate {
 	private final int numeroEntrate;
 
 	public PacchettoEntrate(final int numeroEntrate) {
-		this.numeroEntrate = Objects.requireNonNull(numeroEntrate);
 		this.codice = "E_".concat(
 				numeroEntrate < 10
 						? "0".concat(String.valueOf(numeroEntrate))
 						: String.valueOf(numeroEntrate));
+		this.numeroEntrate = Objects.requireNonNull(numeroEntrate);
+	}
+
+	public PacchettoEntrate(final String codice, final int numeroEntrate) {
+		this.codice = Objects.requireNonNull(codice);
+		this.numeroEntrate = Objects.requireNonNull(numeroEntrate);
 	}
 
 	public String getCodice() {

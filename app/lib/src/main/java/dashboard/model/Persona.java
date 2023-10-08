@@ -162,6 +162,17 @@ public abstract class Persona {
 		this.contatto = Objects.requireNonNull(contatto);
 	}
 
+	protected Persona(final int id, final String codiceFiscale, final String nome, final String cognome,
+			final Date dataNascita, final Indirizzo indirizzo, final Contatto contatto) {
+		this.id = id;
+		this.codiceFiscale = Objects.requireNonNull(codiceFiscale);
+		this.nome = Objects.requireNonNull(nome);
+		this.cognome = Objects.requireNonNull(cognome);
+		this.dataNascita = Objects.requireNonNull(dataNascita);
+		this.indirizzo = Objects.requireNonNull(indirizzo);
+		this.contatto = Objects.requireNonNull(contatto);
+	}
+
 	public String getCodiceFiscale() {
 		return this.codiceFiscale;
 	}

@@ -12,11 +12,11 @@ public class Acquisto {
 	private final String codiceProdotto;
 
 	public Acquisto(final int idCliente, final Date dataOra, final double importo,
-			final TipoProdotto tipoAcquisto, final String codiceProdotto) {
+			final String tipoAcquisto, final String codiceProdotto) {
 		this.idCliente = Objects.requireNonNull(idCliente);
 		this.dataOra = Objects.requireNonNull(dataOra);
 		this.importo = Objects.requireNonNull(importo);
-		this.tipoProdotto = Objects.requireNonNull(tipoAcquisto);
+		this.tipoProdotto = Objects.requireNonNull(TipoProdotto.valueOf(tipoAcquisto));
 		this.codiceProdotto = Objects.requireNonNull(codiceProdotto);
 	}
 
@@ -33,8 +33,8 @@ public class Acquisto {
 		return importo;
 	}
 
-	public TipoProdotto getTipoProdotto() {
-		return tipoProdotto;
+	public String getTipoProdotto() {
+		return tipoProdotto.getTipo();
 	}
 
 	public String getCodiceProdotto() {
@@ -46,7 +46,7 @@ public class Acquisto {
 				getIdCliente(),
 				getDataOra(),
 				getImporto(),
-				getTipoProdotto().getTipo(),
+				getTipoProdotto(),
 				getCodiceProdotto()
 		};
 	}

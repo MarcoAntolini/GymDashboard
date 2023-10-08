@@ -8,11 +8,16 @@ public class Abbonamento {
 	private final int durata;
 
 	public Abbonamento(final int durata) {
-		this.durata = Objects.requireNonNull(durata);
 		this.codice = "A_".concat(
 				durata < 10
 						? "0".concat(String.valueOf(durata))
 						: String.valueOf(durata));
+		this.durata = Objects.requireNonNull(durata);
+	}
+
+	public Abbonamento(final String codice, final int durata) {
+		this.codice = Objects.requireNonNull(codice);
+		this.durata = Objects.requireNonNull(durata);
 	}
 
 	public String getCodice() {
