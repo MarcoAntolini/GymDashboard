@@ -37,7 +37,8 @@ public abstract class SingleKeyTable<V, K> extends Table<V, K> {
 	 *         not found
 	 */
 	public Optional<V> findByPrimaryKey(final K primaryKey) {
-		String sql = "SELECT * FROM " + this.tableName + " WHERE " + this.primaryKeyName + " = ?";
+		String sql = "SELECT * FROM " + this.tableName + " WHERE "
+				+ this.primaryKeyName + " = ?";
 		try (final PreparedStatement statement = this.connection.prepareStatement(sql)) {
 			statement.setObject(1, primaryKey);
 			final ResultSet resultSet = statement.executeQuery();
@@ -93,7 +94,8 @@ public abstract class SingleKeyTable<V, K> extends Table<V, K> {
 			if (this.findByPrimaryKey(primaryKey).isEmpty()) {
 				return false;
 			}
-			String sql = "DELETE FROM " + this.tableName + " WHERE " + this.primaryKeyName + " = ?";
+			String sql = "DELETE FROM " + this.tableName + " WHERE "
+					+ this.primaryKeyName + " = ?";
 			try (final PreparedStatement statement = this.connection.prepareStatement(sql)) {
 				statement.setObject(1, primaryKey);
 				statement.executeUpdate();

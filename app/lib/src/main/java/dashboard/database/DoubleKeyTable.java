@@ -25,7 +25,7 @@ public abstract class DoubleKeyTable<V, K1, K2> extends Table<V, K1> {
 	 *
 	 * @param connection the database connection to use
 	 */
-	protected DoubleKeyTable(Connection connection) {
+	protected DoubleKeyTable(final Connection connection) {
 		super(connection);
 		this.primaryKeyNames = new ArrayList<>();
 	}
@@ -39,7 +39,8 @@ public abstract class DoubleKeyTable<V, K1, K2> extends Table<V, K1> {
 	 *         not found
 	 */
 	public Optional<V> findByPrimaryKeys(final K1 primaryKey1, final K2 primaryKey2) {
-		String sql = "SELECT * FROM " + this.tableName + " WHERE " + this.primaryKeyNames.get(0) + " = ? AND "
+		String sql = "SELECT * FROM " + this.tableName + " WHERE "
+				+ this.primaryKeyNames.get(0) + " = ? AND "
 				+ this.primaryKeyNames.get(1) + " = ?";
 		try (final PreparedStatement statement = this.connection.prepareStatement(sql)) {
 			statement.setObject(1, primaryKey1);
@@ -72,7 +73,8 @@ public abstract class DoubleKeyTable<V, K1, K2> extends Table<V, K1> {
 			sql.append(fieldName).append(" = ?");
 			firstField = false;
 		}
-		sql.append(" WHERE ").append(this.primaryKeyNames.get(0)).append(" = ? AND ")
+		sql.append(" WHERE ")
+				.append(this.primaryKeyNames.get(0)).append(" = ? AND ")
 				.append(this.primaryKeyNames.get(1)).append(" = ?");
 		try (final PreparedStatement statement = this.connection.prepareStatement(sql.toString())) {
 			int parameterIndex = 1;
@@ -96,12 +98,13 @@ public abstract class DoubleKeyTable<V, K1, K2> extends Table<V, K1> {
 	 * @param primaryKey2 the second primary key of the object to delete
 	 * @return true if the object was deleted successfully, false otherwise
 	 */
-	public boolean delete(final K1 primaryKey1, K2 primaryKey2) {
+	public boolean delete(final K1 primaryKey1, final K2 primaryKey2) {
 		try {
 			if (this.findByPrimaryKeys(primaryKey1, primaryKey2).isEmpty()) {
 				return false;
 			}
-			String sql = "DELETE FROM " + this.tableName + " WHERE " + this.primaryKeyNames.get(0) + " = ? AND "
+			String sql = "DELETE FROM " + this.tableName + " WHERE "
+					+ this.primaryKeyNames.get(0) + " = ? AND "
 					+ this.primaryKeyNames.get(1) + " = ?";
 			try (final PreparedStatement statement = this.connection.prepareStatement(sql)) {
 				statement.setObject(1, primaryKey1);
