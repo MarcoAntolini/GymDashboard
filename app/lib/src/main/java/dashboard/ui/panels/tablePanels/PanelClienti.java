@@ -1,6 +1,6 @@
 package dashboard.ui.panels.tablePanels;
 
-import dashboard.database.tables.TableCliente;
+import dashboard.database.tables.TableClienti;
 import dashboard.model.Cliente;
 import dashboard.ui.panels.Panel;
 
@@ -9,11 +9,11 @@ import static dashboard.ui.panels.tablePanels.ColumnNames.COLUMNS_CLIENTI;
 
 public class PanelClienti extends Panel {
 
-	private final transient TableCliente db;
+	private final transient TableClienti db;
 
 	public PanelClienti() {
 		super();
-		this.db = new TableCliente(CONNECTION.getMySQLConnection());
+		this.db = new TableClienti(CONNECTION.getMySQLConnection());
 		db.createTable();
 		setupTablePanel();
 
@@ -27,7 +27,7 @@ public class PanelClienti extends Panel {
 	}
 
 	private void test() {
-		int id = db.insertAndGetId(new Cliente("NTLMRC099BLJKLG7", "Marco", "Antolini", new java.sql.Date(0),
+		db.insert(new Cliente("NTLMRC099BLJKLG7", "Marco", "Antolini", new java.sql.Date(0),
 				new Cliente.Indirizzo("Via Innocenzo Golfarelli", "7", "Domodossola", "BO"),
 				new Cliente.Contatto("3403771129", "marco.antolini2001@gmail.com"),
 				new java.sql.Date(0)));
