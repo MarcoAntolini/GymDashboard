@@ -12,9 +12,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
+public class TableTimbrature extends DoubleKeyTable<Timbratura, Integer, Date> {
 
-	public TableTimbratura(Connection connection) {
+	public TableTimbrature(final Connection connection) {
 		super(connection);
 		this.tableName = "timbrature";
 		this.primaryKeyNames.add("idDipendente");
@@ -30,7 +30,7 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 							"entrata DATETIME NOT NULL, " +
 							"uscita DATETIME, " +
 							"PRIMARY KEY (idDipendente, entrata), " +
-							"FOREIGN KEY (idDipendente) REFERENCES dipendenti(id)" +
+							"FOREIGN KEY (idDipendente) REFERENCES dipendenti(id) ON DELETE CASCADE ON UPDATE CASCADE" +
 							")");
 		} catch (final SQLException e) {
 			e.printStackTrace();
@@ -38,9 +38,11 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 	}
 
 	@Override
-	public void insert(Timbratura timbratura) {
+	public void insert(final Timbratura timbratura) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName + " (idDipendente, entrata) VALUES (?, ?)")) {
+				"INSERT INTO " + this.tableName +
+						" (idDipendente, entrata)" +
+						" VALUES (?, ?)")) {
 			statement.setInt(1, timbratura.getIdDipendente());
 			statement.setDate(2, timbratura.getEntrata());
 			statement.executeUpdate();
@@ -50,18 +52,14 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 	}
 
 	@Override
-	protected List<Timbratura> readObjectFromResultSet(ResultSet resultSet) {
+	protected List<Timbratura> readObjectFromResultSet(final ResultSet resultSet) {
 		List<Timbratura> timbrature = new ArrayList<>();
 		try {
 			while (resultSet.next()) {
-				final int idDipendente = resultSet.getInt("idDipendente");
-				final Date entrata = resultSet.getDate("entrata");
-				final Date uscita = resultSet.getDate("uscita");
-				Timbratura timbratura = new Timbratura(idDipendente, entrata);
-				if (uscita != null) {
-					timbratura.setUscita(uscita);
-				}
-				timbrature.add(timbratura);
+				timbrature.add(new Timbratura(
+						resultSet.getInt("idDipendente"),
+						resultSet.getDate("entrata"),
+						resultSet.getDate("uscita")));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -69,10 +67,16 @@ public class TableTimbratura extends DoubleKeyTable<Timbratura, Integer, Date> {
 		return timbrature;
 	}
 
+	@SuppressWarnings("java:S2479")
 	public boolean updateUscita(final int idDipendente) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"UPDATE " + this.tableName + " SET uscita = NOW() WHERE idDipendente = ? AND entrata = (" +
-						"SELECT MAX(entrata) FROM timbrature WHERE idDipendente = ? AND uscita IS NULL" +
+				"UPDATE " + this.tableName +
+						" SET uscita = NOW() WHERE" +
+						" 	idDipendente = ? AND" +
+						" 	entrata = (" +
+						"			SELECT MAX(entrata) FROM timbrature WHERE" +
+						" 			idDipendente = ? AND" +
+						" 			uscita IS NULL" +
 						");")) {
 			statement.setInt(1, idDipendente);
 			statement.setInt(2, idDipendente);

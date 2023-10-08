@@ -11,9 +11,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TableIngresso extends DoubleKeyTable<Ingresso, Integer, Date> {
+public class TableIngressi extends DoubleKeyTable<Ingresso, Integer, Date> {
 
-	public TableIngresso(Connection connection) {
+	public TableIngressi(final Connection connection) {
 		super(connection);
 		this.tableName = "ingressi";
 		this.primaryKeyNames.add("idCliente");
@@ -27,7 +27,7 @@ public class TableIngresso extends DoubleKeyTable<Ingresso, Integer, Date> {
 						"idCliente INT NOT NULL, " +
 						"dataOra DATETIME NOT NULL, " +
 						"PRIMARY KEY (idCliente, dataOra), " +
-						"FOREIGN KEY (idCliente) REFERENCES clienti(id)" +
+						"FOREIGN KEY (idCliente) REFERENCES clienti(id) ON DELETE CASCADE ON UPDATE CASCADE" +
 						")")) {
 			statement.executeUpdate();
 		} catch (final SQLException e) {
@@ -36,9 +36,11 @@ public class TableIngresso extends DoubleKeyTable<Ingresso, Integer, Date> {
 	}
 
 	@Override
-	public void insert(Ingresso ingresso) {
+	public void insert(final Ingresso ingresso) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
-				"INSERT INTO " + this.tableName + " (idCliente, dataOra) VALUES (?, ?)")) {
+				"INSERT INTO " + this.tableName +
+						" (idCliente, dataOra)" +
+						" VALUES (?, ?)")) {
 			statement.setInt(1, ingresso.getIdCliente());
 			statement.setDate(2, ingresso.getDataOra());
 			statement.executeUpdate();
@@ -48,14 +50,13 @@ public class TableIngresso extends DoubleKeyTable<Ingresso, Integer, Date> {
 	}
 
 	@Override
-	protected List<Ingresso> readObjectFromResultSet(ResultSet resultSet) {
+	protected List<Ingresso> readObjectFromResultSet(final ResultSet resultSet) {
 		List<Ingresso> ingressi = new ArrayList<>();
 		try {
 			while (resultSet.next()) {
-				final int idCliente = resultSet.getInt("idCliente");
-				final Date dataOra = resultSet.getDate("dataOra");
-				Ingresso ingresso = new Ingresso(idCliente, dataOra);
-				ingressi.add(ingresso);
+				ingressi.add(new Ingresso(
+						resultSet.getInt("idCliente"),
+						resultSet.getDate("dataOra")));
 			}
 		} catch (final SQLException e) {
 			e.printStackTrace();
