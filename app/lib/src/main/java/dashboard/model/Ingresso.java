@@ -30,12 +30,16 @@ public class Ingresso {
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("(").append(getIdCliente()).append(") ").append(getDataOra()).toString();
+		return new StringBuilder()
+				.append("(").append(getIdCliente()).append(") ")
+				.append(getDataOra())
+				.toString();
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return (other instanceof Ingresso) && ((Ingresso) other).getIdCliente() == this.getIdCliente()
+		return (other instanceof Ingresso)
+				&& ((Ingresso) other).getIdCliente() == this.getIdCliente()
 				&& ((Ingresso) other).getDataOra().equals(this.getDataOra());
 	}
 

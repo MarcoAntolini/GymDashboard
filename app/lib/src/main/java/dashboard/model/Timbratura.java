@@ -22,12 +22,12 @@ public class Timbratura {
 		return entrata;
 	}
 
-	public void setUscita(final Date uscita) {
-		this.uscita = Objects.requireNonNull(uscita);
-	}
-
 	public Date getUscita() {
 		return uscita;
+	}
+
+	public void setUscita(final Date uscita) {
+		this.uscita = Objects.requireNonNull(uscita);
 	}
 
 	public Object[] toArray() {
@@ -40,8 +40,11 @@ public class Timbratura {
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("(").append(getIdDipendente()).append(") ").append(getEntrata()).append(" - ")
-				.append(getUscita()).toString();
+		return new StringBuilder()
+				.append("(").append(getIdDipendente()).append(") ")
+				.append(getEntrata()).append(" - ")
+				.append(getUscita())
+				.toString();
 	}
 
 	@Override

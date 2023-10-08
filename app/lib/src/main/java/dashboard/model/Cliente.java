@@ -6,15 +6,29 @@ import java.util.Objects;
 public class Cliente extends Persona {
 
 	private final Date dataIscrizione;
+	private int entrateRimaste;
 
 	public Cliente(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
 			final Indirizzo indirizzo, final Contatto contatto, final Date dataIscrizione) {
 		super(codiceFiscale, nome, cognome, dataNascita, indirizzo, contatto);
 		this.dataIscrizione = Objects.requireNonNull(dataIscrizione);
+		this.entrateRimaste = 0;
 	}
 
 	public Date getDataIscrizione() {
 		return this.dataIscrizione;
+	}
+
+	public int getEntrateRimaste() {
+		return this.entrateRimaste;
+	}
+
+	public void incrementEntrateRimaste(final int entrateRimaste) {
+		this.entrateRimaste += entrateRimaste;
+	}
+
+	public void decrementEntrateRimaste() {
+		this.entrateRimaste--;
 	}
 
 	public Object[] toArray() {
@@ -30,14 +44,22 @@ public class Cliente extends Persona {
 				getIndirizzo().getProvincia(),
 				getContatto().getTelefono(),
 				getContatto().getEmail(),
-				getDataIscrizione()
+				getDataIscrizione(),
+				getEntrateRimaste()
 		};
 	}
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("(").append(getCodiceFiscale()).append(") ").append(getNome()).append(" ")
-				.append(getCognome()).append(" - ").append(getDataNascita()).append(" - ").append(getDataIscrizione())
+		return new StringBuilder()
+				.append("(").append(getCodiceFiscale()).append(") ")
+				.append(getNome()).append(" ")
+				.append(getCognome()).append(" - ")
+				.append(getDataNascita()).append(" - ")
+				.append(getContatto().toString()).append(" - ")
+				.append(getIndirizzo().toString()).append(" - ")
+				.append(getDataIscrizione()).append(" - ")
+				.append(getEntrateRimaste())
 				.toString();
 	}
 
@@ -45,12 +67,13 @@ public class Cliente extends Persona {
 	public boolean equals(Object other) {
 		return (super.equals(other))
 				&& (other instanceof Cliente)
-				&& ((Cliente) other).getDataIscrizione().equals(this.getDataIscrizione());
+				&& ((Cliente) other).getDataIscrizione().equals(this.getDataIscrizione())
+				&& ((Cliente) other).getEntrateRimaste() == this.getEntrateRimaste();
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() + Objects.hash(dataIscrizione);
+		return super.hashCode() + Objects.hash(dataIscrizione, entrateRimaste);
 	}
 
 }

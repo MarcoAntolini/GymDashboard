@@ -2,7 +2,6 @@ package dashboard.model;
 
 import java.sql.Date;
 import java.util.Objects;
-import java.util.Optional;
 
 public class Contratto {
 
@@ -25,7 +24,7 @@ public class Contratto {
 
 	private final int idDipendente;
 	private final Date dataInizio;
-	private final Optional<Date> dataFine;
+	private final Date dataFine;
 	private final TipoContratto tipo;
 	private final double costoOrario;
 
@@ -33,7 +32,7 @@ public class Contratto {
 			final double costoOrario) {
 		this.idDipendente = Objects.requireNonNull(idDipendente);
 		this.dataInizio = Objects.requireNonNull(dataInizio);
-		this.dataFine = Optional.ofNullable(dataFine);
+		this.dataFine = dataFine;
 		this.tipo = Objects.requireNonNull(tipo);
 		this.costoOrario = Objects.requireNonNull(costoOrario);
 	}
@@ -50,7 +49,7 @@ public class Contratto {
 		return dataInizio;
 	}
 
-	public Optional<Date> getDataFine() {
+	public Date getDataFine() {
 		return dataFine;
 	}
 
@@ -74,14 +73,19 @@ public class Contratto {
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("(").append(getIdDipendente()).append(") ").append(getDataInizio())
-				.append(" - ").append(getDataFine().orElse(null)).append(" - ").append(getTipo()).append(" - ")
-				.append(getCostoOrario()).toString();
+		return new StringBuilder()
+				.append("(").append(getIdDipendente()).append(") ")
+				.append(getDataInizio()).append(" - ")
+				.append(getDataFine()).append(" - ")
+				.append(getTipo()).append(" - ")
+				.append(getCostoOrario())
+				.toString();
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return (other instanceof Contratto) && ((Contratto) other).getIdDipendente() == this.getIdDipendente()
+		return (other instanceof Contratto)
+				&& ((Contratto) other).getIdDipendente() == this.getIdDipendente()
 				&& ((Contratto) other).getDataInizio().equals(this.getDataInizio())
 				&& ((Contratto) other).getDataFine().equals(this.getDataFine())
 				&& ((Contratto) other).getTipo().equals(this.getTipo())
@@ -90,7 +94,7 @@ public class Contratto {
 
 	@Override
 	public int hashCode() {
-		return idDipendente + dataInizio.hashCode() + dataFine.hashCode() + tipo.hashCode() + (int) costoOrario;
+		return Objects.hash(idDipendente, dataInizio, dataFine, tipo, costoOrario);
 	}
 
 }

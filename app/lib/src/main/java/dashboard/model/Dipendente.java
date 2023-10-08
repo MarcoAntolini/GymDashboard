@@ -6,25 +6,15 @@ import java.util.Objects;
 public class Dipendente extends Persona {
 
 	private final Date dataAssunzione;
-	private double stipendio;
 
 	public Dipendente(final String codiceFiscale, final String nome, final String cognome, final Date dataNascita,
-			final Indirizzo indirizzo, final Contatto contatto, final Date dataAssunzione, final double stipendio) {
+			final Indirizzo indirizzo, final Contatto contatto, final Date dataAssunzione) {
 		super(codiceFiscale, nome, cognome, dataNascita, indirizzo, contatto);
 		this.dataAssunzione = Objects.requireNonNull(dataAssunzione);
-		this.stipendio = Objects.requireNonNull(stipendio);
 	}
 
 	public Date getDataAssunzione() {
 		return this.dataAssunzione;
-	}
-
-	public double getStipendio() {
-		return this.stipendio;
-	}
-
-	public void setStipendio(final int stipendio) {
-		this.stipendio = Objects.requireNonNull(stipendio);
 	}
 
 	public Object[] toArray() {
@@ -41,28 +31,32 @@ public class Dipendente extends Persona {
 				getContatto().getTelefono(),
 				getContatto().getEmail(),
 				getDataAssunzione(),
-				getStipendio()
 		};
 	}
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("(").append(getCodiceFiscale()).append(") ").append(getNome()).append(" ")
-				.append(getCognome()).append(" - ").append(getDataNascita()).append(" - ").append(getDataAssunzione())
-				.append(" - ").append(getStipendio()).toString();
+		return new StringBuilder()
+				.append("(").append(getCodiceFiscale()).append(") ")
+				.append(getNome()).append(" ")
+				.append(getCognome()).append(" - ")
+				.append(getDataNascita()).append(" - ")
+				.append(getContatto().toString()).append(" - ")
+				.append(getIndirizzo().toString()).append(" - ")
+				.append(getDataAssunzione())
+				.toString();
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		return (super.equals(other))
 				&& (other instanceof Dipendente)
-				&& ((Dipendente) other).getDataAssunzione().equals(this.getDataAssunzione())
-				&& ((Dipendente) other).getStipendio() == this.getStipendio();
+				&& ((Dipendente) other).getDataAssunzione().equals(this.getDataAssunzione());
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() + Objects.hash(dataAssunzione, stipendio);
+		return super.hashCode() + Objects.hash(dataAssunzione);
 	}
 
 }

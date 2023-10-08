@@ -1,75 +1,53 @@
 package dashboard.model;
 
-import java.sql.Date;
 import java.util.Objects;
 
 public class PacchettoEntrate {
 
-	private final int idCliente;
-	private final Date dataAcquisto;
-	private final TipoPacchettoEntrate tipo;
-	private int entrateRimaste;
+	private final String codice;
+	private final int numeroEntrate;
 
-	public PacchettoEntrate(final int idCliente, final Date dataAcquisto, final TipoPacchettoEntrate tipo) {
-		this.idCliente = Objects.requireNonNull(idCliente);
-		this.dataAcquisto = Objects.requireNonNull(dataAcquisto);
-		this.tipo = Objects.requireNonNull(tipo);
-		this.entrateRimaste = tipo.getNumeroEntrate().getNumero();
+	public PacchettoEntrate(final int numeroEntrate) {
+		this.numeroEntrate = Objects.requireNonNull(numeroEntrate);
+		this.codice = "E_".concat(
+				numeroEntrate < 10
+						? "0".concat(String.valueOf(numeroEntrate))
+						: String.valueOf(numeroEntrate));
 	}
 
-	public PacchettoEntrate(final int idCliente, final Date dataAcquisto, final TipoPacchettoEntrate tipo,
-			final int entrateRimaste) {
-		this(idCliente, dataAcquisto, tipo);
-		this.entrateRimaste = Objects.requireNonNull(entrateRimaste);
+	public String getCodice() {
+		return codice;
 	}
 
-	public int getIdCliente() {
-		return idCliente;
-	}
-
-	public Date getDataAcquisto() {
-		return dataAcquisto;
-	}
-
-	public TipoPacchettoEntrate getTipo() {
-		return tipo;
-	}
-
-	public int getEntrateRimaste() {
-		return entrateRimaste;
-	}
-
-	public void setEntrateRimaste(int entrateRimaste) {
-		this.entrateRimaste = entrateRimaste;
+	public int getNumeroEntrate() {
+		return numeroEntrate;
 	}
 
 	public Object[] toArray() {
 		return new Object[] {
-				getIdCliente(),
-				getTipo(),
-				getDataAcquisto(),
-				getEntrateRimaste()
+				getCodice(),
+				getNumeroEntrate(),
 		};
 	}
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("(").append(getIdCliente()).append(") ").append(getDataAcquisto())
-				.append(" - ").append(getTipo()).append(" - ").append(getEntrateRimaste()).toString();
+		return new StringBuilder()
+				.append(getNumeroEntrate()).append(" entrate")
+				.append(" (").append(getCodice()).append(")")
+				.toString();
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return (other instanceof PacchettoEntrate)
-				&& ((PacchettoEntrate) other).getIdCliente() == this.getIdCliente()
-				&& ((PacchettoEntrate) other).getDataAcquisto().equals(this.getDataAcquisto())
-				&& ((PacchettoEntrate) other).getTipo().equals(this.getTipo())
-				&& ((PacchettoEntrate) other).getEntrateRimaste() == this.getEntrateRimaste();
+		return other instanceof PacchettoEntrate
+				&& ((PacchettoEntrate) other).getCodice().equals(this.getCodice())
+				&& ((PacchettoEntrate) other).getNumeroEntrate() == this.getNumeroEntrate();
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(idCliente, dataAcquisto, tipo, entrateRimaste);
+		return Objects.hash(codice, numeroEntrate);
 	}
 
 }

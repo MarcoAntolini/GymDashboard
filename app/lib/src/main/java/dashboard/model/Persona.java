@@ -37,8 +37,12 @@ public abstract class Persona {
 
 		@Override
 		public String toString() {
-			return new StringBuilder().append(via).append(" ").append(numero).append(" - ").append(citta).append(" (")
-					.append(provincia).append(")").toString();
+			return new StringBuilder()
+					.append(via).append(" ")
+					.append(numero).append(" - ")
+					.append(citta).append(" (")
+					.append(provincia).append(")")
+					.toString();
 		}
 
 		@Override
@@ -120,7 +124,10 @@ public abstract class Persona {
 
 		@Override
 		public String toString() {
-			return new StringBuilder().append(telefono).append(" - ").append(email).toString();
+			return new StringBuilder()
+					.append(telefono).append(" - ")
+					.append(email)
+					.toString();
 		}
 
 		@Override
@@ -193,8 +200,14 @@ public abstract class Persona {
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("(").append(getCodiceFiscale()).append(") ").append(getNome()).append(" ")
-				.append(getCognome()).append(" - ").append(getDataNascita()).append(" - ").append(getContatto()).toString();
+		return new StringBuilder()
+				.append("(").append(getCodiceFiscale()).append(") ")
+				.append(getNome()).append(" ")
+				.append(getCognome()).append(" - ")
+				.append(getDataNascita()).append(" - ")
+				.append(getContatto().toString()).append(" - ")
+				.append(getIndirizzo().toString())
+				.toString();
 	}
 
 	@Override
