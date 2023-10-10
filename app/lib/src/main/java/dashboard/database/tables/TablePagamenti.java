@@ -24,7 +24,7 @@ public class TablePagamenti extends SingleKeyTable<Pagamento, Integer> {
 		try (final Statement statement = this.connection.createStatement()) {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
-							"id INT NOT NULL, " +
+							"id INT(4) ZEROFILL NOT NULL AUTO_INCREMENT, " +
 							"dataOra DATETIME NOT NULL, " +
 							"importo DOUBLE NOT NULL, " +
 							"tipo ENUM('stipendio', 'bolletta', 'attrezzatura, 'intervento'') NOT NULL, " +

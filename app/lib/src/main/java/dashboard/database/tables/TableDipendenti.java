@@ -27,7 +27,7 @@ public class TableDipendenti extends SingleKeyTable<Dipendente, Integer> {
 		try (final Statement statement = this.connection.createStatement()) {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
-							"id INT NOT NULL AUTO_INCREMENT, " +
+							"id INT(2) ZEROFILL NOT NULL AUTO_INCREMENT, " +
 							"codiceFiscale CHAR(16) NOT NULL, " +
 							"nome CHAR(20) NOT NULL, " +
 							"cognome CHAR(20) NOT NULL, " +
