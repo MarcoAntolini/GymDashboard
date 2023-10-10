@@ -1,7 +1,10 @@
 package dashboard.database.tables;
 
 import dashboard.database.TripleKeyTable;
+import dashboard.model.Abbonamento;
 import dashboard.model.Listino;
+import dashboard.model.PacchettoEntrate;
+import dashboard.model.Prodotto;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,22 +24,16 @@ public class TableListini extends TripleKeyTable<Listino, Year, String, String> 
 		this.primaryKeyNames.add("codice");
 	}
 
-	// TODO come le faccio le foreign key
-	// private void soloperilgiallo() {}
-
 	@Override
 	protected void create() {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"CREATE TABLE " + this.tableName + " (" +
 						"anno INT NOT NULL, " +
-						"tipo CHAR(20) NOT NULL, " +
+						"tipo ENUM('abbonamento', 'pacchetto entrate') NOT NULL, " +
 						"codice CHAR(4) NOT NULL, " +
 						"prezzo FLOAT NOT NULL, " +
 						"PRIMARY KEY (anno, tipo, codice), " +
-						// "FOREIGN KEY (tipo) REFERENCES tipi(tipo) ON DELETE CASCADE ON UPDATE
-						// CASCADE, " +
-						// "FOREIGN KEY (codice) REFERENCES abbonamenti(codice) ON DELETE CASCADE ON
-						// UPDATE CASCADE" +
+						"FOREIGN KEY (codice) REFERENCES prodotti(codice) ON DELETE CASCADE ON UPDATE CASCADE" +
 						")")) {
 			statement.executeUpdate();
 		} catch (final SQLException e) {
@@ -75,6 +72,54 @@ public class TableListini extends TripleKeyTable<Listino, Year, String, String> 
 			e.printStackTrace();
 		}
 		return listini;
+	}
+
+	/**
+	 * Returns the {@link Prodotto} with the given {@code codice}.
+	 * 
+	 * @param codice the codice of the {@link Prodotto} to return
+	 * @return the {@link Prodotto} with the given {@code codice}
+	 */
+	@SuppressWarnings("java:S2479")
+	public Prodotto getProdottoByCodice(final String codice) {
+		try (final PreparedStatement preparedStatement = this.connection.prepareStatement("""
+				SELECT
+					prodotti.codice,
+					CASE
+						WHEN listini.tipo = 'abbonamento' THEN abbonamenti.durata
+					END AS durata,
+					CASE
+						WHEN listini.tipo = 'pacchetto entrate' THEN pacchetti.numeroEntrate
+					END AS numeroEntrate
+				FROM
+					prodotti
+				LEFT JOIN
+					abbonamenti ON prodotti.codice = abbonamenti.codice
+				LEFT JOIN
+					pacchetti ON prodotti.codice = pacchetti.codice
+				INNER JOIN
+					listini ON prodotti.codice = listini.codice
+				WHERE
+					prodotti.codice = ?
+					""")) {
+			preparedStatement.setString(1, codice);
+			try (final ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					if (codice.charAt(0) == 'A') {
+						return new Abbonamento(
+								codice,
+								resultSet.getInt("durata"));
+					} else if (codice.charAt(0) == 'E') {
+						return new PacchettoEntrate(
+								codice,
+								resultSet.getInt("numeroEntrate"));
+					}
+				}
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

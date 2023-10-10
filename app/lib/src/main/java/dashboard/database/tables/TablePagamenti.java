@@ -27,7 +27,7 @@ public class TablePagamenti extends SingleKeyTable<Pagamento, Integer> {
 							"id INT NOT NULL, " +
 							"dataOra DATETIME NOT NULL, " +
 							"importo DOUBLE NOT NULL, " +
-							"tipo CHAR(20) NOT NULL, " +
+							"tipo ENUM('stipendio', 'bolletta', 'attrezzatura, 'intervento'') NOT NULL, " +
 							"PRIMARY KEY (id)" +
 							")");
 		} catch (final SQLException e) {
@@ -66,6 +66,33 @@ public class TablePagamenti extends SingleKeyTable<Pagamento, Integer> {
 			e.printStackTrace();
 		}
 		return pagamenti;
+	}
+
+	/**
+	 * Insert a new {@link Pagamento} and return its id.
+	 * 
+	 * @param pagamento the {@link Pagamento} to insert
+	 * @return the id of the inserted {@link Pagamento}
+	 */
+	public int insertAndGetId(final Pagamento pagamento) {
+		try (final PreparedStatement preparedStatement = this.connection.prepareStatement(
+				"INSERT INTO " + this.tableName +
+						" (dataOra, importo, tipo)" +
+						" VALUES (?, ?, ?)",
+				Statement.RETURN_GENERATED_KEYS)) {
+			preparedStatement.setDate(1, pagamento.getDataOra());
+			preparedStatement.setDouble(2, pagamento.getImporto());
+			preparedStatement.setString(3, pagamento.getTipo());
+			preparedStatement.executeUpdate();
+			try (final ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
+				if (resultSet.next()) {
+					return resultSet.getInt(1);
+				}
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return -1;
 	}
 
 }

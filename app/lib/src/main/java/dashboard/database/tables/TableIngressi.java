@@ -64,4 +64,9 @@ public class TableIngressi extends DoubleKeyTable<Ingresso, Integer, Date> {
 		return ingressi;
 	}
 
+	// TODO
+	// qualche query statistica interessante da implementare (non so, magari legata
+	// alle entrare/uscite economiche, ai tipi di abbonamenti/pacchetto entrate, che
+	// non sia semplicemente visualizzare il totale delle entrate in un certo
+	// periodo ecco)
 }
