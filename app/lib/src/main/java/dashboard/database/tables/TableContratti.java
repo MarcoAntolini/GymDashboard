@@ -29,7 +29,7 @@ public class TableContratti extends DoubleKeyTable<Contratto, Integer, Date> {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
 							"idDipendente INT NOT NULL, " +
-							"tipo CHAR(20) NOT NULL, " +
+							"tipo ENUM('tempo determinato', 'tempo indeterminato') NOT NULL, " +
 							"costoOrario DOUBLE NOT NULL, " +
 							"dataInizio DATETIME NOT NULL, " +
 							"dataFine DATETIME, " +
@@ -78,6 +78,29 @@ public class TableContratti extends DoubleKeyTable<Contratto, Integer, Date> {
 			e.printStackTrace();
 		}
 		return contratti;
+	}
+
+	private List<Contratto> getContrattiTipo(String tipo) {
+		List<Contratto> contratti = new ArrayList<>();
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT * FROM " + this.tableName +
+						" WHERE tipo = ?")) {
+			statement.setString(1, tipo);
+			try (final ResultSet resultSet = statement.executeQuery()) {
+				contratti = this.readObjectFromResultSet(resultSet);
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return contratti;
+	}
+
+	public List<Contratto> getContrattiTempoDeterminato() {
+		return this.getContrattiTipo("tempo determinato");
+	}
+
+	public List<Contratto> getContrattiTempoIndeterminato() {
+		return this.getContrattiTipo("tempo indeterminato");
 	}
 
 }

@@ -29,12 +29,11 @@ public class TableAcquisti extends DoubleKeyTable<Acquisto, Integer, Date> {
 							"idCliente INT NOT NULL, " +
 							"dataOra DATETIME NOT NULL, " +
 							"importo DOUBLE NOT NULL, " +
-							"tipo CHAR(20) NOT NULL, " +
+							"tipo ENUM('abbonamento', 'pacchetto entrate') NOT NULL, " +
 							"codice CHAR(4) NOT NULL, " +
 							"PRIMARY KEY (idCliente, dataOra), " +
 							"FOREIGN KEY (idCliente) REFERENCES clienti(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-							"FOREIGN KEY (tipo) REFERENCES tipiAcquisti(tipo) ON DELETE CASCADE ON UPDATE CASCADE, " +
-							"FOREIGN KEY (codice) REFERENCES abbonamenti(codice) ON DELETE CASCADE ON UPDATE CASCADE" +
+							"FOREIGN KEY (codice) REFERENCES prodotti(codice) ON DELETE CASCADE ON UPDATE CASCADE" +
 							")");
 		} catch (final SQLException e) {
 			e.printStackTrace();
@@ -74,6 +73,94 @@ public class TableAcquisti extends DoubleKeyTable<Acquisto, Integer, Date> {
 			e.printStackTrace();
 		}
 		return acquisti;
+	}
+
+	private List<Acquisto> getAcquistiByParameters(final int idCliente, final Integer year, final Integer month) {
+		try {
+			final StringBuilder query = new StringBuilder("SELECT * FROM " + tableName + " WHERE idCliente = ?");
+			if (year != null) {
+				query.append(" AND YEAR(dataOra) = ?");
+			}
+			if (month != null) {
+				query.append(" AND MONTH(dataOra) = ?");
+			}
+			try (final PreparedStatement preparedStatement = connection.prepareStatement(query.toString())) {
+				int parameterIndex = 1;
+				preparedStatement.setInt(parameterIndex++, idCliente);
+				if (year != null) {
+					preparedStatement.setInt(parameterIndex++, year);
+				}
+				if (month != null) {
+					preparedStatement.setInt(parameterIndex++, month);
+				}
+				return readObjectFromResultSet(preparedStatement.executeQuery());
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	private List<Acquisto> getTipoInYear(final String tipo, final int year) {
+		try (final PreparedStatement preparedStatement = connection.prepareStatement(
+				"SELECT * FROM " + tableName + " WHERE" +
+						" tipo = ? AND" +
+						" YEAR(dataOra) = ?")) {
+			preparedStatement.setString(1, tipo);
+			preparedStatement.setInt(2, year);
+			return readObjectFromResultSet(preparedStatement.executeQuery());
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	private List<Acquisto> getTipoInYearMonth(final String tipo, final int year, final int month) {
+		try (final PreparedStatement preparedStatement = connection.prepareStatement(
+				"SELECT * FROM " + tableName + " WHERE" +
+						" tipo = ? AND" +
+						" YEAR(dataOra) = ? AND" +
+						" MONTH(dataOra) = ?")) {
+			preparedStatement.setString(1, tipo);
+			preparedStatement.setInt(2, year);
+			preparedStatement.setInt(3, month);
+			return readObjectFromResultSet(preparedStatement.executeQuery());
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	public List<Acquisto> getAcquistiCliente(final int idCliente) {
+		return getAcquistiByParameters(idCliente, null, null);
+	}
+
+	public List<Acquisto> getAcquistiClienteInYear(final int idCliente, final int year) {
+		return getAcquistiByParameters(idCliente, year, null);
+	}
+
+	public List<Acquisto> getAcquistiClienteInYearMonth(final int idCliente, final int year, final int month) {
+		return getAcquistiByParameters(idCliente, year, month);
+	}
+
+	public List<Acquisto> getAbbonamentiInYear(final int year) {
+		return getTipoInYear("abbonamento", year);
+	}
+
+	public List<Acquisto> getAbbonamentiInYearMonth(final int year, final int month) {
+		return getTipoInYearMonth("abbonamento", year, month);
+	}
+
+	public List<Acquisto> getPacchettiInYear(final int year) {
+		return getTipoInYear("pacchetto entrate", year);
+	}
+
+	public List<Acquisto> getPacchettiInYearMonth(final int year, final int month) {
+		return getTipoInYearMonth("pacchetto entrate", year, month);
+	}
+
+	public List<Acquisto> filterByCodice(final List<Acquisto> acquisti, final String codice) {
+		return acquisti.stream().filter(acquisto -> acquisto.getCodiceProdotto().equals(codice)).toList();
 	}
 
 }

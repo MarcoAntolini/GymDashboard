@@ -6,6 +6,7 @@ import dashboard.model.Persona.Contatto;
 import dashboard.model.Persona.Indirizzo;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,12 +32,12 @@ public class TableClienti extends SingleKeyTable<Cliente, Integer> {
 							"nome CHAR(20) NOT NULL, " +
 							"cognome CHAR(20) NOT NULL, " +
 							"dataNascita DATETIME NOT NULL, " +
-							"via CHAR(20), " +
+							"via CHAR(30), " +
 							"numero CHAR(5), " +
-							"città CHAR(20), " +
+							"città CHAR(30), " +
 							"provincia CHAR(2), " +
-							"telefono CHAR(10), " +
-							"email CHAR(20), " +
+							"telefono CHAR(15), " +
+							"email CHAR(30), " +
 							"dataIscrizione DATETIME NOT NULL, " +
 							"entrateRimaste INT NOT NULL, " +
 							"PRIMARY KEY (id)" +
@@ -51,7 +52,7 @@ public class TableClienti extends SingleKeyTable<Cliente, Integer> {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName +
 						" (codiceFiscale, nome, cognome, dataNascita, via, numero, città, provincia," +
-						" telefono, email, dataIscrizione, entrateRimaste)" +
+						"  telefono, email, dataIscrizione, entrateRimaste)" +
 						" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 				Statement.RETURN_GENERATED_KEYS)) {
 			statement.setString(1, cliente.getCodiceFiscale());
@@ -77,23 +78,6 @@ public class TableClienti extends SingleKeyTable<Cliente, Integer> {
 		}
 	}
 
-	// int affectedRows = statement.executeUpdate();
-	// if (affectedRows == 0) {
-	// throw new SQLException("Inserting data failed, no rows affected.");
-	// }
-	// try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-	// if (generatedKeys.next()) {
-	// return generatedKeys.getInt(1);
-	// } else {
-	// throw new SQLException("Creating data failed, no ID obtained.");
-	// }
-	// }
-	// } catch (final SQLException e) {
-	// e.printStackTrace();
-	// return -1;
-	// }
-	// }
-
 	@Override
 	protected List<Cliente> readObjectFromResultSet(final ResultSet resultSet) {
 		List<Cliente> clienti = new ArrayList<>();
@@ -117,6 +101,123 @@ public class TableClienti extends SingleKeyTable<Cliente, Integer> {
 						resultSet.getInt("entrateRimaste")));
 			}
 		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return clienti;
+	}
+
+	private List<Cliente> getClientiIscrittiQuando(final Date data, final boolean isDopo) {
+		List<Cliente> clienti = new ArrayList<>();
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT * FROM " + this.tableName +
+						" WHERE dataIscrizione " + (isDopo ? ">" : "<") + "= ?")) {
+			statement.setDate(1, data);
+			try (final ResultSet resultSet = statement.executeQuery()) {
+				clienti = this.readObjectFromResultSet(resultSet);
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return clienti;
+	}
+
+	private List<Cliente> getClientiLivingIn(final String posto, final boolean isCitta) {
+		List<Cliente> clienti = new ArrayList<>();
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT * FROM " + this.tableName +
+						" WHERE " + (isCitta ? "città" : "provincia") + " = ?")) {
+			statement.setString(1, posto);
+			try (final ResultSet resultSet = statement.executeQuery()) {
+				clienti = this.readObjectFromResultSet(resultSet);
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return clienti;
+	}
+
+	// TODO serve? idem per dipendenti
+	// public List<Cliente> getClienteLikeNomeAndCognome(final String nome, final
+	// String cognome) {
+	// List<Cliente> clienti = new ArrayList<>();
+	// try (final PreparedStatement statement = this.connection.prepareStatement(
+	// "SELECT * FROM " + this.tableName +
+	// " WHERE nome LIKE ? AND cognome LIKE ?")) {
+	// statement.setString(1, "%" + nome + "%");
+	// statement.setString(2, "%" + cognome + "%");
+	// try (final ResultSet resultSet = statement.executeQuery()) {
+	// clienti = this.readObjectFromResultSet(resultSet);
+	// }
+	// } catch (final SQLException e) {
+	// e.printStackTrace();
+	// }
+	// return clienti;
+	// }
+
+	public List<Cliente> getClientiIscrittiDopo(final Date data) {
+		return this.getClientiIscrittiQuando(data, true);
+	}
+
+	public List<Cliente> getClientiIscrittiPrima(final Date data) {
+		return this.getClientiIscrittiQuando(data, false);
+	}
+
+	public List<Cliente> getClientiIscrittiInPeriodo(final Date dataInizio, final Date dataFine) {
+		return this.getClientiIscrittiDopo(dataInizio).stream()
+				.filter(cliente -> cliente.getDataIscrizione().before(dataFine))
+				.toList();
+	}
+
+	public List<Cliente> getClientiIscrittiInAnno(final int anno) {
+		return this.getClientiIscrittiInPeriodo(
+				Date.valueOf(anno + "-01-01"),
+				Date.valueOf(anno + "-12-31"));
+	}
+
+	public List<Cliente> getClientiIscrittiInMese(final int anno, final int mese) {
+		return this.getClientiIscrittiInPeriodo(
+				Date.valueOf(anno + "-" + mese + "-01"),
+				Date.valueOf(anno + "-" + mese + "-31"));
+	}
+
+	public List<Cliente> getClientiLivingInCitta(final String citta) {
+		return this.getClientiLivingIn(citta, true);
+	}
+
+	public List<Cliente> getClientiLivingInProvincia(final String provincia) {
+		return this.getClientiLivingIn(provincia, false);
+	}
+
+	@SuppressWarnings("java:S2479")
+	public List<Cliente> getClientiConAbbonamento() {
+		List<Cliente> clienti = new ArrayList<>();
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT * FROM " + this.tableName + """
+						INNER JOIN
+							acquisti ON clienti.id = acquisti.idCliente
+						INNER JOIN
+							abbonamenti ON acquisti.codice = abbonamenti.codice
+						WHERE
+							acquisti.tipo = 'abbonamento' AND
+							acquisti.dataOra + INTERVAL abbonamenti.durata YEAR > NOW()
+						""")) {
+			try (final ResultSet resultSet = statement.executeQuery()) {
+				clienti = this.readObjectFromResultSet(resultSet);
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return clienti;
+	}
+
+	public List<Cliente> getClientiConEntrate() {
+		List<Cliente> clienti = new ArrayList<>();
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT * FROM " + this.tableName + " WHERE entrateRimaste > 0")) {
+			try (final ResultSet resultSet = statement.executeQuery()) {
+				clienti = this.readObjectFromResultSet(resultSet);
+			}
+		} catch (final SQLException e) {
 			e.printStackTrace();
 		}
 		return clienti;

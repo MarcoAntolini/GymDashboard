@@ -6,6 +6,7 @@ import dashboard.model.Persona.Contatto;
 import dashboard.model.Persona.Indirizzo;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,12 +32,12 @@ public class TableDipendenti extends SingleKeyTable<Dipendente, Integer> {
 							"nome CHAR(20) NOT NULL, " +
 							"cognome CHAR(20) NOT NULL, " +
 							"dataNascita DATETIME NOT NULL, " +
-							"via CHAR(20), " +
+							"via CHAR(30), " +
 							"numero CHAR(5), " +
-							"città CHAR(20), " +
+							"città CHAR(30), " +
 							"provincia CHAR(2), " +
-							"telefono CHAR(10), " +
-							"email CHAR(20), " +
+							"telefono CHAR(15), " +
+							"email CHAR(30), " +
 							"dataAssunzione DATETIME NOT NULL, " +
 							"PRIMARY KEY (id)" +
 							")");
@@ -51,7 +52,7 @@ public class TableDipendenti extends SingleKeyTable<Dipendente, Integer> {
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"INSERT INTO " + this.tableName +
 						" (codiceFiscale, nome, cognome, dataNascita, via, numero, città, provincia," +
-						" telefono, email, dataAssunzione)" +
+						"  telefono, email, dataAssunzione)" +
 						" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 				Statement.RETURN_GENERATED_KEYS)) {
 			statement.setString(1, dipendente.getCodiceFiscale());
@@ -101,6 +102,70 @@ public class TableDipendenti extends SingleKeyTable<Dipendente, Integer> {
 			e.printStackTrace();
 		}
 		return dipendenti;
+	}
+
+	private List<Dipendente> getDipendentiAssuntiQuando(final Date data, final boolean isDopo) {
+		List<Dipendente> dipendenti = new ArrayList<>();
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT * FROM " + this.tableName +
+						" WHERE dataAssunzione " + (isDopo ? ">" : "<") + "= ?")) {
+			statement.setDate(1, data);
+			try (final ResultSet resultSet = statement.executeQuery()) {
+				dipendenti = this.readObjectFromResultSet(resultSet);
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return dipendenti;
+	}
+
+	private List<Dipendente> getDipendentiLivingIn(final String posto, final boolean isCitta) {
+		List<Dipendente> dipendenti = new ArrayList<>();
+		try (final PreparedStatement statement = this.connection.prepareStatement(
+				"SELECT * FROM " + this.tableName +
+						" WHERE " + (isCitta ? "città" : "provincia") + " = ?")) {
+			statement.setString(1, posto);
+			try (final ResultSet resultSet = statement.executeQuery()) {
+				dipendenti = this.readObjectFromResultSet(resultSet);
+			}
+		} catch (final SQLException e) {
+			e.printStackTrace();
+		}
+		return dipendenti;
+	}
+
+	public List<Dipendente> getDipendentiAssuntiDopo(final Date data) {
+		return this.getDipendentiAssuntiQuando(data, true);
+	}
+
+	public List<Dipendente> getDipendentiAssuntiPrima(final Date data) {
+		return this.getDipendentiAssuntiQuando(data, false);
+	}
+
+	public List<Dipendente> getDipendentiAssuntiInPeriodo(final Date dataInizio, final Date dataFine) {
+		return this.getDipendentiAssuntiDopo(dataInizio).stream()
+				.filter(dipendente -> dipendente.getDataAssunzione().before(dataFine))
+				.toList();
+	}
+
+	public List<Dipendente> getDipendentiAssuntiInAnno(final int anno) {
+		return this.getDipendentiAssuntiInPeriodo(
+				Date.valueOf(anno + "-01-01"),
+				Date.valueOf(anno + "-12-31"));
+	}
+
+	public List<Dipendente> getDipendentiAssuntiInMese(final int anno, final int mese) {
+		return this.getDipendentiAssuntiInPeriodo(
+				Date.valueOf(anno + "-" + mese + "-01"),
+				Date.valueOf(anno + "-" + mese + "-31"));
+	}
+
+	public List<Dipendente> getDipendentiLivingInCitta(final String citta) {
+		return this.getDipendentiLivingIn(citta, true);
+	}
+
+	public List<Dipendente> getDipendentiLivingInProvincia(final String provincia) {
+		return this.getDipendentiLivingIn(provincia, false);
 	}
 
 }
