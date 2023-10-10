@@ -27,6 +27,7 @@ public class TablePacchettiEntrate extends SingleKeyTable<PacchettoEntrate, Stri
 							"codice CHAR(4) NOT NULL, " +
 							"numeroEntrate INT NOT NULL, " +
 							"PRIMARY KEY (codice)" +
+							"FOREIGN KEY (codice) REFERENCES prodotti(codice) ON DELETE CASCADE ON UPDATE CASCADE" +
 							")");
 		} catch (final SQLException e) {
 			e.printStackTrace();
