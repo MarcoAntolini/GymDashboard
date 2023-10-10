@@ -33,7 +33,8 @@ public final class ConnectionProvider {
 	/**
 	 * Return the connection to the database specified in the class constructor.
 	 * 
-	 * @return a Connection with the database specified in the class constructor
+	 * @return a {@link Connection} with the database specified in the class
+	 *         constructor
 	 * @throws IllegalStateException if the connection could not be establish
 	 */
 	public Connection getMySQLConnection() {
