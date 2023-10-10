@@ -2,32 +2,28 @@ package dashboard.model;
 
 import java.util.Objects;
 
-public class Abbonamento {
+public class Abbonamento extends Prodotto {
 
-	private final String codice;
 	private final int durata;
 
 	public Abbonamento(final int durata) {
-		this.codice = "A_".concat(
+		super("A_".concat(
 				durata < 10
 						? "0".concat(String.valueOf(durata))
-						: String.valueOf(durata));
+						: String.valueOf(durata)));
 		this.durata = Objects.requireNonNull(durata);
 	}
 
 	public Abbonamento(final String codice, final int durata) {
-		this.codice = Objects.requireNonNull(codice);
+		super(codice);
 		this.durata = Objects.requireNonNull(durata);
-	}
-
-	public String getCodice() {
-		return codice;
 	}
 
 	public int getDurata() {
 		return durata;
 	}
 
+	@Override
 	public Object[] toArray() {
 		return new Object[] {
 				getCodice(),
@@ -52,7 +48,7 @@ public class Abbonamento {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(codice, durata);
+		return Objects.hash(getCodice(), getDurata());
 	}
 
 }

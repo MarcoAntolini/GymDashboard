@@ -28,7 +28,6 @@ public class Acquisto {
 		return dataOra;
 	}
 
-
 	public double getImporto() {
 		return importo;
 	}

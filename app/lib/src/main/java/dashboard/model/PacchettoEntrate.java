@@ -2,32 +2,28 @@ package dashboard.model;
 
 import java.util.Objects;
 
-public class PacchettoEntrate {
+public class PacchettoEntrate extends Prodotto {
 
-	private final String codice;
 	private final int numeroEntrate;
 
 	public PacchettoEntrate(final int numeroEntrate) {
-		this.codice = "E_".concat(
+		super("E_".concat(
 				numeroEntrate < 10
 						? "0".concat(String.valueOf(numeroEntrate))
-						: String.valueOf(numeroEntrate));
+						: String.valueOf(numeroEntrate)));
 		this.numeroEntrate = Objects.requireNonNull(numeroEntrate);
 	}
 
 	public PacchettoEntrate(final String codice, final int numeroEntrate) {
-		this.codice = Objects.requireNonNull(codice);
+		super(codice);
 		this.numeroEntrate = Objects.requireNonNull(numeroEntrate);
-	}
-
-	public String getCodice() {
-		return codice;
 	}
 
 	public int getNumeroEntrate() {
 		return numeroEntrate;
 	}
 
+	@Override
 	public Object[] toArray() {
 		return new Object[] {
 				getCodice(),
@@ -52,7 +48,7 @@ public class PacchettoEntrate {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(codice, numeroEntrate);
+		return Objects.hash(getCodice(), getNumeroEntrate());
 	}
 
 }
