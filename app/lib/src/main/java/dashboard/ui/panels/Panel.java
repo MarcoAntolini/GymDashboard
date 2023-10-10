@@ -9,6 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -44,19 +45,19 @@ public abstract class Panel extends JPanel {
 	private static final Dimension ACTIONS_PANEL_SIZE = new Dimension(ACTIONS_PANEL_WIDTH, DEFAULT_HEIGHT);
 	private static final Dimension TABLE_PANEL_SIZE = new Dimension(TABLE_PANEL_WIDTH, DEFAULT_HEIGHT);
 
-	private static final int HEADERS_PADDING = 10;
+	private static final int HEADERS_PADDING = 20;
 	private static final int COLUMNS_PADDING = 5;
 
-	protected final JPanel actionsPanel = new JPanel();
-	protected final JPanel tablePanel = new JPanel();
-
-	protected String[] columnNames;
-	protected DefaultTableModel model;
+	protected final JPanel actionsPanel;
+	protected final JPanel tablePanel;
+	private DefaultTableModel model;
 	protected JTable table;
-	protected JScrollPane tableScrollbar;
+	protected String[] columnNames;
 
 	protected Panel() {
 		super(new BorderLayout(HORIZONTAL_GAP, VERTICAL_GAP));
+		actionsPanel = new JPanel();
+		tablePanel = new JPanel();
 		actionsPanel.setPreferredSize(ACTIONS_PANEL_SIZE);
 		tablePanel.setPreferredSize(TABLE_PANEL_SIZE);
 
@@ -67,13 +68,16 @@ public abstract class Panel extends JPanel {
 	protected void setupTablePanel() {
 		model = new DefaultTableModel(columnNames, 0);
 		table = new JTable(model);
-		tableScrollbar = new JScrollPane(table);
+		TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+		table.setRowSorter(sorter);
+		JScrollPane tableScrollbar = new JScrollPane(table);
 		table.setShowHorizontalLines(true);
 		table.setShowVerticalLines(false);
 		table.setGridColor(Color.LIGHT_GRAY);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.setFillsViewportHeight(true);
 		table.setEnabled(false);
+		table.setAutoCreateRowSorter(true);
 		setHeadersWidth();
 		tablePanel.setLayout(new BorderLayout());
 		tablePanel.add(tableScrollbar, BorderLayout.CENTER);
@@ -109,7 +113,7 @@ public abstract class Panel extends JPanel {
 				hRenderer = tableHeader.getDefaultRenderer();
 			}
 			Component header = hRenderer.getTableCellRendererComponent(table, column.getHeaderValue(), false, false, -1, i);
-			int headerWidth = header.getPreferredSize().width;
+			int headerWidth = header.getPreferredSize().width + HEADERS_PADDING;
 			for (int j = 0; j < table.getRowCount(); j++) {
 				TableCellRenderer cRenderer = table.getCellRenderer(j, i);
 				if (cRenderer == null) {
@@ -118,7 +122,7 @@ public abstract class Panel extends JPanel {
 				Component cell = table.prepareRenderer(cRenderer, j, i);
 				int cellWidth = cell.getPreferredSize().width;
 				maxWidth = headerWidth > cellWidth
-						? Math.max(maxWidth, headerWidth + HEADERS_PADDING)
+						? Math.max(maxWidth, headerWidth)
 						: Math.max(maxWidth, cellWidth);
 			}
 			table.getColumnModel().getColumn(i).setPreferredWidth(maxWidth + COLUMNS_PADDING);
