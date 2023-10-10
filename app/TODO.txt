@@ -1,12 +1,6 @@
 GRAFICAMETE SBAGLIATO IL CONTATTO 1-2 (così vuol dire che una persona può avere 1 o 2 contatti, che comprendono sia telefono che email)
 
 
-query statistiche
-
-CLIENTI:
-- n clienti attuali (n abbonamenti e n entrate)
-- n clienti che hanno avuto un abbonamento (n abbonamenti e n entrate)
-
 
 ACQUISTI (VENDITE):
 - $ incassati in totale, ultimo anno, ultimo mese (o a scelta) e differenziazione in abbonamenti e ingressi (eventualmente anche tipi)
