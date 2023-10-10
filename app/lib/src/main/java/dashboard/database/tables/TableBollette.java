@@ -26,8 +26,9 @@ public class TableBollette extends SingleKeyTable<Bolletta, Integer> {
 					"CREATE TABLE " + tableName + " (" +
 							"id INT NOT NULL, " +
 							"descrizione CHAR(50) NOT NULL, " +
-							"fortnitore CHAR(20) NOT NULL, " +
+							"fortnitore CHAR(30) NOT NULL, " +
 							"PRIMARY KEY (id)" +
+							"FROEIGN KEY (id) REFERENCES pagamenti(id) ON DELETE CASCADE ON UPDATE CASCADE" +
 							")");
 		} catch (final SQLException e) {
 			e.printStackTrace();

@@ -19,9 +19,6 @@ public class TableInterventi extends SingleKeyTable<Intervento, Integer> {
 		this.primaryKeyName = "id";
 	}
 
-	// TODO id è foreign key?
-	// public int soloperfaregiallo() {}
-
 	@Override
 	protected void create() {
 		try (final Statement statement = connection.createStatement()) {
@@ -29,10 +26,11 @@ public class TableInterventi extends SingleKeyTable<Intervento, Integer> {
 					"CREATE TABLE " + tableName + " (" +
 							"id INT NOT NULL, " +
 							"descrizione CHAR(50) NOT NULL, " +
-							"fortnitore CHAR(20) NOT NULL, " +
+							"fortnitore CHAR(30) NOT NULL, " +
 							"dataInizio DATETIME NOT NULL, " +
 							"dataFine DATETIME NOT NULL, " +
 							"PRIMARY KEY (id)" +
+							"FROEIGN KEY (id) REFERENCES pagamenti(id) ON DELETE CASCADE ON UPDATE CASCADE" +
 							")");
 		} catch (final SQLException e) {
 			e.printStackTrace();

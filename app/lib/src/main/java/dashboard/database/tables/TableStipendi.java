@@ -27,6 +27,7 @@ public class TableStipendi extends SingleKeyTable<Stipendio, Integer> {
 							"id INT NOT NULL, " +
 							"idDipendente INT NOT NULL, " +
 							"PRIMARY KEY (id)" +
+							"FROEIGN KEY (id) REFERENCES pagamenti(id) ON DELETE CASCADE ON UPDATE CASCADE" +
 							"FOREIGN KEY (idDipendente) REFERENCES dipendenti(id) ON DELETE CASCADE ON UPDATE CASCADE" +
 							")");
 		} catch (final SQLException e) {
