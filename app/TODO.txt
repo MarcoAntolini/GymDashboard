@@ -4,3 +4,10 @@ GRAFICAMETE SBAGLIATO IL CONTATTO 1-2 (così vuol dire che una persona può aver
 
 ACQUISTI (VENDITE):
 - $ incassati in totale, ultimo anno, ultimo mese (o a scelta) e differenziazione in abbonamenti e ingressi (eventualmente anche tipi)
+
+
+- persone al giorno in fascia oraria
+- e: affluenza mensile, settimanale, giornaliera
+- abbonamenti scaduti in media quanto è stato usato
+- pacchetti e abbonamenti venduti in periodo
+- pacchetti e abbonamenti attivi in periodo
