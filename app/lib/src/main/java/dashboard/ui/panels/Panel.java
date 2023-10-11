@@ -1,6 +1,6 @@
 package dashboard.ui.panels;
 
-import dashboard.ui.panels.tablePanels.Comparators;
+import dashboard.utils.Comparators;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;

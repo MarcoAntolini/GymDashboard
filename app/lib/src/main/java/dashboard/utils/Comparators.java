@@ -1,4 +1,4 @@
-package dashboard.ui.panels.tablePanels;
+package dashboard.utils;
 
 import java.sql.Date;
 import java.util.Comparator;
