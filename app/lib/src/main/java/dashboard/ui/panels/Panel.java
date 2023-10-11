@@ -1,5 +1,7 @@
 package dashboard.ui.panels;
 
+import dashboard.ui.panels.tablePanels.Comparators;
+
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -15,6 +17,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.util.LinkedHashMap;
 
 import static dashboard.utils.Screen.DEFAULT_HEIGHT;
 import static dashboard.utils.Screen.DEFAULT_WIDTH;
@@ -54,6 +57,8 @@ public abstract class Panel extends JPanel {
 	private DefaultTableModel model;
 	protected JTable table;
 	protected String[] columnNames;
+	protected Class<?>[] columnTypes;
+	protected transient TableRowSorter<DefaultTableModel> sorter;
 
 	protected Panel() {
 		super(new BorderLayout(HORIZONTAL_GAP, VERTICAL_GAP));
@@ -69,7 +74,7 @@ public abstract class Panel extends JPanel {
 	protected void setupTablePanel() {
 		model = new DefaultTableModel(columnNames, 0);
 		table = new JTable(model);
-		TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+		sorter = new TableRowSorter<>(model);
 		table.setRowSorter(sorter);
 		JScrollPane tableScrollbar = new JScrollPane(table);
 		table.setShowHorizontalLines(true);
@@ -78,13 +83,41 @@ public abstract class Panel extends JPanel {
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.setFillsViewportHeight(true);
 		table.setEnabled(false);
-		table.setAutoCreateRowSorter(true);
+		table.setAutoCreateRowSorter(false);
 		setHeadersWidth();
+		setColumnTypes(columnTypes);
 		tablePanel.setLayout(new BorderLayout());
 		tablePanel.add(tableScrollbar, BorderLayout.CENTER);
 	}
 
-	protected void addDataToTable(Object[] data) {
+	protected void setColumns(final LinkedHashMap<String, Class<?>> columns) {
+		columnNames = columns.keySet().toArray(new String[0]);
+		columnTypes = columns.values().toArray(new Class<?>[0]);
+	}
+
+	private void setColumnTypes(final Class<?>[] classTypes) {
+		for (int i = 0; i < classTypes.length; i++) {
+			Class<?> className = classTypes[i];
+			switch (className.getSimpleName()) {
+				case "Integer":
+					sorter.setComparator(i, Comparators.INTEGER);
+					break;
+				case "Double":
+					sorter.setComparator(i, Comparators.DOUBLE);
+					break;
+				case "String":
+					sorter.setComparator(i, Comparators.STRING);
+					break;
+				case "Date":
+					sorter.setComparator(i, Comparators.DATE);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	protected void addDataToTable(final Object[] data) {
 		model.addRow(data);
 		setColumnsWidth();
 	}
