@@ -4,10 +4,31 @@ import dashboard.database.tables.TableClienti;
 import dashboard.model.Cliente;
 import dashboard.ui.panels.Panel;
 
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+
+import java.awt.Component;
+import java.text.DecimalFormat;
+
 import static dashboard.App.CONNECTION;
 import static dashboard.ui.panels.tablePanels.Columns.COLUMNS_CLIENTI;
 
 public class PanelClienti extends Panel {
+
+	private class ClienteIdRenderer extends DefaultTableCellRenderer {
+
+		private final DecimalFormat format = new DecimalFormat("0000");
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
+			if (value instanceof Integer) {
+				value = format.format(value);
+			}
+			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+		}
+
+	}
 
 	private final transient TableClienti db;
 
@@ -25,6 +46,7 @@ public class PanelClienti extends Panel {
 	protected void setupTablePanel() {
 		setColumns(COLUMNS_CLIENTI);
 		super.setupTablePanel();
+		setIdRenderer(new ClienteIdRenderer());
 	}
 
 	private void test() {
