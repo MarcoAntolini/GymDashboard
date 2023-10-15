@@ -49,7 +49,7 @@ public abstract class Panel extends JPanel {
 	private static final Dimension TABLE_PANEL_SIZE = new Dimension(TABLE_PANEL_WIDTH, DEFAULT_HEIGHT);
 
 	private static final int HEADERS_PADDING = 20;
-	private static final int COLUMNS_PADDING = 15;
+	private static final int COLUMNS_PADDING = 5;
 	private static final int MIN_PADDING = 5;
 
 	protected final JPanel actionsPanel;
@@ -161,6 +161,10 @@ public abstract class Panel extends JPanel {
 			}
 			table.getColumnModel().getColumn(i).setPreferredWidth(maxWidth + MIN_PADDING);
 		}
+	}
+
+	protected void setIdRenderer(final DefaultTableCellRenderer renderer) {
+		table.getColumnModel().getColumn(0).setCellRenderer(renderer);
 	}
 
 }
