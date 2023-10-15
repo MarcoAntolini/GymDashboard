@@ -27,8 +27,7 @@ public class TableClienti extends SingleKeyTable<Cliente, Integer> {
 		try (final Statement statement = this.connection.createStatement()) {
 			statement.executeUpdate(
 					"CREATE TABLE " + this.tableName + " (" +
-					// TODO zerofill non funziona
-							"id INT(4) ZEROFILL NOT NULL AUTO_INCREMENT, " +
+							"id INT(4) NOT NULL AUTO_INCREMENT, " +
 							"codiceFiscale CHAR(16) NOT NULL, " +
 							"nome CHAR(20) NOT NULL, " +
 							"cognome CHAR(20) NOT NULL, " +
