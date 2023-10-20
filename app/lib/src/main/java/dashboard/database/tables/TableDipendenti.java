@@ -61,7 +61,7 @@ public class TableDipendenti extends SingleKeyTable<Dipendente, Integer> {
 			statement.setDate(4, dipendente.getDataNascita());
 			statement.setString(5, dipendente.getIndirizzo().getVia());
 			statement.setString(6, dipendente.getIndirizzo().getNumero());
-			statement.setString(7, dipendente.getIndirizzo().getCitta());
+			statement.setString(7, dipendente.getIndirizzo().getCittà());
 			statement.setString(8, dipendente.getIndirizzo().getProvincia());
 			statement.setString(9, dipendente.getContatto().getTelefono());
 			statement.setString(10, dipendente.getContatto().getEmail());
@@ -119,11 +119,11 @@ public class TableDipendenti extends SingleKeyTable<Dipendente, Integer> {
 		return dipendenti;
 	}
 
-	private List<Dipendente> getDipendentiLivingIn(final String posto, final boolean isCitta) {
+	private List<Dipendente> getDipendentiLivingIn(final String posto, final boolean isCittà) {
 		List<Dipendente> dipendenti = new ArrayList<>();
 		try (final PreparedStatement statement = this.connection.prepareStatement(
 				"SELECT * FROM " + this.tableName +
-						" WHERE " + (isCitta ? "città" : "provincia") + " = ?")) {
+						" WHERE " + (isCittà ? "città" : "provincia") + " = ?")) {
 			statement.setString(1, posto);
 			try (final ResultSet resultSet = statement.executeQuery()) {
 				dipendenti = this.readObjectFromResultSet(resultSet);
@@ -160,8 +160,8 @@ public class TableDipendenti extends SingleKeyTable<Dipendente, Integer> {
 				Date.valueOf(anno + "-" + mese + "-31"));
 	}
 
-	public List<Dipendente> getDipendentiLivingInCitta(final String citta) {
-		return this.getDipendentiLivingIn(citta, true);
+	public List<Dipendente> getDipendentiLivingInCittà(final String città) {
+		return this.getDipendentiLivingIn(città, true);
 	}
 
 	public List<Dipendente> getDipendentiLivingInProvincia(final String provincia) {

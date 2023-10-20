@@ -9,13 +9,13 @@ public abstract class Persona {
 
 		private final String via;
 		private final String numero;
-		private final String citta;
+		private final String città;
 		private final String provincia;
 
-		public Indirizzo(final String via, final String numero, final String citta, final String provincia) {
+		public Indirizzo(final String via, final String numero, final String città, final String provincia) {
 			this.via = Objects.requireNonNull(via);
 			this.numero = Objects.requireNonNull(numero);
-			this.citta = Objects.requireNonNull(citta);
+			this.città = Objects.requireNonNull(città);
 			this.provincia = Objects.requireNonNull(provincia);
 		}
 
@@ -27,8 +27,8 @@ public abstract class Persona {
 			return this.numero;
 		}
 
-		public String getCitta() {
-			return this.citta;
+		public String getCittà() {
+			return this.città;
 		}
 
 		public String getProvincia() {
@@ -40,7 +40,7 @@ public abstract class Persona {
 			return new StringBuilder()
 					.append(via).append(" ")
 					.append(numero).append(" - ")
-					.append(citta).append(" (")
+					.append(città).append(" (")
 					.append(provincia).append(")")
 					.toString();
 		}
@@ -50,13 +50,13 @@ public abstract class Persona {
 			return (other instanceof Indirizzo)
 					&& ((Indirizzo) other).getVia().equals(this.getVia())
 					&& ((Indirizzo) other).getNumero().equals(this.getNumero())
-					&& ((Indirizzo) other).getCitta().equals(this.getCitta())
+					&& ((Indirizzo) other).getCittà().equals(this.getCittà())
 					&& ((Indirizzo) other).getProvincia().equals(this.getProvincia());
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(via, numero, citta, provincia);
+			return Objects.hash(via, numero, città, provincia);
 		}
 
 	}

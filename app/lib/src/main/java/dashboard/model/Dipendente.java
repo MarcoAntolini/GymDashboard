@@ -32,7 +32,7 @@ public class Dipendente extends Persona {
 				getDataNascita(),
 				getIndirizzo().getVia(),
 				getIndirizzo().getNumero(),
-				getIndirizzo().getCitta(),
+				getIndirizzo().getCittà(),
 				getIndirizzo().getProvincia(),
 				getContatto().getTelefono(),
 				getContatto().getEmail(),
