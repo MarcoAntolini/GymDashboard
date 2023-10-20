@@ -1,4 +1,4 @@
-package dashboard.ui.panels;
+package dashboard.ui.components;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
