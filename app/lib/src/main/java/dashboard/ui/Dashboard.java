@@ -1,19 +1,14 @@
 package dashboard.ui;
 
-import dashboard.ui.panels.tablePanels.PanelClienti;
+import dashboard.ui.panels.tabbedPanels.clienti.PanelClienti;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
-
-import java.awt.Image;
-import java.awt.Taskbar;
-import java.awt.Taskbar.Feature;
-import java.awt.Toolkit;
 
 import static dashboard.utils.Screen.DEFAULT_SIZE;
 import static dashboard.utils.Screen.MAXIMUM_SIZE;
 import static dashboard.utils.Screen.MINIMUM_SIZE;
+import static dashboard.utils.Screen.setIcon;
 
 public class Dashboard extends JFrame {
 
@@ -42,7 +37,7 @@ public class Dashboard extends JFrame {
 
 	public Dashboard() {
 		setTitle("Gym Dashboard");
-		setIcon("logo.png");
+		setIcon(this, "logo.png");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
 		setSize(DEFAULT_SIZE);
@@ -56,19 +51,6 @@ public class Dashboard extends JFrame {
 
 		setLocationRelativeTo(null);
 		setVisible(true);
-	}
-
-	private void setIcon(String fileName) {
-		final ImageIcon appIcon = new ImageIcon(fileName);
-		setIconImage(appIcon.getImage());
-		if (Taskbar.isTaskbarSupported()) {
-			final Taskbar taskbar = Taskbar.getTaskbar();
-			if (taskbar.isSupported(Feature.ICON_IMAGE)) {
-				final Toolkit toolkit = Toolkit.getDefaultToolkit();
-				final Image dockIcon = toolkit.getImage(getClass().getClassLoader().getResource(fileName));
-				taskbar.setIconImage(dockIcon);
-			}
-		}
 	}
 
 }

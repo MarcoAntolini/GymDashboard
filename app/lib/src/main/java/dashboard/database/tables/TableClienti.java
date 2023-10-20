@@ -136,24 +136,6 @@ public class TableClienti extends SingleKeyTable<Cliente, Integer> {
 		return clienti;
 	}
 
-	// TODO serve? idem per dipendenti
-	// public List<Cliente> getClienteLikeNomeAndCognome(final String nome, final
-	// String cognome) {
-	// List<Cliente> clienti = new ArrayList<>();
-	// try (final PreparedStatement statement = this.connection.prepareStatement(
-	// "SELECT * FROM " + this.tableName +
-	// " WHERE nome LIKE ? AND cognome LIKE ?")) {
-	// statement.setString(1, "%" + nome + "%");
-	// statement.setString(2, "%" + cognome + "%");
-	// try (final ResultSet resultSet = statement.executeQuery()) {
-	// clienti = this.readObjectFromResultSet(resultSet);
-	// }
-	// } catch (final SQLException e) {
-	// e.printStackTrace();
-	// }
-	// return clienti;
-	// }
-
 	public List<Cliente> getClientiIscrittiDopo(final Date data) {
 		return this.getClientiIscrittiQuando(data, true);
 	}
