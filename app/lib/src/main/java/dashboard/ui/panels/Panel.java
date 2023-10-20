@@ -2,10 +2,12 @@ package dashboard.ui.panels;
 
 import dashboard.utils.Comparators;
 
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -17,7 +19,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static dashboard.utils.Screen.DEFAULT_HEIGHT;
 import static dashboard.utils.Screen.DEFAULT_WIDTH;
@@ -52,6 +54,7 @@ public abstract class Panel extends JPanel {
 	private static final int COLUMNS_PADDING = 5;
 	private static final int MIN_PADDING = 5;
 
+	protected final JFrame frame;
 	protected final JPanel actionsPanel;
 	protected final JPanel tablePanel;
 	private DefaultTableModel model;
@@ -62,6 +65,7 @@ public abstract class Panel extends JPanel {
 
 	protected Panel() {
 		super(new BorderLayout(HORIZONTAL_GAP, VERTICAL_GAP));
+		frame = (JFrame) SwingUtilities.getAncestorOfClass(JFrame.class, this);
 		actionsPanel = new JPanel();
 		tablePanel = new JPanel();
 		actionsPanel.setPreferredSize(ACTIONS_PANEL_SIZE);
@@ -90,7 +94,9 @@ public abstract class Panel extends JPanel {
 		tablePanel.add(tableScrollbar, BorderLayout.CENTER);
 	}
 
-	protected void setColumns(final LinkedHashMap<String, Class<?>> columns) {
+	protected abstract void setupActionsPanel();
+
+	protected void setColumns(final Map<String, Class<?>> columns) {
 		columnNames = columns.keySet().toArray(new String[0]);
 		columnTypes = columns.values().toArray(new Class<?>[0]);
 	}
