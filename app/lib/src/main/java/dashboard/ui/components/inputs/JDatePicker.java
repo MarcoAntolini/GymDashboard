@@ -1,7 +1,6 @@
-package dashboard.ui.components;
+package dashboard.ui.components.inputs;
 
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import java.sql.Date;
@@ -33,7 +32,6 @@ public class JDatePicker extends JPanel {
 	private String[] days;
 	private int daysInMonth;
 
-	private final JLabel label;
 	private JComboBox<String> yearSelector;
 	private JComboBox<String> monthSelector;
 	private JComboBox<String> daySelector;
@@ -41,12 +39,10 @@ public class JDatePicker extends JPanel {
 	// TODO: parametro tipo: SCADENZA o NASCITA (in base al tipo di range. da oggi
 	// in poi o da oggi indietro)
 
-	public JDatePicker(final String labelText) {
-		label = new JLabel(labelText);
+	public JDatePicker() {
 		setupYearSelector();
 		setupMonthSelector();
 		setupDaySelector();
-		add(label);
 		add(daySelector);
 		add(monthSelector);
 		add(yearSelector);

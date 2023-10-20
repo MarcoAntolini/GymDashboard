@@ -1,4 +1,4 @@
-package dashboard.ui.components;
+package dashboard.ui.components.inputs;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings({ "java:S2387", "unchecked" })
-public class JFilter<E> extends JComboBox<E> {
+public class JFilteredDropdown<E> extends JComboBox<E> {
 
 	private final JTextField filterField;
 	private transient List<E> items;
@@ -31,7 +31,7 @@ public class JFilter<E> extends JComboBox<E> {
 			KeyEvent.VK_KP_RIGHT,
 			KeyEvent.VK_KP_LEFT));
 
-	public JFilter(final List<E> items) {
+	public JFilteredDropdown(final List<E> items) {
 		super(items.toArray((E[]) new Object[items.size()]));
 		this.items = items;
 		this.setEditable(true);
