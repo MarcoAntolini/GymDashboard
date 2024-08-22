@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  username   String
+  password   String
+  role       Role    @default(Employee) @map("ruolo")
+  approved   Boolean @default(false) @map("approvato")
+  employeeId Int?    @unique @map("id_dipendente")
+
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@id([username])
+  @@map("account")
+}
+
+model Employee {
+  id          Int      @default(autoincrement())
+  taxCode     String   @unique @map("codice_fiscale")
+  name        String   @map("nome")
+  surname     String   @map("cognome")
+  birthDate   DateTime @map("data_nascita")
+  street      String   @map("via")
+  houseNumber String   @map("civico")
+  city        String   @map("città")
+  province    String   @map("provincia")
+  phoneNumber String   @map("telefono")
+  email       String
+  hiringDate  DateTime @default(now()) @map("data_assunzione")
+
+  account  Account?
+  contract Contract?
+  salary   Salary[]
+  clocking Clocking[]
+
+  @@id([id])
+  @@map("dipendenti")
+}
+
+model Contract {
+  employeeId   Int          @unique @map("id_dipendente")
+  type         ContractType @map("tipo")
+  hourlyFee    Float        @map("costo_orario")
+  startingDate DateTime     @map("data_inizio")
+  endingDate   DateTime?    @map("data_fine")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@id([employeeId, startingDate])
+  @@map("contratti")
+}
+
+model Clocking {
+  employeeId   Int       @map("id_dipendente")
+  entranceTime DateTime  @map("entrata")
+  exitTime     DateTime? @map("uscita")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@id([employeeId, entranceTime])
+  @@map("timbrature")
+}
+
+model Salary {
+  paymentId  Int @map("id_pagamento")
+  employeeId Int @map("id_dipendente")
+
+  payment  Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@id([paymentId])
+  @@map("stipendi")
+}
+
+model Equipment {
+  paymentId   Int    @map("id_pagamento")
+  description String @map("descrizione")
+  provider    String @map("fornitore")
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@id([paymentId])
+  @@map("attrezzature")
+}
+
+model Bill {
+  paymentId   Int    @map("id_pagamento")
+  description String @map("descrizione")
+  provider    String @map("fornitore")
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@id([paymentId])
+  @@map("bollette")
+}
+
+model Intervention {
+  paymentId    Int      @map("id_pagamento")
+  description  String   @map("descrizione")
+  maker        String   @map("attuatore")
+  startingTime DateTime @map("data_inizio")
+  endingTime   DateTime @map("data_fine")
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@id([paymentId])
+  @@map("interventi")
+}
+
+model Payment {
+  id     Int         @default(autoincrement())
+  date   DateTime    @default(now()) @map("data")
+  amount Float       @map("importo")
+  type   PaymentType @map("tipo")
+
+  intervention Intervention?
+  equipment    Equipment?
+  bill         Bill?
+  salary       Salary?
+
+  @@id([id])
+  @@map("pagamenti")
+}
+
+model Client {
+  id                 Int      @default(autoincrement())
+  taxCode            String   @unique @map("codice_fiscale")
+  name               String   @map("nome")
+  surname            String   @map("cognome")
+  birthDate          DateTime @map("data_nascita")
+  street             String   @map("via")
+  houseNumber        String   @map("civico")
+  city               String   @map("città")
+  province           String   @map("provincia")
+  phoneNumber        String   @map("telefono")
+  email              String
+  enrollmentDate     DateTime @default(now()) @map("data_iscrizione")
+  remainingEntrances Int      @map("ingressi_rimanenti")
+
+  purchase Purchase[]
+  entrance Entrance[]
+
+  @@id([id])
+  @@map("clienti")
+}
+
+model Entrance {
+  clientId Int      @map("id_cliente")
+  date     DateTime @default(now()) @map("data")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@id([clientId, date])
+  @@map("ingressi")
+}
+
+model Purchase {
+  clientId    Int          @map("id_cliente")
+  date        DateTime     @default(now()) @map("data")
+  amount      Float        @map("importo")
+  type        PurchaseType @map("tipo")
+  productCode String       @unique @map("codice_prodotto")
+
+  client   Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  prodotto Product @relation(fields: [productCode], references: [code], onDelete: Cascade)
+
+  @@id([clientId, date])
+  @@map("acquisti")
+}
+
+model Product {
+  code String @map("codice")
+
+  membership  Membership?
+  purchase    Purchase?
+  catalog     Catalog[]
+  entranceSet EntranceSet?
+
+  @@id([code])
+  @@map("prodotti")
+}
+
+model Membership {
+  productCode String @map("codice_prodotto")
+  duration    Int    @map("durata")
+
+  product Product @relation(fields: [productCode], references: [code], onDelete: Cascade)
+
+  @@id([productCode])
+  @@map("abbonamenti")
+}
+
+model EntranceSet {
+  productCode    String @map("codice_prodotto")
+  entranceNumber Int    @map("numero_ingressi")
+
+  product Product @relation(fields: [productCode], references: [code], onDelete: Cascade)
+
+  @@id([productCode])
+  @@map("pacchetti_ingressi")
+}
+
+model Catalog {
+  year        Int          @map("anno")
+  type        PurchaseType @map("tipo")
+  productCode String       @unique @map("codice_prodotto")
+  price       Float        @map("prezzo")
+
+  product Product @relation(fields: [productCode], references: [code], onDelete: Cascade)
+
+  @@id([year, type, productCode])
+  @@map("listini")
+}
+
+enum ContractType {
+  FixedTerm @map("Tempo determinato")
+  OpenEnded @map("Tempo indeterminato")
+}
+
+enum PaymentType {
+  Salary       @map("Stipendio")
+  Bill         @map("Bolletta")
+  Equipment    @map("Attrezzatura")
+  Intervention @map("Intervento")
+}
+
+enum PurchaseType {
+  Membership  @map("Abbonamento")
+  EntranceSet @map("Pacchetto ingressi")
+}
+
+enum Role {
+  Admin    @map("Amministratore")
+  Employee @map("Dipendente")
+}
