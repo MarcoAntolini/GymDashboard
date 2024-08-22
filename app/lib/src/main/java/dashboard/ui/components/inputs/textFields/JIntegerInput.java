@@ -1,7 +1,8 @@
-package dashboard.ui.components.inputs;
+package dashboard.ui.components.inputs.textFields;
 
 import javax.swing.JTextField;
 
+import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ public class JIntegerInput extends JTextField {
 	public JIntegerInput(final int maxLength) {
 		super(maxLength);
 		this.maxLength = maxLength;
+		setMaximumSize(new Dimension(maxLength, getPreferredSize().height));
 	}
 
 	@Override
@@ -69,6 +71,10 @@ public class JIntegerInput extends JTextField {
 			}
 			e.consume();
 		}
+	}
+
+	public int getValue() {
+		return Integer.parseInt(getText());
 	}
 
 }

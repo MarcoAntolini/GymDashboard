@@ -1,7 +1,8 @@
-package dashboard.ui.components.inputs;
+package dashboard.ui.components.inputs.textFields;
 
 import javax.swing.JTextField;
 
+import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ public class JDoubleInput extends JTextField {
 	public JDoubleInput(final int maxLength) {
 		super(maxLength + 3);
 		this.maxLength = maxLength;
+		setMaximumSize(new Dimension(maxLength, getPreferredSize().height));
 	}
 
 	@Override
@@ -95,6 +97,10 @@ public class JDoubleInput extends JTextField {
 		} catch (NumberFormatException e) {
 			return 0.0;
 		}
+	}
+
+	public double getValue() {
+		return parseDouble(getText());
 	}
 
 }

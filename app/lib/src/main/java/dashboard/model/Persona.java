@@ -3,6 +3,7 @@ package dashboard.model;
 import java.sql.Date;
 import java.util.Objects;
 
+@SuppressWarnings({ "java:S100", "java:S116" })
 public abstract class Persona {
 
 	public static class Indirizzo {

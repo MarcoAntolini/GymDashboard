@@ -54,7 +54,7 @@ public abstract class Panel extends JPanel {
 	private static final int COLUMNS_PADDING = 5;
 	private static final int MIN_PADDING = 5;
 
-	protected final JFrame frame;
+	public final JFrame frame;
 	protected final JPanel actionsPanel;
 	protected final JPanel tablePanel;
 	private DefaultTableModel model;
@@ -172,5 +172,11 @@ public abstract class Panel extends JPanel {
 	protected void setIdRenderer(final DefaultTableCellRenderer renderer) {
 		table.getColumnModel().getColumn(0).setCellRenderer(renderer);
 	}
+
+	public void clearTable() {
+		model.setRowCount(0);
+	}
+
+	public abstract void refreshTable();
 
 }

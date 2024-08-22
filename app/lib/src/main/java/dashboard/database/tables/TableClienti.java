@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("java:S100")
 public class TableClienti extends SingleKeyTable<Cliente, Integer> {
 
 	public TableClienti(final Connection connection) {

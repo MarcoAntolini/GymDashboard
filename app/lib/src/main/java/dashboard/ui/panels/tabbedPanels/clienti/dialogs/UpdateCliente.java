@@ -1,12 +1,10 @@
 package dashboard.ui.panels.tabbedPanels.clienti.dialogs;
 
 import dashboard.database.tables.TableClienti;
-import dashboard.model.Cliente;
-import dashboard.model.Persona.Contatto;
-import dashboard.model.Persona.Indirizzo;
 import dashboard.ui.components.dialog.JFormDialog;
 import dashboard.ui.components.inputs.datePicker.JNewDatePicker;
 import dashboard.ui.components.inputs.datePicker.JOldDatePicker;
+import dashboard.ui.components.inputs.textFields.JIntegerInput;
 import dashboard.ui.components.inputs.textFields.JTextInput;
 import dashboard.ui.panels.Panel;
 
@@ -17,10 +15,7 @@ import javax.swing.JPanel;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
-import static dashboard.utils.Dates.dateToSqlDate;
-
-@SuppressWarnings("java:S117")
-public class AddCliente extends JFormDialog<TableClienti> {
+public class UpdateCliente extends JFormDialog<TableClienti> {
 
 	private JTextInput nome;
 	private JTextInput cognome;
@@ -33,8 +28,9 @@ public class AddCliente extends JFormDialog<TableClienti> {
 	private JTextInput telefono;
 	private JTextInput email;
 	private JNewDatePicker dataIscrizione;
+	private JIntegerInput entrateRimaste;
 
-	public AddCliente(final Panel parent, final TableClienti db, final String title) {
+	public UpdateCliente(final Panel parent, final TableClienti db, final String title) {
 		super(parent, db, title);
 	}
 
@@ -65,7 +61,9 @@ public class AddCliente extends JFormDialog<TableClienti> {
 		addLabeledComponent(contatto, new JLabel("Email"), email, 2, 0);
 		final JPanel tessera = new JPanel(new GridBagLayout());
 		dataIscrizione = new JNewDatePicker();
+		entrateRimaste = new JIntegerInput(3);
 		addLabeledComponent(tessera, new JLabel("Data iscrizione"), dataIscrizione, 0, 0);
+		addLabeledComponent(tessera, new JLabel("Entrate rimaste"), entrateRimaste, 2, 0);
 		c.gridx = 0;
 		c.gridy = 0;
 		panel.add(anagrafica, c);
@@ -85,15 +83,7 @@ public class AddCliente extends JFormDialog<TableClienti> {
 
 	@Override
 	public boolean performAction() {
-		db.insert(new Cliente(
-				codiceFiscale.getText(),
-				nome.getText(),
-				cognome.getText(),
-				dateToSqlDate(dataNascita.getDate()),
-				new Indirizzo(via.getText(), numero.getText(), citta.getText(), provincia.getText()),
-				new Contatto(telefono.getText(), email.getText()),
-				dateToSqlDate(dataIscrizione.getDate())));
-		return true;
+		return db.update(null, null);
 	}
 
 }

@@ -1,7 +1,8 @@
-package dashboard.ui.components.inputs;
+package dashboard.ui.components.inputs.textFields;
 
 import javax.swing.JTextField;
 
+import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +23,7 @@ public class JTextInput extends JTextField {
 	public JTextInput(final int maxLength) {
 		super(maxLength);
 		this.maxLength = maxLength;
+		setMaximumSize(new Dimension(maxLength, getMaximumSize().height));
 	}
 
 	@Override

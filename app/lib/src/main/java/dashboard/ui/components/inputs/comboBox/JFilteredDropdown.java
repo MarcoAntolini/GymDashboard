@@ -1,4 +1,4 @@
-package dashboard.ui.components.inputs;
+package dashboard.ui.components.inputs.comboBox;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -18,8 +18,6 @@ public class JFilteredDropdown<E> extends JComboBox<E> {
 	private transient List<E> items;
 
 	private static final List<Integer> allowedKeys = new ArrayList<>(Arrays.asList(
-			KeyEvent.VK_BACK_SPACE,
-			KeyEvent.VK_DELETE,
 			KeyEvent.VK_ENTER,
 			KeyEvent.VK_ESCAPE,
 			KeyEvent.VK_UP,
@@ -85,6 +83,10 @@ public class JFilteredDropdown<E> extends JComboBox<E> {
 				filteredItems.add(items.get(i));
 			}
 		}
+	}
+
+	public E getSelectedItem() {
+		return (E) super.getSelectedItem();
 	}
 
 }

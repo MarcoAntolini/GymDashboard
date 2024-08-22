@@ -11,3 +11,4 @@ ACQUISTI (VENDITE):
 - abbonamenti scaduti in media quanto è stato usato
 - pacchetti e abbonamenti venduti in periodo
 - pacchetti e abbonamenti attivi in periodo
+
