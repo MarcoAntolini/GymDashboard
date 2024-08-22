@@ -1,6 +1,7 @@
 L'obiettivo del progetto è realizzare un software gestionale per una palestra.
 
-L'amministratore della palestra potrà gestire i dati relativi ai clienti, ai dipendenti, al listino e alle entrate e uscite economiche.
+I dipendenti della palestra potranno registrarsi al sistema in attesa di essere confermati dall'amministratore. Una volta confermati potranno accedere al sistema e gestire i dati a cui hanno accesso (per cui clienti, abbonamenti e pacchetti entrate, attrezzature, etc..).
+L'amministratore potrà visualizzare e gestire tutti i dati del sistema.
 
 Per quanto riguarda i clienti sarà possibile:
 - inserire un nuovo cliente, modificarne i dati o eliminarlo
@@ -13,7 +14,7 @@ Per quanto riguarda i dipendenti sarà possibile:
 - inserire un nuovo dipendente, modificarne i dati o eliminarlo
 - visualizzare i dati di un dipendente o di tutti i dipendenti
 - registrare il pagamento di uno stipendio
-- registrare l'entrate e l'uscita di un dipendente dalla palestra
+- registrare l'entrate e l'uscita di un dipendente dal posto di lavoro
 
 Per quanto riguarda il listino sarà possibile:
 - inserire un nuovo abbonamento o pacchetto entrate, modificarne i dati o eliminarlo
@@ -24,3 +25,6 @@ Per quanto riguarda il listino sarà possibile:
 Per quanto riguarda le entrate e le uscite economiche sarà possibile:
 - registrare entrate e uscite economiche
 - visualizzare le entrate e le uscite economiche di un certo periodo
+- filtrare le entrate e le uscite economiche per tipo
+
+Inoltre sarà possibile visualizzare statistiche relative a entrate/uscite economiche, abbonamenti/pacchetti entrate ed eventuali altre statistiche rilevanti.
