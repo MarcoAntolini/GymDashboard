@@ -46,13 +46,13 @@ export function DataTable<TData, TValue>({ columns, data, filters, facetedFilter
 	});
 
 	return (
-		<div>
+		<div className="flex flex-col h-full">
 			<TableToolbar
 				table={table}
 				filters={filters}
 				facetedFilters={facetedFilters}
 			/>
-			<div className="rounded-md border">
+			<div className="rounded-md border overflow-auto flex-1">
 				<Table>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (

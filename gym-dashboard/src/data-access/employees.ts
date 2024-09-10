@@ -103,7 +103,7 @@ export async function editEmployee({
 	});
 }
 
-export async function deleteEmployee(id: number) {
+export async function deleteEmployee({ id }: { id: number }) {
 	return await db.employee.delete({
 		where: {
 			id,

@@ -7,7 +7,6 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { deleteEmployee, editEmployee } from "@/data-access/employees";
 import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -15,7 +14,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { z } from "zod";
 
-const formSchema = z.object({
+export const formSchema = z.object({
 	name: z.string().min(1, "Name is a required field"),
 	surname: z.string().min(1, "Surname is a required field"),
 	taxCode: z.string().length(16, "Tax Code must be 16 characters long"),
@@ -31,7 +30,10 @@ const formSchema = z.object({
 	hiringDate: z.date(),
 });
 
-export const columns: ColumnDef<Employee>[] = [
+export const columns = (
+	handleDelete: (employee: Pick<Employee, "id">) => Promise<void>,
+	handleEdit: (employee: Employee) => Promise<void>
+): ColumnDef<Employee>[] => [
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
@@ -163,12 +165,6 @@ export const columns: ColumnDef<Employee>[] = [
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
-				editAction={({ values }) => {
-					return editEmployee({
-						id: row.original.id!,
-						...values,
-					});
-				}}
 				editFormContent={
 					<>
 						<div className="grid grid-cols-2 gap-4">
@@ -236,7 +232,6 @@ export const columns: ColumnDef<Employee>[] = [
 													selected={field.value}
 													onSelect={field.onChange}
 													disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-													initialFocus={field.value || new Date()}
 													defaultMonth={field.value || new Date()}
 												/>
 											</PopoverContent>
@@ -326,7 +321,13 @@ export const columns: ColumnDef<Employee>[] = [
 						</div>
 					</>
 				}
-				deleteAction={() => deleteEmployee(row.original.id!)}
+				editAction={async ({ values }) => {
+					const updatedEmployee = { ...row.original, ...values };
+					await handleEdit(updatedEmployee);
+				}}
+				deleteAction={async () => {
+					await handleDelete({ id: row.original.id });
+				}}
 			/>
 		),
 	},

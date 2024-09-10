@@ -1,5 +1,14 @@
 "use client";
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -26,6 +35,7 @@ export default function DashboardLayout({
 	const router = useRouter();
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [username, setUsername] = useState("");
+	const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
 	useEffect(() => {
 		setUsername(getCookie("session") as string);
@@ -82,13 +92,32 @@ export default function DashboardLayout({
 											Settings
 										</DropdownMenuItem>
 										<DropdownMenuItem
-											onClick={handleLogout}
-											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground"
+											onClick={() => setIsLogoutDialogOpen(true)}
+											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground hover:!bg-destructive"
 										>
 											Logout
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
+								<AlertDialog
+									open={isLogoutDialogOpen}
+									onOpenChange={setIsLogoutDialogOpen}
+								>
+									<AlertDialogContent>
+										<AlertDialogHeader>
+											<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+										</AlertDialogHeader>
+										<AlertDialogFooter>
+											<AlertDialogCancel>Cancel</AlertDialogCancel>
+											<AlertDialogAction
+												onClick={handleLogout}
+												className="bg-destructive hover:bg-destructive/90"
+											>
+												Logout
+											</AlertDialogAction>
+										</AlertDialogFooter>
+									</AlertDialogContent>
+								</AlertDialog>
 							</div>
 							<Separator />
 							<div className="flex flex-col justify-between h-full">
@@ -96,7 +125,7 @@ export default function DashboardLayout({
 								<div className="flex flex-col">
 									<Separator />
 									<Button
-										className=""
+										className="hover:!rounded-t-none hover:!rounded-br-none"
 										variant="ghost"
 										onClick={() => setIsCollapsed(!isCollapsed)}
 									>

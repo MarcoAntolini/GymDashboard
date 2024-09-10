@@ -2,21 +2,33 @@
 
 import { Button } from "@/components/ui/button";
 import Dashboard, { Action } from "@/components/ui/dashboard";
+import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
-import { getAllAccounts } from "@/data-access/accounts";
+import { deleteAccount, editAccount, getAllAccounts } from "@/data-access/accounts";
+import { useEntityData } from "@/hooks/useEntityData";
 import { Account } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { columns } from "./columns";
 
 export default function Accounts() {
-	const [accounts, setAccounts] = useState<Account[]>([]);
-	useEffect(() => {
-		function fetchAccounts() {
-			getAllAccounts().then(setAccounts);
-		}
-		fetchAccounts();
-	}, []);
+	const {
+		data: accounts,
+		setData: setAccounts,
+		isLoading,
+		handleDelete,
+		handleEdit,
+	} = useEntityData<Account, "employeeId">(
+		useMemo(
+			() => ({
+				getAll: getAllAccounts,
+				deleteAction: deleteAccount,
+				editAction: editAccount,
+			}),
+			[]
+		),
+		["employeeId"]
+	);
 
 	const actions: Action[] = [
 		{
@@ -38,15 +50,25 @@ export default function Accounts() {
 					</Button>
 				</>
 			),
+			// TODO: sistemare
+			formData: {
+				formSchema: undefined,
+				defaultValues: {
+				},
+				submitAction: async () => {},
+
+			},
 		},
 	];
 
-	return (
+	return isLoading ? (
+		<DashboardPlaceholder />
+	) : (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
-					columns={columns}
+					columns={columns(handleDelete, handleEdit)}
 					data={accounts}
 					filters={["username"]}
 					facetedFilters={["role", "approved"]}

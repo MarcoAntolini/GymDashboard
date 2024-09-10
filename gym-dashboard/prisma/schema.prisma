@@ -12,7 +12,7 @@ model Account {
   password   String
   role       Role    @default(Employee) @map("ruolo")
   approved   Boolean @default(false) @map("approvato")
-  employeeId Int?    @unique @map("id_dipendente")
+  employeeId Int     @unique @map("id_dipendente")
 
   employee Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 

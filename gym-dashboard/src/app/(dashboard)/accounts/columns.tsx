@@ -5,7 +5,6 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { deleteAccount, editAccount } from "@/data-access/accounts";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect } from "react";
@@ -16,7 +15,10 @@ const formSchema = z.object({
 	approved: z.string().optional(),
 });
 
-export const columns: ColumnDef<Account>[] = [
+export const columns = (
+	handleDelete: (account: Pick<Account, "employeeId">) => Promise<void>,
+	handleEdit: (account: Account) => Promise<void>
+): ColumnDef<Account>[] => [
 	{
 		accessorKey: "employeeId",
 		header: ({ column }) => (
@@ -122,14 +124,15 @@ export const columns: ColumnDef<Account>[] = [
 						/>
 					</>
 				}
-				editAction={({ values }) => {
-					return editAccount({
-						employeeId: row.original.employeeId!,
-						role: values.role,
+				editAction={async ({ values }) => {
+					const updatedAccount = {
+						...row.original,
+						...values,
 						approved: values.approved === "true",
-					});
+					};
+					await handleEdit(updatedAccount);
 				}}
-				deleteAction={() => deleteAccount(row.original.employeeId!)}
+				deleteAction={() => handleDelete({ employeeId: row.original.employeeId! })}
 			/>
 		),
 	},

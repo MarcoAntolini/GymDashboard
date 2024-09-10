@@ -54,11 +54,17 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 		},
 	});
 
-	function onSubmit(values: z.infer<TFormSchema>) {
+	function onEditSubmit(values: z.infer<TFormSchema>) {
 		editAction({ values }).then(() => {
 			setIsEditDialogOpen(false);
 			router.refresh();
 		});
+	}
+
+	function onDeleteSubmit() {
+		deleteAction();
+		setIsDeleteDialogOpen(false);
+		router.refresh();
 	}
 
 	return (
@@ -91,7 +97,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 					</DialogHeader>
 					<Form {...form}>
 						<form
-							onSubmit={form.handleSubmit(onSubmit)}
+							onSubmit={form.handleSubmit(onEditSubmit)}
 							className="space-y-8"
 						>
 							{editFormContent}
@@ -116,15 +122,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={() => {
-								deleteAction();
-								setIsDeleteDialogOpen(false);
-								router.refresh();
-							}}
-						>
-							Continue
-						</AlertDialogAction>
+						<AlertDialogAction onClick={onDeleteSubmit}>Continue</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

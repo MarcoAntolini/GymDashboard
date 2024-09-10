@@ -71,21 +71,13 @@ export async function editAccount({
 			role,
 			approved,
 		},
-		select: {
-			employee: true,
-			role: true,
-			approved: true,
-		},
 	});
 }
 
-export async function deleteAccount(employeeId: number) {
+export async function deleteAccount({ employeeId }: { employeeId: number }) {
 	return await db.account.delete({
 		where: {
 			employeeId,
-		},
-		select: {
-			employee: true,
 		},
 	});
 }
