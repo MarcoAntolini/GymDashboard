@@ -1,6 +1,7 @@
 "use client";
 
 import TablePagination from "@/components/ui/data-table/table-pagination";
+import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
 	ColumnDef,
@@ -12,10 +13,11 @@ import {
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
+	getFacetedRowModel,
+	getFacetedUniqueValues,
 	useReactTable,
 } from "@tanstack/react-table";
 import * as React from "react";
-import TableToolbar from "./data-table/table-toolbar";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -37,6 +39,8 @@ export function DataTable<TData, TValue>({ columns, data, filters, facetedFilter
 		getSortedRowModel: getSortedRowModel(),
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
+		getFacetedRowModel: getFacetedRowModel(),
+		getFacetedUniqueValues: getFacetedUniqueValues(),
 		onColumnVisibilityChange: setColumnVisibility,
 		state: {
 			sorting,
