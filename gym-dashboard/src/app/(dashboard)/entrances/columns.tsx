@@ -4,36 +4,40 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { EntranceSet } from "@prisma/client";
+import { Entrance } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
 export const formSchema = z.object({
-  productCode: z.string().min(1, "Product code is required"),
-  entranceNumber: z.number().int().positive("Number of entrances must be a positive integer"),
+  clientId: z.number().int().positive(),
+  date: z.date(),
 });
 
 export const columns = (
-  handleDelete: (entranceSet: Pick<EntranceSet, "productCode">) => Promise<void>,
-  handleEdit: (entranceSet: EntranceSet) => Promise<void>
-): ColumnDef<EntranceSet>[] => [
+  handleDelete: (entrance: Pick<Entrance, "clientId" | "date">) => Promise<void>,
+  handleEdit: (entrance: Entrance) => Promise<void>
+): ColumnDef<Entrance>[] => [
   {
-    accessorKey: "productCode",
+    accessorKey: "clientId",
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Product Code"
+        title="Client ID"
       />
     ),
   },
   {
-    accessorKey: "entranceNumber",
+    accessorKey: "date",
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Number of Entrances"
+        title="Date"
       />
     ),
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("date"));
+      return <div className="font-medium">{date.toLocaleString()}</div>;
+    },
   },
   {
     id: "actions",
@@ -44,27 +48,33 @@ export const columns = (
         editFormContent={
           <>
             <FormField
-              name="productCode"
+              name="clientId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Product Code</FormLabel>
+                  <FormLabel>Client ID</FormLabel>
                   <FormControl>
-                    <Input {...field} disabled />
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      disabled
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
-              name="entranceNumber"
+              name="date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Number of Entrances</FormLabel>
+                  <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
+                      type="datetime-local"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
+                      onChange={(e) => field.onChange(new Date(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -74,13 +84,14 @@ export const columns = (
           </>
         }
         editAction={async ({ values }) => {
-          const updatedEntranceSet = {
+          const updatedEntrance = {
             ...row.original,
             ...values,
+            date: new Date(values.date),
           };
-          await handleEdit(updatedEntranceSet);
+          await handleEdit(updatedEntrance);
         }}
-        deleteAction={() => handleDelete({ productCode: row.original.productCode })}
+        deleteAction={() => handleDelete({ clientId: row.original.clientId, date: row.original.date })}
       />
     ),
   },

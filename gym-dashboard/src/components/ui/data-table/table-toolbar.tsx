@@ -25,7 +25,13 @@ export default function TableToolbar<TData>({ table, filters, facetedFilters }: 
 				{filters.map((filter, _) => (
 					<Input
 						key={_}
-						placeholder={`Filter ${filter}s...`}
+						placeholder={filter
+							.replace(/([A-Z])/g, (match, p1, offset) =>
+								offset > 0 && filter.charAt(offset - 1) !== " " ? ` ${p1}` : p1
+							)
+							.replace(/\bId\b/g, "ID")
+							.trim()
+							.replace(/^./, (str) => str.toUpperCase())}
 						value={(table.getColumn(filter)?.getFilterValue() as string) ?? ""}
 						onChange={(event) => table.getColumn(filter)?.setFilterValue(event.target.value)}
 						className="max-w-sm w-auto"
@@ -68,6 +74,7 @@ export default function TableToolbar<TData>({ table, filters, facetedFilters }: 
 				<DropdownMenuContent align="end">
 					{table
 						.getAllColumns()
+						.filter((column) => column.id !== "actions")
 						.filter((column) => column.getCanHide())
 						.map((column) => {
 							return (

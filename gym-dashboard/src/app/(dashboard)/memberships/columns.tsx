@@ -4,19 +4,19 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { EntranceSet } from "@prisma/client";
+import { Membership } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
 export const formSchema = z.object({
   productCode: z.string().min(1, "Product code is required"),
-  entranceNumber: z.number().int().positive("Number of entrances must be a positive integer"),
+  duration: z.number().int().positive("Duration must be a positive integer"),
 });
 
 export const columns = (
-  handleDelete: (entranceSet: Pick<EntranceSet, "productCode">) => Promise<void>,
-  handleEdit: (entranceSet: EntranceSet) => Promise<void>
-): ColumnDef<EntranceSet>[] => [
+  handleDelete: (membership: Pick<Membership, "productCode">) => Promise<void>,
+  handleEdit: (membership: Membership) => Promise<void>
+): ColumnDef<Membership>[] => [
   {
     accessorKey: "productCode",
     header: ({ column }) => (
@@ -27,11 +27,11 @@ export const columns = (
     ),
   },
   {
-    accessorKey: "entranceNumber",
+    accessorKey: "duration",
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Number of Entrances"
+        title="Duration (days)"
       />
     ),
   },
@@ -56,10 +56,10 @@ export const columns = (
               )}
             />
             <FormField
-              name="entranceNumber"
+              name="duration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Number of Entrances</FormLabel>
+                  <FormLabel>Duration (days)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -74,11 +74,11 @@ export const columns = (
           </>
         }
         editAction={async ({ values }) => {
-          const updatedEntranceSet = {
+          const updatedMembership = {
             ...row.original,
             ...values,
           };
-          await handleEdit(updatedEntranceSet);
+          await handleEdit(updatedMembership);
         }}
         deleteAction={() => handleDelete({ productCode: row.original.productCode })}
       />

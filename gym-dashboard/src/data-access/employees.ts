@@ -110,3 +110,13 @@ export async function deleteEmployee({ id }: { id: number }) {
 		},
 	});
 }
+
+export async function getEmployeesWithoutAccount() {
+	return await db.employee.findMany({
+		where: {
+			account: {
+				is: null,
+			},
+		},
+	});
+}

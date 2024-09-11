@@ -9,7 +9,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 	const { username, password, employeeId } = await req.json();
 	const employeeIdN = parseInt(employeeId);
 	const hashedPassword = await bcrypt.hash(password, saltRounds);
-	const employeeRegistered = await getAccount({ employeeId });
+	const employeeRegistered = await getAccount({ employeeId: employeeIdN });
 	if (employeeRegistered) {
 		return Response.json({ message: "Employee already registered", success: false });
 	}

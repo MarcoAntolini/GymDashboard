@@ -40,7 +40,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	formSchema: TFormSchema;
 	editFormContent: React.ReactNode;
 	editAction: (params: { values: z.infer<TFormSchema> }) => Promise<any>;
-	deleteAction: () => void;
+	deleteAction: () => Promise<void>;
 }) {
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -62,9 +62,10 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	}
 
 	function onDeleteSubmit() {
-		deleteAction();
-		setIsDeleteDialogOpen(false);
-		router.refresh();
+		deleteAction().then(() => {
+			setIsDeleteDialogOpen(false);
+			router.refresh();
+		});
 	}
 
 	return (
@@ -122,7 +123,12 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
-						<AlertDialogAction onClick={onDeleteSubmit}>Continue</AlertDialogAction>
+						<AlertDialogAction
+							className="bg-destructive hover:bg-destructive/90"
+							onClick={onDeleteSubmit}
+						>
+							Continue
+						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

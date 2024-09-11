@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 
 interface EntityActions<T, K extends keyof T> {
 	getAll: () => Promise<T[]>;
-	deleteAction: (entity: Pick<T, K>) => Promise<T>;
-	editAction: (entity: T) => Promise<T>;
+	deleteAction?: (entity: Pick<T, K>) => Promise<T>;
+	editAction?: (entity: T) => Promise<T>;
 }
 
 type EntityKey<T> = keyof T;
@@ -28,7 +28,9 @@ export function useEntityData<T, K extends EntityKey<T>>(
 
 	const handleDelete = useCallback(
 		async (deletedEntity: Pick<T, K>) => {
-			await actions.deleteAction(deletedEntity);
+			if (actions.deleteAction) {
+				await actions.deleteAction(deletedEntity);
+			}
 			setData((prevData) =>
 				prevData.filter((item) =>
 					identifierKeys.every((key) => item[key] !== deletedEntity[key])
@@ -40,7 +42,9 @@ export function useEntityData<T, K extends EntityKey<T>>(
 
 	const handleEdit = useCallback(
 		async (editedEntity: T) => {
-			await actions.editAction(editedEntity);
+			if (actions.editAction) {
+				await actions.editAction(editedEntity);
+			}
 			setData((prevData) =>
 				prevData.map((item) =>
 					identifierKeys.every((key) => item[key] === editedEntity[key])

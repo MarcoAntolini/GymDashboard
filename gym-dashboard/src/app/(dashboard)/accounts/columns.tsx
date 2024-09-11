@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -81,6 +82,34 @@ export const columns = (
 				formSchema={formSchema}
 				editFormContent={
 					<>
+						<div className="grid grid-cols-3 gap-4">
+							<FormField
+								name="employeeId"
+								render={({ field }) => (
+									<FormItem className="col-span-1">
+										<FormLabel className="text-muted-foreground">Employee ID</FormLabel>
+										<Input
+											disabled
+											onChange={field.onChange}
+											defaultValue={field.value}
+										/>
+									</FormItem>
+								)}
+							/>
+							<FormField
+								name="username"
+								render={({ field }) => (
+									<FormItem className="col-span-2">
+										<FormLabel className="text-muted-foreground">Username</FormLabel>
+										<Input
+											disabled
+											onChange={field.onChange}
+											defaultValue={field.value}
+										/>
+									</FormItem>
+								)}
+							/>
+						</div>
 						<FormField
 							name="role"
 							render={({ field }) => (

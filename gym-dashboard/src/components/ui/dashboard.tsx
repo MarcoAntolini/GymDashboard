@@ -6,15 +6,16 @@ import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { ComponentType, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form } from "./form";
 
 export type Action = {
 	title: string;
-	icon?: React.ComponentType<{ className?: string }>;
+	icon?: ComponentType<{ className?: string }>;
 	dialogContent: React.ReactNode;
+	onDialogClose?: () => void;
 	formData: FormData<any>;
 };
 
