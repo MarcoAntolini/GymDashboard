@@ -76,72 +76,90 @@ export default function Accounts() {
 		setNewUsername(username + number);
 	}
 
+	const createAccountFormData: FormData<typeof createAccountSchema> = {
+		formSchema: createAccountSchema,
+		defaultValues: {
+			employeeId: 0,
+			username: "",
+			password: "",
+		},
+		submitAction: handleCreateAccount,
+	};
+
 	const actions: Action[] = [
 		{
 			title: "Add Account",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
-					<FormField
-						name="employeeId"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Employee</FormLabel>
-								<Select
-									onValueChange={(value) => {
-										field.onChange(parseInt(value, 10));
-										generateUsername(employeesWithoutAccount.find((employee) => employee.id === parseInt(value, 10)));
-									}}
-									value={field.value?.toString()}
-								>
-									<FormControl>
-										<SelectTrigger>
-											<SelectValue placeholder="Select an employee" />
-										</SelectTrigger>
-									</FormControl>
-									<SelectContent>
-										<SelectGroup>
-											{employeesWithoutAccount.map((employee) => (
-												<SelectItem
-													key={employee.id}
-													value={employee.id.toString()}
-												>
-													{employee.id} - {employee.name} {employee.surname}
-												</SelectItem>
-											))}
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						name="username"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Username</FormLabel>
-								<Input
-									value={newUsername}
-									disabled
-								/>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						name="password"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Password</FormLabel>
-								<Input
-									{...field}
-									type="password"
-								/>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					{employeesWithoutAccount.length === 0 ? (
+						<div className="text-center text-gray-500 py-4">All the employees already have an account</div>
+					) : (
+						<>
+							<FormField
+								name="employeeId"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Employee</FormLabel>
+										<Select
+											onValueChange={(value) => {
+												field.onChange(parseInt(value, 10));
+												generateUsername(
+													employeesWithoutAccount.find((employee) => employee.id === parseInt(value, 10))
+												);
+											}}
+											value={field.value?.toString()}
+										>
+											<FormControl>
+												<SelectTrigger>
+													<SelectValue placeholder="Select an employee" />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
+												<SelectGroup>
+													{employeesWithoutAccount.map((employee) => (
+														<SelectItem
+															key={employee.id}
+															value={employee.id.toString()}
+														>
+															{employee.id} - {employee.name} {employee.surname}
+														</SelectItem>
+													))}
+												</SelectGroup>
+											</SelectContent>
+										</Select>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								name="username"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Username</FormLabel>
+										<Input
+											value={newUsername}
+											disabled
+										/>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								name="password"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Password</FormLabel>
+										<Input
+											{...field}
+											type="password"
+										/>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</>
+					)}
 				</>
 			),
 			onDialogClose: () => {
@@ -149,14 +167,7 @@ export default function Accounts() {
 					setNewUsername("");
 				}
 			},
-			formData: {
-				formSchema: createAccountSchema,
-				defaultValues: {
-					username: "",
-					password: "",
-				},
-				submitAction: handleCreateAccount,
-			} as FormData<typeof createAccountSchema>,
+			formData: createAccountFormData,
 		},
 	];
 

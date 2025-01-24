@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ComponentType, useState } from "react";
+import { ComponentType, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form } from "./form";
@@ -64,6 +64,12 @@ const DialogAction = ({ action }: { action: Action }) => {
 			router.refresh();
 		});
 	}
+
+	useEffect(() => {
+		if (!isDialogOpen) {
+			form.reset();
+		}
+	}, [isDialogOpen]);
 
 	return (
 		<>

@@ -10,7 +10,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
 export const formSchema = z.object({
-	employeeId: z.number().int().positive(),
+	employeeId: z.number().int().positive("Must select an employee"),
 	type: z.nativeEnum(ContractType),
 	hourlyFee: z.number().positive(),
 	startingDate: z.date(),
@@ -38,6 +38,10 @@ export const columns = (
 				title="Contract Type"
 			/>
 		),
+		cell: ({ row }) => {
+			const type = row.getValue("type");
+			return <div className="font-medium">{type === ContractType.FixedTerm ? "Fixed Term" : "Open Ended"}</div>;
+		},
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
 		},
@@ -55,7 +59,9 @@ export const columns = (
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
 				currency: "USD",
-			}).format(amount);
+			})
+				.format(amount)
+				.replace("$", "$ ");
 			return <div className="font-medium">{formatted}</div>;
 		},
 	},

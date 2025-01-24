@@ -24,9 +24,10 @@ interface DataTableProps<TData, TValue> {
 	data: TData[];
 	filters: Array<Extract<keyof TData, string>>;
 	facetedFilters?: Array<Extract<keyof TData, string>>;
+	className?: string;
 }
 
-export function DataTable<TData, TValue>({ columns, data, filters, facetedFilters }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, filters, facetedFilters, className }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -57,7 +58,7 @@ export function DataTable<TData, TValue>({ columns, data, filters, facetedFilter
 				facetedFilters={facetedFilters}
 			/>
 			<div className="rounded-md border overflow-auto flex-1">
-				<Table>
+				<Table className={className}>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>

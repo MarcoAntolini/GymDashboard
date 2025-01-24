@@ -1,0 +1,175 @@
+Database Operations Summary
+
+This document provides a summary of the database operations used in the gym management project, converting Prisma calls to MySQL queries and explaining their functionality.
+
+1. Accounts
+
+Create Account:
+MySQL: INSERT INTO account (username, password, employeeId) VALUES (?, ?, ?);
+Explanation: Inserts a new account with the given username, password, and associated employee ID.
+
+Get All Accounts:
+MySQL: SELECT * FROM account;
+Explanation: Retrieves all accounts from the database.
+
+Get Account by Username or Employee ID:
+MySQL: SELECT * FROM account WHERE username = ? OR employeeId = ?;
+Explanation: Retrieves an account by either username or employee ID.
+
+Edit Account:
+MySQL: UPDATE account SET role = ?, approved = ? WHERE employeeId = ?;
+Explanation: Updates the role and approval status of an account for a specific employee.
+
+Delete Account:
+MySQL: DELETE FROM account WHERE employeeId = ?;
+Explanation: Removes an account associated with a specific employee ID.
+
+2. Employees
+
+Create Employee:
+MySQL: INSERT INTO dipendenti (taxCode, name, surname, birthDate, street, houseNumber, city, province, phoneNumber, email, hiringDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+Explanation: Inserts a new employee record with personal and contact information.
+
+Get All Employees:
+MySQL: SELECT * FROM dipendenti;
+Explanation: Retrieves all employee records from the database.
+
+Get Employee by ID:
+MySQL: SELECT * FROM dipendenti WHERE id = ?;
+Explanation: Retrieves a specific employee record by their ID.
+
+Edit Employee:
+MySQL: UPDATE dipendenti SET taxCode = ?, name = ?, surname = ?, birthDate = ?, street = ?, houseNumber = ?, city = ?, province = ?, phoneNumber = ?, email = ?, hiringDate = ? WHERE id = ?;
+Explanation: Updates an employee's information for a specific employee ID.
+
+3. Contracts
+
+Create Contract:
+MySQL: INSERT INTO contratti (employeeId, type, hourlyFee, startingDate, endingDate) VALUES (?, ?, ?, ?, ?);
+Explanation: Creates a new contract for an employee with specified terms.
+
+Get All Contracts:
+MySQL: SELECT * FROM contratti;
+Explanation: Retrieves all contract records from the database.
+
+Get Contract:
+MySQL: SELECT * FROM contratti WHERE employeeId = ? AND startingDate = ?;
+Explanation: Retrieves a specific contract by employee ID and starting date.
+
+Edit Contract:
+MySQL: UPDATE contratti SET type = ?, hourlyFee = ?, endingDate = ? WHERE employeeId = ? AND startingDate = ?;
+Explanation: Updates the terms of a specific contract.
+
+Delete Contract:
+MySQL: DELETE FROM contratti WHERE employeeId = ? AND startingDate = ?;
+Explanation: Removes a specific contract from the database.
+
+Get Employees Without Contract:
+MySQL: SELECT e.* FROM dipendenti e LEFT JOIN contratti c ON e.id = c.employeeId WHERE c.employeeId IS NULL;
+Explanation: Retrieves all employees who do not have an associated contract.
+
+Get Employees Earnings In Period:
+MySQL: 
+SELECT 
+  c.employeeId, 
+  c.startingDate, 
+  c.endingDate, 
+  c.hourlyFee,
+  SUM(TIMESTAMPDIFF(HOUR, t.entranceTime, t.exitTime) * c.hourlyFee) AS totalEarnings
+FROM 
+  contratti c
+JOIN 
+  timbrature t ON c.employeeId = t.employeeId
+WHERE 
+  t.entranceTime >= ? AND t.exitTime <= ?
+  AND (c.endingDate IS NULL OR c.endingDate >= t.entranceTime)
+  AND c.startingDate <= t.exitTime
+GROUP BY 
+  c.employeeId, c.startingDate, c.endingDate, c.hourlyFee;
+Explanation: Calculates the earnings for each employee within a specified date range, taking into account their contract terms and clocking records.
+
+4. Clockings
+
+Create Clocking:
+MySQL: INSERT INTO timbrature (employeeId, entranceTime, exitTime) VALUES (?, ?, ?);
+Explanation: Records a new clocking entry for an employee.
+
+Get All Clockings:
+MySQL: SELECT * FROM timbrature;
+Explanation: Retrieves all clocking records from the database.
+
+Get Clocking:
+MySQL: SELECT * FROM timbrature WHERE employeeId = ? AND entranceTime = ?;
+Explanation: Retrieves a specific clocking record by employee ID and entrance time.
+
+Edit Clocking:
+MySQL: UPDATE timbrature SET exitTime = ? WHERE employeeId = ? AND entranceTime = ?;
+Explanation: Updates the exit time for a specific clocking record.
+
+Delete Clocking:
+MySQL: DELETE FROM timbrature WHERE employeeId = ? AND entranceTime = ?;
+Explanation: Removes a specific clocking record from the database.
+
+5. Salaries
+
+Create Salary:
+MySQL: INSERT INTO stipendi (paymentId, employeeId) VALUES (?, ?);
+Explanation: Creates a new salary record associated with a payment and employee.
+
+Get All Salaries:
+MySQL: SELECT s.*, p.*, e.* FROM stipendi s JOIN pagamenti p ON s.paymentId = p.id JOIN dipendenti e ON s.employeeId = e.id;
+Explanation: Retrieves all salary records with associated payment and employee information.
+
+Get Salary:
+MySQL: SELECT s.*, p.*, e.* FROM stipendi s JOIN pagamenti p ON s.paymentId = p.id JOIN dipendenti e ON s.employeeId = e.id WHERE s.paymentId = ?;
+Explanation: Retrieves a specific salary record with associated payment and employee information.
+
+Edit Salary:
+MySQL: UPDATE stipendi SET employeeId = ? WHERE paymentId = ?;
+Explanation: Updates the employee associated with a specific salary record.
+
+Delete Salary:
+MySQL: DELETE FROM stipendi WHERE paymentId = ?;
+Explanation: Removes a specific salary record from the database.
+
+6. Clients
+
+Create Client:
+MySQL: INSERT INTO clienti (taxCode, name, surname, birthDate, street, houseNumber, city, province, phoneNumber, email, enrollmentDate, remainingEntrances) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+Explanation: Inserts a new client record with personal and membership information.
+
+Get All Clients:
+MySQL: SELECT * FROM clienti;
+Explanation: Retrieves all client records from the database.
+
+Get Client:
+MySQL: SELECT * FROM clienti WHERE id = ?;
+Explanation: Retrieves a specific client record by their ID.
+
+Edit Client:
+MySQL: UPDATE clienti SET taxCode = ?, name = ?, surname = ?, birthDate = ?, street = ?, houseNumber = ?, city = ?, province = ?, phoneNumber = ?, email = ?, enrollmentDate = ?, remainingEntrances = ? WHERE id = ?;
+Explanation: Updates a client's information for a specific client ID.
+
+7. Purchases
+
+Create Purchase:
+MySQL: INSERT INTO acquisti (clientId, date, amount, type, productCode) VALUES (?, ?, ?, ?, ?);
+Explanation: Records a new purchase made by a client.
+
+Get All Purchases:
+MySQL: SELECT a.*, c.*, p.* FROM acquisti a JOIN clienti c ON a.clientId = c.id JOIN prodotti p ON a.productCode = p.code;
+Explanation: Retrieves all purchase records with associated client and product information.
+
+Get Purchase:
+MySQL: SELECT a.*, c.*, p.* FROM acquisti a JOIN clienti c ON a.clientId = c.id JOIN prodotti p ON a.productCode = p.code WHERE a.clientId = ? AND a.date = ?;
+Explanation: Retrieves a specific purchase record with associated client and product information.
+
+Edit Purchase:
+MySQL: UPDATE acquisti SET amount = ?, type = ?, productCode = ? WHERE clientId = ? AND date = ?;
+Explanation: Updates the details of a specific purchase record.
+
+Delete Purchase:
+MySQL: DELETE FROM acquisti WHERE clientId = ? AND date = ?;
+Explanation: Removes a specific purchase record from the database.
+
+These database operations cover the core functionality of the gym management system, including managing accounts, employees, contracts, clockings, salaries, clients, and purchases. The MySQL queries provide a direct representation of the data manipulation performed by the Prisma ORM in the application.

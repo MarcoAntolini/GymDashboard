@@ -1,3 +1,4 @@
 - aggiugere toaster per registrazione e azioni con successo
 - aggiungere modifica password
 - eventualmente aggiungere i link nella tabella
+- non si potrebbe modificare il proprio contratto

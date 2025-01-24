@@ -120,3 +120,13 @@ export async function getEmployeesWithoutAccount() {
 		},
 	});
 }
+
+export async function getEmployeesWithoutContract() {
+	return await db.employee.findMany({
+		where: {
+			contract: {
+				is: null
+			}
+		}
+	})
+}
