@@ -8,7 +8,7 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle,
+	AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,7 +18,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger,
+	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,12 +35,16 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	editFormContent,
 	editAction,
 	deleteAction,
+	editUnavailabe,
+	deleteUnavailabe
 }: {
 	row: Row<any>;
 	formSchema: TFormSchema;
 	editFormContent: React.ReactNode;
 	editAction: (params: { values: z.infer<TFormSchema> }) => Promise<any>;
 	deleteAction: () => Promise<void>;
+	editUnavailabe?: boolean;
+	deleteUnavailabe?: boolean;
 }) {
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -50,8 +54,8 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	const form = useForm<z.infer<TFormSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			...row.original,
-		},
+			...row.original
+		}
 	});
 
 	function onEditSubmit(values: z.infer<TFormSchema>) {
@@ -72,10 +76,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 		<>
 			<DropdownMenu modal={false}>
 				<DropdownMenuTrigger asChild>
-					<Button
-						variant="ghost"
-						className="h-7 w-7 p-0"
-					>
+					<Button variant="ghost" className="h-7 w-7 p-0" disabled={editUnavailabe && deleteUnavailabe}>
 						<span className="sr-only">Open menu</span>
 						<MoreHorizontal className="h-4 w-4" />
 					</Button>
@@ -83,24 +84,18 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 				<DropdownMenuContent align="end">
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>Edit</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>Delete</DropdownMenuItem>
+					{!editUnavailabe && <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>Edit</DropdownMenuItem>}
+					{!deleteUnavailabe && <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>Delete</DropdownMenuItem>}
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			<Dialog
-				open={isEditDialogOpen}
-				onOpenChange={setIsEditDialogOpen}
-			>
+			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
 				<DialogContent>
 					<DialogHeader className="mb-5">
 						<DialogTitle>Edit row data</DialogTitle>
 					</DialogHeader>
 					<Form {...form}>
-						<form
-							onSubmit={form.handleSubmit(onEditSubmit)}
-							className="space-y-8"
-						>
+						<form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-8">
 							{editFormContent}
 							<DialogFooter>
 								<Button type="submit">Save</Button>
@@ -110,10 +105,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 				</DialogContent>
 			</Dialog>
 
-			<AlertDialog
-				open={isDeleteDialogOpen}
-				onOpenChange={setIsDeleteDialogOpen}
-			>
+			<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -123,10 +115,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
-						<AlertDialogAction
-							className="bg-destructive hover:bg-destructive/90"
-							onClick={onDeleteSubmit}
-						>
+						<AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={onDeleteSubmit}>
 							Continue
 						</AlertDialogAction>
 					</AlertDialogFooter>

@@ -42,9 +42,13 @@ export const columns = (
 				title="ID"
 			/>
 		),
+		cell: ({ row }) => {
+			return <div>{row.original.id.toString().padStart(4, "0")}</div>;
+		}
 	},
 	{
 		accessorKey: "taxCode",
+
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}

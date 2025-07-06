@@ -10,7 +10,7 @@ import { z } from "zod";
 
 export const formSchema = z.object({
 	paymentId: z.number().int().positive(),
-	employeeId: z.number().int().positive(),
+	employeeId: z.number().int().positive()
 });
 
 export const columns = (
@@ -19,21 +19,14 @@ export const columns = (
 ): ColumnDef<Salary>[] => [
 	{
 		accessorKey: "paymentId",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Payment ID"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Payment ID" />
 	},
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Employee ID"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
+		cell: ({ row }) => {
+			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
+		}
 	},
 	// {
 	// 	accessorKey: "payment.amount",
@@ -108,11 +101,7 @@ export const columns = (
 								<FormItem>
 									<FormLabel>Employee ID</FormLabel>
 									<FormControl>
-										<Input
-											type="number"
-											{...field}
-											onChange={(e) => field.onChange(parseInt(e.target.value))}
-										/>
+										<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -123,12 +112,12 @@ export const columns = (
 				editAction={async ({ values }) => {
 					const updatedSalary = {
 						...row.original,
-						...values,
+						...values
 					};
 					await handleEdit(updatedSalary);
 				}}
 				deleteAction={() => handleDelete({ paymentId: row.original.paymentId })}
 			/>
-		),
-	},
+		)
+	}
 ];

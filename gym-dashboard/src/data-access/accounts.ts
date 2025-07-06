@@ -6,7 +6,7 @@ import { Role } from "@prisma/client";
 export async function createAccount({
 	username,
 	password,
-	employeeId,
+	employeeId
 }: {
 	username: string;
 	password: string;
@@ -16,8 +16,8 @@ export async function createAccount({
 		data: {
 			username,
 			password,
-			employeeId,
-		},
+			employeeId
+		}
 	});
 }
 
@@ -29,14 +29,14 @@ export async function getAccount({ username, employeeId }: { username?: string; 
 	if (username) {
 		return await db.account.findUnique({
 			where: {
-				username,
-			},
+				username
+			}
 		});
 	} else if (employeeId) {
 		return await db.account.findUnique({
 			where: {
-				employeeId,
-			},
+				employeeId
+			}
 		});
 	}
 }
@@ -44,20 +44,20 @@ export async function getAccount({ username, employeeId }: { username?: string; 
 export async function getAccountSafe(username: string) {
 	return await db.account.findUnique({
 		where: {
-			username,
+			username
 		},
 		select: {
 			employee: true,
 			role: true,
-			approved: true,
-		},
+			approved: true
+		}
 	});
 }
 
 export async function editAccount({
 	employeeId,
 	role,
-	approved,
+	approved
 }: {
 	employeeId: number;
 	role: Role;
@@ -65,19 +65,19 @@ export async function editAccount({
 }) {
 	return await db.account.update({
 		where: {
-			employeeId,
+			employeeId
 		},
 		data: {
 			role,
-			approved,
-		},
+			approved
+		}
 	});
 }
 
 export async function deleteAccount({ employeeId }: { employeeId: number }) {
 	return await db.account.delete({
 		where: {
-			employeeId,
-		},
+			employeeId
+		}
 	});
 }

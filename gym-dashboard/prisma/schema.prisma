@@ -34,17 +34,17 @@ model Employee {
   email       String
   hiringDate  DateTime @default(now()) @map("data_assunzione")
 
-  account  Account?
-  contract Contract?
-  salary   Salary[]
-  clocking Clocking[]
+  account   Account?
+  contracts Contract[]
+  salary    Salary[]
+  clocking  Clocking[]
 
   @@id([id])
   @@map("dipendenti")
 }
 
 model Contract {
-  employeeId   Int          @unique @map("id_dipendente")
+  employeeId   Int          @map("id_dipendente")
   type         ContractType @map("tipo")
   hourlyFee    Float        @map("costo_orario")
   startingDate DateTime     @map("data_inizio")
@@ -165,7 +165,7 @@ model Purchase {
   date        DateTime     @default(now()) @map("data")
   amount      Float        @map("importo")
   type        PurchaseType @map("tipo")
-  productCode String       @unique @map("codice_prodotto")
+  productCode String       @map("codice_prodotto")
 
   client   Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   prodotto Product @relation(fields: [productCode], references: [code], onDelete: Cascade)
@@ -178,7 +178,7 @@ model Product {
   code String @map("codice")
 
   membership  Membership?
-  purchase    Purchase?
+  purchases   Purchase[]
   catalog     Catalog[]
   entranceSet EntranceSet?
 
@@ -209,7 +209,7 @@ model EntranceSet {
 model Catalog {
   year        Int          @map("anno")
   type        PurchaseType @map("tipo")
-  productCode String       @unique @map("codice_prodotto")
+  productCode String       @map("codice_prodotto")
   price       Float        @map("prezzo")
 
   product Product @relation(fields: [productCode], references: [code], onDelete: Cascade)

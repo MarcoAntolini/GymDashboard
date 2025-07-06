@@ -14,82 +14,61 @@ export const formSchema = z.object({
 	type: z.nativeEnum(ContractType),
 	hourlyFee: z.number().positive(),
 	startingDate: z.date(),
-	endingDate: z.date().optional(),
+	endingDate: z.date().optional()
 });
 
 export const columns = (
 	handleDelete: (contract: Pick<Contract, "employeeId" | "startingDate">) => Promise<void>,
-	handleEdit: (contract: Contract) => Promise<void>
+	handleEdit: (contract: Contract) => Promise<void>,
+	loggedEmployeeId: number
 ): ColumnDef<Contract>[] => [
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Employee ID"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
+		cell: ({ row }) => {
+			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
+		}
 	},
 	{
 		accessorKey: "type",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Contract Type"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Contract Type" />,
 		cell: ({ row }) => {
 			const type = row.getValue("type");
 			return <div className="font-medium">{type === ContractType.FixedTerm ? "Fixed Term" : "Open Ended"}</div>;
 		},
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
-		},
+		}
 	},
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Hourly Fee"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("hourlyFee"));
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
-				currency: "USD",
+				currency: "USD"
 			})
 				.format(amount)
 				.replace("$", "$ ");
 			return <div className="font-medium">{formatted}</div>;
-		},
+		}
 	},
 	{
 		accessorKey: "startingDate",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Starting Date"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Starting Date" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("startingDate"));
 			return <div className="font-medium">{date.toLocaleDateString()}</div>;
-		},
+		}
 	},
 	{
 		accessorKey: "endingDate",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Ending Date"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
 		cell: ({ row }) => {
 			const date = row.getValue("endingDate");
 			return date ? <div className="font-medium">{new Date(date as Date).toLocaleDateString()}</div> : <div>-</div>;
-		},
+		}
 	},
 	{
 		id: "actions",
@@ -121,10 +100,7 @@ export const columns = (
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Contract Type</FormLabel>
-									<Select
-										onValueChange={field.onChange}
-										defaultValue={field.value}
-									>
+									<Select onValueChange={field.onChange} defaultValue={field.value}>
 										<FormControl>
 											<SelectTrigger>
 												<SelectValue placeholder="Select a contract type" />
@@ -162,12 +138,7 @@ export const columns = (
 								<FormItem>
 									<FormLabel>Starting Date</FormLabel>
 									<FormControl>
-										<Input
-											type="date"
-											{...field}
-											onChange={(e) => field.onChange(new Date(e.target.value))}
-											disabled
-										/>
+										<Input type="date" {...field} onChange={(e) => field.onChange(new Date(e.target.value))} disabled />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -194,14 +165,16 @@ export const columns = (
 				editAction={async ({ values }) => {
 					const updatedContract = {
 						...row.original,
-						...values,
+						...values
 					};
 					await handleEdit(updatedContract);
 				}}
 				deleteAction={() =>
 					handleDelete({ employeeId: row.original.employeeId, startingDate: row.original.startingDate })
 				}
+				editUnavailabe={row.original.employeeId === loggedEmployeeId}
+				deleteUnavailabe={row.original.employeeId === loggedEmployeeId}
 			/>
-		),
-	},
+		)
+	}
 ];

@@ -58,14 +58,24 @@
 	}
 }
 
-@media (min-height: 920px) and (min-width: 1536px) {
+@media (min-height: 855px) and (min-width: 1536px) {
 	.custom-size\:block {
 		@apply block;
 	}
 }
 
-@media (min-height: 920px) and (min-width: 1536px) {
+@media (min-height: 855px) and (min-width: 1536px) {
 	.custom-size\:hidden {
 		@apply hidden;
 	}
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }

@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -19,7 +21,7 @@ const formSchema = z.object({
 		.regex(
 			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
 			"Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"
-		),
+		)
 });
 
 export function LoginForm() {
@@ -29,35 +31,38 @@ export function LoginForm() {
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			username: "",
-			password: "",
-		},
+			password: ""
+		}
 	});
 
+	const [isLoading, setIsLoading] = useState(false);
+
 	async function onSubmit(values: z.infer<typeof formSchema>) {
+		setIsLoading(true);
 		await fetch("/api/auth/login", {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json",
+				"Content-Type": "application/json"
 			},
-			body: JSON.stringify(values),
+			body: JSON.stringify(values)
 		})
 			.then((res) => res.json())
-			.then((data) => {
+			.then(async (data) => {
 				const { success, message } = data;
 				if (success) {
 					router.push("/accounts");
 				} else {
 					toast.error(message);
 				}
+			})
+			.finally(() => {
+				setIsLoading(false);
 			});
 	}
 
 	return (
 		<Form {...form}>
-			<form
-				onSubmit={form.handleSubmit(onSubmit)}
-				className="flex flex-col gap-6"
-			>
+			<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
 				<FormField
 					control={form.control}
 					name="username"
@@ -65,10 +70,7 @@ export function LoginForm() {
 						<FormItem>
 							<FormLabel>Username</FormLabel>
 							<FormControl>
-								<Input
-									placeholder="Username"
-									{...field}
-								/>
+								<Input placeholder="Username" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -81,21 +83,14 @@ export function LoginForm() {
 						<FormItem>
 							<FormLabel>Password</FormLabel>
 							<FormControl>
-								<Input
-									type="password"
-									placeholder="Password"
-									{...field}
-								/>
+								<Input type="password" placeholder="Password" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
-				<Button
-					type="submit"
-					className="mt-6"
-				>
-					Login
+				<Button type="submit" className="mt-6" disabled={isLoading}>
+					{isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Login"}
 				</Button>
 			</form>
 		</Form>

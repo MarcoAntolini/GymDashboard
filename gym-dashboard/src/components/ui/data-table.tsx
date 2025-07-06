@@ -10,12 +10,12 @@ import {
 	VisibilityState,
 	flexRender,
 	getCoreRowModel,
+	getFacetedRowModel,
+	getFacetedUniqueValues,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	getFacetedRowModel,
-	getFacetedUniqueValues,
-	useReactTable,
+	useReactTable
 } from "@tanstack/react-table";
 import * as React from "react";
 
@@ -27,7 +27,13 @@ interface DataTableProps<TData, TValue> {
 	className?: string;
 }
 
-export function DataTable<TData, TValue>({ columns, data, filters, facetedFilters, className }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({
+	columns,
+	data,
+	filters,
+	facetedFilters,
+	className
+}: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -46,22 +52,18 @@ export function DataTable<TData, TValue>({ columns, data, filters, facetedFilter
 		state: {
 			sorting,
 			columnFilters,
-			columnVisibility,
-		},
+			columnVisibility
+		}
 	});
 
 	return (
 		<div className="flex flex-col h-full">
-			<TableToolbar
-				table={table}
-				filters={filters}
-				facetedFilters={facetedFilters}
-			/>
+			<TableToolbar table={table} filters={filters} facetedFilters={facetedFilters} />
 			<div className="rounded-md border overflow-auto flex-1">
 				<Table className={className}>
-					<TableHeader>
+					<TableHeader className="sticky top-0 bg-background z-10 [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
+							<TableRow key={headerGroup.id} className="bg-opacity-25 bg-stone-600">
 								{headerGroup.headers.map((header) => {
 									return (
 										<TableHead key={header.id}>
@@ -75,10 +77,7 @@ export function DataTable<TData, TValue>({ columns, data, filters, facetedFilter
 					<TableBody>
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
-								<TableRow
-									key={row.id}
-									data-state={row.getIsSelected() && "selected"}
-								>
+								<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
 									))}
@@ -86,10 +85,7 @@ export function DataTable<TData, TValue>({ columns, data, filters, facetedFilter
 							))
 						) : (
 							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className="h-24 text-center"
-								>
+								<TableCell colSpan={columns.length} className="h-24 text-center">
 									No results.
 								</TableCell>
 							</TableRow>

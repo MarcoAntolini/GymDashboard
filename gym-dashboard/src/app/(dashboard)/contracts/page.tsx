@@ -11,13 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { getAccountSafe } from "@/data-access/accounts";
 import {
 	createContract,
 	deleteContract,
 	editContract,
 	EmployeesEarningsInPeriod,
 	getAllContracts,
-	getEmployeesEarningsInPeriod,
+	getEmployeesEarningsInPeriod
 } from "@/data-access/contracts";
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
@@ -26,15 +27,16 @@ import { Contract, ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Calculator, Calendar as CalendarIcon, PlusCircle } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCookies } from "next-client-cookies";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
 
 const earningsFormSchema = z.object({
 	date: z.object({
 		from: z.date(),
-		to: z.date(),
-	}),
+		to: z.date()
+	})
 });
 
 export default function Contracts() {
@@ -43,13 +45,13 @@ export default function Contracts() {
 		setData: setContracts,
 		isLoading,
 		handleDelete,
-		handleEdit,
+		handleEdit
 	} = useEntityData<Contract, "employeeId" | "startingDate">(
 		useMemo(
 			() => ({
 				getAll: getAllContracts,
 				deleteAction: deleteContract,
-				editAction: editContract,
+				editAction: editContract
 			}),
 			[]
 		),
@@ -59,12 +61,14 @@ export default function Contracts() {
 	const { data: employeesWithoutContract, setData: setEmployeesWithoutContract } = useEntityData<Employee, "id">(
 		useMemo(
 			() => ({
-				getAll: getEmployeesWithoutContract,
+				getAll: getEmployeesWithoutContract
 			}),
 			[]
 		),
 		["id"]
 	);
+
+	const cookies = useCookies();
 
 	const handleCreateContract = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
@@ -83,9 +87,9 @@ export default function Contracts() {
 			type: ContractType.FixedTerm,
 			hourlyFee: 0,
 			startingDate: new Date(),
-			endingDate: undefined,
+			endingDate: undefined
 		},
-		submitAction: handleCreateContract,
+		submitAction: handleCreateContract
 	};
 
 	const [isEarningsSheetOpen, setIsEarningsSheetOpen] = useState(false);
@@ -93,7 +97,7 @@ export default function Contracts() {
 	const handleCalculateEarnings = useCallback(async (values: z.infer<typeof earningsFormSchema>) => {
 		const earnings = await getEmployeesEarningsInPeriod({
 			startingDate: values.date.from,
-			endingDate: values.date.to,
+			endingDate: values.date.to
 		});
 		setEarningsData(earnings);
 		setSelectedDateRange(values.date);
@@ -104,12 +108,22 @@ export default function Contracts() {
 		defaultValues: {
 			date: {
 				from: new Date(),
-				to: new Date(),
-			},
+				to: new Date()
+			}
 		},
-		submitAction: handleCalculateEarnings,
+		submitAction: handleCalculateEarnings
 	};
 	const [earningsData, setEarningsData] = useState<EmployeesEarningsInPeriod[]>([]);
+
+	const [employeeId, setEmployeeId] = useState(0);
+	useEffect(() => {
+		const accountUsername = cookies.get("session");
+		if (accountUsername) {
+			getAccountSafe(accountUsername).then((account) => {
+				setEmployeeId(account?.employee?.id ?? 0);
+			});
+		}
+	}, [cookies]);
 
 	const actions: Action[] = [
 		{
@@ -138,10 +152,7 @@ export default function Contracts() {
 											<SelectContent>
 												<SelectGroup>
 													{employeesWithoutContract.map((employee) => (
-														<SelectItem
-															key={employee.id}
-															value={employee.id.toString()}
-														>
+														<SelectItem key={employee.id} value={employee.id.toString()}>
 															{employee.id} - {employee.name} {employee.surname}
 														</SelectItem>
 													))}
@@ -157,10 +168,7 @@ export default function Contracts() {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Contract Type</FormLabel>
-										<Select
-											onValueChange={field.onChange}
-											defaultValue={field.value}
-										>
+										<Select onValueChange={field.onChange} defaultValue={field.value}>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue placeholder="Select a contract type" />
@@ -214,10 +222,7 @@ export default function Contracts() {
 													</Button>
 												</FormControl>
 											</PopoverTrigger>
-											<PopoverContent
-												className="w-auto p-0"
-												align="start"
-											>
+											<PopoverContent className="w-auto p-0" align="start">
 												<Calendar
 													mode="single"
 													selected={field.value}
@@ -252,10 +257,7 @@ export default function Contracts() {
 														</Button>
 													</FormControl>
 												</PopoverTrigger>
-												<PopoverContent
-													className="w-auto p-0"
-													align="start"
-												>
+												<PopoverContent className="w-auto p-0" align="start">
 													<Calendar
 														mode="single"
 														selected={field.value}
@@ -274,7 +276,7 @@ export default function Contracts() {
 					)}
 				</>
 			),
-			formData: createContractFormData,
+			formData: createContractFormData
 		},
 		{
 			title: "Calculate Earnings",
@@ -312,10 +314,7 @@ export default function Contracts() {
 												</Button>
 											</FormControl>
 										</PopoverTrigger>
-										<PopoverContent
-											className="w-auto p-0"
-											align="start"
-										>
+										<PopoverContent className="w-auto p-0" align="start">
 											<Calendar
 												initialFocus
 												mode="range"
@@ -333,8 +332,8 @@ export default function Contracts() {
 					/>
 				</>
 			),
-			formData: earningsFormData,
-		},
+			formData: earningsFormData
+		}
 	];
 
 	return isLoading ? (
@@ -345,17 +344,14 @@ export default function Contracts() {
 				actions={actions}
 				table={
 					<DataTable
-						columns={columns(handleDelete, handleEdit)}
+						columns={columns(handleDelete, handleEdit, employeeId)}
 						data={contracts}
 						filters={["employeeId"]}
 						facetedFilters={["type"]}
 					/>
 				}
 			/>
-			<Sheet
-				open={isEarningsSheetOpen}
-				onOpenChange={() => setIsEarningsSheetOpen(false)}
-			>
+			<Sheet open={isEarningsSheetOpen} onOpenChange={() => setIsEarningsSheetOpen(false)}>
 				<SheetContent side="bottom">
 					<SheetHeader className="mb-6">
 						<SheetTitle>
@@ -383,79 +379,57 @@ export default function Contracts() {
 const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Employee ID"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
+		cell: ({ row }) => {
+			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
+		}
 	},
 	{
 		accessorKey: "startingDate",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Starting Date"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Starting Date" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("startingDate"));
 			return <div className="font-medium">{date.toLocaleDateString()}</div>;
-		},
+		}
 	},
 	{
 		accessorKey: "endingDate",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Ending Date"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("endingDate"));
 			return <div className="font-medium">{date.toLocaleDateString()}</div>;
-		},
+		}
 	},
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Hourly Fee"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("hourlyFee"));
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
-				currency: "USD",
+				currency: "USD"
 			})
 				.format(amount)
 				.replace("$", "$ ");
 			return <div className="font-medium">{formatted}</div>;
-		},
+		}
 	},
 	{
 		accessorKey: "totalEarnings",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Total Earnings"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Total Earnings" />,
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("totalEarnings"));
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
-				currency: "USD",
+				currency: "USD"
 			})
 				.format(amount)
 				.replace("$", "$ ");
 			return <div className="font-medium">{formatted}</div>;
-		},
+		}
 	},
 	{
 		id: "actions",
-		cell: ({ row }) => {},
-	},
+		cell: ({ row }) => {}
+	}
 ];

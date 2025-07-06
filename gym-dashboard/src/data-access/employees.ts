@@ -13,7 +13,7 @@ export async function createEmployee({
 	province,
 	phoneNumber,
 	email,
-	hiringDate,
+	hiringDate
 }: {
 	taxCode: string;
 	name: string;
@@ -39,8 +39,8 @@ export async function createEmployee({
 			province,
 			phoneNumber: phoneNumber || "",
 			email: email || "",
-			hiringDate: hiringDate || new Date(),
-		},
+			hiringDate: hiringDate || new Date()
+		}
 	});
 }
 
@@ -51,8 +51,8 @@ export async function getAllEmployees() {
 export async function getEmployee(id: number) {
 	return await db.employee.findUnique({
 		where: {
-			id,
-		},
+			id
+		}
 	});
 }
 
@@ -68,7 +68,7 @@ export async function editEmployee({
 	province,
 	phoneNumber,
 	email,
-	hiringDate,
+	hiringDate
 }: {
 	id: number;
 	taxCode: string;
@@ -85,7 +85,7 @@ export async function editEmployee({
 }) {
 	return await db.employee.update({
 		where: {
-			id,
+			id
 		},
 		data: {
 			taxCode,
@@ -98,16 +98,16 @@ export async function editEmployee({
 			province,
 			phoneNumber,
 			email,
-			hiringDate,
-		},
+			hiringDate
+		}
 	});
 }
 
 export async function deleteEmployee({ id }: { id: number }) {
 	return await db.employee.delete({
 		where: {
-			id,
-		},
+			id
+		}
 	});
 }
 
@@ -115,18 +115,18 @@ export async function getEmployeesWithoutAccount() {
 	return await db.employee.findMany({
 		where: {
 			account: {
-				is: null,
-			},
-		},
+				is: null
+			}
+		}
 	});
 }
 
 export async function getEmployeesWithoutContract() {
 	return await db.employee.findMany({
 		where: {
-			contract: {
-				is: null
+			contracts: {
+				none: {}
 			}
 		}
-	})
+	});
 }

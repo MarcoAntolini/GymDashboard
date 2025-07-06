@@ -8,6 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Purchase, PurchaseType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
 export const formSchema = z.object({
   clientId: z.number().int().positive(),
@@ -19,7 +25,9 @@ export const formSchema = z.object({
 
 export const columns = (
   handleDelete: (purchase: Pick<Purchase, "clientId" | "date">) => Promise<void>,
-  handleEdit: (purchase: Purchase) => Promise<void>
+  handleEdit: (purchase: Purchase) => Promise<void>,
+  filteredProducts: Product[],
+  onTypeChange: (type: PurchaseType) => void
 ): ColumnDef<Purchase>[] => [
   {
     accessorKey: "clientId",
@@ -27,24 +35,6 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Client ID"
-      />
-    ),
-  },
-  {
-    accessorKey: "client.name",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Client Name"
-      />
-    ),
-  },
-  {
-    accessorKey: "client.surname",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Client Surname"
       />
     ),
   },
@@ -126,15 +116,31 @@ export const columns = (
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                      disabled
-                    />
-                  </FormControl>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date < new Date("1900-01-01")}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -161,7 +167,13 @@ export const columns = (
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      onTypeChange(value as PurchaseType);
+                    }} 
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a type" />
@@ -183,10 +195,34 @@ export const columns = (
               name="productCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Product Code</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
+                  <FormLabel>Product</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value}
+                    disabled={filteredProducts.length === 0}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue 
+                          placeholder={
+                            filteredProducts.length === 0
+                              ? "No products available for selected type"
+                              : "Select a product"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {filteredProducts.map((product) => (
+                        <SelectItem key={product.code} value={product.code}>
+                          {product.code}
+                          {row.getValue("type") === PurchaseType.Membership
+                            ? ` (${product.membership?.duration} days)`
+                            : ` (${product.entranceSet?.entranceNumber} entrances)`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

@@ -4,27 +4,27 @@ I dipendenti della palestra potranno registrarsi al sistema in attesa di essere 
 L'amministratore potrà visualizzare e gestire tutti i dati del sistema.
 
 Per quanto riguarda i clienti sarà possibile:
-- inserire un nuovo cliente, modificarne i dati o eliminarlo
-- visualizzare i dati di un cliente o di tutti i clienti
-- registrare l'acquisto di un abbonamento o di un pacchetto entrate
-- visualizzare i dati relativi agli abbonamenti e ai pacchetti entrate di un cliente
-- registrare l'entrata in palestra di un cliente
+[x] inserire un nuovo cliente, modificarne i dati o eliminarlo
+[ ] visualizzare i dati di un cliente o di tutti i clienti
+[ ] registrare l'acquisto di un abbonamento o di un pacchetto entrate
+[ ] visualizzare i dati relativi agli abbonamenti e ai pacchetti entrate di un cliente
+[ ] registrare l'entrata in palestra di un cliente
 
 Per quanto riguarda i dipendenti sarà possibile:
-- inserire un nuovo dipendente, modificarne i dati o eliminarlo
-- visualizzare i dati di un dipendente o di tutti i dipendenti
-- registrare il pagamento di uno stipendio
-- registrare l'entrate e l'uscita di un dipendente dal posto di lavoro
+[x] inserire un nuovo dipendente, modificarne i dati o eliminarlo
+[x] visualizzare i dati di un dipendente o di tutti i dipendenti
+[ ] registrare il pagamento di uno stipendio
+[x] registrare l'entrate e l'uscita di un dipendente dal posto di lavoro
 
 Per quanto riguarda il listino sarà possibile:
-- inserire un nuovo abbonamento o pacchetto entrate, modificarne i dati o eliminarlo
-- visualizzare i dati di un abbonamento o pacchetto entrate o di tutti gli abbonamenti e pacchetti entrate
-- visualizzare abbonamenti e pacchetti entrate relativi a un certo anno
-- filtrare gli abbonamenti e i pacchetti entrate per tipo
+[ ] inserire un nuovo abbonamento o pacchetto entrate, modificarne i dati o eliminarlo
+[ ] visualizzare i dati di un abbonamento o pacchetto entrate o di tutti gli abbonamenti e pacchetti entrate
+[ ] visualizzare abbonamenti e pacchetti entrate relativi a un certo anno
+[ ] filtrare gli abbonamenti e i pacchetti entrate per tipo
 
 Per quanto riguarda le entrate e le uscite economiche sarà possibile:
-- registrare entrate e uscite economiche
-- visualizzare le entrate e le uscite economiche di un certo periodo
-- filtrare le entrate e le uscite economiche per tipo
+[ ] registrare entrate e uscite economiche
+[ ] visualizzare le entrate e le uscite economiche di un certo periodo
+[ ] filtrare le entrate e le uscite economiche per tipo
 
 Inoltre sarà possibile visualizzare statistiche relative a entrate/uscite economiche, abbonamenti/pacchetti entrate ed eventuali altre statistiche rilevanti.

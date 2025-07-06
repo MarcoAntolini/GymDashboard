@@ -7,6 +7,11 @@ export async function createMembership({
   productCode,
   duration,
 }: Omit<Membership, "id">) {
+  await await db.product.create({
+		data: {
+			code: productCode
+		}
+	});
   return await db.membership.create({
     data: {
       productCode,

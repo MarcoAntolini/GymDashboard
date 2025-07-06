@@ -7,7 +7,7 @@ import {
 	AlertDialogContent,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle,
+	AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,7 +15,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuTrigger,
+	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import { Nav } from "./_components/nav";
 
 export default function DashboardLayout({
-	children,
+	children
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
@@ -45,8 +45,8 @@ export default function DashboardLayout({
 		await fetch("/api/auth/logout", {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json",
-			},
+				"Content-Type": "application/json"
+			}
 		})
 			.then((res) => res.json())
 			.then((data) => {
@@ -88,31 +88,25 @@ export default function DashboardLayout({
 										<span>{username}</span>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
-										<DropdownMenuItem className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground">
+										{/* <DropdownMenuItem className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground cursor-pointer">
 											Settings
-										</DropdownMenuItem>
+										</DropdownMenuItem> */}
 										<DropdownMenuItem
 											onClick={() => setIsLogoutDialogOpen(true)}
-											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground hover:!bg-destructive"
+											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground hover:!bg-destructive cursor-pointer"
 										>
 											Logout
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
-								<AlertDialog
-									open={isLogoutDialogOpen}
-									onOpenChange={setIsLogoutDialogOpen}
-								>
+								<AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
 									<AlertDialogContent>
 										<AlertDialogHeader>
 											<AlertDialogTitle>Are you sure?</AlertDialogTitle>
 										</AlertDialogHeader>
 										<AlertDialogFooter>
 											<AlertDialogCancel>Cancel</AlertDialogCancel>
-											<AlertDialogAction
-												onClick={handleLogout}
-												className="bg-destructive hover:bg-destructive/90"
-											>
+											<AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
 												Logout
 											</AlertDialogAction>
 										</AlertDialogFooter>

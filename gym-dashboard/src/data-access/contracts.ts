@@ -8,7 +8,7 @@ export async function createContract({
 	type,
 	hourlyFee,
 	startingDate,
-	endingDate,
+	endingDate
 }: {
 	employeeId: number;
 	type: ContractType;
@@ -22,8 +22,8 @@ export async function createContract({
 			type,
 			hourlyFee,
 			startingDate,
-			endingDate,
-		},
+			endingDate
+		}
 	});
 }
 
@@ -36,9 +36,9 @@ export async function getContract(employeeId: number, startingDate: Date) {
 		where: {
 			employeeId_startingDate: {
 				employeeId,
-				startingDate,
-			},
-		},
+				startingDate
+			}
+		}
 	});
 }
 
@@ -47,14 +47,14 @@ export async function editContract({ employeeId, startingDate, type, hourlyFee, 
 		where: {
 			employeeId_startingDate: {
 				employeeId,
-				startingDate,
-			},
+				startingDate
+			}
 		},
 		data: {
 			type,
 			hourlyFee,
-			endingDate,
-		},
+			endingDate
+		}
 	});
 }
 
@@ -63,9 +63,9 @@ export async function deleteContract({ employeeId, startingDate }: { employeeId:
 		where: {
 			employeeId_startingDate: {
 				employeeId,
-				startingDate,
-			},
-		},
+				startingDate
+			}
+		}
 	});
 }
 
@@ -79,7 +79,7 @@ export type EmployeesEarningsInPeriod = {
 
 export async function getEmployeesEarningsInPeriod({
 	startingDate,
-	endingDate,
+	endingDate
 }: {
 	startingDate: Date;
 	endingDate: Date;
@@ -88,58 +88,63 @@ export async function getEmployeesEarningsInPeriod({
 		where: {
 			entranceTime: {
 				gte: startingDate,
-				lte: endingDate,
+				lte: endingDate
 			},
 			exitTime: {
 				gte: startingDate,
-				lte: endingDate,
-			},
-		},
+				lte: endingDate
+			}
+		}
 	});
-	return await db.contract
+	return (await db.contract
 		.findMany({
 			where: {
 				OR: [
 					{
 						startingDate: {
 							gte: startingDate,
-							lte: endingDate,
-						},
+							lte: endingDate
+						}
 					},
 					{
 						endingDate: {
 							gte: startingDate,
-							lte: endingDate,
-						},
+							lte: endingDate
+						}
 					},
 					{
 						startingDate: {
-							lte: startingDate,
+							lte: startingDate
 						},
 						OR: [
 							{
 								endingDate: {
-									gte: endingDate,
-								},
+									gte: endingDate
+								}
 							},
 							{
-								endingDate: null,
-							},
-						],
-					},
-				],
-			},
+								endingDate: null
+							}
+						]
+					}
+				]
+			}
 		})
 		.then((contracts) => {
 			return contracts.map((contract) => {
 				let totalHours = 0;
 				for (const clocking of clockings) {
 					if (clocking.employeeId === contract.employeeId) {
-						totalHours +=
-							((clocking.exitTime != null ? clocking.exitTime.getTime() : Date.now()) -
-								clocking.entranceTime.getTime()) /
-							1000 /
-							3600;
+						if (
+							clocking.entranceTime >= contract.startingDate &&
+							(contract.endingDate === null || clocking.entranceTime <= contract.endingDate)
+						) {
+							totalHours +=
+								((clocking.exitTime != null ? clocking.exitTime.getTime() : Date.now()) -
+									clocking.entranceTime.getTime()) /
+								1000 /
+								3600;
+						}
 					}
 				}
 				return {
@@ -147,8 +152,8 @@ export async function getEmployeesEarningsInPeriod({
 					startingDate: contract.startingDate,
 					endingDate: contract.endingDate,
 					hourlyFee: contract.hourlyFee,
-					totalEarnings: contract.hourlyFee * totalHours,
+					totalEarnings: contract.hourlyFee * totalHours
 				};
 			});
-		}) as EmployeesEarningsInPeriod[];
+		})) as EmployeesEarningsInPeriod[];
 }

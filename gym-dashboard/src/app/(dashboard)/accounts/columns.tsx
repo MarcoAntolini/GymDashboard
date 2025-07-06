@@ -13,7 +13,7 @@ import { z } from "zod";
 
 const formSchema = z.object({
 	role: z.enum([Role.Admin, Role.Employee]),
-	approved: z.string().optional(),
+	approved: z.string().optional()
 });
 
 export const columns = (
@@ -22,57 +22,36 @@ export const columns = (
 ): ColumnDef<Account>[] => [
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="EmployeeID"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="EmployeeID" />,
+		cell: ({ row }) => {
+			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
+		}
 	},
 	{
 		accessorKey: "username",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Username"
-			/>
-		),
+
+		header: ({ column }) => <TableSortableHeader column={column} title="Username" />
 	},
 	{
 		accessorKey: "password",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Password"
-			/>
-		),
-		enableSorting: false,
+		header: ({ column }) => <TableSortableHeader column={column} title="Password" />,
+		enableSorting: false
 	},
 	{
 		accessorKey: "role",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Role"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Role" />,
 		enableSorting: false,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
-		},
+		}
 	},
 	{
 		accessorKey: "approved",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Approved"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Approved" />,
 		enableSorting: false,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
-		},
+		}
 	},
 	{
 		id: "actions",
@@ -88,11 +67,7 @@ export const columns = (
 								render={({ field }) => (
 									<FormItem className="col-span-1">
 										<FormLabel className="text-muted-foreground">Employee ID</FormLabel>
-										<Input
-											disabled
-											onChange={field.onChange}
-											defaultValue={field.value}
-										/>
+										<Input disabled onChange={field.onChange} defaultValue={field.value} />
 									</FormItem>
 								)}
 							/>
@@ -101,11 +76,7 @@ export const columns = (
 								render={({ field }) => (
 									<FormItem className="col-span-2">
 										<FormLabel className="text-muted-foreground">Username</FormLabel>
-										<Input
-											disabled
-											onChange={field.onChange}
-											defaultValue={field.value}
-										/>
+										<Input disabled onChange={field.onChange} defaultValue={field.value} />
 									</FormItem>
 								)}
 							/>
@@ -115,10 +86,7 @@ export const columns = (
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel className="sr-only">Role</FormLabel>
-									<Select
-										onValueChange={field.onChange}
-										defaultValue={field.value}
-									>
+									<Select onValueChange={field.onChange} defaultValue={field.value}>
 										<FormControl>
 											<SelectTrigger className="w-full">
 												<SelectValue placeholder="Select a role" />
@@ -157,12 +125,12 @@ export const columns = (
 					const updatedAccount = {
 						...row.original,
 						...values,
-						approved: values.approved === "true",
+						approved: values.approved === "true"
 					};
 					await handleEdit(updatedAccount);
 				}}
 				deleteAction={() => handleDelete({ employeeId: row.original.employeeId! })}
 			/>
-		),
-	},
+		)
+	}
 ];
