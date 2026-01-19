@@ -61,7 +61,7 @@ export default function Contracts() {
 	const { data: employeesWithoutContract, setData: setEmployeesWithoutContract } = useEntityData<Employee, "id">(
 		useMemo(
 			() => ({
-				getAll: getEmployeesWithoutContract
+				getAll: getEmployeesWithoutContract,
 			}),
 			[]
 		),
@@ -384,22 +384,22 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
 		}
 	},
-	{
-		accessorKey: "startingDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Starting Date" />,
-		cell: ({ row }) => {
-			const date = new Date(row.getValue("startingDate"));
-			return <div className="font-medium">{date.toLocaleDateString()}</div>;
-		}
-	},
-	{
-		accessorKey: "endingDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
-		cell: ({ row }) => {
-			const date = new Date(row.getValue("endingDate"));
-			return <div className="font-medium">{date.toLocaleDateString()}</div>;
-		}
-	},
+	// {
+	// 	accessorKey: "startingDate",
+	// 	header: ({ column }) => <TableSortableHeader column={column} title="Starting Date" />,
+	// 	cell: ({ row }) => {
+	// 		const date = new Date(row.getValue("startingDate"));
+	// 		return <div className="font-medium">{date.toLocaleDateString()}</div>;
+	// 	}
+	// },
+	// {
+	// 	accessorKey: "endingDate",
+	// 	header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
+	// 	cell: ({ row }) => {
+	// 		const date = new Date(row.getValue("endingDate"));
+	// 		return <div className="font-medium">{date.toLocaleDateString()}</div>;
+	// 	}
+	// },
 	{
 		accessorKey: "hourlyFee",
 		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,

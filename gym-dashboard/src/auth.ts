@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function getSession() {
-	return cookies().get("session");
+	return (await cookies()).get("session");
 }
 
 export async function updateSession(request: NextRequest) {
@@ -14,4 +14,3 @@ export async function updateSession(request: NextRequest) {
 		return response;
 	}
 }
-

@@ -74,7 +74,6 @@ export default function EntrancesPage() {
 	const handleAnalytics = useCallback(
 		async (values: z.infer<typeof analyticsFormSchema>, type: "weekly" | "daily" | "monthly") => {
 			setSelectedDateRange(values.date);
-
 			switch (type) {
 				case "weekly":
 					const weeklyStats = await getWeeklyEntrances(values.date.from, values.date.to);

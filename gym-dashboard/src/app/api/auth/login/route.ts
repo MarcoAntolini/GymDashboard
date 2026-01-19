@@ -19,6 +19,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
 		return Response.json({ message: "Account not yet authorized", success: false });
 	}
 	const expireDate = new Date(Date.now() + 86400000);
-	cookies().set("session", username, { expires: expireDate });
+	(await cookies()).set("session", username, { expires: expireDate });
 	return Response.json({ message: "Logged in", success: true });
 }
