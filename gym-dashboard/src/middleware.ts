@@ -1,35 +1,41 @@
-import { NextRequest } from "next/server";
-import { getSession, updateSession } from "./auth";
-
-const validRoutes = [
-	"/accounts",
-	"/bills",
-	"/catalogs",
-	"/clients",
-	"/clockings",
-	"/contracts",
-	"/employees",
-	"/entrance-sets",
-	"/entrances",
-	"/equipment",
-	"/interventions",
-	"/memberships",
-	"/payments",
-	"/products",
-	"/purchases",
-	"/salaries",
-];
+import { createSessionValue, getSessionCookieName, signSessionValue, verifySessionValue } from "@/lib/session";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-	const session = await getSession();
-	if (session && !validRoutes.includes(request.nextUrl.pathname)) {
-		await updateSession(request);
-		// TODO: redirect to an error page
-		return Response.redirect(new URL("/accounts", request.url));
+	const path = request.nextUrl.pathname;
+	const isAuthRoute = path.startsWith("/auth");
+
+	const raw = request.cookies.get(getSessionCookieName())?.value;
+	const payload = raw ? await verifySessionValue(raw) : null;
+
+	if (!payload && !isAuthRoute) {
+		return NextResponse.redirect(new URL("/auth", request.url));
 	}
-	if (!session && !request.nextUrl.pathname.startsWith("/auth")) {
-		return Response.redirect(new URL("/auth", request.url));
+
+	if (payload && isAuthRoute) {
+		return NextResponse.redirect(new URL("/accounts", request.url));
 	}
+
+	// sliding refresh (demo): extend TTL when close to expiry
+	if (payload) {
+		const now = Math.floor(Date.now() / 1000);
+		if (payload.exp - now < 15 * 60) {
+			const { payloadB64, payload: refreshed } = createSessionValue(payload.u, now);
+			const value = await signSessionValue(payloadB64);
+			const res = NextResponse.next();
+			res.cookies.set(getSessionCookieName(), value, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				path: "/",
+				maxAge: refreshed.exp - now,
+				expires: new Date(refreshed.exp * 1000),
+			});
+			return res;
+		}
+	}
+
+	return NextResponse.next();
 }
 
 export const config = {

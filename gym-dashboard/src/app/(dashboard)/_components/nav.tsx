@@ -3,11 +3,9 @@
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getAccount } from "@/data-access/accounts";
 import { links } from "@/data/links";
 import { cn } from "@/lib/utils";
 import { Role } from "@prisma/client";
-import { getCookie } from "cookies-next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,23 +19,33 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		getRole();
-	});
+		let cancelled = false;
+		(async () => {
+			setIsLoading(true);
+			try {
+				const res = await fetch("/api/auth/me");
+				const me = res.ok ? await res.json() : null;
+				if (cancelled) return;
+				if (!me?.role) {
+					router.push("/auth");
+					return;
+				}
+				setUserRole(me.role as Role);
+			} catch {
+				if (cancelled) return;
+				router.push("/auth");
+			} finally {
+				if (!cancelled) setIsLoading(false);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [router]);
 
 	useEffect(() => {
 		setSelectedLink("/" + pathname.split("/").pop());
 	}, [pathname]);
-
-	async function getRole() {
-		const user = (getCookie("session") as string) || "";
-		const account = await getAccount({ username: user });
-		if (account) {
-			setUserRole(account.role);
-		} else {
-			router.push("/auth");
-		}
-		setIsLoading(false);
-	}
 
 	return isLoading ? (
 		<div className="flex flex-col justify-center items-center h-full">

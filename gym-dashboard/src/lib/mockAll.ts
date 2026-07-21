@@ -17,6 +17,9 @@ import { mockPurchases } from "./mocks/mockPurchases";
 import { mockSalaries } from "./mocks/mockSalaries";
 
 export async function mockAllData() {
+	if (process.env.NODE_ENV !== "development") {
+		throw new Error("mockAllData is development-only");
+	}
 	console.log("Starting to mock all data...");
 
 	// await clearAllData();
@@ -50,6 +53,9 @@ export async function mockAllData() {
 }
 
 async function clearAllData() {
+	if (process.env.NODE_ENV !== "development") {
+		throw new Error("clearAllData is development-only");
+	}
 	console.log("Clearing all existing data...");
 
 	const tableOrder = [

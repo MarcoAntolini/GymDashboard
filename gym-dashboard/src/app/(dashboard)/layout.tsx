@@ -1,26 +1,25 @@
 "use client";
 
 import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { getCookie } from "cookies-next";
 import { ArrowLeftFromLine, ArrowRightFromLine, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,8 +37,26 @@ export default function DashboardLayout({
 	const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
 	useEffect(() => {
-		setUsername(getCookie("session") as string);
-	}, []);
+		let cancelled = false;
+		(async () => {
+			try {
+				const res = await fetch("/api/auth/me");
+				const me = res.ok ? await res.json() : null;
+				if (cancelled) return;
+				if (!me?.username) {
+					router.push("/auth");
+					return;
+				}
+				setUsername(me.username);
+			} catch {
+				if (cancelled) return;
+				router.push("/auth");
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [router]);
 
 	async function handleLogout() {
 		await fetch("/api/auth/logout", {

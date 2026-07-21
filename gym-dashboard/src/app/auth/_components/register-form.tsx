@@ -43,6 +43,11 @@ export function RegisterForm() {
 
 	const [isLoading, setIsLoading] = useState(false);
 
+	function onFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+		return form.handleSubmit(onSubmit)(e);
+	}
+
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		setIsLoading(true);
 		await fetch("/api/auth/register", {
@@ -69,7 +74,7 @@ export function RegisterForm() {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+			<form method="post" onSubmit={onFormSubmit} className="flex flex-col gap-6">
 				<FormField
 					control={form.control}
 					name="username"

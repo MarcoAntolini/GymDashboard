@@ -11,14 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { getAccountSafe } from "@/data-access/accounts";
 import {
-	createContract,
-	deleteContract,
-	editContract,
-	EmployeesEarningsInPeriod,
-	getAllContracts,
-	getEmployeesEarningsInPeriod
+    createContract,
+    deleteContract,
+    editContract,
+    EmployeesEarningsInPeriod,
+    getAllContracts,
+    getEmployeesEarningsInPeriod
 } from "@/data-access/contracts";
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
@@ -27,7 +26,6 @@ import { Contract, ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Calculator, Calendar as CalendarIcon, PlusCircle } from "lucide-react";
-import { useCookies } from "next-client-cookies";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
@@ -67,8 +65,6 @@ export default function Contracts() {
 		),
 		["id"]
 	);
-
-	const cookies = useCookies();
 
 	const handleCreateContract = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
@@ -117,13 +113,12 @@ export default function Contracts() {
 
 	const [employeeId, setEmployeeId] = useState(0);
 	useEffect(() => {
-		const accountUsername = cookies.get("session");
-		if (accountUsername) {
-			getAccountSafe(accountUsername).then((account) => {
-				setEmployeeId(account?.employee?.id ?? 0);
+		fetch("/api/auth/me")
+			.then((r) => (r.ok ? r.json() : null))
+			.then((me) => {
+				setEmployeeId(typeof me?.employeeId === "number" ? me.employeeId : 0);
 			});
-		}
-	}, [cookies]);
+	}, []);
 
 	const actions: Action[] = [
 		{

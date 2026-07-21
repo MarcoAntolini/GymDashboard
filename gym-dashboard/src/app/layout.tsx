@@ -3,7 +3,6 @@ import { Header } from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
-import { CookiesProvider } from "next-client-cookies/server";
 import { Inter as FontSans } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -29,7 +28,7 @@ export default function RootLayout({
 					<Header />
 					<main className="min-h-[calc(100vh-56px-56px)]">
 						<DesktopOnly>
-							<CookiesProvider>{children}</CookiesProvider>
+							{children}
 						</DesktopOnly>
 					</main>
 					{/* <Footer /> */}
