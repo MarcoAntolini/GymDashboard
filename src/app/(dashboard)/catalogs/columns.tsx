@@ -10,6 +10,7 @@ import {
 	type ProductKind,
 } from "@/lib/domain/product-kind";
 import type { CatalogRow } from "@/data-access/catalogs";
+import { columnMeta } from "@/lib/domain/view-columns";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -37,11 +38,15 @@ export const columns = (
 ): ColumnDef<CatalogRow>[] => [
 	{
 		accessorKey: "year",
+		meta: columnMeta("nativa"),
 		header: ({ column }) => <TableSortableHeader column={column} title="Year" />,
 	},
 	{
 		accessorKey: "productKind",
-		header: ({ column }) => <TableSortableHeader column={column} title="Type" />,
+		meta: columnMeta("derivata"),
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Type (derived)" />
+		),
 		cell: ({ row }) => {
 			const kind = row.original.productKind;
 			return (
@@ -53,12 +58,14 @@ export const columns = (
 	},
 	{
 		accessorKey: "productCode",
+		meta: columnMeta("nativa"),
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Product Code" />
 		),
 	},
 	{
 		accessorKey: "price",
+		meta: columnMeta("nativa"),
 		header: ({ column }) => <TableSortableHeader column={column} title="Price" />,
 		cell: ({ row }) => {
 			const price = parseFloat(row.getValue("price"));

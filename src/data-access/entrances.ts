@@ -8,7 +8,15 @@ import {
 import { db } from "@/lib/db";
 import { Entrance, Prisma } from "@prisma/client";
 
+/**
+ * Ingresso list/detail DTO — column classes (see VIEW_COLUMN_MATRIX.ingressi):
+ * - nativa: id, date, purchaseId
+ * - join: purchase.client (Cliente label), purchase.productCode
+ * - derivata: productKind from live purchase.prodotto ISA (badge only;
+ *   justification uses Acquisto snapshots, not this live kind)
+ */
 export type EntranceRow = Entrance & {
+	/** join graph — Cliente via Acquisto; Ingresso has no clientId column */
 	purchase: {
 		id: number;
 		clientId: number;

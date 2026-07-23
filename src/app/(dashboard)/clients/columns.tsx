@@ -14,6 +14,9 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+// All list columns are nativa (VIEW_COLUMN_MATRIX.clienti). Residuo ingressi is
+// never a Cliente attribute — see remainingEntrances on Acquisto (derivata).
+
 export const formSchema = z.object({
   taxCode: z.string().min(1, "Tax Code is required"),
   name: z.string().min(1, "Name is required"),

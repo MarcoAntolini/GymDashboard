@@ -5,13 +5,20 @@ import { deriveProductKind, type ProductKind } from "@/lib/domain/product-kind";
 import { db } from "@/lib/db";
 import { Catalog, Prisma } from "@prisma/client";
 
+/**
+ * Listino list/detail DTO — column classes (see VIEW_COLUMN_MATRIX.listino):
+ * - nativa: year, productCode, price
+ * - derivata: productKind
+ * - join: product
+ */
 export type CatalogRow = {
 	year: number;
 	productCode: string;
-	/** Always a 2-decimal string for forms/display (Decimal end-to-end via Prisma write). */
+	/** nativa — 2-decimal string for forms/display (Decimal end-to-end via Prisma write). */
 	price: string;
-	/** Derived from Prodotto specialization — never persisted on Listino. */
+	/** derivata — from Prodotto specialization; never persisted on Listino. */
 	productKind: ProductKind | null;
+	/** join — Prodotto + ISA for kind derivation / labels */
 	product: {
 		code: string;
 		membership: { duration: number } | null;

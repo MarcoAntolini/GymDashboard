@@ -15,6 +15,7 @@ import {
 	PRODUCT_KINDS,
 	type ProductKind,
 } from "@/lib/domain/product-kind";
+import { columnMeta } from "@/lib/domain/view-columns";
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -51,14 +52,33 @@ export const columns = (
 ): ColumnDef<PurchaseRow>[] => [
 	{
 		accessorKey: "id",
+		meta: columnMeta("nativa"),
 		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
 	},
 	{
-		accessorKey: "clientId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Client ID" />,
+		id: "client",
+		meta: columnMeta("join"),
+		accessorFn: (row) =>
+			row.client
+				? `${row.client.surname} ${row.client.name}`
+				: String(row.clientId),
+		header: ({ column }) => <TableSortableHeader column={column} title="Cliente" />,
+		cell: ({ row }) => {
+			const client = row.original.client;
+			if (!client) {
+				return <div className="font-medium">#{row.original.clientId}</div>;
+			}
+			return (
+				<div className="font-medium">
+					{client.surname} {client.name}{" "}
+					<span className="text-muted-foreground text-xs">#{client.id}</span>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "date",
+		meta: columnMeta("nativa"),
 		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
@@ -67,7 +87,10 @@ export const columns = (
 	},
 	{
 		accessorKey: "amount",
-		header: ({ column }) => <TableSortableHeader column={column} title="Amount" />,
+		meta: columnMeta("snapshot"),
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Amount (snapshot)" />
+		),
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("amount"));
 			const formatted = new Intl.NumberFormat("it-IT", {
@@ -79,10 +102,12 @@ export const columns = (
 	},
 	{
 		accessorKey: "productCode",
+		meta: columnMeta("nativa"),
 		header: ({ column }) => <TableSortableHeader column={column} title="Product Code" />,
 	},
 	{
 		accessorKey: "duration",
+		meta: columnMeta("snapshot"),
 		header: ({ column }) => <TableSortableHeader column={column} title="Duration (snapshot)" />,
 		cell: ({ row }) => {
 			const duration = row.original.duration;
@@ -91,6 +116,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "entranceNumber",
+		meta: columnMeta("snapshot"),
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Entrances (snapshot)" />
 		),
@@ -101,7 +127,10 @@ export const columns = (
 	},
 	{
 		accessorKey: "remainingEntrances",
-		header: ({ column }) => <TableSortableHeader column={column} title="Remaining" />,
+		meta: columnMeta("derivata"),
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Remaining (derived)" />
+		),
 		cell: ({ row }) => {
 			const remaining = row.original.remainingEntrances;
 			return <div className="font-medium">{remaining == null ? "—" : remaining}</div>;
@@ -238,7 +267,7 @@ export const columns = (
 								</FormItem>
 							)}
 						/>
-						{/* Snapshot fields: read-only — not in formSchema / not submitted */}
+						{/* Snapshot / derived: read-only — not in formSchema / not submitted */}
 						<FormItem>
 							<FormLabel>Duration (sale snapshot)</FormLabel>
 							<FormControl>
@@ -252,7 +281,7 @@ export const columns = (
 							</FormControl>
 						</FormItem>
 						<FormItem>
-							<FormLabel>Remaining (from snapshot)</FormLabel>
+							<FormLabel>Remaining (derived from snapshot)</FormLabel>
 							<FormControl>
 								<Input value={row.original.remainingEntrances ?? "—"} disabled readOnly />
 							</FormControl>

@@ -14,17 +14,27 @@ import { db } from "@/lib/db";
 import { Prisma, Purchase } from "@prisma/client";
 import { getCatalog } from "./catalogs";
 
+/**
+ * Acquisto list/detail DTO — column classes (see VIEW_COLUMN_MATRIX.acquisti):
+ * - nativa: id, clientId, date, productCode
+ * - snapshot: amount, duration, entranceNumber
+ * - derivata: remainingEntrances (never persisted)
+ * - join: client, prodotto
+ */
 export type PurchaseWithSnapshot = Omit<Purchase, "amount"> & {
-	/** Always a 2-decimal string for forms/display (Decimal end-to-end via Prisma write). */
+	/** snapshot — 2-decimal string for forms/display (Decimal end-to-end via Prisma write). */
 	amount: string;
-	/** Residuo pacchetto from Acquisto snapshot; null for memberships. */
+	/** derivata — residuo pacchetto from Acquisto snapshot N − COUNT; null for memberships. */
 	remainingEntrances: number | null;
+	/** join — Cliente label */
 	client?: { id: number; name: string; surname: string };
+	/** join — live Prodotto + ISA (not written back as tipo on Acquisto) */
 	prodotto?: {
 		code: string;
 		membership: { duration: number } | null;
 		entranceSet: { entranceNumber: number } | null;
 	};
+	/** internal aggregate for remainingEntrances; not a list column */
 	_count?: { entrances: number };
 };
 

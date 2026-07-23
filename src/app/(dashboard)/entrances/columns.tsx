@@ -6,6 +6,11 @@ import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { EntranceRow } from "@/data-access/entrances";
+import {
+	PRODUCT_KIND_LABELS,
+	deriveProductKind,
+} from "@/lib/domain/product-kind";
+import { columnMeta } from "@/lib/domain/view-columns";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -36,10 +41,12 @@ export const columns = (
 ): ColumnDef<EntranceRow>[] => [
 	{
 		accessorKey: "id",
+		meta: columnMeta("nativa"),
 		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
 	},
 	{
 		id: "client",
+		meta: columnMeta("join"),
 		accessorFn: (row) =>
 			`${row.purchase.client.surname} ${row.purchase.client.name}`,
 		header: ({ column }) => <TableSortableHeader column={column} title="Cliente" />,
@@ -55,6 +62,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "date",
+		meta: columnMeta("nativa"),
 		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
@@ -63,6 +71,7 @@ export const columns = (
 	},
 	{
 		id: "purchase",
+		meta: columnMeta("nativa"),
 		accessorFn: (row) => row.purchaseId,
 		header: ({ column }) => <TableSortableHeader column={column} title="Acquisto" />,
 		cell: ({ row }) => (
@@ -71,19 +80,25 @@ export const columns = (
 	},
 	{
 		id: "product",
+		meta: columnMeta("join"),
 		accessorFn: (row) => row.purchase.productCode,
 		header: ({ column }) => <TableSortableHeader column={column} title="Prodotto" />,
+		cell: ({ row }) => (
+			<div className="font-medium">{row.original.purchase.productCode}</div>
+		),
+	},
+	{
+		id: "productKind",
+		meta: columnMeta("derivata"),
+		accessorFn: (row) => deriveProductKind(row.purchase.prodotto) ?? "",
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Type (derived · live)" />
+		),
 		cell: ({ row }) => {
-			const purchase = row.original.purchase;
-			const kind = purchase.prodotto.membership
-				? "Abbonamento"
-				: purchase.prodotto.entranceSet
-					? "Pacchetto"
-					: "—";
+			const kind = deriveProductKind(row.original.purchase.prodotto);
 			return (
-				<div className="font-medium">
-					{purchase.productCode}{" "}
-					<span className="text-muted-foreground text-xs">({kind})</span>
+				<div className="font-medium text-muted-foreground">
+					{kind ? PRODUCT_KIND_LABELS[kind] : "—"}
 				</div>
 			);
 		},
