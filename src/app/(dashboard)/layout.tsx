@@ -1,21 +1,22 @@
 "use client";
 
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,7 +28,7 @@ import { toast } from "sonner";
 import { Nav } from "./_components/nav";
 
 export default function DashboardLayout({
-	children
+	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
@@ -35,6 +36,7 @@ export default function DashboardLayout({
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [username, setUsername] = useState("");
 	const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+	const [isGeneratingMock, setIsGeneratingMock] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -62,8 +64,8 @@ export default function DashboardLayout({
 		await fetch("/api/auth/logout", {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json"
-			}
+				"Content-Type": "application/json",
+			},
 		})
 			.then((res) => res.json())
 			.then((data) => {
@@ -76,6 +78,22 @@ export default function DashboardLayout({
 			});
 	}
 
+	async function handleGenerateMockData() {
+		setIsGeneratingMock(true);
+		try {
+			const response = await fetch("/api/mock-data", { method: "POST" });
+			if (!response.ok) {
+				throw new Error("Failed to generate mock data");
+			}
+			toast.success("Dati di prova generati");
+		} catch (error) {
+			console.error("Error generating mock data:", error);
+			toast.error("Errore nella generazione dei dati di prova");
+		} finally {
+			setIsGeneratingMock(false);
+		}
+	}
+
 	return (
 		<div className="p-4 min-h-[calc(100vh-56px-56px)] h-[calc(100vh-56px-56px)]">
 			<TooltipProvider delayDuration={0}>
@@ -84,7 +102,7 @@ export default function DashboardLayout({
 						<div
 							className={cn(
 								"flex flex-col transition-all duration-300 ease-in-out h-full",
-								isCollapsed ? "w-[50px]" : "w-[200px]"
+								isCollapsed ? "w-[50px]" : "w-[220px]"
 							)}
 						>
 							<div
@@ -112,22 +130,33 @@ export default function DashboardLayout({
 											Profilo
 										</DropdownMenuItem>
 										<DropdownMenuItem
+											onClick={handleGenerateMockData}
+											disabled={isGeneratingMock}
+											className="flex items-center gap-3 text-muted-foreground cursor-pointer"
+										>
+											{isGeneratingMock ? "Generazione…" : "Genera dati di prova"}
+										</DropdownMenuItem>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
 											onClick={() => setIsLogoutDialogOpen(true)}
 											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground hover:!bg-destructive cursor-pointer"
 										>
-											Logout
+											Esci
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
 								<AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
 									<AlertDialogContent>
 										<AlertDialogHeader>
-											<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+											<AlertDialogTitle>Uscire dall&apos;account?</AlertDialogTitle>
 										</AlertDialogHeader>
 										<AlertDialogFooter>
-											<AlertDialogCancel>Cancel</AlertDialogCancel>
-											<AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
-												Logout
+											<AlertDialogCancel>Annulla</AlertDialogCancel>
+											<AlertDialogAction
+												onClick={handleLogout}
+												className="bg-destructive hover:bg-destructive/90"
+											>
+												Esci
 											</AlertDialogAction>
 										</AlertDialogFooter>
 									</AlertDialogContent>
@@ -141,6 +170,7 @@ export default function DashboardLayout({
 									<Button
 										className="hover:!rounded-t-none hover:!rounded-br-none"
 										variant="ghost"
+										aria-label={isCollapsed ? "Espandi menu" : "Comprimi menu"}
 										onClick={() => setIsCollapsed(!isCollapsed)}
 									>
 										{isCollapsed ? (

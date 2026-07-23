@@ -89,6 +89,34 @@ describe("NAV_ROUTE_GROUPS", () => {
 		assert.ok(hrefs.has("/accounts"));
 		assert.ok(hrefs.has("/entrances"));
 	});
+
+	it("uses Italian glossary labels and named operational sections", () => {
+		assert.deepEqual(
+			NAV_ROUTE_GROUPS.map((g) => g.section),
+			["Personale", "Operazioni", "Listino", "Movimenti", "Uscite"]
+		);
+
+		const byHref = new Map(
+			NAV_ROUTE_GROUPS.flatMap(({ group }) => group.map((r) => [r.href, r.title]))
+		);
+		assert.equal(byHref.get("/employees"), "Dipendenti");
+		assert.equal(byHref.get("/entrances"), "Ingressi");
+		assert.equal(byHref.get("/memberships"), "Abbonamenti");
+		assert.equal(byHref.get("/entrance-sets"), "Pacchetti ingressi");
+		assert.equal(byHref.get("/catalogs"), "Listino annuale");
+		assert.equal(byHref.get("/purchases"), "Acquisti");
+		assert.equal(byHref.get("/clockings"), "Timbrature");
+		assert.equal(byHref.get("/salaries"), "Stipendi");
+	});
+
+	it("keeps Personale Admin-only so Employee starts on Operazioni", () => {
+		const personale = NAV_ROUTE_GROUPS.find((g) => g.section === "Personale");
+		assert.ok(personale);
+		assert.ok(personale!.group.every((r) => r.requiredRole === "Admin"));
+		const operazioni = NAV_ROUTE_GROUPS.find((g) => g.section === "Operazioni");
+		assert.ok(operazioni);
+		assert.ok(operazioni!.group.every((r) => roleAllows("Employee", r.requiredRole)));
+	});
 });
 
 describe("isAppRole", () => {

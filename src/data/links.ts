@@ -1,4 +1,4 @@
-import { NAV_ROUTE_GROUPS } from "@/data/nav-routes";
+import { NAV_ROUTE_GROUPS, type AppRole } from "@/data/nav-routes";
 import {
 	AlarmSmoke,
 	BellElectric,
@@ -38,14 +38,20 @@ const ICONS_BY_HREF: Record<string, LucideIcon> = {
 	"/purchases": TrendingUp,
 };
 
-export const links: {
-	group: {
-		title: string;
-		href: string;
-		requiredRole: "Admin" | "Employee";
-		icon: LucideIcon;
-	}[];
-}[] = NAV_ROUTE_GROUPS.map(({ group }) => ({
+export type NavLink = {
+	title: string;
+	href: string;
+	requiredRole: AppRole;
+	icon: LucideIcon;
+};
+
+export type NavLinkGroup = {
+	section: string;
+	group: NavLink[];
+};
+
+export const links: NavLinkGroup[] = NAV_ROUTE_GROUPS.map(({ section, group }) => ({
+	section,
 	group: group.map((route) => {
 		const icon = ICONS_BY_HREF[route.href];
 		if (!icon) {

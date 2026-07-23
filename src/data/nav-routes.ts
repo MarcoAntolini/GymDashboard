@@ -3,6 +3,9 @@
  * Do not import Node-only or Prisma client modules here (middleware).
  *
  * Hierarchy: Owner > Admin > Employee
+ *
+ * Nav labels follow CONTEXT.md glossary (Italian domain terms).
+ * Sections: Personale → Operazioni → Listino → Movimenti → Uscite.
  */
 
 export type AppRole = "Owner" | "Admin" | "Employee";
@@ -21,41 +24,52 @@ export type NavRoute = {
 	requiredRole: AppRole;
 };
 
-export const NAV_ROUTE_GROUPS: { group: NavRoute[] }[] = [
+export type NavRouteGroup = {
+	/** Visible section label (sr-only when sidebar collapsed). */
+	section: string;
+	group: NavRoute[];
+};
+
+export const NAV_ROUTE_GROUPS: NavRouteGroup[] = [
 	{
+		section: "Personale",
 		group: [
-			{ title: "Accounts", href: "/accounts", requiredRole: "Admin" },
-			{ title: "Employees", href: "/employees", requiredRole: "Admin" },
-			{ title: "Contracts", href: "/contracts", requiredRole: "Admin" },
-			{ title: "Clockings", href: "/clockings", requiredRole: "Admin" },
+			{ title: "Account", href: "/accounts", requiredRole: "Admin" },
+			{ title: "Dipendenti", href: "/employees", requiredRole: "Admin" },
+			{ title: "Contratti", href: "/contracts", requiredRole: "Admin" },
+			{ title: "Timbrature", href: "/clockings", requiredRole: "Admin" },
 		],
 	},
 	{
+		section: "Operazioni",
 		group: [
-			{ title: "Salaries", href: "/salaries", requiredRole: "Admin" },
-			{ title: "Equipment", href: "/equipment", requiredRole: "Employee" },
-			{ title: "Bills", href: "/bills", requiredRole: "Employee" },
-			{ title: "Interventions", href: "/interventions", requiredRole: "Employee" },
+			{ title: "Clienti", href: "/clients", requiredRole: "Employee" },
+			{ title: "Ingressi", href: "/entrances", requiredRole: "Employee" },
 		],
 	},
 	{
+		section: "Listino",
 		group: [
-			{ title: "Clients", href: "/clients", requiredRole: "Employee" },
-			{ title: "Entrances", href: "/entrances", requiredRole: "Employee" },
-			{ title: "Products", href: "/products", requiredRole: "Employee" },
+			{ title: "Prodotti", href: "/products", requiredRole: "Employee" },
+			{ title: "Abbonamenti", href: "/memberships", requiredRole: "Employee" },
+			{ title: "Pacchetti ingressi", href: "/entrance-sets", requiredRole: "Employee" },
+			{ title: "Listino annuale", href: "/catalogs", requiredRole: "Employee" },
 		],
 	},
 	{
+		section: "Movimenti",
 		group: [
-			{ title: "Memberships", href: "/memberships", requiredRole: "Employee" },
-			{ title: "Entrance Sets", href: "/entrance-sets", requiredRole: "Employee" },
-			{ title: "Catalogs", href: "/catalogs", requiredRole: "Employee" },
+			{ title: "Acquisti", href: "/purchases", requiredRole: "Employee" },
+			{ title: "Pagamenti", href: "/payments", requiredRole: "Employee" },
 		],
 	},
 	{
+		section: "Uscite",
 		group: [
-			{ title: "Payments", href: "/payments", requiredRole: "Employee" },
-			{ title: "Purchases", href: "/purchases", requiredRole: "Employee" },
+			{ title: "Stipendi", href: "/salaries", requiredRole: "Admin" },
+			{ title: "Attrezzatura", href: "/equipment", requiredRole: "Employee" },
+			{ title: "Bollette", href: "/bills", requiredRole: "Employee" },
+			{ title: "Interventi", href: "/interventions", requiredRole: "Employee" },
 		],
 	},
 ];
