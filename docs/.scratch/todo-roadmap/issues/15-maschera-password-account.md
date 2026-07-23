@@ -4,9 +4,13 @@
 
 **Blocked by:** 11 — Mutazioni: allowlist campi editabili
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Colonna password mascherata di default in lista Account
 - [ ] Azione per mostrare/nascondere la password della singola riga
 - [ ] Nessuna esposizione accidentale oltre al reveal esplicito
 - [ ] Coerente con allowlist write-only del ticket 11 (maschera UI, non redesign auth/hash)
+
+## Comments
+
+- 2026-07-23 — claimed by ticket-loop cloud worker
