@@ -4,13 +4,20 @@
 
 **Blocked by:** 11 — Mutazioni: allowlist campi editabili
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] Colonna password mascherata di default in lista Account
-- [ ] Azione per mostrare/nascondere la password della singola riga
-- [ ] Nessuna esposizione accidentale oltre al reveal esplicito
-- [ ] Coerente con allowlist write-only del ticket 11 (maschera UI, non redesign auth/hash)
+- [x] Colonna password mascherata di default in lista Account
+- [x] Azione per mostrare/nascondere la password della singola riga
+- [x] Nessuna esposizione accidentale oltre al reveal esplicito
+- [x] Coerente con allowlist write-only del ticket 11 (maschera UI, non redesign auth/hash)
 
 ## Comments
 
 - 2026-07-23 — claimed by ticket-loop cloud worker
+
+## Done
+
+- Added `PasswordCell` in `accounts/columns.tsx`: default bullet mask via `maskSecret`, per-row Eye/EyeOff toggle; plaintext only enters the DOM after explicit reveal.
+- Password column disables sorting/column filter; edit form still omits password (create remains write-only Input type=password).
+- Domain helper `src/lib/domain/password-mask.ts` + unit tests; view/mutation notes updated for ticket 15 (self-service change deferred to 17).
+- No auth/hash redesign; allowlist still rejects password on Account update.

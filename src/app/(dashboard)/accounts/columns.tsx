@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
@@ -7,9 +8,11 @@ import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/for
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { assignableRoles, canManageRole, type AppRole } from "@/data/nav-routes";
+import { maskSecret } from "@/lib/domain/password-mask";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 
 function roleFormSchema(actorRole: AppRole) {
@@ -18,6 +21,33 @@ function roleFormSchema(actorRole: AppRole) {
 		role: z.enum(allowed),
 		approved: z.string().optional(),
 	});
+}
+
+/** Per-row password mask with explicit reveal; plaintext stays out of the DOM until revealed. */
+function PasswordCell({ password }: { password: string }) {
+	const [revealed, setRevealed] = useState(false);
+
+	return (
+		<div className="flex items-center gap-1 min-w-0">
+			<span
+				className="font-mono text-sm tracking-wider truncate"
+				aria-label={revealed ? "Password visibile" : "Password nascosta"}
+			>
+				{revealed ? password : maskSecret(password)}
+			</span>
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon"
+				className="h-8 w-8 shrink-0"
+				onClick={() => setRevealed((v) => !v)}
+				aria-label={revealed ? "Nascondi password" : "Mostra password"}
+				aria-pressed={revealed}
+			>
+				{revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+			</Button>
+		</div>
+	);
 }
 
 export const columns = (
@@ -41,6 +71,8 @@ export const columns = (
 		accessorKey: "password",
 		header: ({ column }) => <TableSortableHeader column={column} title="Password" />,
 		enableSorting: false,
+		enableColumnFilter: false,
+		cell: ({ row }) => <PasswordCell password={row.original.password} />,
 	},
 	{
 		accessorKey: "role",

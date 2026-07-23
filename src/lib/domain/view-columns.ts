@@ -180,7 +180,7 @@ export const VIEW_COLUMN_MATRIX: Record<ViewEntity, readonly ViewColumnSpec[]> =
 			key: "password",
 			class: "nativa",
 			source: "account.password",
-			notes: "Native column but write-only in UI — mask deferred to ticket 15",
+			notes: "Native column; write-only on create; list UI masked with per-row reveal (ticket 15)",
 		},
 		{ key: "role", class: "nativa", source: "account.ruolo" },
 		{ key: "approved", class: "nativa", source: "account.approvato" },
@@ -266,7 +266,7 @@ export const VIEW_COLUMN_AUDIT_NOTES = [
 	"Acquisto.amount/duration/entranceNumber are snapshots on acquisti — correct table.",
 	"remainingEntrances is DTO derivata on PurchaseWithSnapshot only.",
 	"Ingressi productKind badge uses live Product ISA (derivata); justification uses Acquisto snapshots.",
-	"Account.password is nativa but should be write-only in UI — ticket 15.",
+	"Account.password is nativa; list UI masks with per-row reveal; mutations stay write-only create (ticket 15).",
 	"Stipendi/Bollette/Attrezzatura/Interventi: payment/employee joins in DA not shown in list — ticket 36.",
 ] as const;
 

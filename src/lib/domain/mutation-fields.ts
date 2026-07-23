@@ -152,7 +152,7 @@ export const MUTATION_FIELD_MATRIX: Record<MutationEntity, readonly MutationFiel
 			key: "password",
 			flags: ["write-only", "create"],
 			notes:
-				"Edge case: write-only on create; no update path here — mask/change deferred to ticket 15",
+				"Write-only on create; absent from update. List UI masks with per-row reveal (ticket 15); self-service change → ticket 17",
 		},
 		{
 			key: "role",
@@ -261,7 +261,7 @@ export const MUTATION_EDGE_CASES = [
 	{
 		id: "account-password",
 		summary:
-			"Password Account: write-only in create; assente da update. Maschera/UI e change password → ticket 15. role/approved = admin-only (RBAC session on editAccount).",
+			"Password Account: write-only in create; assente da update. Lista mascherata con reveal per riga (ticket 15). Change password self-service → ticket 17. role/approved = admin-only (RBAC).",
 	},
 ] as const;
 
