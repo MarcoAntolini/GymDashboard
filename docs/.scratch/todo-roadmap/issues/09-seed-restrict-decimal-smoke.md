@@ -4,7 +4,7 @@
 
 **Blocked by:** 03 — Clienti senza ingressi rimanenti persistiti; 04 — Listino senza tipo, chiave composta, Decimal; 05 — Acquisti: PK surrogata, snapshot importo, niente tipo; 06 — Registrazione Ingresso (transazione + tie-break)
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Orchestrazione seed: Acquisti prima degli Ingressi; Ingressi solo con purchaseId valido
 - [ ] Smoke: Acquisto → Ingresso ok; residuo esaurito → reject
@@ -15,3 +15,7 @@
 **Source:** `docs/.scratch/align-prisma-app/issues/07-seed-restrict-decimal-smoke.md`
 
 **Note:** mock realistici IT + Owner sono il ticket 48.
+
+## Comments
+
+- 2026-07-23 — claimed by implement loop (cloud)
