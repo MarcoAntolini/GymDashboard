@@ -125,9 +125,8 @@ export const columns = (
 	{
 		accessorKey: "remainingEntrances",
 		meta: columnMeta("derivata"),
-		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Remaining (derived)" />
-		),
+		enableSorting: false,
+		header: () => <div>Remaining (derived)</div>,
 		cell: ({ row }) => {
 			const remaining = row.original.remainingEntrances;
 			return <div className="font-medium">{remaining == null ? "—" : remaining}</div>;

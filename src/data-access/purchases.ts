@@ -2,17 +2,31 @@
 
 import { requireRole } from "@/lib/auth";
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import { listEmptyKind } from "@/lib/domain/list-query";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import {
 	catalogYearFromDate,
 	resolvePurchaseAmountString,
 } from "@/lib/domain/purchase-amount";
+import {
+	PURCHASE_LIST_DEFAULT_SORT,
+	PURCHASE_LIST_SORT_COLUMNS,
+	buildPurchaseListOrderBy,
+	buildPurchaseListWhere,
+	purchaseListHasActiveFilters,
+} from "@/lib/domain/purchase-list-query";
 import { remainingEntrancesForPurchase } from "@/lib/domain/purchase-snapshot";
 import {
 	PURCHASE_HAS_ENTRANCES_MESSAGE,
 	rethrowRestrictDelete,
 } from "@/lib/domain/restrict-delete";
 import { db } from "@/lib/db";
+import {
+	runListQuery,
+	toPrismaSkipTake,
+	type ListQueryInput,
+	type ListQueryResult,
+} from "@/data-access/list-query";
 import { Prisma, Purchase } from "@prisma/client";
 import { getCatalog } from "./catalogs";
 
@@ -98,14 +112,80 @@ export async function createPurchase(input: CreatePurchaseInput) {
 	return withRemaining(created);
 }
 
+const purchaseInclude = {
+	client: true,
+	prodotto: { include: { membership: true, entranceSet: true } },
+	_count: { select: { entrances: true } },
+} satisfies Prisma.PurchaseInclude;
+
+export type PurchaseListResult = ListQueryResult<PurchaseWithSnapshot> & {
+	/** Count with no filters — for empty-state kind (dataset vs filters). */
+	totalUnfiltered: number;
+	emptyKind: ReturnType<typeof listEmptyKind>;
+};
+
+/**
+ * Server-side Acquisti list (ticket 22): filters + ORDER BY + LIMIT/OFFSET.
+ * Call only on Filtra / sort / page change — not on every keystroke.
+ */
+export async function listPurchases(
+	input: ListQueryInput
+): Promise<PurchaseListResult> {
+	await requireRole("Employee");
+
+	let totalUnfiltered = 0;
+
+	const result = await runListQuery(
+		input,
+		async (params) => {
+			const where = buildPurchaseListWhere(
+				params.filters
+			) as Prisma.PurchaseWhereInput;
+			const orderBy = buildPurchaseListOrderBy(
+				params.sort
+			) as Prisma.PurchaseOrderByWithRelationInput[];
+			const skipTake = toPrismaSkipTake(params);
+
+			const needsUnfiltered = purchaseListHasActiveFilters(params.filters);
+
+			const [rows, total, unfiltered] = await Promise.all([
+				db.purchase.findMany({
+					where,
+					include: purchaseInclude,
+					orderBy,
+					...skipTake,
+				}),
+				db.purchase.count({ where }),
+				needsUnfiltered
+					? db.purchase.count()
+					: Promise.resolve(null as number | null),
+			]);
+
+			totalUnfiltered = unfiltered ?? total;
+			return { rows: rows.map(withRemaining), total };
+		},
+		{
+			allowedSortColumns: PURCHASE_LIST_SORT_COLUMNS,
+			defaultSort: PURCHASE_LIST_DEFAULT_SORT,
+		}
+	);
+
+	return {
+		...result,
+		totalUnfiltered,
+		emptyKind: listEmptyKind({
+			totalUnfiltered,
+			total: result.total,
+			rowCount: result.rows.length,
+		}),
+	};
+}
+
+/** Full table — prefer {@link listPurchases} for the Acquisti page list. */
 export async function getAllPurchases(): Promise<PurchaseWithSnapshot[]> {
 	await requireRole("Employee");
 	const purchases = await db.purchase.findMany({
-		include: {
-			client: true,
-			prodotto: { include: { membership: true, entranceSet: true } },
-			_count: { select: { entrances: true } },
-		},
+		include: purchaseInclude,
 		orderBy: [{ date: "desc" }, { id: "desc" }],
 	});
 	return purchases.map(withRemaining);

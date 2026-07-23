@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
-import { DataTable } from "@/components/ui/data-table";
+import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
+import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -14,9 +15,15 @@ import {
 	createPurchase,
 	deletePurchase,
 	editPurchase,
-	getAllPurchases,
+	listPurchases,
+	type PurchaseListResult,
 } from "@/data-access/purchases";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useServerListQuery } from "@/hooks/useServerListQuery";
+import {
+	PURCHASE_LIST_DEFAULT_SORT,
+	PURCHASE_LIST_FILTER_IDS,
+	PURCHASE_LIST_SORT_COLUMNS,
+} from "@/lib/domain/purchase-list-query";
 import {
 	PRODUCT_KIND_LABELS,
 	PRODUCT_KINDS,
@@ -31,46 +38,53 @@ import { z } from "zod";
 import { CatalogAmountDefault } from "./catalog-amount-default";
 import { columns, formSchema, PurchaseProductOption, PurchaseRow } from "./columns";
 
-export default function PurchasesPage() {
-	const {
-		data: purchases,
-		setData: setPurchases,
-		isLoading,
-		handleDelete,
-		handleEdit,
-	} = useEntityData<PurchaseRow, "id">(
-		useMemo(
-			() => ({
-				getAll: getAllPurchases,
-				deleteAction: (async ({ id }: { id: number }) => {
-					await deletePurchase({ id });
-					return { id } as unknown as PurchaseRow;
-				}) as (entity: Pick<PurchaseRow, "id">) => Promise<PurchaseRow>,
-				editAction: async (entity: PurchaseRow) => {
-					await editPurchase({
-						id: entity.id,
-						clientId: entity.clientId,
-						date: entity.date,
-					});
-					return entity;
-				},
-			}),
-			[]
-		),
-		["id"]
-	);
+const PURCHASE_FILTER_FIELDS: ServerListFilterField[] = [
+	{ id: "dateFrom", label: "Data da", placeholder: "Data da (YYYY-MM-DD)" },
+	{ id: "dateTo", label: "Data a", placeholder: "Data a (YYYY-MM-DD)" },
+	{ id: "clientId", label: "ID cliente", placeholder: "ID cliente" },
+	{ id: "clientSurname", label: "Cognome cliente", placeholder: "Cognome cliente" },
+	{ id: "clientName", label: "Nome cliente", placeholder: "Nome cliente" },
+	{ id: "productCode", label: "Codice prodotto", placeholder: "Codice prodotto" },
+];
 
+const EMPTY_FILTERS = Object.fromEntries(
+	PURCHASE_LIST_FILTER_IDS.map((id) => [id, ""])
+) as Record<(typeof PURCHASE_LIST_FILTER_IDS)[number], string>;
+
+export default function PurchasesPage() {
+	const listQuery = useServerListQuery({
+		allowedSortColumns: PURCHASE_LIST_SORT_COLUMNS,
+		defaultSort: PURCHASE_LIST_DEFAULT_SORT,
+		initialFilters: EMPTY_FILTERS,
+	});
+
+	const [result, setResult] = useState<PurchaseListResult | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 	const [products, setProducts] = useState<PurchaseProductOption[]>([]);
 	/** Local UI filter only — never written on Acquisto. */
 	const [selectedKind, setSelectedKind] = useState<ProductKind>("Membership");
 	const [filteredProducts, setFilteredProducts] = useState<PurchaseProductOption[]>([]);
+
+	const fetchList = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const next = await listPurchases(listQuery.input);
+			setResult(next);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [listQuery.input]);
+
+	useEffect(() => {
+		void fetchList();
+	}, [fetchList]);
 
 	useEffect(() => {
 		const loadProducts = async () => {
 			const allProducts = await getAllProducts();
 			setProducts(allProducts);
 		};
-		loadProducts();
+		void loadProducts();
 	}, []);
 
 	useEffect(() => {
@@ -79,12 +93,37 @@ export default function PurchasesPage() {
 		);
 	}, [selectedKind, products]);
 
+	const handleDelete = useCallback(
+		async (purchase: Pick<PurchaseRow, "id">) => {
+			await deletePurchase(purchase);
+			await fetchList();
+		},
+		[fetchList]
+	);
+
+	const handleEdit = useCallback(
+		async (purchase: PurchaseRow) => {
+			await editPurchase({
+				id: purchase.id,
+				clientId: purchase.clientId,
+				date: purchase.date,
+			});
+			await fetchList();
+		},
+		[fetchList]
+	);
+
 	const handleCreatePurchase = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newPurchase = await createPurchase(values);
-			setPurchases((prevPurchases) => [...prevPurchases, newPurchase]);
+			await createPurchase(values);
+			await fetchList();
 		},
-		[setPurchases]
+		[fetchList]
+	);
+
+	const tableColumns = useMemo(
+		() => columns(handleDelete, handleEdit),
+		[handleDelete, handleEdit]
 	);
 
 	const actions: Action[] = [
@@ -231,17 +270,34 @@ export default function PurchasesPage() {
 		},
 	];
 
-	return isLoading ? (
+	const showPlaceholder = isLoading && result === null;
+
+	return showPlaceholder ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={actions}
 			table={
-				<DataTable
-					columns={columns(handleDelete, handleEdit)}
-					data={purchases}
-					filters={["clientId", "productCode"]}
-					facetedFilters={[]}
+				<ServerDataTable
+					columns={tableColumns}
+					data={result?.rows ?? []}
+					total={result?.total ?? 0}
+					page={listQuery.page}
+					pageSize={listQuery.pageSize}
+					pageCount={result?.pageCount ?? 0}
+					sort={listQuery.sort}
+					onSortChange={listQuery.setSort}
+					onPageChange={listQuery.setPage}
+					onPageSizeChange={listQuery.setPageSize}
+					filterFields={PURCHASE_FILTER_FIELDS}
+					draftFilters={listQuery.draftFilters}
+					onDraftFilterChange={listQuery.setDraftFilter}
+					onApplyFilters={listQuery.applyFilters}
+					onResetFilters={listQuery.resetFilters}
+					isFilterDirty={listQuery.isFilterDirty}
+					hasAppliedFilters={listQuery.hasAppliedFilters}
+					emptyKind={result?.emptyKind ?? null}
+					datasetEmptyMessage="Nessun acquisto registrato."
 				/>
 			}
 		/>
