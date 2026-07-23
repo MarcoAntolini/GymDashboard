@@ -4,7 +4,7 @@
 
 **Blocked by:** 19 — Fondamenta liste server-side (filtri Conferma, sort, paginazione)
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] List Prodotti non filtra più l’intero dataset solo in frontend
 - [ ] Conferma/Filtra esegue la query; keystroke nei filtri non martellano il backend
