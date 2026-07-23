@@ -4,7 +4,11 @@
 
 **Blocked by:** 07 — Contratti senza intervalli sovrapposti
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+## Comments
+
+- 2026-07-23 — claimed by implement loop (cloud)
 
 - [ ] Contratto indeterminato: UI non mostra data fine (o la presenta come in corso); endingDate resta null/assente
 - [ ] Contratto determinato: UI mostra e richiede data inizio e data fine
