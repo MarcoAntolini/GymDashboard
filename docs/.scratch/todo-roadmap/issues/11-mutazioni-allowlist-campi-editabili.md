@@ -4,7 +4,7 @@
 
 **Blocked by:** 10 — Viste: colonne native vs derivate
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Matrice entità → campo → create | update | immutable | Admin-only | write-only
 - [ ] Campi derivata/join esclusi dai payload di mutazione
