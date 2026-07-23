@@ -4,7 +4,7 @@
 
 **Blocked by:** 10 — Viste: colonne native vs derivate; 11 — Mutazioni: allowlist campi editabili; 03 — Clienti senza ingressi rimanenti persistiti; 04 — Listino senza tipo, chiave composta, Decimal; 05 — Acquisti: PK surrogata, snapshot importo, niente tipo; 06 — Registrazione Ingresso; 07 — Contratti senza intervalli sovrapposti
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] API/helper condiviso per list query: filtri + sort + page + pageSize + total count
 - [ ] Pattern UI: controlli filtro con azione Conferma/Filtra esplicita
