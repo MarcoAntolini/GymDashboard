@@ -4,10 +4,14 @@
 
 **Blocked by:** 11 — Mutazioni: allowlist campi editabili; 13 — RBAC Admin/Employee + landing role-aware
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Enum/ruolo Owner presente in schema, session e RBAC
 - [ ] Owner gestisce Admin e Dipendente; Admin gestisce solo Dipendente; Dipendente non gestisce ruoli
 - [ ] UI e server actions rifiutano tentativi di toccare pari grado o superiori
 - [ ] Più Owner ammessi; nessuna auto-promozione a Owner dall’UI Admin
 - [ ] Route/azioni riservate Owner (gestione Admin) protette anche via URL diretto
+
+## Comments
+
+- 2026-07-23 — claimed by ticket-loop cloud worker
