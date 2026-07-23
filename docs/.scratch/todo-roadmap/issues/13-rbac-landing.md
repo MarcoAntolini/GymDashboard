@@ -4,7 +4,7 @@
 
 **Blocked by:** 12 — Capture product context with Impeccable init
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Account Dipendente su URL Admin → blocco (redirect o errore chiaro)
 - [ ] Server action / mutazioni Admin non eseguibili da Dipendente
@@ -14,3 +14,7 @@
 **Source:** `docs/.scratch/dashboard-data-ux/issues/02-rbac-landing.md`
 
 Usare skill /impeccable (critique/harden/polish sulla shell auth).
+
+## Comments
+
+- 2026-07-23 — claimed by implement loop (cloud)
