@@ -4,11 +4,15 @@
 
 **Blocked by:** 02 — Snapshot durata e N ingressi su Acquisto
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Esiste una matrice entità → colonna → classe (nativa | join | derivata | snapshot) per le viste CRUD principali
 - [ ] Nessun attributo falso persistito solo per la UI (es. residuo sul Cliente)
 - [ ] Liste/dettaglio espongono join e derivate dove servono; in UI/DTO sono distinguibili da quelle native
 - [ ] Audit delle pagine/DTO attuali: violazioni corrette o documentate con motivo
+
+## Comments
+
+- 2026-07-23 21:53 UTC — claimed by implement loop (cloud, branch ticket-loop)
 
 **Source:** `docs/.scratch/data-policy/issues/22-viste-colonne-native-vs-derivate.md`
