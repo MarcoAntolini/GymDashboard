@@ -1,10 +1,22 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import {
+	catalogYearFromDate,
+	resolvePurchaseAmountString,
+} from "@/lib/domain/purchase-amount";
 import { remainingEntrancesForPurchase } from "@/lib/domain/purchase-snapshot";
+import {
+	PURCHASE_HAS_ENTRANCES_MESSAGE,
+	rethrowRestrictDelete,
+} from "@/lib/domain/restrict-delete";
+import { db } from "@/lib/db";
 import { Prisma, Purchase } from "@prisma/client";
+import { getCatalog } from "./catalogs";
 
-export type PurchaseWithSnapshot = Purchase & {
+export type PurchaseWithSnapshot = Omit<Purchase, "amount"> & {
+	/** Always a 2-decimal string for forms/display (Decimal end-to-end via Prisma write). */
+	amount: string;
 	/** Residuo pacchetto from Acquisto snapshot; null for memberships. */
 	remainingEntrances: number | null;
 	client?: { id: number; name: string; surname: string };
@@ -19,13 +31,15 @@ export type PurchaseWithSnapshot = Purchase & {
 type CreatePurchaseInput = {
 	clientId: number;
 	date: Date;
-	amount: number | Prisma.Decimal;
+	/** Override sconto; if omitted/empty, snapshot from Listino (YEAR(date), productCode). */
+	amount?: string | number | Prisma.Decimal | null;
 	productCode: string;
 };
 
 /**
  * Create Acquisto: copy durata / numero_ingressi from the Prodotto specialization
- * at sale time. Later product edits must not rewrite these columns.
+ * at sale time. Importo defaults to Listino for YEAR(date)+productCode when omitted.
+ * Later product/listino edits must not rewrite these columns.
  */
 export async function createPurchase({
 	clientId,
@@ -50,11 +64,16 @@ export async function createPurchase({
 	const duration = product.membership?.duration ?? null;
 	const entranceNumber = product.entranceSet?.entranceNumber ?? null;
 
+	const override =
+		amount == null ? undefined : typeof amount === "string" ? amount : String(amount);
+	const catalog = await getCatalog(catalogYearFromDate(date), productCode);
+	const amountString = resolvePurchaseAmountString(override, catalog?.price ?? null);
+
 	const created = await db.purchase.create({
 		data: {
 			clientId,
 			date,
-			amount,
+			amount: new Prisma.Decimal(amountString),
 			productCode,
 			duration,
 			entranceNumber,
@@ -97,7 +116,7 @@ type EditPurchaseInput = {
 	id: number;
 	clientId: number;
 	date: Date;
-	amount: number | Prisma.Decimal;
+	amount: string | number | Prisma.Decimal;
 	productCode: string;
 };
 
@@ -112,12 +131,17 @@ export async function editPurchase({
 	amount,
 	productCode,
 }: EditPurchaseInput) {
+	const amountString = resolvePurchaseAmountString(
+		typeof amount === "string" ? amount : String(amount),
+		null
+	);
+
 	const updated = await db.purchase.update({
 		where: { id },
 		data: {
 			clientId,
 			date,
-			amount,
+			amount: new Prisma.Decimal(amountString),
 			productCode,
 			// intentionally omit duration / entranceNumber — sale snapshot is immutable
 		},
@@ -131,20 +155,29 @@ export async function editPurchase({
 }
 
 export async function deletePurchase({ id }: { id: number }) {
-	return await db.purchase.delete({
-		where: { id },
-	});
+	try {
+		return await db.purchase.delete({
+			where: { id },
+		});
+	} catch (error) {
+		rethrowRestrictDelete(error, PURCHASE_HAS_ENTRANCES_MESSAGE);
+	}
 }
 
 function withRemaining<
 	T extends {
+		amount: string | number | { toFixed: (digits: number) => string };
 		entranceNumber: number | null;
 		_count?: { entrances: number };
 	},
->(purchase: T): T & { remainingEntrances: number | null } {
+>(purchase: T): Omit<T, "amount"> & {
+	amount: string;
+	remainingEntrances: number | null;
+} {
 	const used = purchase._count?.entrances ?? 0;
 	return {
 		...purchase,
+		amount: formatCatalogPrice(purchase.amount),
 		remainingEntrances: remainingEntrancesForPurchase(purchase, used),
 	};
 }

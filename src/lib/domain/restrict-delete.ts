@@ -4,6 +4,10 @@ import { Prisma } from "@prisma/client";
 export const CLIENT_HAS_PURCHASES_MESSAGE =
 	"Impossibile eliminare il Cliente: esistono Acquisti collegati.";
 
+/** User-facing message when deleting an Acquisto blocked by Ingressi (FK Restrict). */
+export const PURCHASE_HAS_ENTRANCES_MESSAGE =
+	"Impossibile eliminare l'Acquisto: esistono Ingressi collegati.";
+
 /**
  * Maps Prisma Restrict / required-relation failures to a clear Error.
  * Re-throws other errors unchanged.

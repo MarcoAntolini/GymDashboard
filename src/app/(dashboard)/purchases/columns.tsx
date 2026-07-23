@@ -8,8 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { PurchaseWithSnapshot } from "@/data-access/purchases";
+import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
+import {
+	PRODUCT_KIND_LABELS,
+	PRODUCT_KINDS,
+	type ProductKind,
+} from "@/lib/domain/product-kind";
 import { cn } from "@/lib/utils";
-import { Purchase, PurchaseType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -21,24 +27,27 @@ export type PurchaseProductOption = {
 	entranceSet: { entranceNumber: number } | null;
 };
 
-export type PurchaseRow = Purchase & {
-	remainingEntrances: number | null;
-};
+export type PurchaseRow = PurchaseWithSnapshot;
 
-/** Create/edit payload: no tipo; snapshot durata/N are set server-side and not editable. */
+/** Create/edit payload: no tipo; amount as ≤2-decimal string; snapshots set server-side. */
 export const formSchema = z.object({
 	clientId: z.number().int().positive(),
 	date: z.date(),
-	amount: z.number().positive(),
+	amount: z
+		.string()
+		.min(1, "Amount is required")
+		.refine(isValidCatalogPriceString, {
+			message: "Amount must be a positive value with at most 2 decimal places",
+		}),
 	productCode: z.string().min(1),
 });
 
 export const columns = (
-	handleDelete: (purchase: Pick<Purchase, "id">) => Promise<void>,
+	handleDelete: (purchase: Pick<PurchaseRow, "id">) => Promise<void>,
 	handleEdit: (purchase: PurchaseRow) => Promise<void>,
 	filteredProducts: PurchaseProductOption[],
-	onTypeChange: (type: PurchaseType) => void,
-	filterType: PurchaseType
+	onKindChange: (kind: ProductKind) => void,
+	filterKind: ProductKind
 ): ColumnDef<PurchaseRow>[] => [
 	{
 		accessorKey: "id",
@@ -61,9 +70,9 @@ export const columns = (
 		header: ({ column }) => <TableSortableHeader column={column} title="Amount" />,
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("amount"));
-			const formatted = new Intl.NumberFormat("en-US", {
+			const formatted = new Intl.NumberFormat("it-IT", {
 				style: "currency",
-				currency: "USD",
+				currency: "EUR",
 			}).format(amount);
 			return <div className="font-medium">{formatted}</div>;
 		},
@@ -164,36 +173,35 @@ export const columns = (
 									<FormLabel>Amount</FormLabel>
 									<FormControl>
 										<Input
-											type="number"
-											step="0.01"
+											type="text"
+											inputMode="decimal"
+											placeholder="0.00"
 											{...field}
-											onChange={(e) => field.onChange(parseFloat(e.target.value))}
 										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
-						<FormItem>
-							<FormLabel>Product type filter</FormLabel>
+						{/* Tipo: UI-only product filter — not a FormField / not in formSchema */}
+						<div className="space-y-2">
+							<label className="text-sm font-medium leading-none">Product type filter</label>
 							<Select
-								onValueChange={(value) => onTypeChange(value as PurchaseType)}
-								defaultValue={filterType}
+								value={filterKind}
+								onValueChange={(value) => onKindChange(value as ProductKind)}
 							>
-								<FormControl>
-									<SelectTrigger>
-										<SelectValue placeholder="Filter products by type" />
-									</SelectTrigger>
-								</FormControl>
+								<SelectTrigger>
+									<SelectValue placeholder="Filter products by type" />
+								</SelectTrigger>
 								<SelectContent>
-									{Object.values(PurchaseType).map((type) => (
-										<SelectItem key={type} value={type}>
-											{type}
+									{PRODUCT_KINDS.map((kind) => (
+										<SelectItem key={kind} value={kind}>
+											{PRODUCT_KIND_LABELS[kind]}
 										</SelectItem>
 									))}
 								</SelectContent>
 							</Select>
-						</FormItem>
+						</div>
 						<FormField
 							name="productCode"
 							render={({ field }) => (
@@ -255,7 +263,6 @@ export const columns = (
 					const updatedPurchase = {
 						...row.original,
 						...values,
-						amount: values.amount as unknown as PurchaseRow["amount"],
 						// preserve immutable snapshots from the row
 						duration: row.original.duration,
 						entranceNumber: row.original.entranceNumber,
