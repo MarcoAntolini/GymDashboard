@@ -2,20 +2,26 @@
 
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { links } from "@/data/links";
+import { roleAllows } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import { Role } from "@prisma/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BeatLoader } from "react-spinners";
+
+function isActivePath(pathname: string, href: string): boolean {
+	const normalized = pathname.replace(/\/+$/, "") || "/";
+	if (href === "/") return normalized === "/";
+	return normalized === href || normalized.startsWith(`${href}/`);
+}
 
 export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 	const router = useRouter();
-	let pathname = usePathname();
+	const pathname = usePathname();
 	const [userRole, setUserRole] = useState<Role>();
-	const [selectedLink, setSelectedLink] = useState("/" + pathname.split("/").pop());
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
@@ -43,86 +49,99 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 		};
 	}, [router]);
 
-	useEffect(() => {
-		setSelectedLink("/" + pathname.split("/").pop());
-	}, [pathname]);
+	if (isLoading) {
+		return (
+			<div
+				className="flex flex-col gap-2 px-3 py-3"
+				role="status"
+				aria-busy="true"
+				aria-label="Caricamento navigazione"
+			>
+				{Array.from({ length: 6 }).map((_, index) => (
+					<Skeleton
+						key={index}
+						className={cn("h-8 w-full", isCollapsed && "mx-auto size-8")}
+					/>
+				))}
+				<span className="sr-only">Caricamento navigazione</span>
+			</div>
+		);
+	}
 
-	return isLoading ? (
-		<div className="flex flex-col justify-center items-center h-full">
-			<BeatLoader color="hsla(20.5 90.2% 48.2%)" />
-		</div>
-	) : (
+	return (
 		<div
 			data-collapsed={isCollapsed}
-			className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2 overflow-auto"
+			className="group flex flex-col gap-4 overflow-auto py-2 data-[collapsed=true]:py-2"
 		>
-			<nav>
-				{links.map((l, _) => (
-					<div
-						key={_}
-						className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
-					>
-						{l.group
-							.filter((link) => {
-								if (userRole === "Admin") {
-									return true;
-								} else {
-									return link.requiredRole === userRole;
-								}
-							})
-							.map((link, index) => {
-								const variant = link.href === selectedLink ? "default" : "ghost";
+			<nav className="flex flex-col gap-1" aria-label="Navigazione principale">
+				{links
+					.map((section) => ({
+						...section,
+						group: section.group.filter((link) => {
+							if (!userRole) return false;
+							return roleAllows(userRole, link.requiredRole);
+						}),
+					}))
+					.filter((section) => section.group.length > 0)
+					.map((section, sectionIndex, visibleSections) => (
+						<div
+							key={section.title}
+							className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
+						>
+							{isCollapsed ? (
+								<h2 className="sr-only">{section.title}</h2>
+							) : (
+								<p className="px-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground">
+									{section.title}
+								</p>
+							)}
+							{section.group.map((link) => {
+								const active = isActivePath(pathname, link.href);
+								const variant = active ? "default" : "ghost";
 								return isCollapsed ? (
-									<Tooltip
-										key={index}
-										delayDuration={0}
-									>
+									<Tooltip key={link.href} delayDuration={0}>
 										<TooltipTrigger asChild>
 											<Link
 												href={link.href}
+												aria-current={active ? "page" : undefined}
 												className={cn(
-													buttonVariants({ variant: variant, size: "icon" }),
-													"h-9 w-9",
-													variant === "default" &&
-														"dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
+													buttonVariants({ variant, size: "icon" }),
+													"size-9"
 												)}
-												onClick={() => setSelectedLink(link.href)}
 											>
-												<link.icon className="h-4 w-4" />
+												<link.icon
+													className={cn("size-4", !active && "text-muted-foreground")}
+													aria-hidden
+												/>
 												<span className="sr-only">{link.title}</span>
 											</Link>
 										</TooltipTrigger>
-										<TooltipContent
-											side="right"
-											className="flex items-center gap-4"
-										>
+										<TooltipContent side="right" className="flex items-center gap-4">
+											<span className="text-muted-foreground">{section.title}</span>
 											{link.title}
 										</TooltipContent>
 									</Tooltip>
 								) : (
 									<Link
-										key={index}
+										key={link.href}
 										href={link.href}
+										aria-current={active ? "page" : undefined}
 										className={cn(
-											buttonVariants({ variant: variant, size: "sm" }),
-											"justify-start",
-											variant === "default" && "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white"
+											buttonVariants({ variant, size: "sm" }),
+											"justify-start gap-2"
 										)}
-										onClick={() => setSelectedLink(link.href)}
 									>
-										<link.icon className="mr-2 h-4 w-4" />
+										<link.icon
+											className={cn("size-4", !active && "text-muted-foreground")}
+											aria-hidden
+										/>
 										{link.title}
 									</Link>
 								);
 							})}
-						{_ !== links.length - 1 && (
-							<Separator
-								key={_}
-								className="mb-1"
-							/>
-						)}
-					</div>
-				))}
+							{sectionIndex !== visibleSections.length - 1 && <Separator className="my-1" />}
+						</div>
+					))}
 			</nav>
 		</div>
 	);

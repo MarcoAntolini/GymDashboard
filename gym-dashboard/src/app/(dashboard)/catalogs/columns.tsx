@@ -1,25 +1,27 @@
 "use client";
 
+import { NumericCell } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
+import { PurchaseTypeBadge, purchaseTypes } from "@/components/ui/domain-badge";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Catalog, PurchaseType } from "@prisma/client";
+import { type CatalogDTO } from "@/data-access/catalogs";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
 export const formSchema = z.object({
   year: z.number().int().positive("Year must be a positive integer"),
-  type: z.nativeEnum(PurchaseType),
+  type: z.enum(purchaseTypes),
   productCode: z.string().min(1, "Product code is required"),
   price: z.number().positive("Price must be a positive number"),
 });
 
 export const columns = (
-  handleDelete: (catalog: Pick<Catalog, "year" | "type" | "productCode">) => Promise<void>,
-  handleEdit: (catalog: Catalog) => Promise<void>
-): ColumnDef<Catalog>[] => [
+  handleDelete: (catalog: Pick<CatalogDTO, "year" | "type" | "productCode">) => Promise<void>,
+  handleEdit: (catalog: CatalogDTO) => Promise<void>
+): ColumnDef<CatalogDTO>[] => [
   {
     accessorKey: "year",
     header: ({ column }) => (
@@ -37,6 +39,7 @@ export const columns = (
         title="Type"
       />
     ),
+    cell: ({ row }) => <PurchaseTypeBadge type={row.original.type} />,
   },
   {
     accessorKey: "productCode",
@@ -53,6 +56,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Price"
+        align="right"
       />
     ),
     cell: ({ row }) => {
@@ -61,7 +65,11 @@ export const columns = (
         style: "currency",
         currency: "USD",
       }).format(price);
-      return <div className="font-medium">{formatted}</div>;
+      return (
+        <NumericCell tooltip="List price for this catalog year">
+          {formatted}
+        </NumericCell>
+      );
     },
   },
   {
@@ -70,6 +78,7 @@ export const columns = (
       <ItemActions
         row={row}
         formSchema={formSchema}
+        entityLabel="catalog entry"
         editFormContent={
           <>
             <FormField
@@ -100,14 +109,14 @@ export const columns = (
                     disabled
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-auto min-h-10 py-2">
                         <SelectValue placeholder="Select a type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(PurchaseType).map((type) => (
+                      {purchaseTypes.map((type) => (
                         <SelectItem key={type} value={type}>
-                          {type}
+                          <PurchaseTypeBadge type={type} />
                         </SelectItem>
                       ))}
                     </SelectContent>

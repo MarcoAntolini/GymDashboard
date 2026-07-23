@@ -20,7 +20,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ArrowLeftFromLine, ArrowRightFromLine, User } from "lucide-react";
+import { ArrowLeftFromLine, ArrowRightFromLine, CircleUserRound, User } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -105,9 +106,15 @@ export default function DashboardLayout({
 										<span>{username}</span>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
-										{/* <DropdownMenuItem className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground cursor-pointer">
-											Settings
-										</DropdownMenuItem> */}
+										<DropdownMenuItem asChild className="cursor-pointer">
+											<Link
+												href="/profile"
+												className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0"
+											>
+												<CircleUserRound className="h-4 w-4" />
+												Profilo
+											</Link>
+										</DropdownMenuItem>
 										<DropdownMenuItem
 											onClick={() => setIsLogoutDialogOpen(true)}
 											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground hover:!bg-destructive cursor-pointer"

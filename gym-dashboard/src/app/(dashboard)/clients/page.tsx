@@ -1,12 +1,12 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
+import { EntityShell } from "@/components/ui/entity-shell";
 import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createClient, deleteClient, editClient, getAllClients } from "@/data-access/clients";
-import { useEntityData } from "@/hooks/useEntityData";
+import { createClient, deleteClient, editClient, listClients } from "@/data-access/clients";
+import { useEntityList } from "@/hooks/useEntityList";
 import { Client } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
@@ -16,20 +16,26 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { formatDateIt } from "@/lib/format";
 
 export default function ClientsPage() {
   const {
     data: clients,
-    setData: setClients,
+    total,
+    facets,
+    query,
+    setQuery,
     isLoading,
+    error,
+    retry,
+    refetch,
     handleDelete,
     handleEdit,
-  } = useEntityData<Client, "id">(
+  } = useEntityList<Client, "id">(
     useMemo(
       () => ({
-        getAll: getAllClients,
+        list: listClients,
         deleteAction: deleteClient,
         editAction: editClient,
       }),
@@ -40,15 +46,15 @@ export default function ClientsPage() {
 
   const handleCreateClient = useCallback(
     async (values: z.infer<typeof formSchema>) => {
-      const newClient = await createClient(values);
-      setClients((prevClients) => [...prevClients, newClient]);
+      await createClient(values);
+      await refetch();
     },
-    [setClients]
+    [refetch]
   );
 
   const actions: Action[] = [
     {
-      title: "Add Client",
+      title: "Nuovo Cliente",
       icon: PlusCircle,
       dialogContent: (
         <>
@@ -57,7 +63,7 @@ export default function ClientsPage() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Nome</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -69,7 +75,7 @@ export default function ClientsPage() {
               name="surname"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Surname</FormLabel>
+                  <FormLabel>Cognome</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -83,7 +89,7 @@ export default function ClientsPage() {
               name="taxCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax Code</FormLabel>
+                  <FormLabel>Codice fiscale</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -95,7 +101,7 @@ export default function ClientsPage() {
               name="birthDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Birth Date</FormLabel>
+                  <FormLabel>Data di nascita</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -107,9 +113,9 @@ export default function ClientsPage() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            formatDateIt(field.value)
                           ) : (
-                            <span>Pick a date</span>
+                            <span>Scegli una data</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -137,7 +143,7 @@ export default function ClientsPage() {
               name="street"
               render={({ field }) => (
                 <FormItem className="col-span-3">
-                  <FormLabel>Street</FormLabel>
+                  <FormLabel>Via</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -149,7 +155,7 @@ export default function ClientsPage() {
               name="houseNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Number</FormLabel>
+                  <FormLabel>Civico</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -163,7 +169,7 @@ export default function ClientsPage() {
               name="city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City</FormLabel>
+                  <FormLabel>Città</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -175,7 +181,7 @@ export default function ClientsPage() {
               name="province"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Province</FormLabel>
+                  <FormLabel>Provincia</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -189,7 +195,7 @@ export default function ClientsPage() {
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem className="col-span-3">
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel>Telefono</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -210,62 +216,44 @@ export default function ClientsPage() {
               )}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              name="enrollmentDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Enrollment Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date("1900-01-01")}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="remainingEntrances"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Remaining Entrances</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+          <FormField
+            name="enrollmentDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data di iscrizione</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          formatDateIt(field.value)
+                        ) : (
+                          <span>Scegli una data</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => date < new Date("1900-01-01")}
+                      initialFocus
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </>
       ),
       formData: {
@@ -282,26 +270,44 @@ export default function ClientsPage() {
           phoneNumber: "",
           email: "",
           enrollmentDate: new Date(),
-          remainingEntrances: 0,
         },
         submitAction: handleCreateClient,
       } as FormData<typeof formSchema>,
     },
   ];
 
-  return isLoading ? (
-    <DashboardPlaceholder />
-  ) : (
-    <Dashboard
-      actions={actions}
-      table={
-        <DataTable
-          columns={columns(handleDelete, handleEdit)}
-          data={clients}
-          filters={["taxCode", "name", "surname"]}
-          facetedFilters={["city", "province"]}
-        />
-      }
-    />
+  return (
+    <EntityShell isLoading={isLoading} error={error} onRetry={retry} entityLabel="Cliente">
+      <Dashboard
+        actions={actions}
+        table={
+          <DataTable
+            columns={columns(handleDelete, handleEdit)}
+            data={clients}
+            entityLabel="Cliente"
+            filters={["surname", "name", "taxCode"]}
+            facetedFilters={["city", "province"]}
+            filterLabels={{
+              surname: "Cognome",
+              name: "Nome",
+              taxCode: "Codice fiscale",
+              city: "Città",
+              province: "Provincia",
+              phoneNumber: "Telefono",
+              email: "Email",
+              birthDate: "Data di nascita",
+              enrollmentDate: "Iscrizione",
+              id: "ID",
+            }}
+            server={{
+              query,
+              onQueryChange: setQuery,
+              total,
+              facetOptions: facets,
+            }}
+          />
+        }
+      />
+    </EntityShell>
   );
 }

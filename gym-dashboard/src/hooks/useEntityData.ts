@@ -8,18 +8,32 @@ interface EntityActions<T, K extends keyof T> {
 
 type EntityKey<T> = keyof T;
 
+function toError(error: unknown, fallback: string): Error {
+	if (error instanceof Error && error.message.trim()) {
+		return error;
+	}
+	return new Error(fallback);
+}
+
 export function useEntityData<T, K extends EntityKey<T>>(
 	actions: EntityActions<T, K>,
 	identifierKeys: K[]
 ) {
 	const [data, setData] = useState<T[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
 
 	const fetchData = useCallback(async () => {
 		setIsLoading(true);
-		const fetchedData = await actions.getAll();
-		setData(fetchedData);
-		setIsLoading(false);
+		setError(null);
+		try {
+			const fetchedData = await actions.getAll();
+			setData(fetchedData);
+		} catch (err) {
+			setError(toError(err, "Impossibile caricare i dati. Riprova."));
+		} finally {
+			setIsLoading(false);
+		}
 	}, [actions]);
 
 	useEffect(() => {
@@ -42,19 +56,16 @@ export function useEntityData<T, K extends EntityKey<T>>(
 
 	const handleEdit = useCallback(
 		async (editedEntity: T) => {
-			if (actions.editAction) {
-				await actions.editAction(editedEntity);
-			}
+			const saved =
+				actions.editAction != null ? await actions.editAction(editedEntity) : editedEntity;
 			setData((prevData) =>
 				prevData.map((item) =>
-					identifierKeys.every((key) => item[key] === editedEntity[key])
-						? editedEntity
-						: item
+					identifierKeys.every((key) => item[key] === editedEntity[key]) ? saved : item
 				)
 			);
 		},
 		[actions, identifierKeys]
 	);
 
-	return { data, setData, isLoading, handleDelete, handleEdit };
+	return { data, setData, isLoading, error, retry: fetchData, handleDelete, handleEdit };
 }

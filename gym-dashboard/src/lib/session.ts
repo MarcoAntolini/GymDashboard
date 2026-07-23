@@ -1,8 +1,12 @@
+import type { AppRole } from "@/lib/rbac";
+import { isAppRole } from "@/lib/rbac";
+
 const SESSION_COOKIE_NAME = "session";
 const SESSION_TTL_SECONDS = 60 * 60; // 1 hour (demo)
 
-type SessionPayload = {
+export type SessionPayload = {
 	u: string;
+	r: AppRole;
 	exp: number; // epoch seconds
 };
 
@@ -15,7 +19,7 @@ function base64UrlEncodeBytes(bytes: Uint8Array): string {
 		typeof btoa === "function"
 			? btoa(binary)
 			: typeof Buffer !== "undefined"
-				? Buffer.from(binary, "binary").toString("base64")
+				? Buffer.from(bytes).toString("base64")
 				: (() => {
 						throw new Error("No base64 encoder available");
 					})();
@@ -94,8 +98,16 @@ export function getSessionTtlSeconds() {
 	return SESSION_TTL_SECONDS;
 }
 
-export function createSessionValue(username: string, nowEpochSeconds = Math.floor(Date.now() / 1000)) {
-	const payload: SessionPayload = { u: username, exp: nowEpochSeconds + SESSION_TTL_SECONDS };
+export function createSessionValue(
+	username: string,
+	role: AppRole,
+	nowEpochSeconds = Math.floor(Date.now() / 1000)
+) {
+	const payload: SessionPayload = {
+		u: username,
+		r: role,
+		exp: nowEpochSeconds + SESSION_TTL_SECONDS,
+	};
 	const payloadJson = JSON.stringify(payload);
 	const payloadB64 = base64UrlEncodeBytes(textToBytes(payloadJson));
 	return { payloadB64, payload };
@@ -118,8 +130,8 @@ export async function verifySessionValue(value: string, nowEpochSeconds = Math.f
 		return null;
 	}
 	if (!payload?.u || typeof payload.u !== "string") return null;
+	if (!isAppRole(payload.r)) return null;
 	if (!payload?.exp || typeof payload.exp !== "number") return null;
 	if (payload.exp < nowEpochSeconds) return null;
 	return payload;
 }
-

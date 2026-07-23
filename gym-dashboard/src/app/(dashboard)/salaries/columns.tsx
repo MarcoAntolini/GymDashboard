@@ -6,6 +6,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Salary } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Hash, UserRound } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -19,13 +20,19 @@ export const columns = (
 ): ColumnDef<Salary>[] => [
 	{
 		accessorKey: "paymentId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Payment ID" />
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Pagamento" icon={Hash} />
+		)
 	},
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dipendente" icon={UserRound} />
+		),
 		cell: ({ row }) => {
-			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
+			return (
+				<div className="tabular-nums">{row.original.employeeId.toString().padStart(4, "0")}</div>
+			);
 		}
 	},
 	// {
@@ -76,13 +83,15 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Stipendio"
+				deleteDescription="Elimina lo Stipendio collegato al Pagamento. Preferisci gestire creazione e tipo da Pagamenti. L'operazione non può essere annullata."
 				editFormContent={
 					<>
 						<FormField
 							name="paymentId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Payment ID</FormLabel>
+									<FormLabel>ID Pagamento</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -99,7 +108,7 @@ export const columns = (
 							name="employeeId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Employee ID</FormLabel>
+									<FormLabel>ID Dipendente</FormLabel>
 									<FormControl>
 										<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
 									</FormControl>

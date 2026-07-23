@@ -11,7 +11,6 @@ import {
 	AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -21,11 +20,12 @@ import {
 	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Form } from "@/components/ui/form";
+import { FormSheet, FormSheetFooter } from "@/components/ui/form-sheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Row } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -36,7 +36,8 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	editAction,
 	deleteAction,
 	editUnavailabe,
-	deleteUnavailabe
+	deleteUnavailabe,
+	editTitle = "Modifica"
 }: {
 	row: Row<any>;
 	formSchema: TFormSchema;
@@ -45,9 +46,11 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	deleteAction: () => Promise<void>;
 	editUnavailabe?: boolean;
 	deleteUnavailabe?: boolean;
+	editTitle?: string;
 }) {
-	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+	const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+	const [isEditSubmitting, setIsEditSubmitting] = useState(false);
 
 	const router = useRouter();
 
@@ -58,11 +61,27 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 		}
 	});
 
+	useEffect(() => {
+		if (isEditSheetOpen) {
+			form.reset({
+				...row.original
+			});
+		} else {
+			setIsEditSubmitting(false);
+		}
+	}, [isEditSheetOpen, row.original, form]);
+
 	function onEditSubmit(values: z.infer<TFormSchema>) {
-		editAction({ values }).then(() => {
-			setIsEditDialogOpen(false);
-			router.refresh();
-		});
+		if (isEditSubmitting) return;
+		setIsEditSubmitting(true);
+		editAction({ values })
+			.then(() => {
+				setIsEditSheetOpen(false);
+				router.refresh();
+			})
+			.finally(() => {
+				setIsEditSubmitting(false);
+			});
 	}
 
 	function onDeleteSubmit() {
@@ -77,46 +96,52 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 			<DropdownMenu modal={false}>
 				<DropdownMenuTrigger asChild>
 					<Button variant="ghost" className="h-7 w-7 p-0" disabled={editUnavailabe && deleteUnavailabe}>
-						<span className="sr-only">Open menu</span>
+						<span className="sr-only">Apri menu azioni</span>
 						<MoreHorizontal className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					<DropdownMenuLabel>Actions</DropdownMenuLabel>
+					<DropdownMenuLabel>Azioni</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-					{!editUnavailabe && <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>Edit</DropdownMenuItem>}
-					{!deleteUnavailabe && <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>Delete</DropdownMenuItem>}
+					{!editUnavailabe && (
+						<DropdownMenuItem onClick={() => setIsEditSheetOpen(true)}>Modifica</DropdownMenuItem>
+					)}
+					{!deleteUnavailabe && (
+						<DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>Elimina</DropdownMenuItem>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-				<DialogContent>
-					<DialogHeader className="mb-5">
-						<DialogTitle>Edit row data</DialogTitle>
-					</DialogHeader>
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-8">
-							{editFormContent}
-							<DialogFooter>
-								<Button type="submit">Save</Button>
-							</DialogFooter>
-						</form>
-					</Form>
-				</DialogContent>
-			</Dialog>
+			<FormSheet
+				open={isEditSheetOpen}
+				onOpenChange={setIsEditSheetOpen}
+				title={editTitle}
+				preventDismiss={isEditSubmitting}
+			>
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(onEditSubmit)} className="flex flex-col gap-6">
+						{editFormContent}
+						<FormSheetFooter>
+							<Button type="submit" disabled={isEditSubmitting} aria-busy={isEditSubmitting}>
+								Salva
+							</Button>
+						</FormSheetFooter>
+					</form>
+				</Form>
+			</FormSheet>
 
 			<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+						<AlertDialogTitle>Vuoi eliminare questo elemento?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently delete this row from the database.
+							L&apos;operazione non può essere annullata. L&apos;elemento verrà rimosso dal database.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
+						<AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Annulla</AlertDialogCancel>
 						<AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={onDeleteSubmit}>
-							Continue
+							Elimina
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

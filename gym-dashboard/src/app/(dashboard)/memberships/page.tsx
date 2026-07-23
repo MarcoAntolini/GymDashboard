@@ -1,13 +1,17 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createMembership, deleteMembership, editMembership, getAllMemberships } from "@/data-access/memberships";
-import { useEntityData } from "@/hooks/useEntityData";
-import { Membership } from "@prisma/client";
+import {
+  createMembership,
+  deleteMembership,
+  editMembership,
+  listMemberships,
+  type MembershipDTO,
+} from "@/data-access/memberships";
+import { useEntityList } from "@/hooks/useEntityList";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
@@ -16,14 +20,17 @@ import { columns, formSchema } from "./columns";
 export default function MembershipsPage() {
   const {
     data: memberships,
-    setData: setMemberships,
-    isLoading,
+    total,
+    facets,
+    query,
+    setQuery,
     handleDelete,
     handleEdit,
-  } = useEntityData<Membership, "productCode">(
+    refetch,
+  } = useEntityList<MembershipDTO, "productCode">(
     useMemo(
       () => ({
-        getAll: getAllMemberships,
+        list: listMemberships,
         deleteAction: deleteMembership,
         editAction: editMembership,
       }),
@@ -34,10 +41,10 @@ export default function MembershipsPage() {
 
   const handleCreateMembership = useCallback(
     async (values: z.infer<typeof formSchema>) => {
-      const newMembership = await createMembership(values);
-      setMemberships((prevMemberships) => [...prevMemberships, newMembership]);
+      await createMembership(values);
+      await refetch();
     },
-    [setMemberships]
+    [refetch]
   );
 
   const actions: Action[] = [
@@ -87,9 +94,7 @@ export default function MembershipsPage() {
     },
   ];
 
-  return isLoading ? (
-    <DashboardPlaceholder />
-  ) : (
+  return (
     <Dashboard
       actions={actions}
       table={
@@ -98,6 +103,12 @@ export default function MembershipsPage() {
           data={memberships}
           filters={["productCode"]}
           facetedFilters={["duration"]}
+          server={{
+            query,
+            onQueryChange: setQuery,
+            total,
+            facetOptions: facets,
+          }}
         />
       }
     />

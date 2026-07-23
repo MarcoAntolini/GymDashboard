@@ -1,15 +1,15 @@
 "use client";
 
+import { ProfilePhotoField } from "@/components/profile-photo-field";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { createEmployee, deleteEmployee, editEmployee, getAllEmployees } from "@/data-access/employees";
-import { useEntityData } from "@/hooks/useEntityData";
+import { createEmployee, deleteEmployee, editEmployee, listEmployees } from "@/data-access/employees";
+import { useEntityList } from "@/hooks/useEntityList";
 import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
 import { format } from "date-fns";
@@ -21,14 +21,17 @@ import { columns, formSchema } from "./columns";
 export default function Employees() {
 	const {
 		data: employees,
-		setData: setEmployees,
-		isLoading,
+		total,
+		facets,
+		query,
+		setQuery,
 		handleDelete,
 		handleEdit,
-	} = useEntityData<Employee, "id">(
+		refetch,
+	} = useEntityList<Employee, "id">(
 		useMemo(
 			() => ({
-				getAll: getAllEmployees,
+				list: listEmployees,
 				deleteAction: deleteEmployee,
 				editAction: editEmployee,
 			}),
@@ -36,13 +39,13 @@ export default function Employees() {
 		),
 		["id"]
 	);
-	
+
 	const handleCreateEmployee = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newEmployee = await createEmployee(values);
-			setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
+			await createEmployee(values);
+			await refetch();
 		},
-		[setEmployees]
+		[refetch]
 	);
 
 	const actions: Action[] = [
@@ -51,6 +54,7 @@ export default function Employees() {
 			icon: PlusCircle,
 			dialogContent: (
 				<>
+					<ProfilePhotoField />
 					<div className="grid grid-cols-2 gap-4">
 						<FormField
 							name="name"
@@ -219,15 +223,14 @@ export default function Employees() {
 					phoneNumber: "",
 					email: "",
 					hiringDate: new Date(),
+					profilePhotoUrl: "",
 				},
 				submitAction: handleCreateEmployee,
 			} as FormData<typeof formSchema>,
 		},
 	];
 
-	return isLoading ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
@@ -236,6 +239,12 @@ export default function Employees() {
 					data={employees}
 					filters={["taxCode", "name", "surname"]}
 					facetedFilters={["city", "province"]}
+					server={{
+						query,
+						onQueryChange: setQuery,
+						total,
+						facetOptions: facets,
+					}}
 				/>
 			}
 		/>

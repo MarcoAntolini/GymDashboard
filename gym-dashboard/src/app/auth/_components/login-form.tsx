@@ -53,9 +53,13 @@ export function LoginForm() {
 		})
 			.then((res) => res.json())
 			.then(async (data) => {
-				const { success, message } = data;
+				const { success, message, redirectTo } = data as {
+					success: boolean;
+					message: string;
+					redirectTo?: string;
+				};
 				if (success) {
-					router.push("/accounts");
+					router.push(typeof redirectTo === "string" && redirectTo ? redirectTo : "/");
 				} else {
 					toast.error(message);
 				}

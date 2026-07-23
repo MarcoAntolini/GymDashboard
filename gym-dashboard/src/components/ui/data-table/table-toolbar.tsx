@@ -3,88 +3,112 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
-	DropdownMenuTrigger,
+	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import type { FacetOption } from "@/lib/list-query";
 import { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { TableFacetedFilter } from "./table-faceted-filter";
 
 interface TableToolbarProps<TData> {
 	table: Table<TData>;
-	filters: Array<Extract<keyof TData, string>>;
-	facetedFilters?: Array<Extract<keyof TData, string>>;
+	filters: string[];
+	facetedFilters?: string[];
+	filterLabels?: Record<string, string>;
+	/** When provided (server mode), facet options come from the API instead of loaded rows. */
+	facetOptions?: Record<string, FacetOption[]>;
 }
 
-export default function TableToolbar<TData>({ table, filters, facetedFilters }: TableToolbarProps<TData>) {
+function humanizeKey(key: string): string {
+	return key
+		.replace(/([A-Z])/g, (match, p1, offset) =>
+			offset > 0 && key.charAt(offset - 1) !== " " ? ` ${p1}` : p1
+		)
+		.replace(/\bId\b/g, "ID")
+		.trim()
+		.replace(/^./, (str) => str.toUpperCase());
+}
+
+export default function TableToolbar<TData>({
+	table,
+	filters,
+	facetedFilters,
+	filterLabels,
+	facetOptions
+}: TableToolbarProps<TData>) {
 	const isFiltered = table.getState().columnFilters.length > 0;
+	const labelFor = (key: string) => filterLabels?.[key] ?? humanizeKey(key);
+	const useServerFacets = facetOptions != null;
 
 	return (
-		<div className="flex items-center justify-between pb-4">
-			<div className="flex items-center gap-4">
-				{filters.map((filter, _) => (
+		<div className="flex min-w-0 flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:justify-between">
+			<div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+				{filters.map((filter) => (
 					<Input
-						key={_}
-						placeholder={filter
-							.replace(/([A-Z])/g, (match, p1, offset) =>
-								offset > 0 && filter.charAt(offset - 1) !== " " ? ` ${p1}` : p1
-							)
-							.replace(/\bId\b/g, "ID")
-							.trim()
-							.replace(/^./, (str) => str.toUpperCase())}
+						key={filter}
+						placeholder={labelFor(filter)}
 						value={(table.getColumn(filter)?.getFilterValue() as string) ?? ""}
 						onChange={(event) => table.getColumn(filter)?.setFilterValue(event.target.value)}
-						className="max-w-sm w-auto"
+						className="h-9 w-full min-w-[9rem] max-w-xs sm:w-auto"
+						aria-label={`Filtra per ${labelFor(filter)}`}
 					/>
 				))}
-				{facetedFilters &&
-					facetedFilters.map((filter, _) => (
+				{facetedFilters?.map((filter) => {
+					const serverOptions = facetOptions?.[filter];
+					const options = useServerFacets
+						? (serverOptions ?? []).map((option) => ({
+								value: option.value,
+								label: option.value,
+								count: option.count,
+							}))
+						: Array.from(
+								new Set(table.getCoreRowModel().flatRows.map((row) => row.getValue(filter)))
+							).map((value) => ({
+								value: String(value),
+								label: String(value),
+							}));
+
+					return (
 						<TableFacetedFilter
-							key={_}
+							key={filter}
 							column={table.getColumn(filter)}
-							title={filter.charAt(0).toUpperCase() + filter.slice(1)}
-							options={Array.from(new Set(table.getCoreRowModel().flatRows.map((row) => row.getValue(filter)))).map(
-								(value) => ({
-									value: value as string,
-									label: String(value),
-								})
-							)}
+							title={labelFor(filter)}
+							options={options}
+							useColumnFacets={!useServerFacets}
 						/>
-					))}
+					);
+				})}
 				{isFiltered && (
 					<Button
 						variant="ghost"
 						onClick={() => table.resetColumnFilters()}
-						className="h-10 px-2 lg:px-3"
+						className="h-9 px-2 lg:px-3"
 					>
-						Reset
-						<X className="ml-2 h-4 w-4" />
+						Azzera
+						<X className="size-4" aria-hidden />
 					</Button>
 				)}
 			</div>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button
-						variant="outline"
-						className="ml-auto"
-					>
-						Columns
+					<Button variant="outline" className="h-9 shrink-0 self-end sm:self-auto">
+						Colonne
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
 					{table
 						.getAllColumns()
-						.filter((column) => column.id !== "actions")
+						.filter((column) => column.id !== "actions" && column.id !== "__pin")
 						.filter((column) => column.getCanHide())
 						.map((column) => {
 							return (
 								<DropdownMenuCheckboxItem
 									key={column.id}
-									className="capitalize"
 									checked={column.getIsVisible()}
 									onCheckedChange={(value) => column.toggleVisibility(!!value)}
 								>
-									{column.id}
+									{labelFor(column.id)}
 								</DropdownMenuCheckboxItem>
 							);
 						})}

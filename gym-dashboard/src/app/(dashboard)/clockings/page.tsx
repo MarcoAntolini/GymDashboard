@@ -1,14 +1,14 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
+import { EntityShell } from "@/components/ui/entity-shell";
 import { DataTable } from "@/components/ui/data-table";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createClocking, deleteClocking, editClocking, getAllClockings } from "@/data-access/clockings";
+import { createClocking, deleteClocking, editClocking, listClockings } from "@/data-access/clockings";
 import { getEmployee } from "@/data-access/employees";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useEntityList } from "@/hooks/useEntityList";
 import { Clocking } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
@@ -19,16 +19,21 @@ import { columns, formSchema } from "./columns";
 export default function Clockings() {
 	const {
 		data: clockings,
-		setData: setClockings,
+		total,
+		query,
+		setQuery,
 		isLoading,
+		error,
+		retry,
+		refetch,
 		handleDelete,
-		handleEdit
-	} = useEntityData<Clocking, "employeeId" | "entranceTime">(
+		handleEdit,
+	} = useEntityList<Clocking, "employeeId" | "entranceTime">(
 		useMemo(
 			() => ({
-				getAll: getAllClockings,
+				list: listClockings,
 				deleteAction: deleteClocking,
-				editAction: editClocking
+				editAction: editClocking,
 			}),
 			[]
 		),
@@ -39,18 +44,18 @@ export default function Clockings() {
 		async (values: z.infer<typeof formSchema>) => {
 			const employee = await getEmployee(values.employeeId);
 			if (!employee) {
-				toast.error("Employee not found");
+				toast.error("Dipendente non trovato");
 				return;
 			}
-			const newClocking = await createClocking(values);
-			setClockings((prevClockings) => [...prevClockings, newClocking]);
+			await createClocking(values);
+			await refetch();
 		},
-		[setClockings]
+		[refetch]
 	);
 
 	const actions: Action[] = [
 		{
-			title: "Add Clocking",
+			title: "Nuova Timbratura",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -58,9 +63,14 @@ export default function Clockings() {
 						name="employeeId"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Employee ID</FormLabel>
+								<FormLabel>ID Dipendente</FormLabel>
 								<FormControl>
-									<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} min={0} />
+									<Input
+										type="number"
+										{...field}
+										onChange={(e) => field.onChange(parseInt(e.target.value))}
+										min={0}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -70,7 +80,7 @@ export default function Clockings() {
 						name="entranceTime"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Entrance Time</FormLabel>
+								<FormLabel>Entrata</FormLabel>
 								<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 								<FormMessage />
 							</FormItem>
@@ -80,7 +90,7 @@ export default function Clockings() {
 						name="exitTime"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Exit Time</FormLabel>
+								<FormLabel>Uscita</FormLabel>
 								<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 								<FormMessage />
 							</FormItem>
@@ -93,19 +103,36 @@ export default function Clockings() {
 				defaultValues: {
 					employeeId: 0,
 					entranceTime: new Date(),
-					exitTime: undefined
+					exitTime: undefined,
 				},
-				submitAction: handleCreateClocking
-			} as FormData<typeof formSchema>
-		}
+				submitAction: handleCreateClocking,
+			} as FormData<typeof formSchema>,
+		},
 	];
 
-	return isLoading ? (
-		<DashboardPlaceholder />
-	) : (
-		<Dashboard
-			actions={actions}
-			table={<DataTable columns={columns(handleDelete, handleEdit)} data={clockings} filters={["employeeId"]} />}
-		/>
+	return (
+		<EntityShell isLoading={isLoading} error={error} onRetry={retry} entityLabel="Timbratura">
+			<Dashboard
+				actions={actions}
+				table={
+					<DataTable
+						columns={columns(handleDelete, handleEdit)}
+						data={clockings}
+						entityLabel="Timbratura"
+						filters={["employeeId"]}
+						filterLabels={{
+							employeeId: "ID Dipendente",
+							entranceTime: "Entrata",
+							exitTime: "Uscita",
+						}}
+						server={{
+							query,
+							onQueryChange: setQuery,
+							total,
+						}}
+					/>
+				}
+			/>
+		</EntityShell>
 	);
 }

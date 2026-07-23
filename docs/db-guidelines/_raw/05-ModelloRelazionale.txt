@@ -1,0 +1,1075 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Il modello relazionale
+
+
+===== PAGE 2 =====
+
+2
+Introduzione al modello relazionale
+ Il modello relazionale fu introdotto nel 1970 da E.F. Codd (presso i laboratori IBM
+di San Jose, CA) allo scopo di favorire l’indipendenza dei dati.
+ I modelli preesistenti, gerarchico (hierarchical model) e reticolare (network model)
+erano fortemente influenzati da considerazioni di natura fisica, che enfatizzavano
+maggiormente gli aspetti di efficienza piuttosto che la semplicità d’uso.
+ Il sistema di gestione IMS, basato sul modello gerarchico, fu sviluppato
+originariamente nel 1966 da IBM insieme a Rockwell e Caterpillar per il
+programma Apollo. È tuttora operativo per ambienti OLTP industriali.
+ Il modello reticolare è stato introdotto da Charles Bechman e standardizzato dal
+consorzio CODASYL nel 1969.
+ Rispetto ai modelli gerarchico e reticolare il modello relazionale si caratterizza per:
+ la totale assenza di legami costruiti con puntatori; nel modello relazionale,
+infatti, si fa uso solo di valori;
+ la presenza di una teoria utile per la progettazione di DB, per la definizione di
+linguaggi d’interrogazione e per l’ottimizzazione di query.
+
+===== PAGE 3 =====
+
+3
+Un po’ di storia…
+ Lo sviluppo di efficienti DBMS basati sul modello relazionale è stato piuttosto lento,
+a causa dell’elevato livello d’astrazione offerto rispetto ai modelli precedenti. Le
+prime soluzioni commerciali risalgono alla prima metà degli anni 80.
+Anni 70: definizione del modello, prima versione del linguaggio SQL (Structured Query
+Language, inizialmente denominato SEQUEL), studi fondamentali sulla tecnologia
+relazionale (ottimizzazione, transazioni, recovery, …) e primi prototipi di DBMS
+relazionali (RDBMS): System R (IBM, laboratorio di ricerca di San Jose, CA, USA), Ingres
+(Università di Berkeley, CA, USA)
+Anni 80: prima standardizzazione di SQL, primi prototipi commerciali: SQL/DS
+(derivato da System R), Oracle, IBM DB2
+Anni 90: standard ISO-ANSI SQL-2 (anche noto come SQL-92).
+ Esiste oggi lo standard ISO-ANSI SQL-3 (o SQL:1999) e sono state definite ulteriori
+estensioni: SQL 2003, SQL 2008, ecc.
+ Nonostante il nome, SQL non è un semplice linguaggio di interrogazione perché
+alcune istruzioni sono dedicate alla creazione, alla gestione e all’amministrazione
+del database.
+
+
+===== PAGE 4 =====
+
+4
+Modello logico relazionale: note
+ Il modello relazionale è un modello logico nel senso che risponde al
+requisito di indipendenza dalla particolare rappresentazione dei dati
+adottata a livello fisico.
+ Nel contesto di un DB relazionale, gli utenti che accedono ai dati e i
+programmatori che sviluppano applicazioni fanno riferimento solo al livello
+logico, senza specificare i percorsi di accesso per eseguire le operazioni.
+ I modelli logici gerarchico (rappresentazione con strutture ad albero) e
+reticolare (rappresentazione con strutture a grafo), ricordano più da vicino
+tecniche di organizzazione dei dati a livello fisico e richiedono al
+programmatore di esplicitare i cammini per accedere ai dati.
+ Nel modello relazionale l’unica astrazione è il concetto di
+ relazione; non vi
+sono costrutti concettuali di alto livello in grado di descrivere entità,
+associazioni, generalizzazioni, specializzazioni, aggregazioni.
+ Tuttavia, una relazione può rappresentare opportunamente ed
+efficientemente i suddetti concetti astratti. Ciò motiva la necessità di
+ricorrere, nella fase di progettazione logica, a una traduzione da schemi
+concettuali E/R a schemi logici relazionali.
+
+===== PAGE 5 =====
+
+5
+Sul termine “relazione”
+ Il termine “relazione” può essere usato con diverse accezioni,
+che non devono essere confuse tra loro:
+ nel linguaggio comune denota un “legame” di qualche tipo;
+ nella teoria degli insiemi denota una “relazione matematica”;
+ nel modello relazionale è una generalizzazione della relazione
+matematica;
+ nel modello Entity-Relationship denota una classe di legami fra
+entità (sono sinonimi “associazione” e “correlazione”);
+ nei DBMS relazionali è usato spesso, a volte erroneamente, come
+sinonimo di “tabella”.
+ Per introdurre il modello relazionale è quindi opportuno
+innanzitutto riesaminare il concetto di relazione matematica.
+
+===== PAGE 6 =====
+
+6
+Richiami: prodotto cartesiano
+ Si considerino due insiemi A e B, non vuoti e non necessariamente distinti; si definisce
+prodotto cartesiano A  B come l’insieme delle coppie ordinate (a,b) con a  A e b 
+B. Per definizione A      A  .
+ Se A e B sono insiemi distinti il prodotto A  B è formalmente diverso da B  A, anche
+se i due prodotti sono in naturale corrispondenza biunivoca.
+ La definizione può essere estesa considerando n  0 insiemi D1, D2, …, Dn , non
+necessariamente distinti.
+ Il prodotto cartesiano D1  D2  …  Dn è l’insieme di tutte le ennuple (n-ple) ordinate
+(d1, d2, …, dn) tali che d1  D1, d2  D2, …, dn  Dn .
+ Il prodotto cartesiano di n copie dell’insieme D si indica con Dn ed è detto potenza
+cartesiana.
+Esempio: 
+A  {x,y,z}, B  {1,2}; 
+A  B  {(x,1),(x,2),(y,1),(y,2),(z,1),(z,2)}.
+z
+y
+x
+2
+1
+A B
+
+===== PAGE 7 =====
+
+7
+Relazione matematica (binaria)
+ Si considerino due insiemi A e B, non vuoti e non necessariamente distinti;
+ogni sottoinsieme non vuoto del prodotto cartesiano A  B è detto
+relazione da A a B. Se B  A allora un sottoinsieme non vuoto del
+prodotto cartesiano A2 è detto anche relazione in A o su A.
+ Data una relazione r  A  B, si dice che l’elemento a  A è in relazione
+con l‘elemento b  B se la coppia (a,b)  r.
+Esempio: A  {x,y,z}, B  {1,2}; 
+A  B  {(x,1),(x,2),(y,1),(y,2),(z,1),(z,2)}
+r  {(x,1),(y,2),(z,1),(z,2)} è una relazione su A e B.
+z
+y
+x
+2
+1
+
+
+===== PAGE 8 =====
+
+8
+Un esempio d’uso
+ Un grafo orientato è una coppia (A; r) dove A è un insieme finito e non 
+vuoto e r è una relazione in A.
+Esempio: A  {a,b,c,d,e}; 
+r  {(a,a), (a,c), (b,d), (c,b), (d,a), (d,b)}
+a
+d
+b
+c
+e
+
+===== PAGE 9 =====
+
+9
+Relazione matematica n-aria
+ Si considerino n  0 insiemi D1, D2, …, Dn , non necessariamente distinti.
+ Una relazione (matematica) su D1, D2, …, Dn è un qualunque sottoinsieme
+del prodotto cartesiano D1  D2  …  Dn .
+Esempio: 
+D1  {mela,pera};  D2  {1,2,3};  D3  {1,2,3,4};
+r  {(mela,1,1), (mela,3,1), (pera,1,3), (pera,2,2), (pera,3,4)}
+è una relazione su D1, D2, D3 (r  D1  D2  D3 )
+o D1, D2, …, Dn sono i domini della relazione;
+o il valore di n è detto grado (o “arity”) della relazione;
+o il numero di n-ple di una relazione è la sua cardinalità.
+
+===== PAGE 10 =====
+
+10
+Relazione matematica: proprietà
+ Una relazione è un insieme di n-ple…:
+• tutte le n-ple sono distinte tra loro;
+• non è definito alcun ordinamento tra le diverse n-ple;
+• D1  {a,b,c}; D2  {1,2,3};
+• {(a,1),(b,2),(c,1),(c,2)}  {(a,1),(b,2),(c,2),(c,1)}  {(b,2),(c,2),(c,1),(a,1)} 
+ ... ciascuna considerata al proprio interno ordinata rispetto ai domini ...: 
+• l’ordine in cui si considerano i domini è rilevante;
+• (D1  D2)  (D2  D1)
+• {(a,1),(c,1),(c,2)}  {(1,a),(1,c),(2,c)} 
+ …su domini non necessariamente distinti:
+• uno stesso dominio può essere usato in più posizioni;
+• {(2,a,1),(1,c,1),(1,c,2)}   D2  D1  D2 .
+
+===== PAGE 11 =====
+
+11
+Relazione matematica: note
+ Una relazione è un insieme di n-ple...: la definizione estesa di
+prodotto cartesiano contempla anche il caso di n = 1,
+sottintendendo che il prodotto cartesiano coincida con l’insieme D1.
+Esempio 
+D1 = {Carlo, Mario, Giacomo, Marco, Giorgio};
+r = {(Carlo), (Giorgio)} è dunque una relazione!
+ La definizione contempla anche:
+ relazioni con un numero infinito di n-ple anche se ai fini pratici, a causa
+della dimensione finita della memoria di un elaboratore, le relazioni
+sono necessariamente costituite da un numero finito di n-ple; tuttavia è
+possibile a volte “gestire” anche relazioni con numero infinito di n-ple, se
+descrivibili attraverso un algoritmo finito;
+ domini infiniti, e ciò è utile per definire valori ammissibili anche se non
+presenti nella base di dati.
+
+===== PAGE 12 =====
+
+12
+Rappresentazione di relazioni
+ Rappresentazione insiemistica; non adeguata per relazioni di grado 
+n2 e/o con cardinalità superiore a qualche unità.
+mela 1 1
+mela 3 1
+pera 1 3
+pera 2 2
+pera 3 4
+1 se la tripla (x,y,z) appartiene alla relazione, 
+0 se non vi appartiene.
+z
+ Rappresentazione tabellare; efficace e 
+intuitiva.
+ Rappresentazione multi-dimensionale; adatta 
+se il grado n è minore o uguale a 3:
+
+===== PAGE 13 =====
+
+13
+Le vendite
+Prodotto
+numero di lattine di 
+Coca-Cola vendute 
+all’UPIM di Bologna il 
+1 ottobre 1998
+numero di lattine di 
+Pepsi vendute nei vari 
+negozi il 1 ottobre 
+1998
+numero di lattine di 
+Fanta 
+complessivamente 
+vendute
+Snapshot 
+Vista ad hoc
+Vista per negozio
+Vista per prodotto
+Cubo delle vendite
+Prodotto
+Rappresentazione multidimensionale: note
+ Una rappresentazione multi-dimensionale può essere utile per
+evidenziare alcune viste sui dati; molto usata nei data warehouse.
+
+===== PAGE 14 =====
+
+14
+E ancora altre rappresentazioni… 
+ Ad esempio: una bit map
+Rossi C++ ProgA
+Rossi SQL ProgB
+Verdi Java ProgC
+Bianchi SQL ProgA
+Bianchi
+Neri
+Rossi
+Verdi
+C++
+SQL
+Java
+ProgA
+ProgB
+ProgC
+0
+0
+0
+1
+1
+bit map
+1
+36  4x3x3
+2
+
+===== PAGE 15 =====
+
+15
+L’importanza della posizione
+ Nel caso di domini ripetuti, l’interpretazione dei dati si complica e la  
+posizione assume un ruolo determinante. La relazione indicata in 
+figura è un sottoinsieme del prodotto cartesiano:
+ Il primo e il terzo dominio si riferiscono alla squadra ospitante (nome 
+e numero di punti), mentre il secondo e il quarto dominio si 
+riferiscono alla squadra ospitata.
+ Questa notazione è scomoda e poco chiara.
+String  String  Integer  Integer
+Enel Brindisi Sidigas Avellino 92 88
+MIA Cantù Virtus Bologna 94 87
+Fiat Torino Vanoli Cremona 88 80
+The Flex Pistoia Consultinvest Pesaro 86 83
+
+===== PAGE 16 =====
+
+16
+ A ogni occorrenza di dominio (ripetuto o meno) si associa un nome univoco nella
+relazione, detto attributo, il cui compito è specificare il ruolo che quel dominio
+svolge nella relazione (“cosa significa”).
+ Nella rappresentazione tabellare, gli attributi sono le intestazioni delle colonne
+(e in quella multi-dimensionale sono i nomi degli assi).
+ La struttura non è più posizionale, ovvero l’ordine degli attributi non ha più
+rilevanza. In questo modo si supera il problema della non commutatività del
+prodotto cartesiano.
+Relazione nel modello relazionale
+TeamCasa TeamOspite PuntiCasa PuntiOspite
+Enel Brindisi Sidigas Avellino 92 88
+MIA Cantù Virtus Bologna 94 87
+Fiat Torino Vanoli Cremona 88 80
+The Flex Pistoia Consultinvest Pesaro 86 83
+
+===== PAGE 17 =====
+
+17
+Relazione: una definizione formale
+ Si indichi con dom(A) il dominio dell’attributo A e si consideri un insieme di attributi
+X = {A1, A2, …, An} .
+ Una tupla t su X è una funzione che associa a ogni Ai  X un valore di dom(Ai).
+ Uno schema di relazione su X è definito da un nome (della relazione) R e
+dall’insieme di attributi X, e si indica con R(X).
+ Uno stato (o estensione) di relazione su X è un insieme r di tuple su X, che è
+anche denominato semplicemente ”relazione“.
+TeamCasa TeamOspite PuntiCasa PuntiOspite
+Enel Brindisi Sidigas Avellino 92 88
+MIA Cantù Virtus Bologna 94 87
+Fiat Torino Vanoli Cremona 88 80
+The Flex Pistoia Consultinvest Pesaro 86 83
+attributi
+PARTITE
+
+===== PAGE 18 =====
+
+18
+TeamCasa TeamOspite PuntiCasa PuntiOspite
+Enel Brindisi Sidigas Avellino 92 88
+MIA Cantù Virtus Bologna 94 87
+Fiat Torino Vanoli Cremona 88 80
+The Flex Pistoia Consultinvest Pesaro 86 83
+Notazione di base 
+ Per denotare insiemi di attributi si usa la notazione semplificata:
+ A in luogo di {A} e XY in luogo di X  Y
+ …e si scrive ABC (o A,B,C) anziché {A,B,C}
+ …e quindi R(ABC) o R(A,B,C) anziché R({A, B, C}).
+ Se t è una tupla su X e A  X, allora t[A] o t.A è il valore di t su A.
+t[TeamOspite] = t.TeamOspite = ‘Vanoli Cremona’
+ La stessa notazione si usa per insiemi di attributi, e denota una tupla
+o t[TeamOspite,PuntiOspite] è una tupla su {TeamOspite,PuntiOspite}
+t
+PARTITE
+
+===== PAGE 19 =====
+
+19
+Livelli intensionale ed estensionale
+ Uno schema R(X) definisce a livello intensionale una relazione.
+Esempio:
+PARTITE(TeamCasa, TeamOspite, PuntiCasa, PuntiOspite)
+(con le opportune definizioni dei domini e dei vincoli)
+ Se è necessario a livello estensionale, per riferirsi a un generico stato
+(estensione) di relazione con schema R(X), si usa semplicemente il
+nome dello schema in minuscolo, ovvero r.
+ A volte si usa la notazione r(X) per indicare una relazione su X,
+descrivendo così al tempo stesso lo schema e l’estensione come
+insieme di tuple.
+
+===== PAGE 20 =====
+
+20
+Ulteriori precisazioni sulla terminologia
+ Nella terminologia relazionale il termine “istanza” è sinonimo di
+“estensione” o “stato” di relazione e non di tupla. Vi è dunque una
+differenza rispetto alle definizioni adottate per il modello E/R.
+ Per questo motivo in questa sede si preferisce usare il termine “stato”
+o “estensione” .
+ Poiché è scomodo precisare tutte le volte la distinzione fra livello
+intensionale e livello estensionale, a eccezione delle definizioni
+formali matematiche, si usa lo stesso nome per indicare sia lo schema
+di relazione sia l’estensione (stato) corrente.
+ Ad esempio:
+STUDENTI indica l’insieme corrente di tuple nella relazione di schema
+STUDENTI(Matricola, Cognome, Nome, …).
+
+===== PAGE 21 =====
+
+21
+Data Base relazionale
+ Lo schema di un DB relazionale è un insieme di schemi di relazioni con nomi 
+distinti:
+R = {R1(X1), R2(X2), …, Rm(Xm)} (Ri  Rj  i  j)
+ Uno stato (o estensione) di un DB con schema
+R = {R1(X1), R2(X2), …, Rm(Xm)}
+è un insieme di stati di relazioni
+ r = {r1, r2, …, rm}
+con ri stato di relazione su Ri(Xi).
+ Esempio: AZIENDA =
+{ IMPIEGATI(Matricola,Cognome, Nome, Livello, Stipendio),
+FILIALI(CodiceFiliale, Nome, Indirizzo, Direttore),
+FORNITORI(RagioneSociale, Indirizzo, PartitaIVA) }
+N.B. In realtà la definizione di uno schema di relazione e di uno schema di
+DB comprende anche l’indicazione di un insieme di vincoli d’integrità.
+
+===== PAGE 22 =====
+
+22
+Uno stato di un semplice DB relazionale
+Matricola Cognome Nome DataNascita
+29323 Bianchi Giorgio 21/06/1978
+35467 Rossi Anna 13/04/1978
+39654 Verdi Marco 20/09/1979
+42132 Neri Lucia 15/02/1978
+CodCorso Titolo CodDocente Anno
+483 Analisi 0201 1
+729 Analisi 0021 1
+913 Sistemi Informativi 0123 2
+Matricola CodCorso Voto Lode
+29323 483 28 no
+39654 729 30 sì
+29323 913 26 no
+35467 913 30 sì
+STUDENTI
+CORSI
+ESAMI
+CodDocente Cognome Nome DataNascita
+0021 Biondi Carlo 21/06/1958
+……. ……. ……. ……..
+DOCENTI
+
+===== PAGE 23 =====
+
+23
+Modello basato sui valori: vantaggi
+ Nella rappresentazione relazionale i legami fra i dati non sono
+stabiliti con puntatori ma per mezzo dei valori dei domini che
+compaiono nelle tuple. I vantaggi, rispetto ad altri modelli (ad es.:
+gerarchico, reticolare) sono appresso elencati.
+ Indipendenza dalle strutture fisiche che possono cambiare anche
+dinamicamente.
+ Si rappresenta solo ciò che risulta rilevante dal punto di vista
+dell’applicazione utente; l’uso di puntatori non è molto comprensibile
+all’utente finale.
+ Maggiore portabilità dei dati da un sistema all’altro.
+ I puntatori sono direzionali e pertanto stabiliscono un percorso di
+navigazione all’interno dei dati.
+ Si noti, tuttavia, che a livello fisico l’implementazione di un insieme di
+relazioni può prevedere l’uso di puntatori, invisibili comunque
+all’utente applicativo.
+
+===== PAGE 24 =====
+
+24
+Tabelle vs Relazioni
+ In realtà i termini “tabella” e “relazione” non sono affatto sinonimi;
+una relazione del modello relazionale può essere vista come un
+particolare tipo di tabella (che Codd chiama R-table).
+ Una tabella rappresenta una relazione se:
+ i valori di ciascuna colonna sono tra loro omogenei (definiti sullo stesso
+dominio);
+ le righe sono tra loro diverse;
+ le intestazioni delle colonne sono diverse tra loro.
+ In una tabella che rappresenta una relazione:
+ l’ordinamento delle righe è irrilevante;
+ l’ordinamento delle colonne è irrilevante.
+ Il linguaggio SQL nei DBMS commerciali consente di gestire tabelle
+che non sono relazioni, e che ammettono righe duplicate.
+
+===== PAGE 25 =====
+
+25
+Il problema dei duplicati
+ Esempio di derivazione in SQL di una tabella da una relazione.
+Matricola Cognome Nome DataNascita
+2106103423 Bianchi Giorgio 21/06/1978
+2106111021 Rossi Anna 13/04/1978
+1602042312 Rossi Anna 11/03/1978
+STUDENTI
+ SELECT Cognome, Nome
+FROM STUDENTI ;
+Cognome Nome
+Bianchi Giorgio
+Rossi Anna
+Rossi Anna
+una tabella che
+non è una relazione
+ SELECT DISTINCT Cognome, Nome
+FROM STUDENTI ;
+Cognome Nome
+Bianchi Giorgio
+Rossi Annauna tabella che
+è una relazione
+
+===== PAGE 26 =====
+
+26
+Nome dello schema di una relazione (1)
+ Vi sono diverse “scuole di pensiero” a riguardo della convenzione da
+adottare per il nome di uno schema di relazione. Molto spesso si ricorre
+all’uso di un sostantivo e alcuni preferiscono indicare il nome al singolare,
+altri al plurale: PERSONA o PERSONE , CORSO o CORSI?
+ Naturalmente sono possibili, se opportuno, anche altre categorie
+grammaticali. Esistono inoltre casi dove il problema “singolare o plurale” non
+si pone, laddove una parola di per sé indica una pluralità di elementi (es.
+STAFF, PERSONALE,…).
+ La motivazione principale per il singolare risiede nel fatto che il nome dello
+schema esprime un’asserzione che denota il tipo di ogni tupla della relazione
+in qualunque stato si trovi.
+ Chi propende per il plurale pensa invece che il nome debba indicare un
+insieme ovvero una pluralità di elementi, e in questo modo concentra
+l’attenzione sull’aspetto estensionale della relazione e sulle operazioni che si
+effettuano. Entrambe le opinioni hanno pro e contro.
+
+===== PAGE 27 =====
+
+27
+Nome dello schema di una relazione (2)
+ Per conformità alla convenzione adottata per gli schemi E/R, si dovrebbe
+privilegiare il singolare, facilitando il processo di traduzione da E/R verso il
+relazionale.
+ È doveroso tuttavia citare che alcune linee guida di RDBMS commerciali
+prediligono fortemente l’uso del plurale.
+ Nei linguaggi a oggetti l’iterazione su una collezione che deriva da una
+tabella è espressa meglio se la collezione è denominata al plurale e se la
+classe, che definisce il singolo oggetto (corrispondente a una tupla), ha un
+nome al singolare.
+ E comunque ciò che è davvero importante è la scelta di nomi che diano
+immediatamente il significato di “cosa contiene” una relazione, evitando sigle
+prive di significato o denominazioni non chiare.
+
+===== PAGE 28 =====
+
+28
+Nome di una SQL table
+ Qual è la conseguenza del nome ai fini pratici in SQL?
+CodImpiegato Nome Cognome Ruolo
+E001 Carlo Rossi Analista
+E003 Mario Bianchi Programmatore
+E006 Giorgio Grigi Sistemista
+E007 Carlo Verdi Programmatore
+IMPIEGATI.Nome oppure IMPIEGATO.NOME ?
+Select Cognome, Nome
+From IMPIEGATI
+Select Cognome, Nome      
+From IMPIEGATO   oppure ?
+ Nel seguito, laddove possibile e sensato, si utilizzeranno sostantivi al plurale,
+ma ciò comporta altre conseguenze nella fase di progettazione logica ….
+ In SQL lo statement CREATE TABLE definisce al contempo gli attributi di ogni
+tupla e alloca un certo spazio per ospitare i record che saranno inseriti. Si
+tratta dunque di una vera e propria collezione di record.
+
+===== PAGE 29 =====
+
+29
+Progettazione logica e nomi delle tabelle
+ A livello di schema E/R, ponendo l’accento sui concetti rappresentati
+abbiamo privilegiato sostantivi al singolare, laddove possibile e sensato.
+Operando, come vedremo, i passi di progettazione logica, produrremo
+schemi relazionali e sarebbe naturale riutilizzare in gran parte gli stessi nomi
+dati per le entità e per le associazioni.
+ Se si utilizza un tool automatico di progettazione logica, si potranno avere
+due comportamenti, a seconda del tipo di software utilizzato: a) sono
+conservati i nomi usati a livello concettuale; b) i nomi sono trasformati al
+plurale, con effetti non sempre desiderabili.
+ Se s‘interagisce con un DB relazionale attraverso un linguaggio a oggetti,
+avvalendosi eventualmente di strumenti ORM (Object-Relational Mapping)
+che generano automaticamente le definizioni delle classi, allora si deve
+operare una scelta che non dipende solo da considerazioni stilistiche.
+ In conclusione una soluzione standardizzata e universalmente accettata non
+esiste, e spesso ci si deve adeguare alle consuetudini utilizzate in un certo
+ambiente di produzione del software. E, infine, non è sempre così semplice
+essere consistenti in un settore dove si opera con diversi strumenti di
+progettazione e implementazione.
+
+===== PAGE 30 =====
+
+30
+1NF, ovvero solo domini semplici
+ Il modello relazionale non permette di usare domini arbitrari
+per la definizione delle relazioni; in particolare non è in
+generale possibile usare domini strutturati (array, set, liste, ...).
+ Vi sono eccezioni notevoli (esempi: date e stringhe).
+ Concisamente, una relazione in cui ogni dominio è “atomico”
+(non ulteriormente decomponibile) si dice che è in
+Prima Forma Normale, o 1NF (First Normal Form)
+ In molti casi è pertanto richiesta preliminarmente un’attività di
+normalizzazione dei dati che dia luogo a relazioni in 1NF e che
+preservi l’informazione originale.
+
+===== PAGE 31 =====
+
+31
+Ricevuta n. 231 del 
+12/02/2002
+Coperti 2 3,00
+Antipasti 1 5,80
+Primi 2 11,45
+Secondi 2 22,30
+Caffè 2 2,20
+Vino 1 8,00
+Totale (Euro) 52,75
+Ricevuta n. 352 del 
+13/02/2002
+Coperti 1 1,50
+Numero Data Totale
+231 12/02/2002 52,75
+352 13/02/2002 …
+… … …
+Numero Quantità Descrizione Prezzo
+231 2 Coperti 3,00
+231 1 Antipasti 5,80
+231 2 Primi 11,45
+231 2 Secondi 22,30
+231 2 Caffè 2,20
+231 1 Vino 8,00
+352 1 Coperti 1,50
+RICEVUTE
+DETTAGLI
+Strutture nidificate: normalizzazione in 1NF
+……………..
+
+===== PAGE 32 =====
+
+32
+Considerazioni sulla normalizzazione in 1NF
+ Il fatto che una rappresentazione normalizzata sia adeguata
+o meno dipende (molto) dal contesto.
+ Ad esempio: l’ordine delle righe nella ricevuta è rilevante o meno?
+ Analogamente per eventuali ridondanze che si possono
+osservare.
+ Ad esempio: il coperto e il caffè hanno un prezzo che non varia da
+ricevuta a ricevuta?
+ In generale è bene ricordare che ogni caso presenta una sua
+specificità e pertanto non deve essere trattato
+“automaticamente”.
+ Normalizzare in 1NF è, a tutti gli effetti, un’attività di
+progettazione (logica), e in quanto tale può essere solo
+oggetto di “regole guida” che però non hanno validità
+assoluta.
+
+===== PAGE 33 =====
+
+33
+Relazione matematica versus
+Relazione nel modello relazionale
+Relazione matematica Relazione Modello Relazionale
+domini arbitrari domini atomici
+colonne senza nome colonne con nomi
+colonne distinte in base alla 
+posizione
+nomi univoci per le colonne
+di solito costante nel tempo di solito variabile nel tempo
+
+===== PAGE 34 =====
+
+34
+Informazione incompleta
+ Le informazioni che si vogliono rappresentare mediante relazioni non
+sempre corrispondono pienamente allo schema prescelto; in
+particolare, per alcune tuple e per alcuni attributi potrebbe non
+essere possibile specificare, per diversi motivi, un valore del dominio.
+ Paolo Verdi è ancora vivo (valore non applicabile);
+ Bruno Bianchi è deceduto, ma non conosciamo la data di morte
+(valore applicabile ma ignoto);
+ Carlo Grigi è scomparso misteriosamente, non sappiamo se è vivo o
+se è deceduto (ignota l’applicabilità).
+Codice Cognome Nome DataMorte
+A001 Rossi Mario 20/02/1954
+A002 Verdi Paolo
+A003 Bianchi Bruno
+A004 Grigi Carlo
+PERSONE
+
+===== PAGE 35 =====
+
+35
+Quale soluzione?
+ In diversi casi, in mancanza di informazione, si tende a usare un
+“valore speciale” del dominio (0, “”, “-1”, “9999”, ecc.) che non si
+utilizza per altri scopi.
+ Questa pratica è fortemente sconsigliata, in quanto, anche dove
+possibile:
+ valori inutilizzati potrebbero successivamente diventare significativi;
+ le applicazioni dovrebbero sapere “che cosa significa in realtà” il valore
+usato allo scopo.
+ Esempio (reale!): nel 1998, analizzando i clienti di un’assicurazione, si
+scoprì una strana concentrazione di ultra-novantenni… tutte le date
+di nascita ignote erano state codificate con “01/01/00”!
+ Nel modello relazionale si opera in maniera pragmatica: si adotta il
+concetto di
+ valore
+ nullo
+ (
+NULL
+), che denota assenza di un valore nel
+dominio (e non è un valore del dominio);
+ …pertanto t[A]  dom(A)  {NULL} .
+
+===== PAGE 36 =====
+
+36
+Valori nulli: considerazioni
+ La presenza di un valore nullo non fornisce alcuna informazione
+sull’applicabilità o meno.
+ È importante ricordare che NULL non è un valore del dominio; in particolare,
+se due tuple hanno entrambe valore NULL per un attributo, non si può
+inferire che esse abbiano lo stesso valore per quell’attributo, ovvero:
+NULL  NULL
+ N.B. Tuttavia, ai fini della verifica di assenza di tuple duplicate è opportuno
+che i NULL siano considerati come gli altri valori e quindi uguali tra loro:
+(NULL = NULL).
+Codice Cognome Nome DataMorte
+A001 Rossi Mario 20/02/1954
+A002 Verdi Paolo NULL
+A003 Bianchi Bruno NULL
+A004 Grigi Carlo NULL
+PERSONE
+
+===== PAGE 37 =====
+
+37
+Valori nulli: restrizioni
+ La presenza di valori nulli non può essere sempre tollerata, ovvero è
+necessario imporre delle restrizioni al loro uso; si consideri ad esempio il
+caso della registrazione di esami:
+ Un valore nullo per Matricola non permetterebbe di sapere quale studente ha
+sostenuto l’esame.
+ Un valore nullo per Voto non è proprio ammissibile nel contesto considerato.
+Istanze di questo tipo non sono accettabili!
+Matricola CodCorso Voto Lode
+29323 483 28 no
+NULL 729 30 sì
+29323 913 NULL no
+35467 913 30 no
+ESAMI
+
+
+===== PAGE 38 =====
+
+38
+Vincoli di integrità
+ La “correttezza sintattica” di uno stato di una relazione non è
+condizione sufficiente affinché i dati rappresentino un’informazione
+possibile nel contesto reale considerato.
+ La prima e la seconda tupla hanno la stessa Matricola?
+ La seconda e la terza tupla hanno gli stessi valori per Nome, Cognome
+e DataNascita, ma questo in linea di principio è possibile!
+ Un vincolo di integrità è una proprietà che deve essere soddisfatta
+da ogni possibile stato osservabile di una relazione; ogni vincolo può
+quindi essere descritto da una funzione booleana che associa a ogni
+stato il valore VERO o FALSO.
+Matricola Cognome Nome DataNascita
+35467 Bianchi Giorgio 21/06/1978
+35467 Rossi Anna 13/04/1978
+39654 Rossi Anna 13/04/1978
+STUDENTI
+
+===== PAGE 39 =====
+
+39
+Vincoli di dominio
+ Un vincolo che si riferisce ai valori ammissibili per un singolo
+attributo è detto vincolo di dominio (o sui valori).
+ Il Voto deve essere compreso tra 18 e 30 :
+(Voto  18) AND (Voto  30)
+ La Lode può solo assumere i valori ‘sì’ o ‘no’ :
+(Lode = ‘sì’) OR (Lode = ‘no’)
+Matricola CodCorso Voto Lode
+29323 483 28 no
+39654 729 30 sì
+29323 913 31 no
+35467 913 30 forse
+ESAMI
+
+===== PAGE 40 =====
+
+40
+Vincoli di tupla
+ I vincoli di dominio sono un caso particolare dei vincoli di tupla, ovvero
+vincoli che esprimono condizioni su ciascuna tupla, indipendentemente
+dalle altre.
+ La Lode si può assegnare solo se il Voto è 30:
+(Voto = 30) OR NOT(Lode = ‘sì’)
+ Nello schema PAGAMENTI(Data, ImportoLordo, Ritenute, Netto)
+si ha:
+ImportoLordo = Netto + Ritenute
+Matricola CodCorso Voto Lode
+29323 483 28 no
+39654 729 30 sì
+29323 913 26 sì
+35467 913 30 no
+ESAMI
+
+===== PAGE 41 =====
+
+41
+Vincoli di chiave: intuizione
+ I vincoli di chiave, che giocano un ruolo molto importante, vietano la
+presenza di tuple distinte che hanno lo stesso valore su uno o più attributi.
+ Un valore di Matricola identifica univocamente uno studente;
+ analogamente per il CodiceFiscale
+ e ogni insieme di attributi che includa Matricola o CodiceFiscale
+ {Matricola, Cognome}, {CodiceFiscale, Nome}, …;
+ ma possono esistere due tuple uguali su {Cognome, Nome, DataNascita}.
+Matricola CodiceFiscale Cognome Nome DataNascita
+210629323 BNCGRG78L21A944Z Bianchi Giorgio 21/07/1978
+216635467 RSSNNA78A53A944N Rossi Anna 13/01/1978
+160239654 VRDMRC79H20F839U Verdi Marco 20/06/1979
+214842132 VRDMRC79H20G125T Verdi Marco 20/06/1979
+STUDENTI
+
+===== PAGE 42 =====
+
+42
+Chiavi e superchiavi
+ Dato uno schema R(X), un insieme di attributi K  X è:
+ una superchiave se e solo se
+in ogni stato ammissibile r di R(X) non esistono
+due tuple distinte t1 e t2 tali che t1[K] = t2[K] ;
+ una chiave se e solo se
+è una superchiave minimale, ovvero
+non esiste K’  K con K’ superchiave.
+ Una chiave è pertanto un identificatore minimale per ogni r
+su R(X).
+ Nella relazione STUDENTI:
+ {Matricola} e {CodiceFiscale} sono due chiavi;
+ {Matricola, Cognome} e {CodiceFiscale, Nome} sono solo superchiavi;
+ {Cognome, Nome, DataNascita} non è superchiave.
+
+===== PAGE 43 =====
+
+43
+Esistenza di chiavi e superchiavi
+ Poiché ogni stato r su R(X) è un insieme, ne consegue che
+ l’insieme X di tutti gli attributi dello schema è senz’altro una
+superchiave per R(X).
+ Poiché il numero di attributi, n, è finito, è sempre possibile
+arrivare a individuare (almeno) una chiave K  X
+K = X;
+for i = 1 to n
+{
+if K - {Ai} è superchiave
+then K = K - {Ai};
+}
+ In casi (molto) particolari il numero di chiavi
+può essere esponenziale in n.
+
+
+===== PAGE 44 =====
+
+44
+Vincoli espressi a livello di schema
+ I vincoli di chiave si esprimono a livello di schema, sulla base di
+un’analisi della realtà che si vuole modellare mediante relazioni, e
+limitano l’insieme di estensioni legali (o “ammissibili”, “corrette”,
+“valide”, ecc.).
+ Una specifica estensione può soddisfare altri vincoli (di chiave), ma
+ciò non autorizza a generalizzare.
+ La (unica) chiave è {Matricola, CodiceCorso}.
+ Questa particolare estensione soddisfa anche altri vincoli, ad
+esempio {Matricola, Voto} è un identificatore, ma ciò è puramente
+casuale.
+ESAMI Matricola CodCorso Voto Lode
+29323 483 28 no
+39654 729 30 sì
+29323 913 26 no
+35467 913 30 sì
+
+===== PAGE 45 =====
+
+45
+ L’esistenza delle chiavi garantisce l’accessibilità a ciascun dato
+del DB, in quanto ogni singolo valore è univocamente
+individuato da:
+nome della 
+relazione
+• individua 
+una 
+relazione 
+del DB 
+valore della 
+chiave 
+• individua 
+una tupla
+della 
+relazione
+nome 
+dell’attributo
+• individua il 
+valore     
+desiderato
+Importanza delle chiavi
+ Le chiavi sono lo strumento principale attraverso il quale
+vengono correlati i dati in relazioni diverse (“il modello
+relazionale è basato su valori”).
+
+===== PAGE 46 =====
+
+46
+Legami basati sui valori
+LINEE_AEREE DESTINAZIONI
+CodLinea NomeLinea
+L001 TWA
+L002 ALITALIA
+…. ……
+CodDest NomeDest Nazione
+FCO ROMA ITALIA
+JFK NEW YORK USA
+…… …… ……
+DurataNumVolo CodLinea CodDest Giorno Ora Attivo
+TW056 L001 JFK LUN 9:00 2 SI
+AZ854 L002 FCO MER 22:30 8 SI
+…. …… …… ……
+VOLI
+
+
+===== PAGE 47 =====
+
+47
+Chiavi e valori nulli
+ In presenza di valori nulli entrambe le funzioni svolte dalle chiavi
+(identificazione e correlazione) possono venire a mancare.
+ La prima tupla non è identificabile in alcun modo, pertanto:
+ è necessario specificare il valore di almeno una chiave!
+ La terza e quarta tupla potrebbero riferirsi allo stesso studente,
+pertanto:
+ non è sufficiente specificare il valore di una chiave!
+STUDENTI Matricola CodiceFiscale Cognome Nome DataNascita
+NULL NULL Bianchi Giorgio 21/07/1978
+216635467 RSSNNA78A53A944N Rossi Anna 13/01/1978
+NULL VRDMRC79H20F839U Verdi Marco 20/06/1979
+214842132 NULL Verdi Marco 20/06/1979
+
+===== PAGE 48 =====
+
+48
+Chiave primaria
+ Per evitare i problemi visti è necessario scegliere una chiave, detta
+chiave primaria (primary key), su cui non si ammettono valori nulli.
+ Convenzionalmente si sottolineano gli attributi che costituiscono la
+chiave primaria.
+Nei casi in cui per nessuna chiave si possa garantire la disponibilità di
+valori, è necessario introdurre un nuovo attributo (un “codice”) che
+svolga le funzioni di chiave primaria; si pensi ad esempio al caso in
+cui non si riesca a identificare un paziente all’arrivo a un pronto
+soccorso ospedaliero.
+STUDENTI
+ Matricola CodiceFiscale Cognome Nome DataNascita
+210629323 NULL Bianchi Giorgio 21/07/1978
+216635467 RSSNNA78A53A944N Rossi Anna 13/01/1978
+160239654 VRDMRC79H20F839U Verdi Marco 20/06/1979
+214842132 NULL Verdi Marco 20/06/1979
+
+===== PAGE 49 =====
+
+49
+Vincoli di integrità referenziale
+ I vincoli sinora visti sono tutti di tipo intra-relazionale, in quanto
+interessano una relazione alla volta.
+ Viceversa, i vincoli di integrità referenziale sono importanti tipi di
+vincoli inter-relazionali che enfatizzano come le correlazioni tra le
+tuple siano spesso ottenute usando i valori delle chiavi.
+ Si considerino due schemi R1(X1) e R2(X2) di un DB R, e sia Y un
+insieme di attributi in X2.
+ Un vincolo di integrità referenziale su Y impone che in ogni stato
+r = {r1, r2, …} del DB l’insieme dei valori di Y in r2 sia un
+sottoinsieme dell’insieme dei valori della chiave primaria di R1(X1)
+presenti nello stato r1.
+ L’insieme Y viene detto una foreign key (o “chiave importata”).
+
+===== PAGE 50 =====
+
+50
+Esempi di foreign key
+Matricola Cognome Nome DataNascita
+29323 Bianchi Giorgio 21/06/1978
+35467 Rossi Anna 13/04/1978
+39654 Verdi Marco 20/09/1979
+42132 Neri Lucia 15/02/1978
+CodCorso Titolo CodDocente Anno
+483 Analisi 0201 1
+729 Analisi 0021 1
+913 Sistemi Informativi 0123 2
+Matricola CodCorso Voto Lode
+29323 483 28 no
+39654 729 30 sì
+29323 913 26 no
+35467 913 30 sì
+STUDENTI
+CORSI
+ESAMI
+In CORSI, {CodDocente} è una foreign key.
+In ESAMI, {Matricola} è una foreign key, così come {CodCorso}.
+foreign key
+
+
+===== PAGE 51 =====
+
+51
+Foreign key: precisazioni
+ In generale la foreign key Y e la primary key K di R1(X1) possono includere
+attributi con nomi diversi:
+ Foreign key e primary key possono far parte della stessa relazione,
+ovviamente con Y  K.
+Codice Titolo CodDocente Anno
+483 Analisi I 0201 1
+729 Analisi I 0021 1
+NumMatricola CodCorso Voto Lode
+29323 483 28 no
+Codice Cognome … CodResponsabile
+123 Rossi … 325
+134 Verdi … 325
+325 Neri … …
+PERSONALE
+CORSI
+ESAMI
+
+
+===== PAGE 52 =====
+
+52
+Foreign key: valori nulli
+ In presenza di valori nulli, i vincoli di integrità referenziale si possono
+parzialmente rilassare:
+ Nei DBMS un vincolo di integrità referenziale può anche esprimersi con
+riferimento a una generica chiave (quindi anche non primaria):
+Matricola CodiceFiscale Cognome Nome DataNascita
+29323 BNCGRG78L21A944Z Bianchi Giorgio 21/07/1978
+35467 RSSFLV78M53G125O Rossi Flavia 13/08/1978
+STUDENTI
+CF Imponibile
+BNCGRG78L21A944Z 45300
+REDDITI
+Codice Cognome … CodResponsabile
+123 Rossi … 325
+134 Verdi … 325
+325 Neri … NULL
+PERSONALE
+
+
+===== PAGE 53 =====
+
+53
+Foreign key: notazioni negli schemi
+ Si usano, nei vari testi sui DB relazionali, diverse notazioni per indicare nella
+definizione di uno schema le foreign key. Ad esempio:
+AGENZIE(Agenzia, Luogo)
+IMPIEGATI(CodImpiegato, Cognome, Nome, CodAgenzia)
+FK: CodAgenzia REFERENCES AGENZIE(Agenzia)
+o più semplicemente
+FK: CodAgenzia REFERENCES AGENZIE
+oppure
+AGENZIE(Agenzia, Luogo)
+IMPIEGATI(CodImpiegato, Cognome, Nome, CodAgenzia: AGENZIE)
+Queste notazioni sono da
+intendersi come semplificazioni
+rispetto alla sintassi del
+linguaggio SQL.
+
+===== PAGE 54 =====
+
+54
+Valori nulli e altri vincoli: notazioni negli schemi
+ Per quanto riguarda gli attributi e le foreign key che ammettono valori nulli,
+nella definizione di schemi relazionali a volte si usa il simbolo * proprio per
+denotare che è ammesso NULL come valore.
+ Per denotare che un attributo A ammette solo valori unici, ovvero non ripetuti,
+a volte si usa scrivere: Unique(A).
+AGENZIE(CodAgenzia, Nome, Sede, Direttore: IMPIEGATI)
+Unique(Direttore)
+IMPIEGATI(Codice, Nome, Cognome, Agenzia*: AGENZIE, DataInizio*)
+ N.B. Non sempre negli esempi, per semplicità, questa notazione è rispettata
+lasciando al lettore il compito di interpretare di volta in volta.
+
+===== PAGE 55 =====
+
+55
+Domande?

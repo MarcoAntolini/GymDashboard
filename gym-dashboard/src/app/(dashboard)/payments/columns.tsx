@@ -5,144 +5,189 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Payment, PaymentType } from "@prisma/client";
+import { type PaymentDTO } from "@/data-access/payments";
+import {
+	formatCurrencyEur,
+	formatDateIt,
+	formatDateTimeIt,
+	paymentTypeLabel,
+	personLabel,
+} from "@/lib/format";
+import { PaymentType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
 export const formSchema = z.object({
-  date: z.date(),
-  amount: z.number().positive("Amount must be a positive number"),
-  type: z.nativeEnum(PaymentType),
+	date: z.date(),
+	amount: z.number().positive("L'importo deve essere positivo"),
+	type: z.nativeEnum(PaymentType),
 });
 
+/** Display-only detail; search hits specialization fields via `listPayments`. */
+function paymentDetail(payment: PaymentDTO): string {
+	switch (payment.type) {
+		case PaymentType.Salary:
+			return payment.salary
+				? `Dipendente ${personLabel(payment.salary.employee)}`
+				: "Stipendio senza Dipendente";
+		case PaymentType.Bill:
+			return payment.bill
+				? `Fornitore: ${payment.bill.provider} · Descrizione: ${payment.bill.description}`
+				: "Bolletta incompleta";
+		case PaymentType.Equipment:
+			return payment.equipment
+				? `Fornitore: ${payment.equipment.provider} · Descrizione: ${payment.equipment.description}`
+				: "Attrezzatura incompleta";
+		case PaymentType.Intervention:
+			if (!payment.intervention) return "Intervento incompleto";
+			return [
+				`Attuatore: ${payment.intervention.maker}`,
+				`Descrizione: ${payment.intervention.description}`,
+				`Inizio: ${formatDateTimeIt(payment.intervention.startingTime)}`,
+				`Fine: ${formatDateTimeIt(payment.intervention.endingTime)}`,
+			].join(" · ");
+		default:
+			return "—";
+	}
+}
+
 export const columns = (
-  handleDelete: (payment: Pick<Payment, "id">) => Promise<void>,
-  handleEdit: (payment: Payment) => Promise<void>
-): ColumnDef<Payment>[] => [
-  {
-    accessorKey: "id",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="ID"
-      />
-    ),
-  },
-  {
-    accessorKey: "date",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Date"
-      />
-    ),
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("date"));
-      return <div className="font-medium">{date.toLocaleDateString()}</div>;
-    },
-  },
-  {
-    accessorKey: "amount",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Amount"
-      />
-    ),
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-      return <div className="font-medium">{formatted}</div>;
-    },
-  },
-  {
-    accessorKey: "type",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Type"
-      />
-    ),
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <ItemActions
-        row={row}
-        formSchema={formSchema}
-        editFormContent={
-          <>
-            <FormField
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(PaymentType).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        }
-        editAction={async ({ values }) => {
-          const updatedPayment = {
-            ...row.original,
-            ...values,
-          };
-          await handleEdit(updatedPayment);
-        }}
-        deleteAction={() => handleDelete({ id: row.original.id })}
-      />
-    ),
-  },
+	handleDelete: (payment: Pick<PaymentDTO, "id">) => Promise<void>,
+	handleEdit: (payment: PaymentDTO) => Promise<void>
+): ColumnDef<PaymentDTO>[] => [
+	{
+		accessorKey: "date",
+		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateIt(row.getValue("date"))}</div>
+		),
+	},
+	{
+		id: "typeLabel",
+		accessorFn: (row) => paymentTypeLabel[row.type],
+		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
+		cell: ({ row }) => (
+			<div className="font-medium">{paymentTypeLabel[row.original.type]}</div>
+		),
+	},
+	{
+		accessorKey: "amount",
+		header: ({ column }) => <TableSortableHeader column={column} title="Importo" />,
+		cell: ({ row }) => (
+			<div className="font-medium tabular-nums">
+				{formatCurrencyEur(row.getValue("amount"))}
+			</div>
+		),
+	},
+	{
+		id: "detail",
+		accessorFn: (row) => paymentDetail(row),
+		enableSorting: false,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dettaglio tipizzato" />
+		),
+		cell: ({ row }) => {
+			const detail = paymentDetail(row.original);
+			return (
+				<div
+					className="max-w-[32rem] whitespace-normal text-sm leading-snug text-pretty line-clamp-2"
+					title={detail}
+				>
+					{detail}
+				</div>
+			);
+		},
+	},
+	{
+		accessorKey: "id",
+		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
+	},
+	{
+		id: "actions",
+		cell: ({ row }) => (
+			<ItemActions
+				row={row}
+				formSchema={formSchema}
+				editFormContent={
+					<>
+						<FormField
+							name="date"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Data</FormLabel>
+									<FormControl>
+										<Input
+											type="date"
+											{...field}
+											value={
+												field.value
+													? new Date(field.value).toISOString().split("T")[0]
+													: ""
+											}
+											onChange={(e) => field.onChange(new Date(e.target.value))}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							name="amount"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Importo</FormLabel>
+									<FormControl>
+										<Input
+											type="number"
+											step="0.01"
+											{...field}
+											onChange={(e) => field.onChange(parseFloat(e.target.value))}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							name="type"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Tipo</FormLabel>
+									<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="Seleziona un tipo" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+										{(
+											[
+												PaymentType.Salary,
+												PaymentType.Bill,
+												PaymentType.Equipment,
+												PaymentType.Intervention,
+											] as const
+										).map((type) => (
+											<SelectItem key={type} value={type}>
+												{paymentTypeLabel[type]}
+											</SelectItem>
+										))}
+										</SelectContent>
+									</Select>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</>
+				}
+				editAction={async ({ values }) => {
+					await handleEdit({
+						...row.original,
+						...values,
+					});
+				}}
+				deleteAction={() => handleDelete({ id: row.original.id })}
+			/>
+		),
+	},
 ];

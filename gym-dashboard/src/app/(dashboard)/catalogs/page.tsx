@@ -1,15 +1,21 @@
 "use client";
 
+import { purchaseTypes } from "@/components/ui/domain-badge";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createCatalog, deleteCatalog, editCatalog, getAllCatalogs } from "@/data-access/catalogs";
-import { getAllProducts } from "@/data-access/products";
-import { useEntityData } from "@/hooks/useEntityData";
-import { Catalog, Product, PurchaseType } from "@prisma/client";
+import {
+	createCatalog,
+	deleteCatalog,
+	editCatalog,
+	listCatalogs,
+	type CatalogDTO,
+} from "@/data-access/catalogs";
+import { getAllProducts, type ProductDTO } from "@/data-access/products";
+import { useEntityList } from "@/hooks/useEntityList";
+import type { PurchaseType } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
@@ -18,53 +24,54 @@ import { columns, formSchema } from "./columns";
 export default function CatalogsPage() {
 	const {
 		data: catalogs,
-		setData: setCatalogs,
-		isLoading,
+		total,
+		facets,
+		query,
+		setQuery,
 		handleDelete,
-		handleEdit
-	} = useEntityData<Catalog, "year" | "type" | "productCode">(
+		handleEdit,
+		refetch,
+	} = useEntityList<CatalogDTO, "year" | "type" | "productCode">(
 		useMemo(
 			() => ({
-				getAll: getAllCatalogs,
+				list: listCatalogs,
 				deleteAction: deleteCatalog,
-				editAction: editCatalog
+				editAction: editCatalog,
 			}),
 			[]
 		),
 		["year", "type", "productCode"]
 	);
 
-	const [products, setProducts] = useState<Product[]>([]);
-	const [selectedType, setSelectedType] = useState<PurchaseType>(PurchaseType.Membership);
-	const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+	const [products, setProducts] = useState<ProductDTO[]>([]);
+	const [selectedType, setSelectedType] = useState<PurchaseType>("Membership");
+	const [filteredProducts, setFilteredProducts] = useState<ProductDTO[]>([]);
 
 	useEffect(() => {
 		const loadProducts = async () => {
 			const allProducts = await getAllProducts();
 			setProducts(allProducts);
-			// Initially filter for the default type (Membership)
 			const filtered = allProducts.filter((product) =>
-				selectedType === PurchaseType.Membership ? product.membership : product.entranceSet
+				selectedType === "Membership" ? product.membership : product.entranceSet
 			);
 			setFilteredProducts(filtered);
 		};
-		loadProducts();
+		void loadProducts();
 	}, []);
 
-	// Update filtered products when type changes
 	useEffect(() => {
 		const filtered = products.filter((product) =>
-			selectedType === PurchaseType.Membership ? product.membership : product.entranceSet
+			selectedType === "Membership" ? product.membership : product.entranceSet
 		);
 		setFilteredProducts(filtered);
 	}, [selectedType, products]);
 
 	const handleCreateCatalog = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newCatalog = await createCatalog(values);
-			setCatalogs((prevCatalogs) => [...prevCatalogs, newCatalog]);
+			await createCatalog(values);
+			await refetch();
 		},
-		[setCatalogs]
+		[refetch]
 	);
 
 	const actions: Action[] = [
@@ -79,7 +86,11 @@ export default function CatalogsPage() {
 							<FormItem>
 								<FormLabel>Year</FormLabel>
 								<FormControl>
-									<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
+									<Input
+										type="number"
+										{...field}
+										onChange={(e) => field.onChange(parseInt(e.target.value))}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -103,7 +114,7 @@ export default function CatalogsPage() {
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										{Object.values(PurchaseType).map((type) => (
+										{purchaseTypes.map((type) => (
 											<SelectItem key={type} value={type}>
 												{type}
 											</SelectItem>
@@ -119,7 +130,11 @@ export default function CatalogsPage() {
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Product</FormLabel>
-								<Select onValueChange={field.onChange} value={field.value} disabled={filteredProducts.length === 0}>
+								<Select
+									onValueChange={field.onChange}
+									value={field.value}
+									disabled={filteredProducts.length === 0}
+								>
 									<FormControl>
 										<SelectTrigger>
 											<SelectValue
@@ -135,7 +150,7 @@ export default function CatalogsPage() {
 										{filteredProducts.map((product) => (
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}{" "}
-												{selectedType === PurchaseType.Membership
+												{selectedType === "Membership"
 													? `(${product.membership?.duration} days)`
 													: `(${product.entranceSet?.entranceNumber} entrances)`}
 											</SelectItem>
@@ -169,26 +184,30 @@ export default function CatalogsPage() {
 				formSchema,
 				defaultValues: {
 					year: new Date().getFullYear(),
-					type: PurchaseType.Membership,
+					type: "Membership",
 					productCode: "",
-					price: 0
+					price: 0,
 				},
-				submitAction: handleCreateCatalog
-			} as FormData<typeof formSchema>
-		}
+				submitAction: handleCreateCatalog,
+			} as FormData<typeof formSchema>,
+		},
 	];
 
-	return isLoading ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={catalogs}
-					filters={["year", "type", "productCode"]}
+					filters={["productCode"]}
 					facetedFilters={["year", "type"]}
+					server={{
+						query,
+						onQueryChange: setQuery,
+						total,
+						facetOptions: facets,
+					}}
 				/>
 			}
 		/>

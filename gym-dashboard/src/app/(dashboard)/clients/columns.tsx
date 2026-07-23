@@ -10,23 +10,22 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { CalendarIcon, CalendarDays, Hash, IdCard, Mail, MapPin, Phone, UserRound } from "lucide-react";
+import { formatDateIt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const formSchema = z.object({
-  taxCode: z.string().min(1, "Tax Code is required"),
-  name: z.string().min(1, "Name is required"),
-  surname: z.string().min(1, "Surname is required"),
+  taxCode: z.string().min(1, "Il codice fiscale è obbligatorio"),
+  name: z.string().min(1, "Il nome è obbligatorio"),
+  surname: z.string().min(1, "Il cognome è obbligatorio"),
   birthDate: z.date(),
-  street: z.string().min(1, "Street is required"),
-  houseNumber: z.string().min(1, "House Number is required"),
-  city: z.string().min(1, "City is required"),
-  province: z.string().min(1, "Province is required"),
-  phoneNumber: z.string().min(1, "Phone Number is required"),
-  email: z.string().email("Invalid email address"),
+  street: z.string().min(1, "La via è obbligatoria"),
+  houseNumber: z.string().min(1, "Il numero civico è obbligatorio"),
+  city: z.string().min(1, "La città è obbligatoria"),
+  province: z.string().min(1, "La provincia è obbligatoria"),
+  phoneNumber: z.string().min(1, "Il telefono è obbligatorio"),
+  email: z.string().email("Indirizzo email non valido"),
   enrollmentDate: z.date(),
-  remainingEntrances: z.number().int().nonnegative(),
 });
 
 export const columns = (
@@ -34,93 +33,71 @@ export const columns = (
   handleEdit: (client: Client) => Promise<void>
 ): ColumnDef<Client>[] => [
   {
-    accessorKey: "id",
+    accessorKey: "surname",
     header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="ID"
-      />
-    ),
-  },
-  {
-    accessorKey: "taxCode",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Tax Code"
-      />
+      <TableSortableHeader column={column} title="Cognome" icon={UserRound} />
     ),
   },
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Name"
-      />
+      <TableSortableHeader column={column} title="Nome" icon={UserRound} />
     ),
   },
   {
-    accessorKey: "surname",
+    accessorKey: "taxCode",
     header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Surname"
-      />
+      <TableSortableHeader column={column} title="Codice fiscale" icon={IdCard} />
+    ),
+  },
+  {
+    accessorKey: "phoneNumber",
+    header: ({ column }) => (
+      <TableSortableHeader column={column} title="Telefono" icon={Phone} />
+    ),
+  },
+  {
+    accessorKey: "email",
+    header: ({ column }) => (
+      <TableSortableHeader column={column} title="Email" icon={Mail} />
     ),
   },
   {
     accessorKey: "birthDate",
     header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Birth Date"
-      />
+      <TableSortableHeader column={column} title="Data di nascita" icon={CalendarDays} />
     ),
     cell: ({ row }) => {
-      const date = new Date(row.getValue("birthDate"));
-      return <div className="font-medium">{date.toLocaleDateString()}</div>;
+      return <div className="font-medium">{formatDateIt(row.getValue("birthDate"))}</div>;
     },
   },
   {
     accessorKey: "city",
     header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="City"
-      />
+      <TableSortableHeader column={column} title="Città" icon={MapPin} />
     ),
   },
   {
     accessorKey: "province",
     header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Province"
-      />
+      <TableSortableHeader column={column} title="Provincia" icon={MapPin} />
     ),
   },
   {
     accessorKey: "enrollmentDate",
     header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Enrollment Date"
-      />
+      <TableSortableHeader column={column} title="Iscrizione" icon={CalendarDays} />
     ),
     cell: ({ row }) => {
-      const date = new Date(row.getValue("enrollmentDate"));
-      return <div className="font-medium">{date.toLocaleDateString()}</div>;
+      return <div className="font-medium">{formatDateIt(row.getValue("enrollmentDate"))}</div>;
     },
   },
   {
-    accessorKey: "remainingEntrances",
+    accessorKey: "id",
     header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Remaining Entrances"
-      />
+      <TableSortableHeader column={column} title="ID" icon={Hash} />
     ),
+    enableHiding: true,
   },
   {
     id: "actions",
@@ -128,6 +105,8 @@ export const columns = (
       <ItemActions
         row={row}
         formSchema={formSchema}
+        entityLabel="Cliente"
+        deleteDescription="Se il Cliente ha Acquisti collegati, l'eliminazione viene rifiutata (vincolo Restrict): elimina prima gli Acquisti (e gli Ingressi collegati). L'operazione non può essere annullata."
         editFormContent={
           <>
             <div className="grid grid-cols-2 gap-4">
@@ -135,7 +114,7 @@ export const columns = (
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Nome</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -147,7 +126,7 @@ export const columns = (
                 name="surname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Surname</FormLabel>
+                    <FormLabel>Cognome</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -161,7 +140,7 @@ export const columns = (
                 name="taxCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tax Code</FormLabel>
+                    <FormLabel>Codice fiscale</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -173,7 +152,7 @@ export const columns = (
                 name="birthDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Birth Date</FormLabel>
+                    <FormLabel>Data di nascita</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -185,9 +164,9 @@ export const columns = (
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              formatDateIt(field.value)
                             ) : (
-                              <span>Pick a date</span>
+                              <span>Scegli una data</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -215,7 +194,7 @@ export const columns = (
                 name="street"
                 render={({ field }) => (
                   <FormItem className="col-span-3">
-                    <FormLabel>Street</FormLabel>
+                    <FormLabel>Via</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -227,7 +206,7 @@ export const columns = (
                 name="houseNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Number</FormLabel>
+                    <FormLabel>Civico</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -241,7 +220,7 @@ export const columns = (
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City</FormLabel>
+                    <FormLabel>Città</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -253,7 +232,7 @@ export const columns = (
                 name="province"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Province</FormLabel>
+                    <FormLabel>Provincia</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -267,7 +246,7 @@ export const columns = (
                 name="phoneNumber"
                 render={({ field }) => (
                   <FormItem className="col-span-3">
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>Telefono</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -288,62 +267,44 @@ export const columns = (
                 )}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                name="enrollmentDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Enrollment Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date("1900-01-01")}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="remainingEntrances"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Remaining Entrances</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+            <FormField
+              name="enrollmentDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data di iscrizione</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            formatDateIt(field.value)
+                          ) : (
+                            <span>Scegli una data</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date < new Date("1900-01-01")}
+                        initialFocus
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </>
         }
         editAction={async ({ values }) => {

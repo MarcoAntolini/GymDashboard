@@ -3,33 +3,46 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
+import { EntityShell } from "@/components/ui/entity-shell";
 import { DataTable } from "@/components/ui/data-table";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { getAllClients } from "@/data-access/clients";
 import {
+	AggregatedEntrances,
 	createEntrance,
 	deleteEntrance,
 	editEntrance,
-	getAllEntrances,
-	getDailyEntrances,
-	getMonthlyEntrances,
-	getWeeklyEntrances
+	EntranceAggregationGranularity,
+	EntranceWithPurchase,
+	getEntrancesAggregated,
+	listEntrances
 } from "@/data-access/entrances";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useEntityList } from "@/hooks/useEntityList";
 import { cn } from "@/lib/utils";
-import { Entrance } from "@prisma/client";
+import { Client } from "@prisma/client";
 import { format } from "date-fns";
-import { BarChart as BarChartIcon, CalendarDays, CalendarIcon, Clock, PlusCircle } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { it } from "date-fns/locale";
+import { BarChart as BarChartIcon, CalendarIcon, PlusCircle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
+import { EntranceJustificationPreviewField } from "./entrance-justification-preview";
+
+const GRANULARITY_LABELS: Record<EntranceAggregationGranularity, string> = {
+	daily: "Giornaliero",
+	weekly: "Settimanale",
+	monthly: "Mensile",
+	yearly: "Annuale"
+};
 
 const analyticsFormSchema = z.object({
+	granularity: z.enum(["daily", "weekly", "monthly", "yearly"]),
 	date: z.object({
 		from: z.date(),
 		to: z.date()
@@ -39,76 +52,103 @@ const analyticsFormSchema = z.object({
 export default function EntrancesPage() {
 	const {
 		data: entrances,
-		setData: setEntrances,
+		total,
+		facets,
+		query,
+		setQuery,
 		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<Entrance, "clientId" | "date">(
+		error,
+		retry,
+		refetch,
+		handleDelete
+	} = useEntityList<EntranceWithPurchase, "id">(
 		useMemo(
 			() => ({
-				getAll: getAllEntrances,
-				deleteAction: deleteEntrance,
-				editAction: editEntrance
+				list: listEntrances,
+				deleteAction: async (entity) => {
+					await deleteEntrance({ id: entity.id });
+					return entity as EntranceWithPurchase;
+				}
 			}),
 			[]
 		),
-		["clientId", "date"]
+		["id"]
 	);
 
-	const [isWeeklySheetOpen, setIsWeeklySheetOpen] = useState(false);
-	const [isDailySheetOpen, setIsDailySheetOpen] = useState(false);
-	const [isMonthlySheetOpen, setIsMonthlySheetOpen] = useState(false);
+	const [clients, setClients] = useState<Client[]>([]);
+	const [isAnalyticsSheetOpen, setIsAnalyticsSheetOpen] = useState(false);
 	const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(null);
-	const [dailyData, setDailyData] = useState<{ hourOfDay: string; totalEntrances: number }[]>([]);
-	const [weeklyData, setWeeklyData] = useState<{ dayOfWeek: string; totalEntrances: number }[]>([]);
-	const [monthlyData, setMonthlyData] = useState<{ month: string; totalEntrances: number }[]>([]);
+	const [selectedGranularity, setSelectedGranularity] =
+		useState<EntranceAggregationGranularity>("daily");
+	const [analyticsData, setAnalyticsData] = useState<AggregatedEntrances[]>([]);
+
+	useEffect(() => {
+		void getAllClients().then(setClients);
+	}, []);
 
 	const handleCreateEntrance = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
 			const newEntrance = await createEntrance(values);
-			setEntrances((prevEntrances) => [...prevEntrances, newEntrance]);
+			await refetch();
+			const code =
+				newEntrance.purchase?.productCode ?? newEntrance.purchase?.prodotto?.code ?? "";
+			const kind =
+				newEntrance.purchase?.membershipDuration != null
+					? "Abbonamento"
+					: newEntrance.purchase?.entranceNumber != null
+						? "Pacchetto"
+						: newEntrance.purchase?.prodotto?.membership
+							? "Abbonamento"
+							: newEntrance.purchase?.prodotto?.entranceSet
+								? "Pacchetto"
+								: "Acquisto";
+			toast.success(
+				`Ingresso registrato · giustificato da Acquisto #${newEntrance.purchaseId}${
+					code ? ` (${kind} ${code})` : ""
+				}.`
+			);
 		},
-		[setEntrances]
+		[refetch]
 	);
 
-	const handleAnalytics = useCallback(
-		async (values: z.infer<typeof analyticsFormSchema>, type: "weekly" | "daily" | "monthly") => {
-			setSelectedDateRange(values.date);
-			switch (type) {
-				case "weekly":
-					const weeklyStats = await getWeeklyEntrances(values.date.from, values.date.to);
-					setWeeklyData(weeklyStats);
-					setIsWeeklySheetOpen(true);
-					break;
-				case "daily":
-					const dailyStats = await getDailyEntrances(values.date.from, values.date.to);
-					setDailyData(dailyStats);
-					setIsDailySheetOpen(true);
-					break;
-				case "monthly":
-					const monthlyStats = await getMonthlyEntrances(values.date.from, values.date.to);
-					setMonthlyData(monthlyStats);
-					setIsMonthlySheetOpen(true);
-					break;
-			}
+	const handleEditEntrance = useCallback(
+		async (entrance: EntranceWithPurchase) => {
+			const saved = await editEntrance({ id: entrance.id, date: entrance.date });
+			await refetch();
+			toast.success(
+				`Ingresso aggiornato · giustificato da Acquisto #${saved.purchaseId}.`
+			);
 		},
-		[]
+		[refetch]
 	);
+
+	const handleAnalytics = useCallback(async (values: z.infer<typeof analyticsFormSchema>) => {
+		setSelectedDateRange(values.date);
+		setSelectedGranularity(values.granularity);
+		const stats = await getEntrancesAggregated(
+			values.date.from,
+			values.date.to,
+			values.granularity
+		);
+		setAnalyticsData(stats);
+		setIsAnalyticsSheetOpen(true);
+	}, []);
 
 	const analyticsFormData: FormData<typeof analyticsFormSchema> = {
 		formSchema: analyticsFormSchema,
 		defaultValues: {
+			granularity: "daily",
 			date: {
 				from: new Date(),
 				to: new Date()
 			}
 		},
-		submitAction: (values) => handleAnalytics(values, "weekly")
+		submitAction: handleAnalytics
 	};
 
 	const actions: Action[] = [
 		{
-			title: "Add Entrance",
+			title: "Registra Ingresso",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -116,10 +156,24 @@ export default function EntrancesPage() {
 						name="clientId"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Client ID</FormLabel>
-								<FormControl>
-									<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
-								</FormControl>
+								<FormLabel>Cliente</FormLabel>
+								<Select
+									value={field.value ? String(field.value) : undefined}
+									onValueChange={(value) => field.onChange(parseInt(value, 10))}
+								>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue placeholder="Seleziona un Cliente" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										{clients.map((client) => (
+											<SelectItem key={client.id} value={String(client.id)}>
+												{client.surname} {client.name} (#{client.id})
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 								<FormMessage />
 							</FormItem>
 						)}
@@ -128,12 +182,13 @@ export default function EntrancesPage() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
+								<FormLabel>Data e ora</FormLabel>
 								<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 								<FormMessage />
 							</FormItem>
 						)}
 					/>
+					<EntranceJustificationPreviewField />
 				</>
 			),
 			formData: {
@@ -146,177 +201,155 @@ export default function EntrancesPage() {
 			}
 		},
 		{
-			title: "Daily Analysis",
-			icon: Clock,
-			dialogContent: (
-				<DateRangePickerField onSubmit={(values) => handleAnalytics(values, "daily")} formData={analyticsFormData} />
-			),
-			formData: {
-				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "daily")
-			}
-		},
-		{
-			title: "Weekly Analysis",
-			icon: CalendarDays,
-			dialogContent: (
-				<DateRangePickerField onSubmit={(values) => handleAnalytics(values, "weekly")} formData={analyticsFormData} />
-			),
-			formData: {
-				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "weekly")
-			}
-		},
-		{
-			title: "Monthly Analysis",
+			title: "Analisi Ingressi",
 			icon: BarChartIcon,
-			dialogContent: (
-				<DateRangePickerField onSubmit={(values) => handleAnalytics(values, "monthly")} formData={analyticsFormData} />
-			),
-			formData: {
-				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "monthly")
-			}
+			variant: "outline",
+			dialogContent: <AnalyticsFormFields />,
+			formData: analyticsFormData
 		}
 	];
 
-	return isLoading ? (
-		<DashboardPlaceholder />
-	) : (
-		<>
-			<Dashboard
-				actions={actions}
-				table={
-					<DataTable
-						columns={columns(handleDelete, handleEdit)}
-						data={entrances}
-						filters={["clientId", "date"]}
-						facetedFilters={["date"]}
-					/>
-				}
-			/>
-			<Sheet open={isDailySheetOpen} onOpenChange={setIsDailySheetOpen}>
-				<SheetContent side="bottom" className="h-[450px]">
-					<SheetHeader>
-						<SheetTitle>Daily Entrances Analysis</SheetTitle>
-						<SheetDescription>
-							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
-						</SheetDescription>
-					</SheetHeader>
-					<div className="h-[350px] mt-4">
-						<ResponsiveContainer width="100%" height="100%">
-							<BarChart data={dailyData}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="hourOfDay" />
-								<YAxis />
-								<Tooltip />
-								<Bar dataKey="totalEntrances" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-							</BarChart>
-						</ResponsiveContainer>
-					</div>
-				</SheetContent>
-			</Sheet>
-			<Sheet open={isWeeklySheetOpen} onOpenChange={setIsWeeklySheetOpen}>
-				<SheetContent side="bottom" className="h-[450px]">
-					<SheetHeader>
-						<SheetTitle>Weekly Entrances Analysis</SheetTitle>
-						<SheetDescription>
-							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
-						</SheetDescription>
-					</SheetHeader>
-					<div className="h-[350px] mt-4">
-						<ResponsiveContainer width="100%" height="100%">
-							<BarChart data={weeklyData}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="dayOfWeek" />
-								<YAxis />
-								<Tooltip />
-								<Bar dataKey="totalEntrances" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-							</BarChart>
-						</ResponsiveContainer>
-					</div>
-				</SheetContent>
-			</Sheet>
-			<Sheet open={isMonthlySheetOpen} onOpenChange={setIsMonthlySheetOpen}>
-				<SheetContent side="bottom" className="h-[450px]">
-					<SheetHeader>
-						<SheetTitle>Monthly Entrances Analysis</SheetTitle>
-						<SheetDescription>
-							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
-						</SheetDescription>
-					</SheetHeader>
-					<div className="h-[350px] mt-4">
-						<ResponsiveContainer width="100%" height="100%">
-							<BarChart data={monthlyData}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="month" />
-								<YAxis />
-								<Tooltip />
-								<Bar dataKey="totalEntrances" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-							</BarChart>
-						</ResponsiveContainer>
-					</div>
-				</SheetContent>
-			</Sheet>
-		</>
+	return (
+		<EntityShell isLoading={isLoading} error={error} onRetry={retry} entityLabel="Ingresso">
+			<>
+				<Dashboard
+					actions={actions}
+					table={
+						<DataTable
+							columns={columns(handleDelete, handleEditEntrance)}
+							data={entrances}
+							entityLabel="Ingresso"
+							filters={["client", "product"]}
+							facetedFilters={["product"]}
+							filterLabels={{
+								client: "Cliente",
+								product: "Prodotto",
+								date: "Data e ora",
+								purchase: "Acquisto",
+								id: "ID"
+							}}
+							server={{
+								query,
+								onQueryChange: setQuery,
+								total,
+								facetOptions: facets
+							}}
+						/>
+					}
+				/>
+				<Sheet open={isAnalyticsSheetOpen} onOpenChange={setIsAnalyticsSheetOpen}>
+					<SheetContent side="bottom" className="h-[450px]">
+						<SheetHeader>
+							<SheetTitle>
+								Analisi Ingressi — {GRANULARITY_LABELS[selectedGranularity]}
+							</SheetTitle>
+							<SheetDescription>
+								{selectedDateRange &&
+									`Periodo: ${format(selectedDateRange.from, "dd/MM/yyyy")} – ${format(
+										selectedDateRange.to,
+										"dd/MM/yyyy"
+									)}`}
+							</SheetDescription>
+						</SheetHeader>
+						<div className="mt-4 h-[350px]">
+							<ResponsiveContainer width="100%" height="100%">
+								<BarChart data={analyticsData}>
+									<CartesianGrid strokeDasharray="3 3" />
+									<XAxis dataKey="period" />
+									<YAxis allowDecimals={false} />
+									<Tooltip
+										formatter={(value) => [value as number, "Ingressi"]}
+										labelFormatter={(label) => `Periodo: ${label}`}
+									/>
+									<Bar
+										dataKey="totalEntrances"
+										name="Ingressi"
+										fill="#3b82f6"
+										radius={[4, 4, 0, 0]}
+									/>
+								</BarChart>
+							</ResponsiveContainer>
+						</div>
+					</SheetContent>
+				</Sheet>
+			
+			</>
+		</EntityShell>
 	);
 }
 
-function DateRangePickerField({
-	onSubmit,
-	formData
-}: {
-	onSubmit: (values: z.infer<typeof analyticsFormSchema>) => void;
-	formData: FormData<typeof analyticsFormSchema>;
-}) {
+function AnalyticsFormFields() {
 	return (
-		<FormField
-			name="date"
-			render={({ field }) => (
-				<FormItem className="w-full flex flex-col gap-2">
-					<FormLabel>Select Period</FormLabel>
-					<Popover>
-						<PopoverTrigger asChild>
+		<>
+			<FormField
+				name="granularity"
+				render={({ field }) => (
+					<FormItem className="flex w-full flex-col gap-2">
+						<FormLabel>Tipo di aggregazione</FormLabel>
+						<Select value={field.value} onValueChange={field.onChange}>
 							<FormControl>
-								<Button
-									variant={"outline"}
-									className={cn(
-										"w-[300px] justify-start text-left font-normal",
-										!field.value && "text-muted-foreground"
-									)}
-								>
-									<CalendarIcon className="mr-2 h-4 w-4" />
-									{field.value?.from ? (
-										field.value.to ? (
-											<>
-												{format(field.value.from, "LLL dd, y")} - {format(field.value.to, "LLL dd, y")}
-											</>
-										) : (
-											format(field.value.from, "LLL dd, y")
-										)
-									) : (
-										<span>Pick a date range</span>
-									)}
-								</Button>
+								<SelectTrigger className="w-[300px]">
+									<SelectValue placeholder="Seleziona granularità" />
+								</SelectTrigger>
 							</FormControl>
-						</PopoverTrigger>
-						<PopoverContent className="w-auto p-0" align="start">
-							<Calendar
-								initialFocus
-								mode="range"
-								defaultMonth={field.value?.from}
-								selected={field.value}
-								onSelect={field.onChange}
-								numberOfMonths={2}
-							/>
-						</PopoverContent>
-					</Popover>
-					<FormMessage />
-				</FormItem>
-			)}
-		/>
+							<SelectContent>
+								<SelectItem value="daily">{GRANULARITY_LABELS.daily}</SelectItem>
+								<SelectItem value="weekly">{GRANULARITY_LABELS.weekly}</SelectItem>
+								<SelectItem value="monthly">{GRANULARITY_LABELS.monthly}</SelectItem>
+								<SelectItem value="yearly">{GRANULARITY_LABELS.yearly}</SelectItem>
+							</SelectContent>
+						</Select>
+						<FormMessage />
+					</FormItem>
+				)}
+			/>
+			<FormField
+				name="date"
+				render={({ field }) => (
+					<FormItem className="flex w-full flex-col gap-2">
+						<FormLabel>Seleziona periodo</FormLabel>
+						<Popover>
+							<PopoverTrigger asChild>
+								<FormControl>
+									<Button
+										variant={"outline"}
+										className={cn(
+											"w-[300px] justify-start text-left font-normal",
+											!field.value && "text-muted-foreground"
+										)}
+									>
+										<CalendarIcon className="mr-2 h-4 w-4" />
+										{field.value?.from ? (
+											field.value.to ? (
+												<>
+													{format(field.value.from, "dd/MM/yyyy")} –{" "}
+													{format(field.value.to, "dd/MM/yyyy")}
+												</>
+											) : (
+												format(field.value.from, "dd/MM/yyyy")
+											)
+										) : (
+											<span>Scegli un intervallo di date</span>
+										)}
+									</Button>
+								</FormControl>
+							</PopoverTrigger>
+							<PopoverContent className="w-auto p-0" align="start">
+								<Calendar
+									initialFocus
+									mode="range"
+									defaultMonth={field.value?.from}
+									selected={field.value}
+									onSelect={field.onChange}
+									numberOfMonths={2}
+									locale={it}
+								/>
+							</PopoverContent>
+						</Popover>
+						<FormMessage />
+					</FormItem>
+				)}
+			/>
+		</>
 	);
 }

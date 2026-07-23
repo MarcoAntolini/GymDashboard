@@ -1,10 +1,11 @@
 "use client";
 
+import { NumericCell } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { EntranceSet } from "@prisma/client";
+import { type EntranceSetDTO } from "@/data-access/entranceSets";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -14,9 +15,9 @@ export const formSchema = z.object({
 });
 
 export const columns = (
-  handleDelete: (entranceSet: Pick<EntranceSet, "productCode">) => Promise<void>,
-  handleEdit: (entranceSet: EntranceSet) => Promise<void>
-): ColumnDef<EntranceSet>[] => [
+  handleDelete: (entranceSet: Pick<EntranceSetDTO, "productCode">) => Promise<void>,
+  handleEdit: (entranceSet: EntranceSetDTO) => Promise<void>
+): ColumnDef<EntranceSetDTO>[] => [
   {
     accessorKey: "productCode",
     header: ({ column }) => (
@@ -32,7 +33,13 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Number of Entrances"
+        align="right"
       />
+    ),
+    cell: ({ row }) => (
+      <NumericCell tooltip="Entrances included in this package">
+        {row.getValue("entranceNumber") as number}
+      </NumericCell>
     ),
   },
   {
@@ -41,6 +48,7 @@ export const columns = (
       <ItemActions
         row={row}
         formSchema={formSchema}
+        entityLabel="entrance set"
         editFormContent={
           <>
             <FormField

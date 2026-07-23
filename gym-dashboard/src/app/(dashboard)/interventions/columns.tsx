@@ -6,6 +6,8 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Intervention } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { formatDateTimeIt } from "@/lib/format";
+import { CalendarClock, FileText, Hash, UserRound } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -23,54 +25,41 @@ export const columns = (
 	{
 		accessorKey: "paymentId",
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Payment ID"
-			/>
+			<TableSortableHeader column={column} title="Pagamento" icon={Hash} />
 		),
 	},
 	{
 		accessorKey: "description",
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Description"
-			/>
+			<TableSortableHeader column={column} title="Descrizione" icon={FileText} />
 		),
 	},
 	{
 		accessorKey: "maker",
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Maker"
-			/>
+			<TableSortableHeader column={column} title="Attuatore" icon={UserRound} />
 		),
 	},
 	{
 		accessorKey: "startingTime",
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Starting Time"
-			/>
+			<TableSortableHeader column={column} title="Inizio" icon={CalendarClock} />
 		),
 		cell: ({ row }) => {
-			const date = new Date(row.getValue("startingTime"));
-			return <div className="font-medium">{date.toLocaleString()}</div>;
+			return (
+				<div className="font-medium">{formatDateTimeIt(row.getValue("startingTime"))}</div>
+			);
 		},
 	},
 	{
 		accessorKey: "endingTime",
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Ending Time"
-			/>
+			<TableSortableHeader column={column} title="Fine" icon={CalendarClock} />
 		),
 		cell: ({ row }) => {
-			const date = new Date(row.getValue("endingTime"));
-			return <div className="font-medium">{date.toLocaleString()}</div>;
+			return (
+				<div className="font-medium">{formatDateTimeIt(row.getValue("endingTime"))}</div>
+			);
 		},
 	},
 	{
@@ -79,13 +68,15 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Intervento"
+				deleteDescription="Elimina l'Intervento collegato al Pagamento. Preferisci gestire creazione e tipo da Pagamenti. L'operazione non può essere annullata."
 				editFormContent={
 					<>
 						<FormField
 							name="paymentId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Payment ID</FormLabel>
+									<FormLabel>ID Pagamento</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -102,7 +93,7 @@ export const columns = (
 							name="description"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Description</FormLabel>
+									<FormLabel>Descrizione</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -114,7 +105,7 @@ export const columns = (
 							name="maker"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Maker</FormLabel>
+									<FormLabel>Attuatore</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -126,7 +117,7 @@ export const columns = (
 							name="startingTime"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Starting Time</FormLabel>
+									<FormLabel>Inizio</FormLabel>
 									<FormControl>
 										<Input
 											type="datetime-local"
@@ -142,7 +133,7 @@ export const columns = (
 							name="endingTime"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Ending Time</FormLabel>
+									<FormLabel>Fine</FormLabel>
 									<FormControl>
 										<Input
 											type="datetime-local"

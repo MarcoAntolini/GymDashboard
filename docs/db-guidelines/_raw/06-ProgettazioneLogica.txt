@@ -1,0 +1,1323 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Progettazione logica
+
+===== PAGE 2 =====
+
+2
+Il secondo passo…
+Requisiti del
+Sistema Informativo
+Progettazione concettuale
+Progettazione logica
+Progettazione fisica
+SCHEMA LOGICO
+SCHEMA CONCETTUALE
+SCHEMA FISICO
+
+===== PAGE 3 =====
+
+3
+ Obiettivo della fase di progettazione logica è
+pervenire, a partire dallo schema concettuale, a uno
+schema logico che rappresenti in modo fedele i
+concetti e i requisiti analizzati e che sia, al tempo
+stesso, “efficiente”.
+ L’efficienza è legata alle prestazioni, ma poiché
+queste non sono valutabili precisamente, né a livello
+concettuale né a livello logico, si ricorre all’impiego di
+indicatori semplificati.
+Progettazione logica
+
+===== PAGE 4 =====
+
+4
+ Che cosa s’intende precisamente quando si dice che uno schema
+relazionale DBrel rappresenta “fedelmente” uno schema
+concettuale (E/R) DBconc?
+ Intuitivamente “fedeltà” vuol dire che mediante DBrel possiamo
+rappresentare esattamente le medesime informazioni documentate
+con lo schema DBconc (possiamo memorizzare gli stessi dati).
+ Più precisamente “fedeltà” significa che i due schemi sono equivalenti
+dal punto di vista della loro capacità informativa.
+ Il concetto di capacità informativa ha diverse definizioni, ma per i
+nostri scopi può essere considerato equivalente all’insieme degli stati
+legali di uno schema, indicato con SL(DB) e dunque:
+Progettazione logica “fedele” = equivalenza
+DBrel e DBconc sono equivalenti se SL(DBconc ) = SL(DBrel)
+
+===== PAGE 5 =====
+
+5
+ Si consideri il seguente schema E/R:
+e lo schema relazionale:
+ La traduzione preserva l’informazione, ma esistono infinite istanze che sono
+legali rispetto a DBrel e che non lo sono per DBconc!
+Equivalenza
+PERSONA PROPRIETÀ AUTOMOBILE
+(1,N) (0,1)
+CF
+Targa
+DataAcquisto
+PERSONE(CF)
+AUTOMOBILI(Targa)
+PROPRIETÀ(CF, Targa, DataAcquisto) 
+FK: CF REFERENCES Persone
+FK: Targa REFERENCES Automobili
+PROPRIETÀ
+CF Targa DataAcquisto
+BNCGRG78L21A944Z CT 001 MJ 12/08/2004
+RSSNNA78A53A944N CT 001 MJ 15/07/2003
+PERSONECF
+BNCGRG78L21A944Z
+RSSNNA78A53A944N
+VRDMRC79H20F839U
+
+===== PAGE 6 =====
+
+6
+ La definizione data di equivalenza non è “operativa”, in quanto non dice
+nulla su come debba essere effettuata una traduzione che garantisca
+l’equivalenza degli schemi.
+ Tuttavia può essere usata “localmente”: in pratica la traduzione da schema
+E/R a schema relazionale avviene operando una sequenza di
+trasformazioni/traduzioni semplici, per ognuna delle quali è altrettanto
+semplice rispettare regole che garantiscono l’equivalenza.
+ Per quanto visto, possiamo dividere queste regole in:
+ regole che preservano l’informazione (regole sulla “struttura”);
+ regole aggiuntive che garantiscono l’equivalenza (regole sui vincoli).
+ L’equivalenza può comunque essere solo in parte garantita dal DDL di SQL,
+infatti alcuni vincoli non possono essere direttamente espressi in SQL.
+Come agire in pratica?
+
+===== PAGE 7 =====
+
+7
+ La progettazione logica può essere articolata in due fasi principali:
+ Ristrutturazione: eliminazione dallo schema E/R dei costrutti che
+non possono essere direttamente rappresentati nel modello logico
+target (relazionale nel nostro caso):
+◼ eliminazione degli attributi multivalore;
+◼ eliminazione delle gerarchie di generalizzazione;
+◼ partizionamento/accorpamento di entità e associazioni;
+◼ scelta degli identificatori principali.
+ Traduzione: si mappano i costrutti residui in elementi del modello
+relazionale.
+Fasi della progettazione logica
+
+===== PAGE 8 =====
+
+8
+ Si pone l’obiettivo di semplificare la traduzione e “ottimizzare"
+le prestazioni.
+ Per confrontare tra loro diverse alternative bisogna conoscere,
+almeno in maniera approssimativa, il “carico di lavoro”, ovvero:
+ le principali operazioni che la base dati dovrà supportare;
+ i “volumi” dei dati in gioco.
+Regola 80-20: il 20% delle operazioni produce l’80% del carico.
+ Gli indicatori che deriviamo considerano due aspetti
+ spazio: numero di istanze (di entità e associazioni) previste;
+ tempo: numero di istanze visitate durante un’operazione.
+Fase di ristrutturazione
+
+===== PAGE 9 =====
+
+9
+Schema di riferimento
+Nome
+Città
+Telefono
+Nome
+Cognome
+Budget
+Data
+Via
+CAP
+(1,1)(0,1)
+(1,N)(0,1)
+(0,1)
+(1,1)
+(1,N)
+(0,N)
+(1,N)
+(1,N)
+Codice
+Indirizzo
+DIPARTIMENTO
+COMPOSIZIONE
+SEDE
+DIREZIONE
+AFFERENZA
+IMPIEGATO
+PROGETTO
+PARTECIPAZIONE
+DataConsegna
+Nome
+
+===== PAGE 10 =====
+
+10
+ Specifica il numero stimato di istanze per ogni entità (E) e associazione (R)
+dello schema.
+ I valori sono necessariamente approssimati, ma indicativi.
+Tavola dei volumi
+Concetto Costrutto Volume
+SEDE E 10
+DIPARTIMENTO E 80
+IMPIEGATO E 2000
+PROGETTO E 500
+COMPOSIZIONE A 80
+AFFERENZA A 1900
+DIREZIONE A 80
+PARTECIPAZIONE A 6000
+
+===== PAGE 11 =====
+
+11
+ L’analisi delle operazioni principali richiede la codifica di:
+ tipo dell’operazione: Interattiva (I) o Batch (B);
+ frequenza: numero medio di esecuzioni in un certo periodo di tempo;
+ schema di navigazione: frammento dello schema E/R interessato
+dall’operazione sul quale viene evidenziato (con frecce) il “cammino
+logico” da percorrere per accedere alle informazioni di interesse.
+ Per ogni operazione si costruisce una tavola degli accessi basata
+sullo schema di navigazione:
+ il campo costrutto specifica il tipo di concetto (entità o associazione);
+ nel campo accessi si conta il numero degli accessi;
+ il campo tipo è riferito al tipo di operazione: le operazioni di scrittura (S)
+sono più onerose di quelle di lettura (L).
+Il costo degli accessi in scrittura è in genere considerato doppio rispetto a
+quello delle letture.
+Descrizione delle operazioni
+
+===== PAGE 12 =====
+
+12
+ Visualizzare tutti i dati di un impiegato, del dipartimento nel quale
+lavora e dei progetti ai quali partecipa.
+Esempio di valutazione di costo
+Telefono
+Nome
+Nome
+Cognome
+Budget
+Data
+(1,N)(0,1)
+(0,1)
+(0,N)
+(1,N)
+(1,N)
+Codice
+DIPARTIMENTO
+AFFERENZA
+IMPIEGATO
+PROGETTO
+PARTECIPAZIONE
+schema di navigazione
+DataConsegna
+Nome
+
+===== PAGE 13 =====
+
+13
+ Per ogni entità e per ogni associazione interessate dall’operazione, la tavola
+degli accessi riporta il numero di istanze interessate, e il tipo di accesso (L:
+lettura; S: scrittura)
+ Il numero delle istanze si ricava dalla tavola dei volumi mediante semplici
+operazioni (assumendo uniformità nella distribuzione dei valori): ad esempio
+in media ogni impiegato partecipa a 6000/2000 = 3 progetti.
+Esempio di tavola degli accessi
+Concetto Costrutto Accessi Tipo
+IMPIEGATO E 1 L
+AFFERENZA A 1 L
+DIPARTIMENTO E 1 L
+PARTECIPAZIONE A 3 L
+PROGETTO E 3 L
+IMPIEGATO PROGETTOPARTECIPAZIONE
+(0,N) (1,N)
+(2000)
+(6000)
+(500)
+
+===== PAGE 14 =====
+
+14
+ Una ridondanza in uno schema E-R è un’informazione
+significativa ma derivabile da altre.
+ In questa fase si decide se eliminare o meno le ridondanze
+eventualmente presenti; è quindi comunque importante averle
+individuate in fase di progettazione concettuale!
+ Se si mantiene una ridondanza
+ si semplificano alcune interrogazioni, ma
+ si appesantiscono gli aggiornamenti e
+ si occupa maggior spazio.
+ Le possibili ridondanze riguardano
+ attributi derivabili da altri attributi;
+ associazioni derivabili dalla composizione di altre
+associazioni (presenza di cicli).
+Analisi delle ridondanze
+
+===== PAGE 15 =====
+
+15
+Attributi ridondanti
+ORDINE
+ImportoNetto
+IVA
+ImportoLordo
+Importo totale
+COMPOSIZIONEACQUISTO PRODOTTO
+Prezzo
+(1,N) (1,N)
+Quantità
+
+===== PAGE 16 =====
+
+16
+(0,N)
+(1,N)
+(1,1)
+(1,N)
+(0,N)
+(1,N)
+CORSO
+STUDENTE
+FREQUENZA
+DOCENTE
+INSEGNAMENTO
+DOCENZA
+Associazioni ridondanti
+
+===== PAGE 17 =====
+
+17
+ L’attributo NumeroResidenti è derivabile da una operazione di
+conteggio delle istanze di persona residenti in una città.
+Esempio d’analisi di una ridondanza
+RESIDENZAPERSONA CITTÀ
+NumeroResidenti
+tabella dei volumi
+(1,1) (0,N)
+Concetto Costrutto Volume
+CITTÀ E 200
+PERSONA E 1000000
+RESIDENZA A 1000000
+
+===== PAGE 18 =====
+
+18
+ Si considerano innanzitutto le operazioni influenzate
+dalla ridondanza, considerando anche le loro
+frequenze di esecuzione:
+ operazione 1: inserisci una nuova persona con la
+relativa città di residenza (500 volte al giorno);
+ operazione 2: visualizza tutti i dati di una città (incluso il
+numero di residenti) (2 volte al giorno);
+ …e si costruiscono le tavole degli accessi
+Le operazioni…
+
+===== PAGE 19 =====
+
+19
+…in presenza di ridondanza…
+Operazione 1
+Operazione 2
+Concetto Costrutto Accessi Tipo
+PERSONA E 1 S
+RESIDENZA A 1 S
+CITTÀ E 1 L
+CITTÀ E 1 S
+Aggiornamento = 1L + 1S
+Concetto Costrutto Accessi Tipo
+CITTÀ E 1 L
+
+===== PAGE 20 =====
+
+20
+…in assenza di ridondanza
+Operazione 1
+Operazione 2
+Concetto Costrutto Accessi Tipo
+PERSONA E 1 S
+RESIDENZA A 1 S
+Concetto Costrutto Accessi Tipo
+CITTÀ E 1 L
+RESIDENZA A 5000 L
+
+===== PAGE 21 =====
+
+21
+È importante considerare la frequenza delle operazioni:
+ con ridondanza:
+ operazione 1: 1500 accessi in scrittura e 500 accessi in lettura al
+giorno;
+ operazione 2: 2 accessi in lettura al giorno;
+ totale: 3502 accessi al giorno;
+ senza ridondanza:
+ operazione 1: 1000 accessi in scrittura al giorno;
+ operazione 2: 10002 accessi in lettura al giorno;
+ totale: 12002 accessi al giorno.
+ Si decide pertanto di mantenere la ridondanza,
+privilegiando l’efficienza.
+ In generale si devono fare anche considerazioni sullo spazio
+in più richiesto per mantenere la ridondanza.
+Mantenere o no la ridondanza?
+
+===== PAGE 22 =====
+
+22
+ Il modello relazionale non può rappresentare direttamente le
+gerarchie di generalizzazione.
+ Entità e associazioni sono invece direttamente rappresentabili.
+ Si eliminano perciò le gerarchie, sostituendole con entità e
+relazioni.
+ Vi sono 3 possibilità (più altre soluzioni intermedie):
+ accorpare le entità figlie nel genitore (collasso verso l’alto);
+ accorpare il genitore nelle entità figlie (collasso verso il
+basso);
+ sostituire la generalizzazione con associazioni.
+Eliminazione delle gerarchie
+
+===== PAGE 23 =====
+
+23
+E0 R1
+A01 A02
+E3
+R2
+E4
+E2E1
+A11 A21
+Schema di riferimento
+
+===== PAGE 24 =====
+
+24
+1. Collasso verso l’alto…
+A11
+A21
+TIPO
+(0,1)
+(0,1)
+(0,..)
+E0 R1
+A01 A02
+E3
+R2
+E4
+
+===== PAGE 25 =====
+
+25
+STUDENTE
+LAUREANDO DIPLOMANDO
+Matricola
+Nome
+TitoloStageTitoloTesi
+Matricola
+RELATORE
+Denominazione
+AZIENDA
+(1,1) (1,1)
+(p,e)
+(1,N)(1,N)
+Cognome
+Dom(Tipo)= {L,D,N}
+Denominazione
+STUDENTE Matricola
+Nome
+TitoloStage (0,1)
+TitoloTesi (0,1)
+Matricola
+RELATORE AZIENDA
+(0,1) (0,1)
+Tipo
+(1,N) (1,N)
+Cognome
+Esempio
+
+===== PAGE 26 =====
+
+26
+ Copertura
+ totale esclusiva: Tipo assume N valori, quante sono le sotto-entità;
+ parziale esclusiva: Tipo assume N+1 valori; il valore in più serve
+per le istanze che non appartengono a nessuna sotto-entità;
+ sovrapposta: occorrono tanti selettori quante sono le sotto-entità,
+ciascuno a valore booleano Tipo_i, che è vero per ogni istanza di
+E che appartiene a E_i; se la copertura è parziale i selettori
+possono essere tutti falsi, oppure si può aggiungere un selettore.
+ Le eventuali associazioni connesse alle sotto-entità si trasportano su E,
+le eventuali cardinalità minime diventano 0.
+Collasso verso l’alto: osservazioni
+E K(0,1) A1
+ATipo
+(0,1) A2
+“Tipo” è un attributo selettore che
+specifica se una singola istanza di E
+appartiene a una delle N sotto-
+entità.
+
+===== PAGE 27 =====
+
+27
+2. Collasso verso il basso…
+E3
+R2
+E4A11 A21
+R12
+R11
+A01 A02 A01 A02
+E2E1
+
+===== PAGE 28 =====
+
+28
+DIPENDENTE
+IMPIEGATO OPERAIO
+CF
+Nome
+Macchine
+Capacità
+(t,e)
+DIRIGENTE NumSottoposti
+SINDACATOISCRIZIONE(0,1) (1,N)
+(0,1)
+(1,N)
+(1,N)(1,N)
+DIR
+Cognome
+CodSindacato
+IMPIEGATO OPERAIO
+Macchine
+Capacità DIRIGENTE NumSottoposti
+SINDACATOISCR_I
+(0,1)
+(0,N)
+(0,1)
+(1,N)
+(1,N) (0,N)
+ISCR_D
+(0,1)
+ISCR_O
+(0,1) (0,1)
+(0,N)
+(0,N) DIR_DDIR_I
+(0,N)
+(0,N)
+CF Nome Cognome CF Nome Cognome CF Nome Cognome
+(0,1)
+DIR_O
+CodSindacato
+2. Esempio
+
+===== PAGE 29 =====
+
+29
+ Se la copertura non è completa il collasso verso il basso non si
+può applicare:
+ non si saprebbe infatti dove collocare le istanze di E che non sono né in
+E1, né in E2.
+ Se la copertura non è esclusiva introduce ridondanza:
+ una certa istanza può essere sia in E1 sia in E2, e quindi si rappresentano
+due volte gli attributi che provengono da E.
+Collasso verso il basso: osservazioni
+E1 E2
+KAA2A1AK
+
+===== PAGE 30 =====
+
+30
+3. Sostituire con associazioni…
+RG2RG1
+(1,1)
+(0,1)
+(1,1)
+(0,1)
+E0
+A01 A02
+E2E1 R2
+E4A11 A21
+R1 E3
+
+===== PAGE 31 =====
+
+31
+PROGETTO
+PROG_SW PROG_HW
+Cod
+Descrizione
+NumSchede
+Mesi
+uomo
+COMP_HW
+USO
+(1,N)
+(0,N)
+3. Esempio
+PROGETTO
+PROG_SW PROG_HW
+Cod
+Descrizione
+NumSchedeMesi
+uomo
+COMP_HW
+USO
+(1,N)
+(0,N)
+(0,1) (0,1)
+(1,1)(1,1)
+(t,e)
+
+===== PAGE 32 =====
+
+32
+ Tutte le entità vengono mantenute: le entità figlie
+sono in associazione binaria con l’entità padre e
+sono identificate esternamente.
+ La sostituzione con associazioni è sempre possibile
+indipendentemente dalla copertura della
+gerarchia.
+Sostituire con associazioni: osservazioni
+
+===== PAGE 33 =====
+
+33
+ La scelta fra le alternative illustrate si può fare adottando un metodo
+simile a quello visto per l’analisi delle ridondanze, considerando sia il
+numero degli accessi sia l’occupazione di spazio.
+ È possibile seguire alcune semplici regole generali
+(ovvero: mantieni insieme ciò che viene usato insieme):
+ Collasso verso l’alto: conviene se gli accessi all’entità padre e
+alle entità figlie sono contestuali;
+ Collasso verso il basso: conviene se gli accessi alle entità figlie
+sono distinti, ma d’altra parte è possibile solo con generalizzazioni
+totali;
+ Mantenimento di tutte le entità: conviene se gli accessi alle entità
+figlie sono separati dagli accessi al padre.
+ Sono anche possibili soluzioni “ibride”, soprattutto in presenza di
+gerarchie a più livelli.
+Quale alternativa scegliere?
+
+===== PAGE 34 =====
+
+34
+Una soluzione ibrida…
+E0
+A01 A02
+E2 R2
+E4A21
+R1 E3
+RG2
+(1,1)
+(0,1)
+A11
+TIPO
+(0,1)
+
+===== PAGE 35 =====
+
+35
+ È possibile ristrutturare lo schema accorpando o
+partizionando entità e associazioni.
+ Queste ristrutturazioni sono effettuate per rendere più
+efficienti le operazioni in base al principio già visto, ovvero:
+ gli accessi si riducono:
+ separando attributi di un concetto che vengono acceduti
+separatamente;
+ raggruppando attributi di concetti diversi a cui si accede insieme.
+ I casi principali sono:
+ partizionamento verticale di entità;
+ partizionamento orizzontale di associazioni;
+ eliminazione di attributi multivalore;
+ accorpamenti di entità e associazioni.
+Partizionamenti e accorpamenti
+
+===== PAGE 36 =====
+
+36
+ Si separano gli attributi in gruppi omogenei:
+Partizionamento verticale di entità
+IMPIEGATO
+Livello
+Stipendio
+Ritenute
+Cognome
+Indirizzo
+DataNascita
+CodiceNome
+LivelloStipendio
+Ritenute
+Cognome
+Indirizzo DataNascita
+Codice
+RDATI
+ANAGRAFICI
+DATI
+LAVORATIVI
+(1,1) (1,1)
+Nome
+
+===== PAGE 37 =====
+
+37
+IDRAULICO
+Indirizzo
+Città
+Telefono
+Nome
+(1,N)
+ Si introduce una nuova entità
+le cui istanze sono identificate
+dai valori dell’attributo.
+ L’associazione può essere
+uno a molti o molti a molti.
+Eliminazione di attributi multivalore (1)
+NumTel
+Indirizzo
+Nome
+UTENZAIDRAULICO TELEFONO
+(1,N) (1,1)
+Città
+
+===== PAGE 38 =====
+
+38
+IDRAULICO
+Indirizzo
+Città
+Telefono
+Nome
+(1,3)
+ Se è nota la cardinalità
+massima K di un attributo
+multivalore allora è possibile
+prevedere K attributi a singolo
+valore.
+Eliminazione di attributi multivalore (2)
+Tel2Tel1 Tel3
+Nome
+IDRAULICO
+Indirizzo Città
+
+===== PAGE 39 =====
+
+39
+ Se un valore dell’attributo
+multivalore compare una sola
+volta nella ripetizione esso può
+costituire l’identificatore della
+nuova entità (o una sua parte).
+Eliminazione di attributi multivalore (3)
+PRODOTTO
+CodComp
+(1,N)
+CodProd Descrizione
+CodComp
+COMPOSIZIONE PRODCOMP
+(1,N) (1,1)
+PRODOTTO
+CodProd Descrizione
+
+
+===== PAGE 40 =====
+
+40
+ Se un valore dell’attributo
+multivalore può comparire più
+volte nella ripetizione occorre
+introdurre un numero d’ordine.
+ PARTITA
+Marcatore
+(0,N)
+CodPart Data
+NomeN-Ordine
+MARCATURA MARCATORE
+(0,N) (1,1)
+PARTITA
+CodPart Data
+Eliminazione di attributi multivalore (4)
+
+===== PAGE 41 =====
+
+41
+ Per affinità con la concezione insiemistica che sta alla base del
+modello E/R sarebbe naturale ipotizzare che i valori di un attributo
+multivalore siano tutti distinti.
+ Alcuni autori e tool di progettazione (es. DB-Main) fanno riferimento
+a un’estensione del modello in cui è ammessa la duplicazione di
+valori. In quest’ottica assumono significato gli esempi dei due lucidi
+precedenti.
+ Attenzione! In generale la presenza di valori duplicati in un attributo
+multivalore può indicare una progettazione errata e/o incompleta.
+Es. Relativamente ai marcatori della partita ci interessa memorizzare
+solo il nome? Non è preferibile modellare il concetto di gol,
+riportando anche il minuto in cui è stato realizzato?
+Attributi multivalore: note (1)
+
+===== PAGE 42 =====
+
+42
+MarcatoreMinuto
+MARCATURA GOL
+(0,N) (1,1)
+PARTITA
+CodPart Data
+Attributi multivalore: note (2)
+PARTITA
+Marcatore
+(0,N)
+CodPart Data
+Gol
+Minuto
+Attenzione! Questo schema ammette che possano essere fatti due gol nello
+stesso minuto, purché da giocatori diversi…
+Questa modellazione è più
+completa e in questo contesto la
+ripetizione di valori perde il suo
+significato.
+
+===== PAGE 43 =====
+
+43
+Questa soluzione è sensata
+se e solo se non si ha
+interesse a mantenere,
+nemmeno per evoluzioni
+future dello schema,
+l’entità Unità Immobiliare.
+ComuneResidenza
+IndirizzoInternoCognome
+IndirizzoResidenza
+DataNascita
+CodiceFiscale
+ASSEGNAZIONEPERSONA UNITÀ IMMOBILIARE
+(0,1) (1,1)
+Nome Comune
+PERSONA
+Interno
+Indirizzo
+Cognome
+IndirizzoResidenza
+DataNascita
+CodiceFiscale
+(0,1)
+(0,1)
+Nome
+ComuneResidenza Comune
+(0,1)
+Accorpamento di entità
+
+===== PAGE 44 =====
+
+44
+(0,1)
+Id
+COMPOSIZIONEGIOCATORE SQUADRA
+(1,N) (1,N)
+Cognome NomeCittà
+DataAcquisto DataCessione
+Nome Ruolo
+DataAcquisto Ruolo
+Id
+COMP.
+PASSATA
+GIOCATORE SQUADRA
+(0,N) (1,N)
+Cognome
+Nome
+Città
+DataAcquisto DataCessione
+COMP.
+ATTUALE
+(1,1) (1,N)
+Nome
+Ruolo
+Partizionamento orizzontale di associazioni
+
+===== PAGE 45 =====
+
+45
+ È un’operazione indispensabile per la traduzione nel
+modello relazionale, e corrisponde alla scelta della
+chiave primaria.
+ I criteri da adottare sono:
+ assenza di opzionalità (valori NULL);
+ semplicità;
+ utilizzo nelle operazioni più frequenti o importanti.
+ Se nessuno degli identificatori soddisfa i requisiti
+s’introducono nuovi attributi (codici) ad hoc.
+Scelta degli identificatori principali
+
+===== PAGE 46 =====
+
+46
+ L’identificatore {Interno, Comune, Indirizzo} è opzionale, quindi non
+può essere scelto come chiave primaria.
+ Tra gli attributi CodiceFiscale e CodiceSSN la scelta dipende da
+quale fra questi è più frequentemente usato per accedere ai dati di
+una persona.
+Identificatori principali: esempio
+Interno
+Indirizzo
+Cognome
+ComuneResidenza
+DataNascita
+CodiceFiscale
+(0,1)
+(0,1)CodiceSSN
+PERSONA
+Nome
+IndirizzoResidenza
+Comune
+(0,1)
+
+===== PAGE 47 =====
+
+47
+Idea di base:
+ Ogni entità è tradotta con una relazione con gli stessi attributi.
+ La chiave primaria coincide con l’identificatore principale dell’entità.
+ Gli attributi composti vengono ricorsivamente suddivisi nelle loro
+componenti, oppure sono mappati in un singolo attributo della relazione,
+il cui dominio deve essere opportunamente definito.
+ Per brevità, si usa l’asterisco (*) per indicare la possibilità di valori nulli.
+Traduzione delle entità
+PERSONA Indirizzo
+Via
+Città
+NCivico (0,1)
+CAP
+Nome
+Cognome
+CF
+PERSONE(CF, Cognome, Nome, Via, NCivico*, Città, CAP)
+
+===== PAGE 48 =====
+
+48
+Idea di base:
+ Ogni associazione è tradotta con una relazione con gli stessi
+attributi, cui si aggiungono gli identificatori di tutte le entità che
+essa collega.
+ Gli identificatori delle entità collegate costituiscono una
+superchiave.
+ La chiave dipende dalle cardinalità massime delle entità
+nell’associazione.
+ Le cardinalità minime determinano, a seconda del tipo di
+traduzione effettuata, la presenza o meno di valori nulli (e
+quindi incidono sui vincoli e sull’occupazione di memoria).
+Traduzione delle associazioni
+
+===== PAGE 49 =====
+
+49
+IMPIEGATI(Matricola, Nome, Cognome, Stipendio)
+PROGETTI(Codice, Nome, Budget)
+PARTECIPAZIONI(Matricola, Codice, DataInizio)
+FK: Matricola REFERENCES Impiegati
+FK: Codice REFERENCES Progetti
+Entità e associazione molti a molti
+(0,N) (1,N)
+Cognome
+Stipendio
+Matricola NomeCodice
+Budget
+DataInizio
+PARTECIPAZIONEIMPIEGATO PROGETTO
+Nome
+
+===== PAGE 50 =====
+
+50
+ Non è ovviamente necessario mantenere, per gli attributi chiave
+della relazione che traduce l’associazione, gli stessi nomi delle
+primary key referenziate, conviene piuttosto far ricorso a nomi
+più espressivi.
+ Ovviamente se le entità collegate hanno un attributo con lo
+stesso nome la ridenominazione è obbligatoria!
+Nomi delle foreign key: ridenominazione
+PARTECIPAZIONI(Impiegato, CodProgetto, DataInizio)
+FK: Impiegato REFERENCES Impiegati
+FK: CodProgetto REFERENCES Progetti
+
+===== PAGE 51 =====
+
+51
+PRODOTTI(Codice, Nome, Costo)
+COMPOSIZIONI(Composto, Componente,  Quantità)
+FK: Composto REFERENCES Prodotti
+FK: Componente REFERENCES Prodotti
+ In questo caso i nomi degli attributi che formano la chiave
+primaria della relazione che traduce l’associazione si possono
+derivare dai ruoli presenti sui rami dell’associazione stessa.
+Associazioni ad anello molti a molti
+Composto Componente
+Costo Nome Codice
+(0,N) (0,N)
+Quantità
+COMPOSIZIONE
+PRODOTTO
+
+===== PAGE 52 =====
+
+52
+ La chiave è la combinazione degli identificatori delle n entità
+partecipanti.
+Associazioni n-arie molti a molti
+FORNITORI(PartitaIVA, Nome)
+PRODOTTI(Codice, Genere)
+DIPARTIMENTI(Nome, Telefono)
+FORNITURE(Fornitore, Prodotto, Dipartimento, Quantità)
+FK: …
+Nome PartitaIVA Genere CodiceQuantità
+Nome
+Telefono
+(0,N) (1,N)
+(1,N)
+FORNITORE PRODOTTO
+DIPARTIMENTO
+FORNITURA
+
+===== PAGE 53 =====
+
+53
+Associazioni uno a molti (1)
+GIOCATORI(Cognome, DataNascita, Ruolo)
+SQUADRE(Nome, Città, ColoriSociali)
+CONTRATTI(CognomeGiocatore, DataNascitaGiocatore, Squadra, Ingaggio)
+FK: (CognomeGiocatore, DataNascitaGiocatore) REFERENCES Giocatori
+FK: Squadra REFERENCES Squadre
+Il Nome della Squadra non fa parte della chiave di Contratto (perché?)
+Cognome DataNascita Città NomeIngaggio
+(1,1) (0,N)
+Ruolo ColoriSociali
+GIOCATORE SQUADRACONTRATTO
+
+===== PAGE 54 =====
+
+54
+ Poiché un giocatore ha un contratto con una sola squadra, nella
+relazione Contratto un giocatore non può apparire in più tuple.
+ Si può pertanto adottare anche una soluzione più compatta, che fa
+uso di 2 sole relazioni:
+GIOCATORI(Cognome, DataNascita, Ruolo, Squadra, Ingaggio)
+FK: Squadra REFERENCES Squadre
+SQUADRE(Nome, Città, ColoriSociali)
+che corrisponde a tradurre l’associazione insieme a Giocatore
+(ovvero all’entità che partecipa con cardinalità massima 1).
+ Se fosse min-card(Giocatore,Contratto) = 0, allora gli attributi
+Squadra e Ingaggio dovrebbero entrambi ammettere valore nullo (e
+per un giocatore o lo sono entrambi o non lo è nessuno dei due).
+Associazioni uno a molti (2)
+
+===== PAGE 55 =====
+
+55
+ In questo caso è possibile
+operare una traduzione
+con 1 o 2 relazioni.
+Associazioni ad anello uno a molti
+1 relazione:
+IMPIEGATI(Codice, Nome, Cognome, Qualifica, Responsabile*)
+FK: Responsabile REFERENCES Impiegati
+2 relazioni:
+IMPIEGATI(Codice, Nome, Cognome, Qualifica)
+DIPENDENZE(Dipendente, Responsabile)
+FK: Dipendente REFERENCES Impiegati 
+FK: Responsabile REFERENCES Impiegati
+Responsabile Dipendente
+Qualifica
+Nome
+Codice
+(0,N) (0,1)
+DIPENDENZA
+IMPIEGATO
+Cognome
+
+===== PAGE 56 =====
+
+56
+ Nel caso di entità identificata esternamente, si “importa”
+l’identificatore della/e entità identificante/i.
+ L’associazione relativa risulta automaticamente tradotta.
+Entità con identificazione esterna
+STUDENTI(Matricola, Università, Cognome, Nome, AnnoDiCorso)
+FK: Università REFERENCES Università
+UNIVERSITÀ(Nome, Città, Indirizzo)
+Cognome Matricola
+AnnoDiCorso
+Nome
+Indirizzo
+(1,1)
+(1,N)
+Città
+ISCRIZIONESTUDENTE UNIVERSITÀ
+Nome
+
+===== PAGE 57 =====
+
+57
+ Nel caso generale, si possono avere identificazioni esterne in cascata.
+ Per operare correttamente occorre partire dalle entità non
+identificate esternamente e propagare gli identificatori che così si
+ottengono.
+Identificazioni esterne: una precisazione
+DenominazioneNome Cognome Indirizzo
+STUDENTE ISCRIZIONE CORSO
+DI LAUREA
+Matricola
+(1,1) (0,N) UNIVERSITÀDI(1,1) (1,N)
+Codice
+Nome
+UNIVERSITÀ(Nome, Indirizzo)
+CORSIDILAUREA(Università, Codice, Denominazione)
+STUDENTI(Università, CodiceCdL, Matricola, Cognome, Nome)
+FK:….
+
+
+===== PAGE 58 =====
+
+58
+ Si hanno a disposizione varie possibilità (traduzione con 1, 2 o
+3 relazioni)
+Associazioni uno a uno (1)
+Tre relazioni:
+DIRETTORI(Codice, Nome, Cognome, Stipendio)
+DIPARTIMENTI(Nome, Sede, Telefono)
+DIREZIONI(Direttore, Dipartimento, DataInizio)
+FK:…
+Unique(Dipartimento)
+L’identificatore di una delle due
+entità è scelto come chiave
+primaria, l’altro dà origine a una
+chiave alternativa.
+La scelta dipende dall’importanza 
+relativa delle chiavi.
+Cognome Codice Sede NomeDataInizio
+(1,1) (1,1)
+Stipendio Telefono
+DIRETTORE DIPARTIMENTODIREZIONE
+Nome
+
+===== PAGE 59 =====
+
+59
+Associazioni uno a uno (2)
+Due relazioni:
+DIRETTORI(Codice, Nome, Cognome, Stipendio, Dipartimento, DataInizio)
+FK: Dipartimento REFERENCES Dipartimenti
+Unique(Dipartimento)
+DIPARTIMENTI(Nome, Sede, Telefono)
+oppure
+DIRETTORI(Codice, Nome, Cognome, Stipendio)
+DIPARTIMENTI(Nome, Sede, Telefono, Direttore, DataInizio) 
+FK: Direttore REFERENCES Direttori
+Unique(Direttore)
+CognomeCodice Sede NomeDataInizio
+(1,1) (1,1)
+Stipendio Telefono
+DIRETTORE DIPARTIMENTODIREZIONE
+Nome
+
+===== PAGE 60 =====
+
+60
+Associazioni uno a uno (3)
+Una relazione:
+DIRETTORI(Codice, Nome, Cognome, Stipendio, DataInizio, Dipartimento, Sede,
+Telefono)
+Unique(Dipartimento)
+oppure
+DIPARTIMENTI(Nome, Sede, Telefono, Direttore, NomeDirettore, CognomeDirettore,
+Stipendio, DataInizio)
+Unique(Direttore)
+CognomeCodice Sede NomeDataInizio
+(1,1) (1,1)
+Stipendio Telefono
+DIRETTORE DIPARTIMENTODIREZIONE
+Nome
+
+===== PAGE 61 =====
+
+61
+ Se min-card(E,R)=0, tradurre l’associazione R inglobandola in E non è in
+generale una buona scelta (dipende dai volumi dei dati in gioco).
+Associazioni uno a uno con opzionalità (1)
+IMPIEGATI(Codice, Nome, Cognome, Stipendio, Dipartimento*, DataInizio*)
+FK: Dipartimento REFERENCES Dipartimenti
+Unique(Dipartimento)
+CHECK (((Dipartimento IS NOT NULL) AND (DataInizio IS NOT NULL)) OR
+((Dipartimento IS NULL) AND (DataInizio IS NULL))) 
+DIPARTIMENTI(Nome, Sede, Telefono)
+TROPPI VALORI NULLI!
+CognomeCodice Sede NomeDataInizio
+(0,1) (1,1)
+Stipendio Telefono
+IMPIEGATO DIPARTIMENTODIREZIONE
+Nome
+
+===== PAGE 62 =====
+
+62
+ La traduzione con una sola relazione corrisponde a un accorpamento di entità:
+ Se min-card(E1,R) = min-card(E2,R) = 1 si avranno due chiavi, entrambe
+senza valori nulli (la chiave primaria è “la più importante”);
+ Se min-card(E1,R) = 0 e min-card(E2,R) =1 la chiave derivante da E2
+ammetterà valori nulli, e la chiave primaria si ottiene da E1;
+ Se min-card(E1,R) = min-card(E2,R) = 0 entrambe le chiavi hanno valori
+nulli, quindi si rende necessario introdurre un codice.
+IMP_DIP(CodiceImpDip, CodiceImp*, …, Dipartimento*, …, DataInizio*)
+Cognome Codice Sede NomeDataInizio
+(0,1) (0,1)
+Stipendio Telefono
+IMPIEGATO DIPARTIMENTODIREZIONE
+Nome
+Associazioni uno a uno con opzionalità (2)
+
+===== PAGE 63 =====
+
+63
+ In questo caso è possibile operare
+una traduzione con una o due
+relazioni.
+ La traduzione con una relazione è
+ancora problematica se entrambe le
+partecipazioni sono opzionali.
+Associazioni ad anello uno a uno
+Una relazione:
+PERSONE(Codice, CFUomo*, NomeUomo*, CFDonna*, NomeDonna*)
+Due relazioni:
+PERSONE(CF, Nome)
+MATRIMONI(Marito, Moglie)
+FK: Marito REFERENCES Persone 
+FK: Moglie REFERENCES Persone
+Unique(Moglie)
+Marito Moglie
+Nome CF
+(0,1) (0,1)
+MATRIMONIO
+PERSONA
+
+===== PAGE 64 =====
+
+64
+Esempio di riferimento
+Nome
+Città
+Telefono
+Nome
+Cognome
+Budget
+Data
+Via
+CAP
+(1,1)(0,1)
+(1,N)(0,1)
+(0,1)
+(1,1)
+(1,N)
+(0,N)
+(1,N)
+(1,N)
+Codice
+Indirizzo
+DIPARTIMENTO
+COMPOSIZIONE
+SEDE
+DIREZIONE
+AFFERENZA
+IMPIEGATO
+PROGETTO
+PARTECIPAZIONE
+DataConsegna
+Nome
+
+===== PAGE 65 =====
+
+Numero
+(1,N)
+(1,1)
+CittàNome
+Budget
+Data
+Via
+CAP
+(1,1)(0,1)
+(1,N)(0,1)
+(0,1)
+(1,1)
+(1,N)
+(0,N)
+(1,N)
+Indirizzo
+DIPARTIMENTO
+COMPOSIZIONE
+SEDE
+DIREZIONE
+AFFERENZA
+IMPIEGATO
+PROGETTO
+PARTECIPAZIONE
+TELEFONO
+RECAPITO
+Ristrutturazione
+Nome
+Cognome
+Codice
+Nome
+DataConsegna
+69
+
+===== PAGE 66 =====
+
+66
+Schema logico relazionale
+ Per le entità E che partecipano ad associazioni sempre con
+max-card(E,R) = n la traduzione è immediata:
+SEDI(Città, Via, CAP)
+PROGETTI(Nome, Budget, DataConsegna)
+ Anche l’associazione Partecipazione si traduce immediatamente:
+PARTECIPAZIONI(Impiegato, Progetto)
+FK: Impiegato REFERENCES Impiegati
+FK: Progetto REFERENCES Progetti
+ L’entità Dipartimento si traduce importando l’identificatore di Sede e inglobando
+l’associazione Direzione:
+DIPARTIMENTI(Nome, Città, Direttore)
+FK: Città REFERENCES Sedi
+FK: Direttore REFERENCES Impiegati
+ L’entità Telefono si traduce con una relazione che ingloba l’associazione Recapito
+TELEFONI(Numero, Nome, Città)
+FK: Nome, Città REFERENCES Dipartimenti
+ Per tradurre l’associazione Afferenza, assumendo che siano pochi gli impiegati che non
+afferiscono a nessun dipartimento, si opta per una rappresentazione compatta
+IMPIEGATI(Codice, Nome, Cognome, NomeDip*, CittàDip*, Data*)
+FK: NomeDip, CittàDip REFERENCES Dipartimenti
+
+===== PAGE 67 =====
+
+67
+Osservazioni finali
+ La progettazione logica, pur potendosi avvalere di strumenti CASE
+(Computer Aided Software Engineering), non deve essere condotta “alla
+cieca”; nel caso in cui vi siano varie alternative occorre valutare diversi
+fattori, tra cui:
+ la presenza o meno di valori nulli, e la loro incidenza, che dipende dal
+volume dei dati;
+ le porzioni di schema E/R interessate dalle varie operazioni (con
+particolare riferimento ai join tra le relazioni che vengono create);
+ la flessibilità degli schemi relazionali rispetto ad evoluzioni future.
+ I casi visti (semplici esempi a scopo didattico) non esauriscono certamente
+l’argomento e lasciano sempre spazio per soluzioni specifiche ad hoc.
+ Ad esempio, associazioni uno a molti con max-card(E2,R) = K, con K
+“piccolo”, possono al limite essere tradotte con 1 sola relazione,
+prevedendo K repliche degli attributi di E2 (es. tipico: numeri di telefono).
+
+===== PAGE 68 =====
+
+68
+Domande?

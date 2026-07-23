@@ -21,18 +21,19 @@ model Account {
 }
 
 model Employee {
-  id          Int      @default(autoincrement())
-  taxCode     String   @unique @map("codice_fiscale")
-  name        String   @map("nome")
-  surname     String   @map("cognome")
-  birthDate   DateTime @map("data_nascita")
-  street      String   @map("via")
-  houseNumber String   @map("civico")
-  city        String   @map("città")
-  province    String   @map("provincia")
-  phoneNumber String   @map("telefono")
-  email       String
-  hiringDate  DateTime @default(now()) @map("data_assunzione")
+  id              Int      @default(autoincrement())
+  taxCode         String   @unique @map("codice_fiscale")
+  name            String   @map("nome")
+  surname         String   @map("cognome")
+  birthDate       DateTime @map("data_nascita")
+  street          String   @map("via")
+  houseNumber     String   @map("civico")
+  city            String   @map("città")
+  province        String   @map("provincia")
+  phoneNumber     String   @map("telefono")
+  email           String
+  hiringDate      DateTime @default(now()) @map("data_assunzione")
+  profilePhotoUrl String?  @map("foto_profilo")
 
   account   Account?
   contracts Contract[]
@@ -46,7 +47,7 @@ model Employee {
 model Contract {
   employeeId   Int          @map("id_dipendente")
   type         ContractType @map("tipo")
-  hourlyFee    Float        @map("costo_orario")
+  hourlyFee    Decimal      @map("costo_orario") @db.Decimal(10, 2)
   startingDate DateTime     @map("data_inizio")
   endingDate   DateTime?    @map("data_fine")
 
@@ -116,7 +117,7 @@ model Intervention {
 model Payment {
   id     Int         @default(autoincrement())
   date   DateTime    @default(now()) @map("data")
-  amount Float       @map("importo")
+  amount Decimal     @map("importo") @db.Decimal(10, 2)
   type   PaymentType @map("tipo")
 
   intervention Intervention?
@@ -129,48 +130,52 @@ model Payment {
 }
 
 model Client {
-  id                 Int      @default(autoincrement())
-  taxCode            String   @unique @map("codice_fiscale")
-  name               String   @map("nome")
-  surname            String   @map("cognome")
-  birthDate          DateTime @map("data_nascita")
-  street             String   @map("via")
-  houseNumber        String   @map("civico")
-  city               String   @map("città")
-  province           String   @map("provincia")
-  phoneNumber        String   @map("telefono")
-  email              String
-  enrollmentDate     DateTime @default(now()) @map("data_iscrizione")
-  remainingEntrances Int      @map("ingressi_rimanenti")
+  id             Int      @default(autoincrement())
+  taxCode        String   @unique @map("codice_fiscale")
+  name           String   @map("nome")
+  surname        String   @map("cognome")
+  birthDate      DateTime @map("data_nascita")
+  street         String   @map("via")
+  houseNumber    String   @map("civico")
+  city           String   @map("città")
+  province       String   @map("provincia")
+  phoneNumber    String   @map("telefono")
+  email          String
+  enrollmentDate DateTime @default(now()) @map("data_iscrizione")
 
   purchase Purchase[]
-  entrance Entrance[]
 
   @@id([id])
   @@map("clienti")
 }
 
 model Entrance {
-  clientId Int      @map("id_cliente")
-  date     DateTime @default(now()) @map("data")
+  id         Int      @default(autoincrement())
+  date       DateTime @default(now()) @map("data")
+  purchaseId Int      @map("id_acquisto")
 
-  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
 
-  @@id([clientId, date])
+  @@id([id])
   @@map("ingressi")
 }
 
 model Purchase {
-  clientId    Int          @map("id_cliente")
-  date        DateTime     @default(now()) @map("data")
-  amount      Float        @map("importo")
-  type        PurchaseType @map("tipo")
-  productCode String       @map("codice_prodotto")
+  id                 Int      @default(autoincrement())
+  clientId           Int      @map("id_cliente")
+  date               DateTime @default(now()) @map("data")
+  amount             Decimal  @map("importo") @db.Decimal(10, 2)
+  productCode        String   @map("codice_prodotto")
+  /// Snapshot durata Abbonamento alla vendita; null se Pacchetto.
+  membershipDuration Int?     @map("durata_abbonamento")
+  /// Snapshot N ingressi Pacchetto alla vendita; null se Abbonamento.
+  entranceNumber     Int?     @map("numero_ingressi")
 
-  client   Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  prodotto Product @relation(fields: [productCode], references: [code], onDelete: Cascade)
+  client    Client     @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  prodotto  Product    @relation(fields: [productCode], references: [code], onDelete: Restrict)
+  entrances Entrance[]
 
-  @@id([clientId, date])
+  @@id([id])
   @@map("acquisti")
 }
 
@@ -207,14 +212,13 @@ model EntranceSet {
 }
 
 model Catalog {
-  year        Int          @map("anno")
-  type        PurchaseType @map("tipo")
-  productCode String       @map("codice_prodotto")
-  price       Float        @map("prezzo")
+  year        Int     @map("anno")
+  productCode String  @map("codice_prodotto")
+  price       Decimal @map("prezzo") @db.Decimal(10, 2)
 
   product Product @relation(fields: [productCode], references: [code], onDelete: Cascade)
 
-  @@id([year, type, productCode])
+  @@id([year, productCode])
   @@map("listini")
 }
 

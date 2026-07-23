@@ -21,11 +21,21 @@ interface TableFacetedFilterProps<TData, TValue> {
 	options: {
 		label: string;
 		value: string;
+		count?: number;
 	}[];
+	/** When false, counts come from `options[].count` (server facets). Default true. */
+	useColumnFacets?: boolean;
 }
 
-export function TableFacetedFilter<TData, TValue>({ column, title, options }: TableFacetedFilterProps<TData, TValue>) {
-	const facets = column?.getFacetedUniqueValues() as Map<string, number>;
+export function TableFacetedFilter<TData, TValue>({
+	column,
+	title,
+	options,
+	useColumnFacets = true,
+}: TableFacetedFilterProps<TData, TValue>) {
+	const facets = useColumnFacets
+		? (column?.getFacetedUniqueValues() as Map<string, number> | undefined)
+		: undefined;
 	const selectedValues = new Set(column?.getFilterValue() as string[]);
 
 	return (
@@ -56,7 +66,7 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 										variant="secondary"
 										className="rounded-sm px-1 font-normal"
 									>
-										{selectedValues.size} selected
+										{selectedValues.size} selezionati
 									</Badge>
 								) : (
 									options
@@ -83,10 +93,13 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 				<Command>
 					<CommandInput placeholder={title} />
 					<CommandList>
-						<CommandEmpty>No results found.</CommandEmpty>
+						<CommandEmpty>Nessun risultato.</CommandEmpty>
 						<CommandGroup>
 							{options.map((option) => {
 								const isSelected = selectedValues.has(option.value);
+								const count = useColumnFacets
+									? facets?.get(option.value)
+									: option.count;
 								return (
 									<CommandItem
 										key={option.value}
@@ -108,13 +121,12 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 										>
 											<Check className={cn("h-4 w-4")} />
 										</div>
-										{/* {option.icon && <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />} */}
 										<span>{option.label}</span>
-										{facets?.get(option.value) && (
+										{count != null && count > 0 ? (
 											<span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
-												{facets.get(option.value)}
+												{count}
 											</span>
-										)}
+										) : null}
 									</CommandItem>
 								);
 							})}
@@ -127,7 +139,7 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 										onSelect={() => column?.setFilterValue(undefined)}
 										className="justify-center text-center"
 									>
-										Clear filters
+										Azzera filtri
 									</CommandItem>
 								</CommandGroup>
 							</>

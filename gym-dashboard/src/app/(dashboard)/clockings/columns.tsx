@@ -5,8 +5,10 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { formatDateTimeIt } from "@/lib/format";
 import { Clocking } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { LogIn, LogOut, UserRound } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -21,25 +23,38 @@ export const columns = (
 ): ColumnDef<Clocking>[] => [
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dipendente" icon={UserRound} />
+		),
 		cell: ({ row }) => {
-			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
+			return (
+				<div className="tabular-nums">{row.original.employeeId.toString().padStart(4, "0")}</div>
+			);
 		}
 	},
 	{
 		accessorKey: "entranceTime",
-		header: ({ column }) => <TableSortableHeader column={column} title="Entrance Time" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Entrata" icon={LogIn} />
+		),
 		cell: ({ row }) => {
-			const date = new Date(row.getValue("entranceTime"));
-			return <div className="font-medium">{date.toLocaleString()}</div>;
+			return (
+				<div className="font-medium">{formatDateTimeIt(row.getValue("entranceTime"))}</div>
+			);
 		}
 	},
 	{
 		accessorKey: "exitTime",
-		header: ({ column }) => <TableSortableHeader column={column} title="Exit Time" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Uscita" icon={LogOut} />
+		),
 		cell: ({ row }) => {
 			const date = row.getValue("exitTime");
-			return date ? <div className="font-medium">{new Date(date as Date).toLocaleString()}</div> : <div>-</div>;
+			return date ? (
+				<div className="font-medium">{formatDateTimeIt(date as Date)}</div>
+			) : (
+				<div className="text-muted-foreground">—</div>
+			);
 		}
 	},
 	{
@@ -48,13 +63,14 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Timbratura"
 				editFormContent={
 					<>
 						<FormField
 							name="employeeId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Employee ID</FormLabel>
+									<FormLabel>Dipendente</FormLabel>
 									<FormControl>
 										<Input type="number" {...field} disabled />
 									</FormControl>
@@ -66,8 +82,12 @@ export const columns = (
 							name="entranceTime"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Entrance Time</FormLabel>
-									<DateTimePicker field={field} onChange={(date) => field.onChange(date)} disabled={true} />
+									<FormLabel>Entrata</FormLabel>
+									<DateTimePicker
+										field={field}
+										onChange={(date) => field.onChange(date)}
+										disabled={true}
+									/>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -76,7 +96,7 @@ export const columns = (
 							name="exitTime"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Exit Time</FormLabel>
+									<FormLabel>Uscita</FormLabel>
 									<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 									<FormMessage />
 								</FormItem>
@@ -92,7 +112,10 @@ export const columns = (
 					await handleEdit(updatedClocking);
 				}}
 				deleteAction={() =>
-					handleDelete({ employeeId: row.original.employeeId, entranceTime: row.original.entranceTime })
+					handleDelete({
+						employeeId: row.original.employeeId,
+						entranceTime: row.original.entranceTime
+					})
 				}
 			/>
 		)

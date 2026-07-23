@@ -1,10 +1,11 @@
 "use client";
 
+import { NumericCell } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Membership } from "@prisma/client";
+import { type MembershipDTO } from "@/data-access/memberships";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -14,9 +15,9 @@ export const formSchema = z.object({
 });
 
 export const columns = (
-  handleDelete: (membership: Pick<Membership, "productCode">) => Promise<void>,
-  handleEdit: (membership: Membership) => Promise<void>
-): ColumnDef<Membership>[] => [
+  handleDelete: (membership: Pick<MembershipDTO, "productCode">) => Promise<void>,
+  handleEdit: (membership: MembershipDTO) => Promise<void>
+): ColumnDef<MembershipDTO>[] => [
   {
     accessorKey: "productCode",
     header: ({ column }) => (
@@ -32,7 +33,13 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Duration (days)"
+        align="right"
       />
+    ),
+    cell: ({ row }) => (
+      <NumericCell tooltip="Membership duration in days">
+        {row.getValue("duration") as number}
+      </NumericCell>
     ),
   },
   {
@@ -41,6 +48,7 @@ export const columns = (
       <ItemActions
         row={row}
         formSchema={formSchema}
+        entityLabel="membership"
         editFormContent={
           <>
             <FormField

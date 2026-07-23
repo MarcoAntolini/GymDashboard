@@ -1,0 +1,733 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Progettazione concettuale
+
+
+===== PAGE 2 =====
+
+2
+Fasi della progettazione di un DB: richiami
+ La fase di raccolta e analisi dei requisiti in 
+pratica è svolta congiuntamente alla 
+progettazione concettuale.
+ Attività principali:
+ costruzione di un glossario dei termini;
+ eliminazione delle ambiguità (sinonimie, 
+omonimie);
+ raggruppamento dei requisiti “omogenei”;
+ applicazione di metodi per la costruzione 
+di schemi E/R parziali e per la loro 
+integrazione in uno schema completo 
+finale;
+ costruzione di un dizionario dei dati e 
+documentazione delle regole aziendali 
+per i vincoli e per le derivazioni;
+ stesura di documentazione a corredo 
+dell’analisi dei dati. 
+Requisiti del
+Sistema Informativo
+Progettazione concettuale
+Progettazione logica
+Progettazione fisica
+SCHEMA LOGICO
+SCHEMA CONCETTUALE
+SCHEMA FISICO
+
+===== PAGE 3 =====
+
+3
+Raccolta dei requisiti
+ I requisiti devono innanzitutto essere acquisiti.
+ Le fonti possono essere molto diversificate tra loro:
+ utenti, attraverso:
+ interviste;
+ documenti di varia natura;
+ documentazione esistente:
+ normative (leggi, regolamenti di settore);
+ regolamenti interni, procedure aziendali;
+ realizzazioni preesistenti;
+ modulistica.
+ La raccolta dei requisiti è un’attività difficile e non standardizzabile;
+in genere procede di pari passo con la fase di analisi (la prima
+analisi stimola nuove domande, ecc.)
+
+===== PAGE 4 =====
+
+4
+Interagire con gli utenti
+ È un’attività da considerare con molta attenzione, in quanto:
+ utenti diversi possono fornire informazioni diverse con
+riferimento alla stesso tema;
+ utenti a livello più alto hanno spesso una visione più ampia ma
+meno dettagliata.
+ In generale, risulta utile:
+ effettuare spesso verifiche di comprensione e coerenza;
+ verificare anche per mezzo di esempi (generali e relativi a casi
+limite);
+ richiedere definizioni e classificazioni;
+ far evidenziare gli aspetti essenziali rispetto a quelli marginali.
+
+===== PAGE 5 =====
+
+5
+Requisiti: documentazione descrittiva
+ Regole generali:
+ scegliere il corretto livello di astrazione;
+ standardizzare la struttura delle frasi;
+ suddividere le frasi articolate;
+ separare le frasi sui dati da quelle sulle funzioni (operazioni).
+ Per evidenziare meglio i concetti che sono espressi nei requisiti è
+opportuno:
+ costruire un glossario dei termini;
+ individuare omonimi e sinonimi, e unificare i termini;
+ rendere esplicito il riferimento fra termini;
+ riorganizzare le frasi per concetti.
+
+===== PAGE 6 =====
+
+6
+Un esempio: società di formazione (1)
+ Si vuole realizzare una base di dati per una società che eroga
+corsi di formazione; si devono rappresentare le informazioni
+tipiche sui partecipanti ai corsi e sui docenti.
+ Per gli studenti (circa 5000), identificati da un codice, si vuole
+memorizzare il codice fiscale, il cognome, il nome, il sesso, il luogo
+di nascita, la data di nascita, il nome, l’indirizzo e il numero di
+telefono dei loro attuali datori di lavoro, i posti dove hanno
+lavorato in precedenza insieme al periodo, i corsi che hanno
+frequentato (i corsi sono in tutto circa 200) e il giudizio finale.
+ Si desidera inoltre rappresentare, per ciascun insegnamento che gli
+studenti stanno attualmente frequentando, i giorni e le ore di
+lezione nonché i luoghi dove si svolgono le lezioni.
+
+===== PAGE 7 =====
+
+7
+Un esempio: società di formazione (2)
+ I corsi hanno un codice, un titolo e possono avere varie edizioni
+caratterizzate ciascuna da una data di inizio, una data di fine e un
+numero di partecipanti.
+ Se gli studenti sono liberi professionisti si vuole conoscere l’area di
+interesse e, se lo possiedono, il titolo professionale. Per quelli che
+lavorano alle dipendenze di altri, vogliamo conoscere invece il
+livello e la posizione ricoperta.
+ Per gli insegnanti (circa 300), si vuole rappresentare il codice
+fiscale, il cognome, il nome, il sesso, la data di nascita, il posto dove
+sono nati, il nome del corso che insegnano, quelli che hanno
+insegnato nel passato e quelli che possono insegnare. Si vogliono
+memorizzare inoltre tutti i loro recapiti telefonici. I docenti possono
+essere dipendenti interni della società o collaboratori esterni.
+
+===== PAGE 8 =====
+
+8
+Glossario dei termini, omonimie e sinonimie
+ Raramente i requisisti espressi in linguaggio naturale sono
+privi di ambiguità. È infatti frequente il caso di:
+ omonimie: lo stesso termine viene usato per descrivere concetti
+differenti (esempi: libro e copia di libro, posto: di lavoro e
+geografico);
+ sinonimie: termini diversi vengono usati per descrivere lo stesso
+concetto (esempio: studente e partecipante).
+ Un modo conveniente per rappresentare sinteticamente i
+concetti più rilevanti emersi dall’analisi è il glossario dei
+termini, il cui scopo è fornire per ogni concetto rilevante:
+ una breve descrizione del concetto;
+ eventuali sinonimi;
+ relazioni con altri concetti del glossario stesso.
+
+===== PAGE 9 =====
+
+9
+Glossario dei termini: esempio
+Termine Descrizione Sinonimi Collegamenti
+Partecipante Persona che partecipa ai
+corsi. Può essere un
+dipendente o un libero
+professionista.
+Studente Corso, Datore
+Docente Docente dei corsi. Può
+essere un collaboratore
+esterno.
+Insegnante Corso
+Corso Corso organizzato dalla
+società. Può avere più
+edizioni.
+Insegnamento Docente, 
+Partecipante
+Datore Datore di lavoro attuale o
+passato di un partecipante
+ai corsi.
+Posto di lavoro Partecipante
+…………………………………………………………………………………………..…………………………………………………………………………………………..
+
+===== PAGE 10 =====
+
+10
+Tabella delle operazioni
+ Le specifiche dei requisiti riguardano anche le operazioni da effettuare sui
+dati e la frequenza con cui devono essere eseguite. È opportuno utilizzare
+la stessa terminologia per i concetti e far riferimento al glossario dei dati.
+ Queste informazioni sono rilevanti per la fase di progettazione logica e
+devono essere organizzate opportunamente. Ad esempio:
+Operazione Frequenza media
+(numero di volte al giorno)
+Inserimento di un nuovo partecipante 40
+Iscrizione di un partecipante a un’edizione di un corso 50
+Inserimento di un nuovo docente con indicazione dei corsi per i 
+quali può svolgere docenza
+2
+…………. …
+
+===== PAGE 11 =====
+
+11
+Ristrutturazione dei requisiti
+ Oltre a costruire il glossario, per semplificare le analisi 
+successive, è utile riformulare i requisiti, cioè:
+ eliminare le omonimie;
+ usare un termine univoco per ogni concetto;
+ riorganizzare le frasi raggruppandole in base al concetto a 
+cui si riferiscono.
+Nell’esempio:
+ frasi di carattere generale;
+ frasi riferite ai partecipanti;
+ frasi riferite ai docenti;
+ frasi riferite ai corsi;
+ frasi riferite ai datori di lavoro.
+
+===== PAGE 12 =====
+
+12
+Esempio: ristrutturazione dei requisiti (1)
+ Frasi di carattere generale
+ Si vuole realizzare una base di dati per una società che eroga corsi di 
+formazione; si devono rappresentare informazioni sui corsi erogati in diverse 
+edizioni, sui docenti, sui partecipanti e sui loro datori di lavoro attuali e passati.
+ Frasi sui partecipanti
+ Per i partecipanti (circa 5000), identificati da un codice, rappresentiamo il 
+codice fiscale, il cognome, il nome, la data di nascita, il sesso, la città di nascita, i 
+nomi dei loro attuali datori di lavoro e di quelli precedenti (insieme alle date di 
+inizio e fine rapporto), le edizioni dei corsi che stanno attualmente frequentando 
+e quelli che hanno frequentato nel passato, con la relativa votazione finale in 
+decimi.
+ Frasi su tipologie di partecipanti
+ Per i partecipanti che sono liberi professionisti, rappresentiamo l’area di 
+interesse e, se lo possiedono, il titolo professionale. Per i partecipanti che sono 
+dipendenti, rappresentiamo invece il livello e la posizione ricoperta.
+
+===== PAGE 13 =====
+
+13
+Esempio: ristrutturazione dei requisiti (2)
+ Frasi sui datori di lavoro
+ Relativamente ai datori di lavoro attuali e passati dei partecipanti 
+rappresentiamo il nome, l’indirizzo, la città e il numero di telefono.
+ Frasi sui corsi
+ Per i corsi (circa 200), rappresentiamo il titolo e il codice, le varie edizioni con 
+date di inizio e fine e, per ogni edizione, rappresentiamo il numero di 
+partecipanti e i giorni e le ore di lezione nonché i luoghi dove si svolgono le 
+lezioni.
+ Frasi sui docenti
+ Per i docenti (circa 300), rappresentiamo  il codice fiscale, il nome, il cognome, il 
+sesso, la data di nascita, la città di nascita, uno o più numeri di telefono, il titolo 
+del corso che insegnano, di quelli che hanno insegnato nel passato e di quelli che 
+possono insegnare. I docenti possono essere dipendenti interni della società di 
+formazione o collaboratori esterni. 
+
+===== PAGE 14 =====
+
+14
+Dai concetti allo schema E/R
+ Si deve sempre ricordare che un concetto non è di per sé 
+un’entità, un’associazione, un attributo, o altro; dipende dal 
+contesto!
+ Come regole guida, un concetto sarà rappresentato come:
+ entità
+ se ha proprietà significative e descrive oggetti con esistenza 
+autonoma;
+ attributo
+ se è semplice (o composto) e non ha proprietà;
+ associazione
+ se correla due o più concetti;
+ generalizzazione/specializzazione
+ se generalizza altri concetti/se è una specializzazione di un altro 
+concetto.
+…e non si tratta di entità
+
+===== PAGE 15 =====
+
+15
+Strategie di progettazione
+ Per affrontare progetti complessi è opportuno adottare uno 
+specifico modo di procedere, ovvero una strategia di 
+progettazione.
+ Strategia top-down
+ Si parte da uno schema iniziale molto astratto ma completo, che viene 
+successivamente raffinato fino ad arrivare allo schema finale.
+ Strategia bottom-up
+ Si suddividono le specifiche in modo da sviluppare semplici schemi 
+parziali ma dettagliati, che poi vengono integrati tra loro.
+ Strategia inside-out
+ Lo schema si sviluppa “a macchia d’olio”, partendo dai concetti più 
+importanti, aggiungendo quelli a essi correlati, e così via.
+ È un caso particolare della strategia bottom-up, in cui il raffinamento 
+inizia dai concetti principali per poi estendersi a quelli più lontani 
+attraverso una “navigazione” delle specifiche.
+
+===== PAGE 16 =====
+
+16
+Specifiche
+ Schema iniziale
+ Schema intermedio
+Schema finale
+Raffinamenti 
+schema
+intermedio
+Strategia top-down
+
+===== PAGE 17 =====
+
+17
+PARTECIPAZIONE DOCENZA
+PARTECIPANTE DOCENTE
+CORSO
+Schema scheletro
+
+===== PAGE 18 =====
+
+18
+Primitive di raffinamento top-down (1)
+ Entità  Gerarchia di entità
+PARTECIPANTE
+PARTECIPANTE
+DIPENDENTE PROFESSIONISTA
+
+===== PAGE 19 =====
+
+19
+Primitive di raffinamento top-down (2)
+ATTIVAZIONECORSO EDIZIONE CORSOCORSO
+ Entità  Entità e associazioni 
+PARTECIPANTE
+Cognome NomeCodice CF
+CittàNascita
+DataNascita
+PARTECIPANTE
+Sesso
+ Entità  Entità e attributi 
+
+===== PAGE 20 =====
+
+20
+Primitive di raffinamento top-down (3)
+ Associazioni  Più associazioni
+IMPIEGODATORE PARTECIPANTE
+IMPIEGO
+PASSATO
+IMPIEGO
+CORRENTE
+DATORE PARTECIPANTE
+DOCENZA
+DOCENTE
+CORSO
+DOCENTE
+DOCENZA
+ATTIVAZIONE EDIZIONE CORSOCORSO
+ABILITAZIONE
+ Associazioni  Entità e associazioni
+
+===== PAGE 21 =====
+
+21
+Specifiche
+Specifiche 2
+Specifiche 1
+Schema 1,1
+ Schema 1,2
+Schema 2,1
+ Schema 2,2
+Specifiche 1,1
+ Specifiche 1,2
+Specifiche 2,1
+ Specifiche 2,2
+Schema finale
+…… ……
+……
+Strategia bottom-up
+
+===== PAGE 22 =====
+
+22
+Primitive di raffinamento bottom-up (1)
+ Specifiche su concetto  Nuova entità 
+…per i partecipanti (circa
+5000), identificati da un
+codice, rappresentiamo il
+codice fiscale, il nome, il
+cognome, la data di
+nascita, il sesso, la città di
+nascita …
+specifica sui 
+partecipanti
+PARTECIPANTE
+
+===== PAGE 23 =====
+
+23
+Primitive di raffinamento bottom-up (2)
+ Entità isolate  Associazioni tra le entità
+PARTECIPAZIONE
+PARTECIPANTE
+EDIZIONE CORSO
+EDIZIONE CORSOPARTECIPANTE
+PARTECIPANTE
+DOCENTE
+PARTECIPANTE DOCENTE
+PERSONA
+ Entità isolate  Gerarchia di generalizzazione 
+
+===== PAGE 24 =====
+
+24
+CORSO
+EDIZIONE
+CORSO
+ATTIVAZIONE
+LEZIONEORARIO
+DOCENTEABILITAZIONE
+COLLABORATORE INTERNO
+DOCENZA
+PARTECIPAZIONE
+PARTECIPANTE
+DIPENDENTE PROFESSIONISTA
+IMPIEGO
+PASSATO
+DATOREIMPIEGO
+CORRENTE
+Strategia inside-out
+
+===== PAGE 25 =====
+
+25
+Strategie: pro e contro
+Top-down
++ non è inizialmente necessario specificare i dettagli;
+- richiede sin dall’inizio una visione globale del problema, non
+sempre ottenibile in casi complessi.
+Bottom-up
++ permette una ripartizione delle attività;
+- richiede una fase d’integrazione.
+Inside-out
++ non richiede passi di integrazione;
+- richiede a ogni passo di esaminare tutte le specifiche per
+trovare i concetti non ancora rappresentati.
+
+===== PAGE 26 =====
+
+26
+Un approccio “misto”
+ Nella pratica si fa spesso uso di una strategia
+ibrida:
+1. si individuano i concetti principali e si realizza uno
+schema scheletro, che rappresenta solamente i
+concetti più importanti;
+2. sulla base dello schema scheletro si può decomporre;
+3. successivamente si raffina, si espande, si integra.
+ … esaminiamo l’applicazione della strategia ibrida
+nel caso della società di formazione…
+
+===== PAGE 27 =====
+
+27
+PARTECIPAZIONE DOCENZA
+PARTECIPANTE DOCENTE
+CORSO
+Schema scheletro
+
+===== PAGE 28 =====
+
+28
+I partecipanti… 
+ Per i partecipanti (circa 5000), identificati da un codice,
+rappresentiamo il codice fiscale, il nome, il cognome, la data di
+nascita, il sesso, la città di nascita…
+Cognome NomeCodice CF
+CittàNascita
+DataNascita
+PARTECIPANTE
+Sesso
+
+===== PAGE 29 =====
+
+29
+Raffinamento di partecipante
+ Per i partecipanti che sono liberi professionisti,
+rappresentiamo l’area di interesse e, se lo possiedono, il titolo
+professionale. Per i partecipanti che sono dipendenti,
+rappresentiamo invece il livello e la posizione ricoperta.
+DIPENDENTE PROFESSIONISTA AreaInteresse
+TitoloProfessionale
+Livello
+Posizione
+(t,s)
+Cognome NomeCodice CF
+CittàNascita
+DataNascita
+PARTECIPANTE
+Sesso
+(0,1)
+
+===== PAGE 30 =====
+
+30
+I datori di lavoro…
+ Relativamente ai datori di lavoro presenti e passati dei
+partecipanti rappresentiamo il nome, l’indirizzo, la città e il
+numero di telefono. Per ciascun partecipante memorizziamo il
+nome dell’attuale datore di lavoro e di quelli precedenti
+(insieme alle date di inizio e fine rapporto).
+NomeCodice
+Città
+Indirizzo
+DATORE
+NumTel
+
+===== PAGE 31 =====
+
+31
+Raffinamento di datore di lavoro
+NomeCodice
+Città
+Indirizzo
+DATORE
+NumTel
+IMPIEGO
+PASSATO
+IMPIEGO
+CORRENTE
+(0,N)
+(0,N)
+(1,1)
+(0,N)
+DataInizio
+DataInizio
+DataFine
+DIPENDENTE PROFESSIONISTA AreaInteresse
+TitoloProfessionale
+Livello
+Posizione
+(t,s)
+Cognome NomeCodice CF
+DataNascita
+PARTECIPANTE
+Sesso
+CittàNascita
+(0,1)
+
+===== PAGE 32 =====
+
+32
+I corsi…
+ Per i corsi (circa 200), rappresentiamo il titolo e il codice, le
+varie edizioni con date di inizio e fine e, per ogni edizione,
+rappresentiamo il numero di partecipanti e i giorni e le ore
+di lezione nonché i luoghi dove si svolgono le lezioni.
+TitoloCodice
+CORSO
+
+===== PAGE 33 =====
+
+33
+Titolo Codice
+CORSO
+DataFineDataInizio
+EDIZIONE
+ATTIVAZIONE
+NumPartecipanti
+(0,N)
+(1,1)
+Orario Aula
+LEZIONE
+ORARIO
+(1,1)
+(0,N)
+Giorno
+Raffinamento di corso
+
+===== PAGE 34 =====
+
+34
+I docenti…
+ Per i docenti (circa 300), rappresentiamo il codice fiscale, il
+nome, il cognome, il sesso, la data di nascita, la città di nascita
+e uno o più numeri di telefono. I docenti possono essere
+dipendenti interni della società di formazione o collaboratori
+esterni.
+CittàNascita
+CF
+Cognome
+Sesso
+Telefono (1,N)
+DOCENTEDataNascita Nome
+
+===== PAGE 35 =====
+
+35
+COLLABORATORE INTERNO
+CittàNascita
+CF
+Cognome
+Sesso
+Telefono (1,N)
+DOCENTEDataNascita Nome
+(t,e)
+Raffinamento di Docente
+
+===== PAGE 36 =====
+
+36
+PARTECIPAZIONE DOCENZA
+PARTECIPANTE DOCENTE
+CORSO
+Integrazione: schema di riferimento
+
+===== PAGE 37 =====
+
+37
+Per i partecipanti si memorizzano le edizioni dei corsi che
+stanno attualmente frequentando e le edizioni di quelli che
+hanno frequentato nel passato, con la relativa votazione
+finale in decimi.
+PARTECIPAZIONE EDIZIONE CORSOPARTECIPANTE (0,N) (0,N)
+VotoFinale(0,1)
+Integrazione: partecipante e corso
+
+===== PAGE 38 =====
+
+38
+Integrazione: docente e corso
+Per i docenti si memorizzano il titolo del corso che insegnano, di
+quelli che hanno insegnato nel passato e di quelli che possono
+insegnare.
+Titolo Codice
+CORSO
+DataFineDataInizio
+EDIZIONE
+ATTIVAZIONE
+NumPartecipanti
+(0,N)
+(1,1)
+DOCENTE
+DOCENZA
+ABILITAZIONE
+(0,N)(0,1)
+(0,N) (1,N)
+Si assume che non possano partire edizioni diverse 
+dello stesso corso nella stessa data.
+
+===== PAGE 39 =====
+
+39
+IMPIEGO
+PASSATO
+DATORE
+IMPIEGO
+CORRENTE
+Codice Indirizzo
+CittàNome
+DataInizio
+DataFine
+Data inizio
+(1,1)
+(0,N) (0,N)
+NumTel
+(0,N)
+ORARIO
+Titolo Codice
+CORSO
+NumPartecipanti DataInizio
+EDIZIONE
+CORSO
+Orario Aula Giorno
+LEZIONE
+Cognome NomeCF
+Sesso
+DataNascita
+CittàNascitaPersona
+Posizione DIPENDENTELivello
+Codice
+PARTECIPANTE
+(t,s)
+Telefono
+(1,N)
+DOCENTE
+COLLABORATORE
+INTERNO
+(t,e)
+AreaInteresse
+TitoloProfessionale
+PROFESSIONISTA
+(0,1) (t,s)
+(0,N)
+DataFine
+ATTIVAZIONE
+(1,1) (1,1) (0,N)
+PARTECIPAZIONE
+(0,N)
+(0,N) DOCENZA ABILITAZIONE
+VotoFinale
+(0,1)
+(0,1)
+(0,N) (1,N)
+(0,N)
+Schema finale
+
+===== PAGE 40 =====
+
+40
+Qualità di uno schema concettuale
+ Lo schema E/R deve essere verificato accuratamente per accertarsi che
+risponda a requisiti di:
+ correttezza
+ non devono essere presenti errori né sintattici né semantici;
+ completezza
+ tutti i dati di interesse devono essere specificati;
+ leggibilità
+ riguarda anche aspetti prettamente estetici dello schema;
+ minimalità
+ è importante comprendere se esistono elementi ridondanti nello
+schema; in alcuni casi ciò non rappresenta un problema, ma può essere
+viceversa una scelta di progettazione volta a favorire l’esecuzione di
+certe operazioni.
+
+===== PAGE 41 =====
+
+41
+Metodologia basata sulla strategia mista
+Analisi dei requisiti
+ analizzare i requisiti ed eliminare le ambiguità;
+ costruire un glossario dei termini, raggruppare i requisiti. 
+Passo base
+ definire uno schema scheletro con i concetti più rilevanti. 
+Passo di decomposizione (se necessario o appropriato)
+ decomporre i requisiti con riferimento ai concetti nello schema
+scheletro.
+Passo iterativo (da ripetere finché non si è soddisfatti)
+ raffinare i concetti presenti sulla base delle loro specifiche;
+ aggiungere concetti per descrivere specifiche non descritte.
+Passo di integrazione (se si è decomposto)
+ integrare i vari sottoschemi in uno schema complessivo, facendo
+riferimento allo schema scheletro.
+Analisi di qualità (ripetuta e distribuita)
+ verificare la qualità dello schema e modificarlo.
+
+===== PAGE 42 =====
+
+42
+Domande?

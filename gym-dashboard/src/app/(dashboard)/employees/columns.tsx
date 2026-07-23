@@ -1,5 +1,7 @@
 "use client";
 
+import { ProfilePhotoField } from "@/components/profile-photo-field";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
@@ -28,7 +30,12 @@ export const formSchema = z.object({
 	phoneNumber: z.string(),
 	email: z.string(),
 	hiringDate: z.date(),
+	profilePhotoUrl: z.string().nullable().optional(),
 });
+
+function employeeInitials(employee: Pick<Employee, "name" | "surname">) {
+	return `${employee.name[0] ?? ""}${employee.surname[0] ?? ""}`.toUpperCase() || "?";
+}
 
 export const columns = (
 	handleDelete: (employee: Pick<Employee, "id">) => Promise<void>,
@@ -45,6 +52,27 @@ export const columns = (
 		cell: ({ row }) => {
 			return <div>{row.original.id.toString().padStart(4, "0")}</div>;
 		}
+	},
+	{
+		id: "profilePhoto",
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Foto" />
+		),
+		enableSorting: false,
+		cell: ({ row }) => {
+			const employee = row.original;
+			return (
+				<Avatar className="size-8">
+					{employee.profilePhotoUrl ? (
+						<AvatarImage
+							src={employee.profilePhotoUrl}
+							alt={`${employee.name} ${employee.surname}`}
+						/>
+					) : null}
+					<AvatarFallback className="text-xs">{employeeInitials(employee)}</AvatarFallback>
+				</Avatar>
+			);
+		},
 	},
 	{
 		accessorKey: "taxCode",
@@ -171,6 +199,10 @@ export const columns = (
 				formSchema={formSchema}
 				editFormContent={
 					<>
+						<ProfilePhotoField
+							fallbackName={row.original.name}
+							fallbackSurname={row.original.surname}
+						/>
 						<div className="grid grid-cols-2 gap-4">
 							<FormField
 								name="name"

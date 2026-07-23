@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { navRoutes } from "@/data/nav-routes";
 import {
 	AlarmSmoke,
 	BellElectric,
@@ -8,6 +8,7 @@ import {
 	FolderKanban,
 	HandCoins,
 	Handshake,
+	LayoutDashboard,
 	Lightbulb,
 	LucideIcon,
 	Package,
@@ -17,130 +18,55 @@ import {
 	TrendingUp,
 	UserRound,
 	UserRoundCog,
+	CircleUserRound,
 } from "lucide-react";
 
+const iconsByHref: Record<string, LucideIcon> = {
+	"/": LayoutDashboard,
+	"/profile": CircleUserRound,
+	"/accounts": UserRoundCog,
+	"/employees": BriefcaseBusiness,
+	"/contracts": ReceiptText,
+	"/clockings": BellElectric,
+	"/clients": UserRound,
+	"/entrances": DoorOpen,
+	"/products": ShoppingBasket,
+	"/memberships": Handshake,
+	"/entrance-sets": Package,
+	"/catalogs": FolderKanban,
+	"/payments": TrendingDown,
+	"/purchases": TrendingUp,
+	"/salaries": HandCoins,
+	"/equipment": Dumbbell,
+	"/bills": Lightbulb,
+	"/interventions": AlarmSmoke,
+};
+
+/** Keep in sync with section names on `navRoutes` (order = sidebar order). */
+const sectionOrder = ["Operazioni", "Listino", "Movimenti", "Uscite", "Personale"] as const;
+
 export const links: {
+	title: string;
 	group: {
 		title: string;
 		href: string;
-		requiredRole: Role;
+		requiredRole: "Admin" | "Employee";
 		icon: LucideIcon;
 	}[];
-}[] = [
-	{
-		group: [
-			{
-				title: "Accounts",
-				href: "/accounts",
-				requiredRole: "Admin",
-				icon: UserRoundCog,
-			},
-			{
-				title: "Employees",
-				href: "/employees",
-				requiredRole: "Admin",
-				icon: BriefcaseBusiness,
-			},
-			{
-				title: "Contracts",
-				href: "/contracts",
-				requiredRole: "Admin",
-				icon: ReceiptText,
-			},
-			{
-				title: "Clockings",
-				href: "/clockings",
-				requiredRole: "Admin",
-				icon: BellElectric,
-			},
-		],
-	},
-	{
-		group: [
-			{
-				title: "Salaries",
-				href: "/salaries",
-				requiredRole: "Admin",
-				icon: HandCoins,
-			},
-			{
-				title: "Equipment",
-				href: "/equipment",
-				requiredRole: "Employee",
-				icon: Dumbbell,
-			},
-			{
-				title: "Bills",
-				href: "/bills",
-				requiredRole: "Employee",
-				icon: Lightbulb,
-			},
-			{
-				title: "Interventions",
-				href: "/interventions",
-				requiredRole: "Employee",
-				icon: AlarmSmoke,
-			},
-		],
-	},
-	{
-		group: [
-			{
-				title: "Clients",
-				href: "/clients",
-				requiredRole: "Employee",
-				icon: UserRound,
-			},
-			{
-				title: "Entrances",
-				href: "/entrances",
-				requiredRole: "Employee",
-				icon: DoorOpen,
-			},
-			{
-				title: "Products",
-				href: "/products",
-				requiredRole: "Employee",
-				icon: ShoppingBasket,
-			},
-		],
-	},
-	{
-		group: [
-			{
-				title: "Memberships",
-				href: "/memberships",
-				requiredRole: "Employee",
-				icon: Handshake,
-			},
-			{
-				title: "Entrance Sets",
-				href: "/entrance-sets",
-				requiredRole: "Employee",
-				icon: Package,
-			},
-			{
-				title: "Catalogs",
-				href: "/catalogs",
-				requiredRole: "Employee",
-				icon: FolderKanban,
-			},
-		],
-	},
-	{
-		group: [
-			{
-				title: "Payments",
-				href: "/payments",
-				requiredRole: "Employee",
-				icon: TrendingDown,
-			},
-			{
-				title: "Purchases",
-				href: "/purchases",
-				requiredRole: "Employee",
-				icon: TrendingUp,
-			},
-		],
-	},
-];
+}[] = sectionOrder.map((section) => ({
+	title: section,
+	group: navRoutes
+		.filter((route) => route.section === section)
+		.map((route) => {
+			const icon = iconsByHref[route.href];
+			if (!icon) {
+				throw new Error(`Missing nav icon for ${route.href}`);
+			}
+			return {
+				title: route.title,
+				href: route.href,
+				requiredRole: route.requiredRole,
+				icon,
+			};
+		}),
+}));

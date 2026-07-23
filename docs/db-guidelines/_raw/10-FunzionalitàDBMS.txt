@@ -1,0 +1,876 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco
+Università di Bologna
+Funzionalità DBMS
+
+
+===== PAGE 2 =====
+
+2
+Il DBMS
+ Un DataBase Management System (DBMS) è un insieme di
+programmi che permettono agli utenti di definire, costruire,
+manipolare e condividere una base di dati.
+• Specificare i tipi 
+di dato
+• Descrivere la 
+struttura dei 
+dati
+• Descrivere i 
+vincoli
+• Immagazzinare 
+i dati in un 
+supporto di 
+memorizzazione 
+gestito dal 
+DBMS stesso
+• Interrogare il 
+database
+• Aggiornare i 
+dati
+• Consentire a più 
+utenti di 
+accedere in 
+modo 
+concorrente alla 
+stessa base di 
+dati
+
+===== PAGE 3 =====
+
+3
+Principali funzionalità di un DBMS
+ Un DBMS fornisce strumenti per:
+ Memorizzare i dati
+ supporto a uno o più modelli di dati
+ gestione efficiente di grandi quantità di dati persistenti e condivisi
+ Descrivere i dati
+▪ Uso di un catalogo (metadati: schemi, vincoli, struttura)
+ Usare i dati
+▪ viste multiple per utenti diversi;
+▪ linguaggi di alto livello per definizione dei dati, interrogazione e
+aggiornamento, amministrazione
+ Separare dati e programmi
+▪ indipendenza tra programmi e dati, tra dati e operazioni;
+ Garantire affidabilità
+▪ Controllo degli accessi
+▪ Controllo della concorrenza
+▪ Protezione da guasti (fault tolerance)
+
+===== PAGE 4 =====
+
+4
+Il modello logico dei dati
+ Dal punto di vista dell’utente, un database è una collezione di dati che rappresentano
+una certa porzione della realtà di interesse.
+ L’astrazione logica con cui i dati sono organizzati e resi disponibili definisce il modello
+dei dati.
+ Un modello dei dati è un insieme di concetti che permette di:
+ descrivere i dati,
+ rappresentare le associazioni tra essi,
+ specificare i vincoli che devono essere rispettati.
+ Un ruolo fondamentale è svolto dai meccanismi di strutturazione dei dati, che
+differenziano i vari modelli.
+ Esempi di modelli dei dati:
+ gerarchico (alberi),
+ reticolare (grafi),
+ a oggetti,
+ documenti (XML, JSON, BSON),
+ key–value, ecc.
+
+===== PAGE 5 =====
+
+5
+I modelli logici
+Relazionale
+Reticolare
+Gerarchico
+ Document
+Oggetti
+Diversi modelli dei dati ⇒ diverse strutture e compromessi
+
+===== PAGE 6 =====
+
+6
+Flessibilità del modello dati: un esempio
+ I sistemi NoSQL adottano modelli di dati molto differenti rispetto al modello
+relazionale, privilegiando la flessibilità.
+ Nel modello a documenti, le informazioni sono memorizzate in strutture
+auto-contenute (es. documenti JSON).
+ L’aggregazione dei dati nello stesso documento:
+o Aumenta le prestazioni (accesso diretto)
+o Riduce il numero di join
+o Introduce ridondanza e possibili inconsistenze.
+Document data model Relational data model
+
+===== PAGE 7 =====
+
+7
+Relational data model: esempio di schema
+Esempio di schema relazionale per la gestione di post.
+ I dati sono distribuiti su più relazioni
+ Le relazioni rappresentano entità e associazioni
+ I legami sono espressi tramite chiavi
+TAG_ID NAME
+TAGS
+POSTS_TAGS
+POST_ID TITLE SLUG BODY PUBLISHED CREATED UPDATED
+POSTS
+ID POST_ID AUTHOR EMAIL BODY CREATED
+COMMENTS
+POST_ID TAG_ID
+
+===== PAGE 8 =====
+
+8
+POSTS
+ID
+TITLE
+SLUG
+BODY
+PUBLISHED
+CREATED
+UPDATED
+COMMENTS
+AUTHOR
+EMAIL
+BODY
+CREATED
+TAGS
+Relational vs Document data model
+ Lo schema in MongoDB (DBMS NoSQL) per la gestione di post
+prevede:
+ embedding: nidificazione di oggetti e array all’interno di
+un documento;
+ linking: realizzazione di riferimenti tra documenti.
+Schema
+
+===== PAGE 9 =====
+
+9
+RDBMS, NoSQL, NewSQL
+ I diversi modelli dei dati sono alla base di famiglie di sistemi di gestione di basi
+di dati (DBMS) con obiettivi e compromessi differenti.
+ RDBMS (Relational DBMS)
+o Basati sul modello relazionale
+o Dati strutturati in tabelle
+o Linguaggio standard SQL
+o Forti garanzie transazionali (ACID)
+ NoSQL DBMS
+o Basati su modelli non relazionali (document, key-value, column, graph)
+o Progettati per scalabilità orizzontale
+o Elevata flessibilità dello schema
+o Garanzie di consistenza spesso rilassate rispetto agli RDBMS tradizionali
+ NewSQL / Distributed SQL
+o Mantengono il modello relazionale
+o Supportano SQL e proprietà ACID
+o Progettati per ambienti distribuiti e cloud
+o Uniscono consistenza e scalabilità
+
+===== PAGE 10 =====
+
+10
+Natura autodescrittiva di una base di dati
+ Un DBMS contiene non solo i dati, ma anche una descrizione
+completa della loro struttura e dei vincoli.
+ Questa descrizione è memorizzata nel catalogo del sistema.
+ Il catalogo contiene i metadati:
+o struttura di ciascun file, il tipo e il formato di memorizzazione di
+ogni dato, vincoli sui dati.
+ I metadati sono utilizzati dal DBMS e dagli utenti per conoscere
+l’organizzazione della base di dati.
+
+
+===== PAGE 11 =====
+
+11
+Il catalogo del DBMS
+Tabelle
+Attributi
+Indici
+
+===== PAGE 12 =====
+
+12
+Indipendenza fisica e logica
+Un obiettivo fondamentale di un DBMS è garantire l’indipendenza tra
+dati e programmi.
+ Indipendenza fisica
+ riguarda come i dati sono memorizzati (file, indici, strutture di
+accesso)
+ modifiche all’organizzazione fisica non richiedono
+ cambiamenti allo schema logico
+ modifiche ai programmi applicativi
+ aggiornamenti delle viste utente
+ Indipendenza logica
+ riguarda la struttura logica dei dati
+ modifiche allo schema logico non richiedono
+ cambiamenti nelle viste esterne
+ modifiche alle applicazioni degli utenti
+Queste proprietà portano alla architettura a 3 livelli di un DBMS.
+
+===== PAGE 13 =====
+
+13
+Architettura a tre livelli di un DBMS
+Schema logico
+Schema
+esterno
+Schema interno
+Schema
+esterno
+Schema
+esterno
+utente
+utente utente
+ utente utente
+DB
+Livello esterno
+• viste
+• utenti / applicazioni
+Livello logico
+• modello dei dati
+Livello interno
+• file​
+• indici
+• strutture fisiche
+Ogni livello protegge quelli superiori dai cambiamenti inferiori
+
+===== PAGE 14 =====
+
+14
+Il livello fisico (o interno)
+File: C:\Users\DB_CORSE_AUTO\Data\Scuderie
+Scuderia TeamPrincipal
+Ferrari Arrivabene
+McLaren Brown
+Scuderia Pilota
+Ferrari Vettel
+Ferrari Raikkonen
+McLaren Alfonso
+McLaren Vandoorme
+Ferrari Giovinazzi
+SCUDERIE PILOTI_SCUDERIE
+Ferrari
+Vettel
+Raikkonen
+Arrivabene
+Giovinazzi
+McLaren
+Alfonso
+Vandoorme
+Brown
+Schema fisico
+Schema logico
+ Il “DB fisico” consiste di una serie di file, residenti su dispositivi di memoria
+permanenti che contengono dati, indici e altre tipologie di strutture.
+ Lo schema fisico descrive come il DB, definito a livello logico, è
+rappresentato a livello fisico.
+La gestione del DB fisico è a carico del
+DBA (Data Base Administrator) e non
+degli utenti.
+
+===== PAGE 15 =====
+
+15
+Il livello delle viste (o esterno)
+ Il livello esterno è costruito a partire dallo schema logico integrato
+mediante la definizione di viste ad hoc che descrivono parte dello schema
+logico secondo le esigenze di operatività dei diversi utenti.
+◼ Ad esempio è possibile definire una vista che combina i dati di più relazioni:
+La distinzione tra livello esterno e logico può, in molti casi, risultare
+trasparente agli utenti, che, ad esempio, in un RDBMS “vedono”
+semplicemente un insieme di tabelle.
+TeamPrincipal Pilota
+Arrivabene Vettel
+Arrivabene Raikkonen
+Arrivabene Giovinazzi
+Brown Alfonso
+Brown Vandoorme
+TEAMPRINCIPAL_PILOTI
+
+===== PAGE 16 =====
+
+16
+Utilità delle viste
+ Oltre a fornire una visione “personalizzata” del DB, le viste possono svolgere
+un ruolo importante anche per diversi altri motivi:
+ una ristrutturazione dello schema integrato può, in alcuni casi, essere
+opportunamente “mascherata” facendo uso di viste;
+ mediante le viste è possibile regolare meglio il controllo degli accessi
+al DB, ad es. mascherando dati riservati;
+ le viste possono essere usate per “calcolare dinamicamente” nuovi dati
+a partire da quelli memorizzati nel DB, senza per questo introdurre
+ridondanza.
+DataNascitaPilota
+Vettel
+Raikkonen
+EtàPilota
+Vettel
+Raikkonen
+03/07/1987
+17/10/1979 38
+Il 14/01/2018
+30
+
+===== PAGE 17 =====
+
+17
+ Gli utenti di un DB sono classificabili in diverse tipologie, a cui vanno
+pertanto associate autorizzazioni distinte:
+◼ uno studente può leggere i propri dati, ma non quelli di altri studenti;
+◼ un docente può leggere i dati dei soli studenti del proprio corso; non
+può modificare l’elenco degli esami già sostenuti da uno studente, ma
+può registrare esami del proprio corso;
+◼ la segreteria studenti può leggere i dati di tutti e può registrare nuovi
+studenti.
+ La gestione delle autorizzazioni è demandata al Data Base Administrator
+che conferiscono agli utenti i “giusti” privilegi.
+ Il DCL di SQL semplifica notevolmente la concessione dei privilegi.
+Condivisione: regolamentare gli accessi 
+
+===== PAGE 18 =====
+
+18
+ Un DBMS deve garantire che gli accessi ai dati, da parte di diverse
+applicazioni, non interferiscano tra loro violando vincoli di integrità e
+alterando la consistenza del DB.
+ A tale scopo è pertanto necessario far ricorso a opportuni meccanismi di
+controllo della concorrenza.
+ Quando un’applicazione deve effettuare più operazioni di modifica, è
+possibile che per qualche motivo (disk failure, interruzioni di rete,
+intervento dell’utente, transaction abort, errori software, …) solo una
+parte di queste sia effettivamente eseguita.
+ In questo caso, per garantire l’integrità e la consistenza dei dati, il DBMS
+deve provvedere ad annullare tali modifiche.
+ Una transazione è vista come una sequenza di operazioni elementari di
+lettura (R) e scrittura (W) di oggetti del DB che, a partire da uno stato
+iniziale consistente del DB, porta il DB in un nuovo stato finale consistente.
+Concorrenza e protezione da guasti
+
+===== PAGE 19 =====
+
+19
+RDBMS: Proprietà ACID
+ATOMICITY: la transazione è indivisibile nella sua esecuzione e la sua esecuzione
+deve essere o totale o nulla.
+CONSISTENCY: quando inizia una transazione il database si trova in uno stato
+consistente e al termine della transazione il database deve ancora essere in un
+stato consistente (nessun vincolo sui dati deve essere violato).
+ISOLATION: ogni transazione deve essere eseguita in modo isolato e
+indipendente dalle altre transazioni, l’eventuale fallimento di una transazione
+non deve interferire con le altre transazioni in esecuzione. In altre parole
+un’esecuzione concorrente di più transazioni è “equivalente” a un’esecuzione
+seriale delle stesse.
+DURABILITY: detta anche persistenza; al termine della transazione i dati
+modificati devono essere stati memorizzati in un dispositivo durevole (es. hard
+disk) e deve essere registrato il completamento della transazione stessa.
+
+===== PAGE 20 =====
+
+20
+I linguaggi dei DBMS
+ Un DBMS mette a disposizione diversi linguaggi specializzati per
+interagire con la base di dati. Il livello di astrazione dei linguaggi
+offerti dipende dal modello dei dati supportato dal DBMS.
+ Classificazione dei linguaggi:
+ DDL (Data Definition Language)
+◼ per definire gli schemi (logici, esterni, interni)
+ DML (Data Manipulation Language)
+◼ per interrogare e modificare un DB
+ DCL (Data Control Language)
+◼ include comandi di vario tipo, ad es. per il controllo degli
+accessi
+Il linguaggio SQL nei RDBMS riunisce in sé tutte e tre tipologie. 
+
+===== PAGE 21 =====
+
+21
+ Le applicazioni moderne sono scritte in linguaggi general-purpose
+e interagiscono con il DBMS tramite livelli di astrazione.
+ Il database non è mai accessibile direttamente dall’applicazione.
+Modalità tipiche di sviluppo
+ Accesso diretto tramite driver / API
+ esecuzione di comandi SQL dal codice applicativo (es. JDBC, ODBC,
+driver specifici)
+ ORM – Object-Relational Mapping
+ mappatura tra oggetti del programma e tabelle del database
+ SQL generato automaticamente
+ approccio molto diffuso nello sviluppo moderno
+ Logica nel DBMS
+ stored procedure e trigger
+ usate in casi specifici, non come sostituzione dell’applicazione
+Sviluppo di applicazioni e DBMS
+
+===== PAGE 22 =====
+
+22
+Principali moduli di un DBMS
+Query manager
+• analizza, 
+autorizza, 
+ottimizza ed 
+esegue le richieste
+Transaction
+manager
+• coordina 
+l’esecuzione delle 
+transazioni
+DDL compiler
+• genera parte dei 
+controlli per 
+garantire 
+Consistency
+Storage manager
+• gestisce i dispositivi 
+di storage
+Logging & Recovery
+Manager
+• garantisce Atomicity
+e Durability, 
+protegge dai 
+malfunzionamenti
+Concurrency Manager
+• gestisce accessi 
+concorrenti e 
+garantisce Isolation
+Users & applications
+ DBA
+
+
+===== PAGE 23 =====
+
+23
+Moduli di un RDBMS (1)
+
+
+===== PAGE 24 =====
+
+24
+Utenti di un DBMS
+ Un DBMS è utilizzato da categorie diverse di utenti,
+ciascuna con ruoli, responsabilità e modalità di accesso
+differenti.
+Principali tipologie di utenti
+ Database Administrator (DBA)
+ configura e amministra il DBMS
+ gestisce schema, sicurezza e prestazioni
+ Application Programmers
+ sviluppano applicazioni che accedono al DB
+ utilizzano API, driver, ORM
+ End Users
+ usano i dati tramite applicazioni o interfacce (naive users, casual
+users, power users)
+
+===== PAGE 25 =====
+
+25
+Utenti di un DBMS: DBA
+ Il Database Administrator (DBA) è la figura
+responsabile della gestione complessiva del
+DBMS.
+ Definizione e manutenzione dello schema
+ creazione e modifica delle strutture del
+database
+ Gestione degli accessi
+ concessione e revoca dei privilegi agli utenti,
+definizione di ruoli e autorizzazioni
+ Sicurezza e affidabilità
+ protezione dei dati
+ gestione del backup e del recupero da guasti
+ Prestazioni
+ monitoraggio del sistema
+ ottimizzazione dell’uso delle risorse
+Privileged
+Commands
+DDL Compiler
+DDL 
+Statements
+System 
+Catalog &
+Data 
+Dictionary
+
+===== PAGE 26 =====
+
+26
+Utenti: application programmers
+ Gli Application Programmers sviluppano
+applicazioni che interagiscono con il DBMS per
+accedere e modificare i dati.
+ Modalità di interazione
+ utilizzo di linguaggi general-purpose (Java,
+Python, C#, …)
+ accesso al DBMS tramite:
+▪ API e driver (es. JDBC, ODBC)
+▪ ORM, quando presenti
+ impiego di istruzioni SQL per interrogare e
+aggiornare i dati
+ Caratteristiche
+ non accedono direttamente ai dati fisici
+ operano attraverso le interfacce del DBMS
+Application
+Programs
+Precompiler
+DMLCompiler
+System 
+Catalog &
+Data 
+Dictionary
+
+===== PAGE 27 =====
+
+27
+Utenti: occasional users
+ Gli utenti occasionali utilizzano le cosiddette interfacce
+interattive (interactive queries). Non utilizzano
+applicazioni che possono generare le interrogazioni in
+modo automatico.
+ Queste interrogazioni sono trasformate in una forma
+interna dal compilatore delle interrogazioni che le
+analizza e ne verifica la correttezza (sintassi, nomi,
+ecc.)
+ L’interrogazione interna viene poi ottimizzata
+dall’ottimizzatore delle interrogazioni che si occupa di
+riorganizzare le operazioni, eliminare le ridondanze,
+utilizzare gli opportuni algoritmi per l’esecuzione.
+ L’ottimizzatore consulta il catalogo per avere
+informazioni statistiche e informazioni relative alla
+memorizzazione fisica dei dati e genera il codice
+eseguibile.
+Interactive
+Queries
+Query Compiler
+Query Optimizer
+System 
+Catalog &
+Data 
+Dictionary
+
+===== PAGE 28 =====
+
+28
+Moduli DBMS: comandi, query, transazioni
+ Il processore runtime si occupa di eseguire:
+ i comandi privilegiati;
+ i piani di esecuzione delle interrogazioni;
+ le transazioni parametriche predefinite con specifici
+parametri
+ Durante l’esecuzione, il DBMS:
+ consulta (e aggiorna) il System Catalog (metadati)
+ utilizza il Transaction Manager
+ attiva i moduli di:
+▪ Concurrency Control
+▪ Recovery
+▪ Buffer e Storage Management
+Runtime DB 
+Processor
+Storage Manager
+Concurrency
+Control/
+Backup/Recovery
+
+===== PAGE 29 =====
+
+29
+Applicazioni delle applicazioni basate su DBMS
+ Riguarda come sono
+organizzati i componenti
+software:
+o interfaccia utente (presentazione)
+o logica applicativa
+o gestione dei dati
+👉 architetture 1-tier, 2-tier, 3-tier
+ Riguarda dove risiedono i dati e
+il DBMS:
+ su un singolo nodo
+ su più nodi
+ in ambienti cloud
+👉 architetture centralizzate,
+distribuite, cloud
+Struttura logica Distribuzione fisica dei dati
+👉 Le due dimensioni sono indipendenti e possono essere combinate
+
+===== PAGE 30 =====
+
+30
+Architettura a Livello Unico (1-Tier)
+ Tutti i componenti dell’applicazione
+sono eseguiti sullo stesso livello
+ L’utente interagisce direttamente con
+il DBMS, tipicamente su una singola
+macchina
+Caratteristiche
+ Nessuna separazione tra:
+ interfaccia utente
+ logica applicativa
+ gestione dei dati
+ Accesso diretto al database
+Sistema locale
+Accesso diretto
+Utente
+👉 Architettura utilizzata solo in contesti locali, prototipi, ambienti didattici.
+
+===== PAGE 31 =====
+
+31
+Architettura a Livello Unico (1-Tier)
+Sistema locale
+Accesso diretto
+Utente
+Vantaggi
+ Semplicità
+ Bassa latenza (assenza di comunicazione di rete)
+Svantaggi
+ Nessuna scalabilità
+ Sicurezza debole
+ Scarsa manutenibilità
+👉 Architettura utilizzata solo in contesti locali, prototipi, ambienti didattici.
+
+===== PAGE 32 =====
+
+32
+Architettura a Due Livelli (2-Tier)
+ Separazione tra:
+ Client (interfaccia utente + logica applicativa)
+ Server di database (DBMS e dati)
+ Il client comunica direttamente con il DBMS
+ Tipica comunicazione tramite driver (es. JDBC, ODBC)
+Caratteristiche principali
+ Prima forma di separazione delle responsabilità
+ Il caricamento della logica applicativa è sul client
+ Ogni client mantiene una connessione diretta al database
+Database serverUtente
+ Client
+
+===== PAGE 33 =====
+
+33
+Architettura a Due Livelli (2-Tier)
+ Vantaggi
+ Maggiore organizzazione rispetto al modello 1-tier
+ Separazione tra applicazione e dati
+ Adatto a piccoli sistemi client-server
+ Svantaggi
+ Scalabilità limitata
+▪ molte connessioni concorrenti al DB
+ Carico elevato sul database
+ Difficile gestione in presenza di molti utenti
+ Sicurezza limitata (accesso diretto al DB)
+Database serverUtente
+ Client
+👉 Architettura oggi utilizzata solo 
+in contesti semplici o ambienti
+controllati.
+
+===== PAGE 34 =====
+
+34
+Architettura a Tre Livelli (3-Tier)
+ Introduce un livello intermedio tra client e DBMS
+ I tre livelli sono:
+ Livello di Presentazione (client)
+ interfaccia utente
+ browser, app desktop, app mobile
+ Livello Applicativo (application server / middleware)
+ logica applicativa
+ controllo degli accessi
+ API e servizi
+ gestione delle connessioni al DB
+ Livello Dati (DBMS)
+ Memorizzazione e gestione dati
+Utente
+ Database server
+Application server
+Client
+
+===== PAGE 35 =====
+
+35
+Architettura a Tre Livelli (3-Tier)
+ Vantaggi
+ Alta scalabilità
+ Maggiore sicurezza
+▪ il client non accede direttamente al DB
+ Manutenibilità
+▪ separazione chiara delle responsabilità
+ Supporto a:
+▪ load balancing
+▪ connection pooling
+▪ Caching
+Utente
+ Database server
+Application server
+Client
+ Svantaggi
+ Maggiore complessità
+ Richiede più infrastruttura
+ Costi di gestione più elevati
+👉 È il modello di riferimento per 
+applicazioni web e cloud-based.
+
+===== PAGE 36 =====
+
+36
+Dal 3-Tier alle architetture moderne
+ L’architettura a 3 livelli rappresenta il modello concettuale di
+riferimento per le applicazioni basate su DBMS.
+Evoluzione nelle architetture moderne
+ Nelle applicazioni moderne:
+ il livello applicativo:
+▪ non è più un unico blocco
+▪ è suddiviso in servizi indipendenti (microservizi)
+ il livello dati:
+▪ è spesso distribuito
+▪ fornito come servizio cloud (DBaaS)
+▪ replica e scalabilità sono gestite automaticamente
+👉 Le architetture moderne derivano dal 3-tier, non lo sostituiscono.
+
+===== PAGE 37 =====
+
+37
+Distribuzione dei dati
+ Oltre alla struttura logica dell’applicazione, un aspetto
+fondamentale è come e dove sono distribuiti i dati.
+Dimensione di analisi
+ La distribuzione dei dati riguarda:
+ la collocazione fisica del database
+ il numero di nodi coinvolti
+ il modo in cui i dati sono:
+▪ condivisi
+▪ replicati
+▪ sincronizzati
+
+
+===== PAGE 38 =====
+
+38
+Database Centralizzato
+ Un database centralizzato è un sistema in cui tutti i dati e il DBMS sono
+collocati in un’unica posizione fisica (es. un server centrale).
+ Caratteristiche principali:
+ Un solo nodo gestisce: memorizzazione dei dati, interrogazioni,
+aggiornamenti.
+ Accesso ai dati tramite rete o localmente.
+ Amministrazione centralizzata.
+ Vantaggi:
+ Semplicità di progettazione e gestione
+ Coerenza dei dati
+ Controllo e sicurezza più facili da applicare
+ Svantaggi:
+ Scalabilità limitata
+ Single point of failure
+ Possibile collo di bottiglia con molti accessi concorrenti
+
+
+===== PAGE 39 =====
+
+39
+Database Distribuito
+Un database distribuito è un sistema in cui i dati e il DBMS sono distribuiti su più nodi
+interconnessi, ma appaiono agli utenti come un unico database logico.
+Caratteristiche principali:
+ I dati sono memorizzati su più nodi fisici
+ Ogni nodo può gestire una porzione dei dati oppure una replica dei dati
+Il DBMS si occupa di: coordinare l’accesso, mantenerne la coerenza, rendere
+trasparente la distribuzione agli utenti
+Vantaggi:
+ Scalabilità orizzontale
+ Alta disponibilità
+ Maggiore tolleranza ai guasti
+ Migliori prestazioni in sistemi geograficamente distribuiti
+Svantaggi:
+ Maggiore complessità di gestione
+ Costi di coordinamento e comunicazione
+ Problemi di coerenza, sincronizzazione, latenza
+
+
+===== PAGE 40 =====
+
+40
+Cloud database
+Un database cloud è un database ospitato su infrastrutture cloud,
+fornito come servizio gestito (Database as a Service – DBaaS). I dati e il DBMS
+risiedono su infrastrutture remote gestite da un cloud provider.
+Caratteristiche principali
+ Accesso al database tramite rete
+ Infrastruttura gestita dal provider
+ Scalabilità
+ Distribuzione geografica possibile
+ Supporto sia a:
+ database relazionali
+ database NoSQL
+Vantaggi
+ Alta disponibilità
+ Scalabilità dinamica
+ Riduzione dei costi di gestione
+ Backup, replica e aggiornamenti
+automatizzati
+Svantaggi
+ Dipendenza dal provider
+ Minore controllo sull’infrastruttura fisica
+ Possibili problemi di: latenza,
+localizzazione dei dati, compliance
+normativa
+
+===== PAGE 41 =====
+
+41
+Database replicato
+ Un database replicato è un sistema in cui più copie (repliche) degli stessi
+dati sono mantenute su nodi diversi. Le repliche sono coordinate dal DBMS
+per garantire l’accesso ai dati anche in presenza di guasti.
+ Caratteristiche principali
+ Presenza di più copie identiche dei dati
+ Repliche mantenute sincrone oppure asincrone
+ Aggiornamenti propagati da un nodo primario o secondo politiche di
+replica del DBMS
+ Vantaggi
+ Alta disponibilità
+ Tolleranza ai guasti
+ Migliori prestazioni in lettura
+ Continuità di servizio
+La replica è spesso usata in database distribuiti e cloud.
+ Svantaggi
+ Overhead di sincronizzazione
+ Possibili problemi di coerenza
+(soprattutto con replica asincrona)
+ Maggiore complessità di gestione
+
+===== PAGE 42 =====
+
+42
+Database federato
+Un database federato è un sistema che consente l’accesso a più database
+autonomi e indipendenti come se fossero un’unica base di dati logica.
+ I singoli database:
+ restano separati
+ mantengono la propria autonomia
+ possono essere eterogenei
+ Caratteristiche principali
+ Integrazione di database distinti
+ Autonomia delle basi di dati locali
+ Possibile eterogeneità:
+ modelli di dati
+ DBMS
+ piattaforme
+ Coordinamento tramite middleware federato
+Vantaggi
+ Integrazione di sistemi
+esistenti
+ Nessuna duplicazione dei dati
+ Adatto a contesti:
+ organizzativi complessi
+ sistemi legacy
+ grandi organizzazioni
+Svantaggi
+ Elevata complessità
+ Prestazioni limitate
+
+===== PAGE 43 =====
+
+43
+Domande?

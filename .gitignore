@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# uploaded profile photos
+gym-dashboard/public/uploads/profiles/*
+!gym-dashboard/public/uploads/profiles/.gitkeep

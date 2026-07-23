@@ -1,0 +1,623 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco
+Università di Bologna
+JDBC
+Java
+ RDBMS
+JDBC
+
+===== PAGE 2 =====
+
+2
+JDBC
+ JDBC è una libreria di API per l’accesso uniforme a database relazionali da
+parte di applicazioni. Definisce classi per la connessione a database, l’invio di
+query SQL, la navigazione dei risultati delle query e l’accesso ai metadati del
+database/risultati.
+ Versioni
+ JDBC 1.0: Versione iniziale
+ JDBC 2.0: Introduzione del PreparedStatement, Batch Processing e Connection 
+Pooling
+ JDBC 3.0: Introduzione di transazioni, Savepoints, e miglioramenti a ResultSet.
+ JDBC 4.0: Caricamento automatico dei driver, supporto per tipi personalizzati.
+ JDBC 4.1: Supporto per i tipi di dato java.time, SQLException migliorato.
+ JDBC 4.2: Supporto JSON, miglioramenti java.time.
+ JDBC 4.3: Connessioni asincrone, miglioramenti ai metadati.
+ JDBC 4.4: Ottimizzazioni per prestazioni e supporto per database cloud-native.
+ Packages Java
+ java.sql (classi fondamentali)
+ javax.sql (estensioni)
+
+===== PAGE 3 =====
+
+3
+Architettura
+Applicazione Java
+Driver Manager
+Driver
+Postgres
+Driver
+IBM
+Db2
+Driver
+Oracle
+utilizza
+le interfacce
+java.sql
+e javax.sql
+implementano
+java.sql e,
+in alcuni casi
+javax.sql
+
+===== PAGE 4 =====
+
+4
+ Microsoft ha rilasciato ODBC (Open Database
+Connectivity)
+ dipendente dal sistema (scritto in C, non portabile)
+ utilizzabile da più linguaggi di programmazione
+ scambio dei dati complesso
+ JDBC
+ indipendente dal sistema
+ utilizzabile solo con il linguaggio JAVA
+ minore complessità dell’interfaccia
+ Entrambe le API permettono di richiamare funzionalità
+specifiche dei DBMS
+JDBC vs ODBC
+
+===== PAGE 5 =====
+
+5
+Driver tipo 1 (obsoleto)
+Driver JDBC-ODBC (Bridge) - legacy
+ Descrizione: Bridge che traduceva le chiamate JDBC in chiamate ODBC,
+permettendo di usare un driver ODBC esistente da Java.
+ Vantaggi:
+ Consentiva un accesso rapido a database già integrati via ODBC, senza driver
+JDBC dedicati.
+ Utile in contesti legacy dove l'ecosistema era centrato su driver ODBC.
+ Perché non si usa più:
+ È un componente legacy: non è più supportato nelle versioni moderne (rimosso
+dalla piattaforma a partire da Java 8 / JDBC 4.2).
+ Dipendeva da driver ODBC e installazioni specifiche, riducendo portabilità e
+semplificazione operativa.
+ Aggiungeva overhead e complessità (doppia conversione JDBC → ODBC → DB).
+
+
+===== PAGE 6 =====
+
+6
+Driver tipo 2
+Driver Native-API (Tipo 2: raro oggi)
+ Descrizione: Traduce le chiamate JDBC in chiamate native del database
+tramite librerie client/driver forniti dal vendor.
+ Uso tipico oggi: Raro; spesso presente in sistemi legacy o in ambienti
+controllati (desktop/VM specifiche) dove il vendor lo richiede.
+ Vantaggi:
+ In alcuni casi offre buone prestazioni grazie all'integrazione diretta con il client
+nativo.
+ Supporto a funzionalità specifiche del vendor tramite librerie dedicate.
+ Svantaggi:
+ Dipende da librerie native: installazione e aggiornamenti su ogni macchina/host.
+ Portabilità ridotta: vincoli su OS/architettura e gestione operativa più complessa
+(container).
+ In molti contesti moderni è preferibile un driver Tipo 4 (puro Java) per semplicità
+e portabilità.
+
+===== PAGE 7 =====
+
+7
+Driver tipo 3
+Network Protocol Driver (Middleware)
+ Descrizione: Usa un middleware (es. application server/gateway) che
+instrada le chiamate JDBC verso i database tramite un protocollo di rete;
+oggi è poco comune e si adotta soprattutto in architetture enterprise
+specifiche.
+ Vantaggi:
+ Centralizza configurazione, sicurezza e policy di accesso nel middleware.
+ Consente l'accesso a più database con un punto di ingresso unico.
+ Utile solo quando servono requisiti enterprise (auditing, routing).
+ Svantaggi:
+ Introduce latenza per il livello aggiuntivo e la traduzione nel middleware.
+ Richiede configurazione e gestione aggiuntiva del middleware.
+ Aumenta complessità e costi operativi; spesso oggi si preferisce driver di tipo 4 +
+pool/ framework (ORM, Spring) invece di un middleware dedicato.
+
+===== PAGE 8 =====
+
+8
+Driver tipo 4 (standard)
+ Driver JDBC di tipo 4 (thin, puro Java)
+ Descrizione: si collega direttamente al database tramite il protocollo
+del vendor, senza richiedere librerie native.
+ Vantaggi:
+ Puro Java: massima portabilità e nessuna dipendenza da componenti
+nativi.
+ Distribuzione semplice (JAR) e supporto aggiornato dal vendor del
+database.
+ Migliore scelta generale oggi per prestazioni, compatibilità e
+funzionalità.
+ Svantaggi:
+ Serve un driver specifico per ogni database (vendor diverso, versione
+diversa).
+ Richiede configurazione corretta (SSL, timeouts, pool), ma resta
+l’approccio più lineare.
+
+===== PAGE 9 =====
+
+9
+JDBC: Accesso ai dati
+ L'API fornisce un meccanismo che carica dinamicamente i
+driver appropriati e li registra nel JDBC Driver Manager.
+ Le connessioni JDBC supportano la creazione e l'esecuzione
+delle istruzioni (INSERT, UPDATE, DELETE, SELECT)
+ I tipi di istruzioni supportati sono:
+ Statement - l'istruzione viene inviata al database di volta in
+volta;
+ Prepared Statement - l'istruzione viene compilata una sola volta,
+in modo che le chiamate successive siano più efficienti;
+ Callable Statement - usati per chiamare le stored procedure.
+ I comandi di scrittura restituiscono un valore che indica il
+numero di righe modificate
+ Le interrogazioni restituiscono un result set (classe ResultSet).
+
+===== PAGE 10 =====
+
+10
+Step di accesso ai dati
+
+
+===== PAGE 11 =====
+
+11
+Step di accesso ai dati (1)
+1. Con JDBC 4.0, i driver vengono registrati automaticamente tramite il
+Service Provider Mechanism. Ogni driver JDBC include un file di
+configurazione con le informazioni necessarie, e questo viene caricato
+automaticamente all'avvio dell'applicazione.
+2. Il metodo DriverManager.getConnection() crea una connessione.
+Connection conn = DriverManager.getConnection( 
+"jdbc:mioDbms:altri dati utili per il driver", 
+"myLogin", "myPassword"); 
+La stringa da utilizzare dipende dal driver JDBC.
+
+
+===== PAGE 12 =====
+
+12
+3. Una volta stabilita la connessione, occorre passare una istruzione.
+Statement stmt = conn.createStatement(); 
+stmt.executeUpdate
+("INSERT INTO myTab(myColumn) VALUES ( ‘val’)");
+4. I dati vengono prelevati dal database e restituiti come RecordSet da cui 
+vengono elaborati.
+Statement stmt = conn.createStatement(); 
+ResultSet rs = stmt.executeQuery("SELECT * FROM myTable"); 
+while (rs.next()) {
+int numCol = rs.getMetaData().getColumnCount(); 
+for ( int i = 1 ; i <= numCol ; i++ ) 
+{ // I numeri di colonna iniziano da 1.       
+System.out.println( "COL" + i + "=" +rs.getObject(i));
+} 
+}
+5. Chiusura connessione
+rs.close(); 
+stmt.close();
+Step di accesso ai dati (2)
+
+===== PAGE 13 =====
+
+13
+Implementazione con Try-with-resources
+ Il try-with-resources è una funzionalità che semplifica la gestione delle
+risorse, come le connessioni al database, i flussi di input/output (I/O), e altre
+risorse che devono essere chiuse dopo l'uso.
+ Questa funzionalità è particolarmente utile per evitare di dover gestire
+manualmente la chiusura di risorse.
+ Si dichiarano le risorse che devono essere chiuse all'interno della parentesi
+tonde del try.
+ Le risorse (come le connessioni al database Connection, le dichiarazioni
+Statement, i risultati ResultSet, ecc.) vengono automaticamente chiuse al
+termine del blocco try, anche se si verifica un'eccezione.
+
+
+===== PAGE 14 =====
+
+14
+ java.sql.DriverManager: classe. Offre funzionalità di
+gestione dei database driver
+ java.sql.Driver: interfaccia. Astrae i dettagli del protocollo di
+connessione al database. I produttori di database
+implementano questa interfaccia
+ java.sql.Connection: interfaccia. Astrae dettagli di interazione
+con il database. Permette di inviare statement SQL e di
+leggere i risultati dell’esecuzione degli statement. I produttori
+di database implementano questa interfaccia
+JDBC - classi e interfacce
+
+===== PAGE 15 =====
+
+15
+JDBC: Classi e interfacce Java
+
+
+===== PAGE 16 =====
+
+16
+Interfaccia Driver
+ L'interfaccia Driver in JDBC è una delle componenti
+fondamentali che permette la connessione tra
+un'applicazione Java e un database specifico.
+ Questa interfaccia è responsabile di gestire la
+connessione a un database e di comunicare con il driver
+del database stesso per eseguire le operazioni SQL.
+ L'interfaccia Driver è implementata da tutte le classi di
+driver JDBC (come com.mysql.cj.jdbc.Driver per MySQL,
+org.postgresql.Driver per PostgreSQL, ecc.). Queste classi
+implementano i metodi definiti nell'interfaccia Driver per
+gestire la connessione specifica con un determinato tipo di
+database.
+
+===== PAGE 17 =====
+
+17
+Classe java.sql.DriverManager
+ È una classe (java.sql.DriverManager) che funge da gestore
+delle connessioni ai database. È responsabile della selezione
+e gestione dei driver JDBC per stabilire connessioni a
+database in base all’URL fornito.
+ Tiene traccia dei driver JDBC caricati (che implementano
+l’interfaccia Driver).
+ Gestisce la registrazione e la selezione del driver corretto.
+ Fornisce il metodo principale per ottenere una connessione a un
+database.
+
+===== PAGE 18 =====
+
+18
+Classe java.sql.DriverManager
+ Quando viene richiamato il metodo
+DriverManager.getConnection(...):
+ DriverManager scorre l'elenco dei driver JDBC registrati.
+ Chiede a ciascun driver se accetta l’URL specificato
+(driver.acceptsURL(...)).
+ Il primo driver che risponde true viene usato per aprire
+la connessione.
+
+===== PAGE 19 =====
+
+19
+Interfaccia Connection
+• Un oggetto di tipo Connection rappresenta una connessione
+attiva con il DB.
+• Il metodo getConnection di DriverManager, se non fallisce,
+restituisce un oggetto di tipo Connection
+• String url = "jdbc:postgresql://host:5432/dbname";
+Connection db = DriverManager.getConnection(url);
+• L’interfaccia mette a disposizione una serie di metodi per
+preparare le query SQL da inviare:
+• Statement
+• Statement stmt = db.createStatement();
+• PreparedStatement
+• CallableStatement
+
+===== PAGE 20 =====
+
+20
+Interfaccia Statement
+ Gli oggetti di tipo Statement possono essere usati per inviare
+query SQL senza parametri al DBMS. La query può essere:
+ di modifica (UPDATE, INSERT, CREATE)
+ (StatementObj).executeUpdate(stmt SQL)
+ Restituisce un intero rappresentante il numero di righe che sono state
+inserite/aggiornate/cancellate o 0 se comando DDL
+ di selezione (SELECT)
+ (StatementObj).executeQuery(stmt SQL)
+ Per query di tipo SELECT il risultato è inserito in un oggetto ResultSet
+ di tipologia non nota a priori:
+ (StatementObj).execute(stmt SQL)
+ Ritorna true se il risultato è un ResultSet, al quale si può accedere con
+il metodo(StatementObj).getResultSet()
+
+===== PAGE 21 =====
+
+21
+Interfaccia Statement - Esempio
+ Esempio executeQuery:
+ Statement s = db.createStatement();
+ResultSet r = s.executeQuery("Select * from Table");
+ Esempio execute:
+ Statement s = db.createStatement();
+String query = "select * from emp";
+boolean status = s.execute(query);
+if(status){ // true se il risultato è un ResultSet
+//select query
+ResultSet rs = s.getResultSet();
+while(rs.next()){
+System.out.println(rs.getString(1)); }
+rs.close();
+} else {
+//update o altro
+int count = s.getUpdateCount();
+System.out.println("records updated: "+count);}
+
+===== PAGE 22 =====
+
+22
+Interfaccia PreparedStatement
+ Gli oggetti di tipo PreparedStatement possono essere usati per creare
+query SQL parametriche e precompilate (“prepared”), evitando problemi
+di SQL Injection.
+ Il valore di ciascun parametro non è specificato nel momento in cui lo
+statement SQL è definito, ma rimpiazzato dal carattere ‘?’
+ Un oggetto PreparedStatement può essere creato con il metodo
+prepareStatement di Connection
+ String sSQL = "SELECT * FROM Table WHERE ID = ?"; 
+PreparedStatement pS = db.prepareStatement(sSQL); 
+ I parametri vengono poi settati mediante il metodo 
+(StatementObj.)setXXX(n, value)
+pS.setInt(1,1); 
+ResultSet rs = pS.executeQuery(sSQL);
+Tipo di dato
+Posizione parametro
+
+===== PAGE 23 =====
+
+23
+Evitare SQL Injection
+Evitare la concatenazione di stringhe per la costruzione delle query SQL:
+String name = "Mario";
+String sql = "SELECT * FROM users WHERE name = ?";
+PreparedStatement pstmt = conn.prepareStatement(sql);
+pstmt.setString(1, name);
+ResultSet rs = pstmt.executeQuery();
+
+===== PAGE 24 =====
+
+24
+Interfaccia CallableStatement
+ Gli oggetti di tipo CallableStatement permettono di eseguire
+una invocazione a una stored procedure memorizzata nel DB.
+ Possono essere usati per definire query parametriche con
+parametri di tipo IN, OUT e INOUT.
+ Un oggetto CallableStatement può essere creato con il metodo
+prepareCall di Connection
+ String sql = “{call setSalary (?)}”;
+CallableStatement cS = db.prepareCall(sql);
+cS.setInt (1,1000);
+cS.executeUpdate();
+ //ResultSet result = cS.executeQuery();
+
+===== PAGE 25 =====
+
+25
+CallableStatement: Batch Updates
+ Si possono raggruppare chiamate multiple a una stored
+procedure in un batch update.
+ String proc = “{call insertEMPLOYEE(?,?,?)}”;
+CallableStatement cS = db.prepareCall(proc);
+cS.setInt(1,7);
+cS.setString(2, “Mario Rossi”);
+cS.setInt(3,50000);
+cS.addBatch();
+cS.setInt(1,8);
+cS.setString(2, “Giorgio Verdi”);
+cS.setInt(3,55000);
+cS.addBatch();
+cS.executeBatch();
+
+===== PAGE 26 =====
+
+26
+CallableStatement: OUT Parameters
+ Se una stored procedure restituisce dei parametri, questi sono
+accessibili dall’oggetto callableStatement
+ È necessario che ogni parametro di OUT e INOUT venga registrato
+prima dell’invocazione della stored procedure
+ String sql = “{call calculateStatistics(?)}”;
+CallableStatement cS = db.prepareCall(sql);
+cS.setInt (1,123);
+cS.registerOutParameter(1, java.sql.Types.VARCHAR); 
+cS.registerOutParameter(2, java.sql.Types.INT); 
+ResultSet result = cS.executeQuery(); 
+String out1 = cS.getString(1); 
+int out2 = cS.getInt(2);
+ //while(result.next()) { ... }
+
+===== PAGE 27 =====
+
+27
+Vantaggi di stored procedures e CallableStatement
+ Prestazioni: il codice SQL è precompilato e
+ottimizzato nel DBMS
+ Sicurezza: la logica è sul database, non esposta
+nell'applicazione
+ Riutilizzabilità: può essere richiamata da più app,
+linguaggi o strumenti
+ Manutenzione: le modifiche alla logica si fanno solo
+sul database
+
+===== PAGE 28 =====
+
+28
+Interfaccia ResultSet
+ L’oggetto ResultSet è il risultato di una query di selezione
+ Rappresenta una tabella composta da righe (gli elementi
+selezionati) e colonne (gli attributi richiesti)
+ Per ottenere il valore del cursore alla riga corrente:
+ (ResultSetObj).getXXX(column-name)
+ (ResultSetObj).getXXX(column-number)
+ I metodi getInt, getString,… permettono la lettura degli attributi di una
+tabella
+ Per spostare il cursore dalla riga corrente a quella successiva:
+ (ResultSetObj).next() (restituisce true in caso di successo; false se non ci
+sono più righe nell’insieme risultato)
+ while(result.next()) 
+{ result.getString ("nome"); 
+result.getInt ("età"); // etc.
+}
+
+===== PAGE 29 =====
+
+29
+ È possibile creare dei ResultSet con maggiori funzionalità,
+passando degli opportuni parametri al momento della
+creazione dello Statement:
+ scrollable ResultSet:
+◼ le righe del risultato possono essere scandite in entrambe le
+direzioni
+◼ ci si può posizionare in maniera “assoluta” su una particolare
+riga
+ updatable ResultSet:
+◼ mettono a disposizione dei metodi updateXXX analoghi ai metodi
+getXXX, che consentono di modificare il valore di un campo sulla
+riga corrente
+◼ l’aggiornamento si riflette sulla corrispondente tabella nel
+database automaticamente
+Altri tipi di ResultSet
+
+===== PAGE 30 =====
+
+30
+Tipi di ResultSet
+Costante Descrizione
+ResultSet.TYPE_FORWARD_ONLY Navigazione solo in avanti
+ResultSet.TYPE_SCROLL_INSENSITIVE Scrollabile; non vede modifiche altrui
+ResultSet.TYPE_SCROLL_SENSITIVE Scrollabile; vede modifiche altrui
+ResultSet.CONCUR_READ_ONLY Sola lettura (default)
+ResultSet.CONCUR_UPDATABLE Aggiornabile; modifiche scritte nel DB
+
+===== PAGE 31 =====
+
+31
+Esempio di UPDATE
+ Statement st = 
+db.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, 
+ResultSet.CONCUR_UPDATABLE);
+ResultSet results = 
+st.executeQuery("SELECT test_col FROM test_table");
+// Muove il cursore alla 3a riga
+results.absolute(3);
+// Update della 3a riga
+results.updateString("test_col",“nuovo_valore”);
+results.updateRow();
+// In caso di abort si usa:
+//results.cancelRowUpdates();
+results.absolute(5);
+results.deleteRow();
+// Aggiorna il resultSet
+results.refreshRow();
+
+===== PAGE 32 =====
+
+32
+Metodi di navigazione
+ Boolean next(), previous(): Muove il puntatore alla riga successiva
+(precedente). Se è stata raggiunta l’ultima (prima) riga il metodo
+restituisce false e il puntatore punta immediatamente dopo l’ultima
+riga
+ Boolean first(), last(): Muove il puntatore alla prima/ultima riga del
+resultSet.
+ Boolean absolute(n): n>0: il puntatore si posiziona sulla riga n a
+partire dall’inizio (le righe si contano a partire da uno) n<0: come
+sopra ma a partire dalla fine
+ Boolean relative(n): il puntatore si posiziona di n righe in avanti (o
+indietro se n<0) a partire dalla posizione attuale
+ Void afterLast(), void beforeFirst()
+ Boolean isFirst(), isBeforeFirst(), isLast(), isAfterLast(),
+ Int getRow(): Restituisce il numero della riga corrente
+
+===== PAGE 33 =====
+
+33
+JdbcRowSet
+ L’oggetto JdbcRowSet gestisce dati tabellari in
+maniera più semplice che un ResultSet.
+Tipo Disc. Descrizione
+JdbcRowSet No Wrapper con funzionalità RowSet, ma lavora con 
+connessione attiva. Utile per GUI o streaming dei dati live
+CachedRowSet Sì Dati in memoria, non richiede connessione attiva. Può 
+essere modificato offline e poi sincronizzato col DB
+WebRowSet Sì Estensione di CachedRowSet, con formato XML. Comodo 
+per scambio dati in applicazioni distribuite.
+FilteredRowSet Sì Estensione di CachedRowSet, permette filtraggio dei dati 
+in memoria (senza nuova esecuzione di query).
+JoinRowSet Sì Permette di fare join tra più RowSet disconnessi (utile 
+per unire fonti diverse)
+
+===== PAGE 34 =====
+
+34
+JdbcRowSet: Esempio
+import javax.sql.rowset.JdbcRowSet;
+import com.sun.rowset.JdbcRowSetImpl;
+//creo l'oggetto passandogli una connessione
+JdbcRowSet jdbcRS = new JdbcRowSetImpl(conn);
+jdbcRS.setType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+String sql = "SELECT * FROM customers";
+jdbcRS.setCommand(sql);
+//jdbcRs non contiene dati fino all'esecuzione di questa istruzione
+jdbcRS.execute();
+//scorre il JdbcRowSet
+while (jdbcRS.next()) {
+System.out.println("id = " + jdbcRS.getString(1));
+System.out.println("name = " + jdbcRS.getString(2));
+}
+JdbcRowSet.first(); //spostamento random
+…
+JdbcRowSet.close(); //chiude il record set
+
+===== PAGE 35 =====
+
+35
+Conversione tipi SQL-JAVA
+La conversione di tipi Java/SQL (Java SQL type mapping) è il meccanismo tramite cui 
+JDBC traduce i tipi di dati tra il database (che usa tipi SQL) e il linguaggio Java, in 
+modo che si possa lavorare con dati SQL usando tipi Java familiari.
+• Quando si leggono dati dal database (con ResultSet.getXxx()), JDBC converte 
+automaticamente i tipi SQL nei corrispondenti tipi Java.
+• Quando si utilizza PreparedStatement.setXxx(...), vengono passati i valori Java che 
+JDBC converte in tipi SQL.
+
+===== PAGE 36 =====
+
+36
+INTEGER REAL CHAR VARCHAR DA TE CLOB
+getInt X X X X
+getFloat X X X X
+getString X X X X X
+getDate X X X
+getClob X
+getObject X X X X X X
+Conversione tipi SQL-JAVA
+
+===== PAGE 37 =====
+
+37
+Oltre JDBC
+ JDBC è una libreria completa, ma si tratta di un approccio “di base”,
+che può richiedere la scrittura di molto codice.
+ Librerie alternative (alcune basate su JDBC)
+ Spring JDBC (JdbcTemplate), Apache DBUtils, JDBI: svolgono in
+autonomia operazioni di apertura e chiusura di connessioni, preparazione
+degli Statement, la lettura di risultati e la gestione di transazioni;
+ Framework SQL-centrici moderni
+◼ MyBatis: è un framework di persistenza che semplifica l’accesso ai
+dati mantenendo SQL esplicito e gestendo automaticamente il
+mapping tra risultati del database e oggetti Java.
+◼ jOOQ: una libreria Java che fornisce un DSL (Domain Specific
+Language) per costruire queries tramite classi generate a partire da un
+database relazionale.
+ JPA e altri Object-Relational Mapping: i framework ORM, usano un
+approccio fondato sul mapping tra sistema informativo relazionale
+(incluso nel database) e modello a oggetti realizzato nel programma
+Java;
+
+===== PAGE 38 =====
+
+38
+Domande?

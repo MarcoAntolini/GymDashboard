@@ -1,0 +1,517 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Progettazione di un database
+oggetti
+funzioni
+associazioni
+stati
+
+===== PAGE 2 =====
+
+2
+Tipologia delle applicazioni
+• L’aspetto più significativo è costituito dalle informazioni
+• Le funzioni svolte non sono molto complesse.
+Applicazioni orientate agli oggetti 
+• La complessità risiede nel tipo di trasformazione input-output 
+operata.
+Applicazioni orientate alle funzioni
+• L’aspetto più significativo da modellare è la sincronizzazione 
+fra diverse attività cooperanti nel sistema.
+Applicazioni orientate al controllo
+Un tipico SI di media complessità richiede durante la progettazione il ricorso a più
+strumenti di modellazione. Il linguaggio di modellazione UML, complementato con
+metodi di progettazione di DB, risponde a questa esigenza.
+
+===== PAGE 3 =====
+
+3
+Tassonomia dei metodi di analisi
+ L’orientamento di un metodo (analisi orientata agli oggetti, analisi
+funzionale o analisi orientata agli stati) è determinato sia dalla tipologia di
+SI sia dall’approccio seguito dal team che pone un diverso accento nella
+modellazione della realtà verso un aspetto ritenuto predominante.
+ La tendenza attuale, negli approcci all’analisi e alla progettazione, consiste
+nell’integrare modelli di rappresentazione nati per finalità diverse; si veda
+ad esempio il linguaggio di modellazione UML (Unified Modeling
+Language), che si è affermato ormai come standard de facto.
+aspetti statici, funzionali e dinamici
+
+===== PAGE 4 =====
+
+4
+UML: tipi di diagrammi
+N.B. In UML la modellazione concettuale dei dati sfrutta i diagrammi delle classi nati
+per rappresentare sia le proprietà strutturali (attributi) degli oggetti sia i metodi che si
+possono invocare. Tuttavia alcuni costrutti del modello E/R appositamente sviluppato
+per la progettazione di DB non sono contemplati negli schemi UML.
+
+===== PAGE 5 =====
+
+5
+Analisi orientata agli oggetti
+ L’enfasi è posta:
+ sull’identificazione degli oggetti e
+sulla loro classificazione;
+ sulle interrelazioni tra oggetti.
+ Nel tempo le proprietà strutturali degli
+oggetti osservati restano abbastanza
+stabili, mentre l’uso che degli oggetti si
+fa può mutare in modo sensibile.
+
+
+===== PAGE 6 =====
+
+6
+Esempio di modellazione E/R
+Uno schema E/R
+N.B. Snapshot di un A.A.
+
+
+===== PAGE 7 =====
+
+7
+Un esempio di diagramma delle classi
+per rappresentare un ambiente costituito
+da più livelli ciascuno formato da cluster
+connessi da bridge.
+Clust_Layer
+clusters: set(Cluster)
+level: integer
+find_cluster(descr): Cluster
+add_cluster(new_cluster)
+add_bridge(new_bridge)
+rm_bridge(old)
+Cluster
+descr: string
+position: coord
+bridges: list(Bridge)
+father: Cluster
+who: string
+where: coord
+which_level: integer
+add_cluster(new_cluster)
+add_bridge(new_bridge)
+rm_bridge(old_bridge)
+is_connected(to): Bridge
+update_pos
+ancestor(j: integer)
+Bridge
+from: Cluster
+to: Cluster
+visited: integer
+cost: real
+bridges: set(Bridge)
+where_from: Cluster
+which_level: integer
+how_much: real
+add_bridge(new_bridge)
+rm_bridge(old_bridge)
+update_cost
+Env_Representation
+max_level: integer
+layers: list(Clust_layer)
+how_many: integer
+clustering(candidate): Cluster
+nc_discovery(to_descr,  to_pos)
+c_discovery(to_descr, to_pos, cost)
+init(descr, pos, level)
+init(from, to, cost)
+where_to: Cluster
+init(level): Clust_Layerinit(max_level): Env_Representation
+Clust_Layer
+Cluster Bridge
+to
+from
+Env_Representation
+1+
+Un esempio di diagramma delle classi 
+
+===== PAGE 8 =====
+
+8
+Altro esempio di diagramma delle classi
+Fonte: https://www.lucidchart.com/pages/uml/class-diagram
+
+===== PAGE 9 =====
+
+9
+Analisi orientata alle funzioni
+ L’obiettivo è rappresentare un sistema come:
+ una rete di processi;
+ un insieme di flussi informativi tra processi.
+ Ciò corrisponde alla progressiva costruzione di
+una gerarchia funzionale.
+ Spesso in passato nella modellazione funzionale
+si è fatto ricorso alla rappresentazione con DFD
+(Data Flow Diagram).
+
+
+===== PAGE 10 =====
+
+10
+Esempio di DFD (1)
+Fonte: https://www.visual-paradigm.com/tutorials/
+Attore
+Funzione
+Archivio
+
+===== PAGE 11 =====
+
+11
+❑ Per alcune categorie di applicazioni può essere utile pensare fin
+dall’inizio in termini di stati operativi, in cui si può trovare il sistema
+allo studio, e transizioni di stato.
+Attesa Menu 
+visibile
+tasto premuto / visualizza menu
+tasto rilasciato / cancella menu
+cursore mosso / evidenzia una scelta 
+LOGON
+[ENTER]
+Bottone OK
+Conferma uscita
+Programma
+[ESC]
+Bottone EXIT
+[ESC]
+Chiusura Finestra
+MAIN
+Analisi orientata agli stati
+
+===== PAGE 12 =====
+
+12
+Meccanismi di astrazione
+Molteplici 
+sono le 
+relazioni in 
+gioco fra 
+oggetti, 
+funzioni e 
+stati e 
+molteplici i 
+livelli di 
+possibile 
+dettaglio
+ L’analista deve far ricorso a tecniche che
+gli consentano di organizzare e
+interrogare la conoscenza sul problema via
+via acquisita.
+ I principali meccanismi di astrazione usati
+durante il processo di analisi per costruire
+una base di conoscenza sul problema sono:
+ classificazione
+ generalizzazione
+ aggregazione
+ proiezione
+
+===== PAGE 13 =====
+
+13
+Classificazione
+Raggruppa gli oggetti in classi in base alle loro proprietà
+Computer
+
+===== PAGE 14 =====
+
+14
+Generalizzazione
+Cattura le relazioni di tipo «è un» ovvero permette di astrarre le 
+caratteristiche comuni fra più classi definendo superclassi
+Ciò che caratterizza una scheda per PC è comune anche a ogni suo sottoinsieme,
+ovvero ogni sottoclasse eredita dalla superclasse ma può anche avere
+caratteristiche proprie.
+La specializzazione è il processo inverso della generalizzazione.
+Schede PC
+Schede di 
+rete
+Schede 
+ethernet
+Schede 
+Fast 
+Ethernet
+Schede 
+video
+Schede 
+modem
+
+===== PAGE 15 =====
+
+15
+Copertura delle generalizzazioni
+TOTALE
+La classe 
+generalizzata è 
+l’unione delle 
+specializzazioni
+PARZIALE
+La classe 
+generalizzata 
+contiene l’unione 
+delle 
+specializzazioni
+Confronto fra unione delle 
+specializzazioni e
+classe generalizzata
+Confronto fra le classi 
+specializzate
+ESCLUSIVA
+Gli insiemi delle 
+specializzazioni 
+sono fra loro 
+disgiunti
+SOVRAPPOSTA
+Può esistere 
+un’intersezione 
+non vuota fra 
+insiemi delle 
+specializzazioni
+
+===== PAGE 16 =====
+
+16
+Proprietà di copertura - esempi
+amministrazione
+produzione
+dipendenti
+Totale esclusiva
+auto barche
+veicoli
+Parziale esclusiva
+lavoratori
+Totale sovrapposta
+sede
+smart
+working
+trasferta
+ingegneri
+medici
+Parziale sovrapposta
+laureati
+(T,E) (T,S)
+(P ,E) (P ,S)
+marketing
+
+
+===== PAGE 17 =====
+
+17
+Aggregazione
+L’aggregazione esprime le relazioni parte di che sussistono tra 
+oggetti, tra funzioni, o fra stati
+Si consideri la descrizione di un 
+PC in termini dei suoi componenti 
+(CPU, RAM, ROM, hard disk, cd, 
+dvd, keyboard, display,...).
+
+===== PAGE 18 =====
+
+18
+Proiezione
+Cattura la vista delle relazioni strutturali fra gli oggetti, le 
+funzioni, gli stati
+Ad esempio, nel descrivere il 
+funzionamento di un certo personal 
+computer può essere necessario distinguere 
+il punto di vista dell’operatore, 
+dell’installatore, del programmatore.
+
+
+===== PAGE 19 =====
+
+19
+Associazioni
+ Oltre ai meccanismi citati è importante modellare le associazioni che
+sussistono fra le varie classi.
+ Le associazioni (corrispondenze tra classi) sono di fatto aggregazioni
+di cui le classi sono le componenti.
+ Dal punto di vista della modellazione, è importante caratterizzare
+queste corrispondenze in termini di vincoli di cardinalità (un
+impiegato in quanti enti può lavorare?).
+Persona
+ Ente
+lavoro
+impiegato datore
+
+
+===== PAGE 20 =====
+
+20
+Vincoli di cardinalità
+ Sia A un’associazione fra C1 e C2
+ min-card(C1,A): cardinalità minima di C1 in A
+◼ è il minimo numero di corrispondenze nell’associazione A alle
+quali ogni istanza di C1 deve partecipare;
+ max-card(C1,A): cardinalità massima di C1 in A
+◼ è il massimo numero di corrispondenze nell’associazione A alle
+quali ogni istanza di C1 può partecipare.
+ Vincoli di cardinalità minima
+ partecipazione opzionale: min-card(C1,A) =0
+◼ alcuni elementi di C1 possono non essere associati tramite A a
+elementi di C2;
+ partecipazione obbligatoria (totale): min-card(C1,A) > 0
+◼ a ogni elemento di C1 deve essere associato, tramite A, almeno
+un elemento di C2.
+C1
+ C2
+x5
+x4
+x3
+x2
+x1
+y4
+y3
+y2
+y1
+A
+
+===== PAGE 21 =====
+
+21
+Vincoli di cardinalità: esempi
+ Sia ASSEGNAZIONE un’associazione fra DIPENDENTE e
+MANSIONE.
+ Nel particolare dominio applicativo in esame sono vere le
+seguenti affermazioni:
+ un dipendente svolge almeno una mansione e al massimo 3;
+ una medesima mansione può essere ancora non assegnata o
+essere svolta da più dipendenti, al massimo 5.
+ Si ha:
+ min-card(DIPENDENTE, ASSEGNAZIONE) = 1
+ max-card(DIPENDENTE, ASSEGNAZIONE) = 3
+ min-card(MANSIONE, ASSEGNAZIONE) = 0
+ max-card(MANSIONE, ASSEGNAZIONE) = 5
+Vincoli validi per
+qualunque stato
+estensionale.
+
+===== PAGE 22 =====
+
+22
+Associazioni binarie uno a uno
+uno a uno (one-to-one)
+max-card(C1, A) = 1
+max-card(C2, A) = 1
+C1
+ C2
+x5
+x4
+x3
+x2
+x1
+y4
+y3
+y2
+y1
+A
+C1
+ C2
+y4
+y3
+y2
+y1
+x1
+x2
+x3
+x4
+C1
+ C2
+x5
+x4
+x3
+x2
+x1
+y4
+y3
+y2
+y1
+Associazioni che non soddisfano i vincoli
+A A
+
+===== PAGE 23 =====
+
+23
+Associazioni binarie uno a molti
+uno a molti (one-to-many)
+max-card(C1, A) = N 
+max-card(C2, A) = 1
+oppure
+max-card(C1, A) = 1 
+max-card(C2, A) = N
+ C1
+ C2
+y4
+y3
+y2
+y1
+x1
+x2
+x3
+x4
+C1
+ C2
+x3
+x2
+x1
+x4
+y1
+y4
+y3
+y2
+Associazioni che non soddisfano i vincoli
+A
+A
+
+===== PAGE 24 =====
+
+24
+Associazioni binarie molti a molti
+molti a molti (many-to-many)
+max-card(C1, A) = N 
+max-card(C2, A) = M
+C1
+ C2
+x5
+x4
+x3
+x2
+x1
+y4
+y3
+y2
+y1
+C1
+ C2
+x5
+x4
+x3
+x2
+x1
+y4
+y3
+y2
+y1
+C1
+ C2
+x5
+x4
+x3
+x2
+x1
+y4
+y3
+y2
+y1
+Tutte queste associazioni soddisfano i vincoli
+A
+AA
+
+===== PAGE 25 =====
+
+25
+Domande?

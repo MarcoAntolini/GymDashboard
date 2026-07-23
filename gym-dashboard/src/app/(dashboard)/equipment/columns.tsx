@@ -6,6 +6,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Equipment } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Building2, FileText, Hash } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -21,28 +22,19 @@ export const columns = (
 	{
 		accessorKey: "paymentId",
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Payment ID"
-			/>
+			<TableSortableHeader column={column} title="Pagamento" icon={Hash} />
 		),
 	},
 	{
 		accessorKey: "description",
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Description"
-			/>
+			<TableSortableHeader column={column} title="Descrizione" icon={FileText} />
 		),
 	},
 	{
 		accessorKey: "provider",
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Provider"
-			/>
+			<TableSortableHeader column={column} title="Fornitore" icon={Building2} />
 		),
 	},
 	// {
@@ -81,13 +73,15 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Attrezzatura"
+				deleteDescription="Elimina l'Attrezzatura collegata al Pagamento. Preferisci gestire creazione e tipo da Pagamenti. L'operazione non può essere annullata."
 				editFormContent={
 					<>
 						<FormField
 							name="paymentId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Payment ID</FormLabel>
+									<FormLabel>ID Pagamento</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -104,7 +98,7 @@ export const columns = (
 							name="description"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Description</FormLabel>
+									<FormLabel>Descrizione</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -116,7 +110,7 @@ export const columns = (
 							name="provider"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Provider</FormLabel>
+									<FormLabel>Fornitore</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>

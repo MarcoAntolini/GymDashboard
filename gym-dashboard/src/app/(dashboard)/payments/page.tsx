@@ -3,68 +3,60 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { EntityShell } from "@/components/ui/entity-shell";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createPayment, deletePayment, editPayment, getAllPayments } from "@/data-access/payments";
-import { useEntityData } from "@/hooks/useEntityData";
+import {
+	createPayment,
+	deletePayment,
+	editPayment,
+	listPayments,
+	type PaymentDTO,
+} from "@/data-access/payments";
+import { useEntityList } from "@/hooks/useEntityList";
+import { formatDateIt, paymentTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { Payment, PaymentType } from "@prisma/client";
-import { format } from "date-fns";
+import { PaymentType } from "@prisma/client";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
 import { columns } from "./columns";
 
-const paymentSchema = z.discriminatedUnion("type", [
-	z.object({
-		date: z.date(),
-		amount: z.number(),
-		type: z.literal("Salary"),
-		employeeId: z.number()
-	}),
-	z.object({
-		date: z.date(),
-		amount: z.number(),
-		type: z.literal("Bill"),
-		description: z.string(),
-		provider: z.string()
-	}),
-	z.object({
-		date: z.date(),
-		amount: z.number(),
-		type: z.literal("Equipment"),
-		description: z.string(),
-		provider: z.string()
-	}),
-	z.object({
-		date: z.date(),
-		amount: z.number(),
-		type: z.literal("Intervention"),
-		description: z.string(),
-		maker: z.string(),
-		startingTime: z.date(),
-		endingTime: z.date()
-	})
-]);
+const paymentSchema = z.object({
+	date: z.date(),
+	amount: z.number().min(0),
+	type: z.enum(["Salary", "Bill", "Equipment", "Intervention"]),
+	employeeId: z.number().optional(),
+	description: z.string().optional(),
+	provider: z.string().optional(),
+	maker: z.string().optional(),
+	startingTime: z.date().optional(),
+	endingTime: z.date().optional(),
+});
 
 export default function PaymentsPage() {
 	const {
 		data: payments,
-		setData: setPayments,
+		total,
+		facets,
+		query,
+		setQuery,
 		isLoading,
+		error,
+		retry,
+		refetch,
 		handleDelete,
-		handleEdit
-	} = useEntityData<Payment, "id">(
+		handleEdit,
+	} = useEntityList<PaymentDTO, "id">(
 		useMemo(
 			() => ({
-				getAll: getAllPayments,
+				list: listPayments,
 				deleteAction: deletePayment,
-				editAction: editPayment
+				editAction: editPayment,
 			}),
 			[]
 		),
@@ -73,15 +65,15 @@ export default function PaymentsPage() {
 
 	const handleCreatePayment = useCallback(
 		async (values: z.infer<typeof paymentSchema>) => {
-			const newPayment = await createPayment(values);
-			setPayments((prevPayments) => [...prevPayments, newPayment]);
+			await createPayment(values as Parameters<typeof createPayment>[0]);
+			await refetch();
 		},
-		[setPayments]
+		[refetch]
 	);
 
 	const actions: Action[] = [
 		{
-			title: "Add Payment",
+			title: "Nuovo Pagamento",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -89,15 +81,18 @@ export default function PaymentsPage() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
+								<FormLabel>Data</FormLabel>
 								<Popover>
 									<PopoverTrigger asChild>
 										<FormControl>
 											<Button
 												variant={"outline"}
-												className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+												className={cn(
+													"w-full pl-3 text-left font-normal",
+													!field.value && "text-muted-foreground"
+												)}
 											>
-												{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+												{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 											</Button>
 										</FormControl>
@@ -119,7 +114,7 @@ export default function PaymentsPage() {
 						name="amount"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Amount</FormLabel>
+								<FormLabel>Importo</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -136,18 +131,19 @@ export default function PaymentsPage() {
 						name="type"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Type</FormLabel>
+								<FormLabel>Tipo</FormLabel>
 								<Select onValueChange={field.onChange} defaultValue={field.value}>
 									<FormControl>
 										<SelectTrigger>
-											<SelectValue placeholder="Select payment type" />
+											<SelectValue placeholder="Seleziona tipo" />
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										<SelectItem value="Salary">Salary</SelectItem>
-										<SelectItem value="Bill">Bill</SelectItem>
-										<SelectItem value="Equipment">Equipment</SelectItem>
-										<SelectItem value="Intervention">Intervention</SelectItem>
+										{(Object.values(PaymentType) as PaymentType[]).map((type) => (
+											<SelectItem key={type} value={type}>
+												{paymentTypeLabel[type]}
+											</SelectItem>
+										))}
 									</SelectContent>
 								</Select>
 								<FormMessage />
@@ -163,14 +159,16 @@ export default function PaymentsPage() {
 									return (
 										<FormField
 											name="employeeId"
-											render={({ field }) => (
+											render={({ field: idField }) => (
 												<FormItem>
-													<FormLabel>Employee ID</FormLabel>
+													<FormLabel>ID Dipendente</FormLabel>
 													<FormControl>
 														<Input
 															type="number"
-															{...field}
-															onChange={(e) => field.onChange(parseInt(e.target.value))}
+															{...idField}
+															onChange={(e) =>
+																idField.onChange(parseInt(e.target.value, 10))
+															}
 														/>
 													</FormControl>
 													<FormMessage />
@@ -184,11 +182,11 @@ export default function PaymentsPage() {
 										<>
 											<FormField
 												name="description"
-												render={({ field }) => (
+												render={({ field: descField }) => (
 													<FormItem>
-														<FormLabel>Description</FormLabel>
+														<FormLabel>Descrizione</FormLabel>
 														<FormControl>
-															<Input {...field} />
+															<Input {...descField} />
 														</FormControl>
 														<FormMessage />
 													</FormItem>
@@ -196,11 +194,11 @@ export default function PaymentsPage() {
 											/>
 											<FormField
 												name="provider"
-												render={({ field }) => (
+												render={({ field: providerField }) => (
 													<FormItem>
-														<FormLabel>Provider</FormLabel>
+														<FormLabel>Fornitore</FormLabel>
 														<FormControl>
-															<Input {...field} />
+															<Input {...providerField} />
 														</FormControl>
 														<FormMessage />
 													</FormItem>
@@ -213,11 +211,11 @@ export default function PaymentsPage() {
 										<>
 											<FormField
 												name="description"
-												render={({ field }) => (
+												render={({ field: descField }) => (
 													<FormItem>
-														<FormLabel>Description</FormLabel>
+														<FormLabel>Descrizione</FormLabel>
 														<FormControl>
-															<Input {...field} />
+															<Input {...descField} />
 														</FormControl>
 														<FormMessage />
 													</FormItem>
@@ -225,11 +223,11 @@ export default function PaymentsPage() {
 											/>
 											<FormField
 												name="maker"
-												render={({ field }) => (
+												render={({ field: makerField }) => (
 													<FormItem>
-														<FormLabel>Maker</FormLabel>
+														<FormLabel>Attuatore</FormLabel>
 														<FormControl>
-															<Input {...field} />
+															<Input {...makerField} />
 														</FormControl>
 														<FormMessage />
 													</FormItem>
@@ -237,20 +235,26 @@ export default function PaymentsPage() {
 											/>
 											<FormField
 												name="startingTime"
-												render={({ field }) => (
+												render={({ field: startField }) => (
 													<FormItem>
-														<FormLabel>Starting Time</FormLabel>
-														<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
+														<FormLabel>Inizio</FormLabel>
+														<DateTimePicker
+															field={startField}
+															onChange={(date) => startField.onChange(date)}
+														/>
 														<FormMessage />
 													</FormItem>
 												)}
 											/>
 											<FormField
 												name="endingTime"
-												render={({ field }) => (
+												render={({ field: endField }) => (
 													<FormItem>
-														<FormLabel>Ending Time</FormLabel>
-														<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
+														<FormLabel>Fine</FormLabel>
+														<DateTimePicker
+															field={endField}
+															onChange={(date) => endField.onChange(date)}
+														/>
 														<FormMessage />
 													</FormItem>
 												)}
@@ -265,40 +269,45 @@ export default function PaymentsPage() {
 				</>
 			),
 			formData: {
-				formSchema: z.object({
-					date: z.date(),
-					amount: z.number().min(0),
-					type: z.enum(["Salary", "Bill", "Equipment", "Intervention"]),
-					employeeId: z.number().optional(),
-					description: z.string().optional(),
-					provider: z.string().optional(),
-					maker: z.string().optional(),
-					startingTime: z.date().optional(),
-					endingTime: z.date().optional()
-				}),
+				formSchema: paymentSchema,
 				defaultValues: {
 					date: new Date(),
 					amount: 0,
-					type: "Salary" as const
+					type: "Bill" as const,
 				},
-				submitAction: handleCreatePayment
-			}
-		}
+				submitAction: handleCreatePayment,
+			},
+		},
 	];
 
-	return isLoading ? (
-		<DashboardPlaceholder />
-	) : (
-		<Dashboard
-			actions={actions}
-			table={
-				<DataTable
-					columns={columns(handleDelete, handleEdit)}
-					data={payments}
-					filters={["type"]}
-					facetedFilters={["type"]}
-				/>
-			}
-		/>
+	return (
+		<EntityShell isLoading={isLoading} error={error} onRetry={retry} entityLabel="Pagamento">
+			<Dashboard
+				actions={actions}
+				table={
+					<DataTable
+						columns={columns(handleDelete, handleEdit)}
+						data={payments}
+						entityLabel="Pagamento"
+						filters={["detail"]}
+						facetedFilters={["typeLabel"]}
+						filterLabels={{
+							detail: "Dettaglio tipizzato",
+							typeLabel: "Tipo",
+							date: "Data",
+							amount: "Importo",
+							id: "ID",
+						}}
+						emptyGuidance="Usa Nuovo Pagamento per registrare Bolletta, Attrezzatura o Intervento."
+						server={{
+							query,
+							onQueryChange: setQuery,
+							total,
+							facetOptions: facets,
+						}}
+					/>
+				}
+			/>
+		</EntityShell>
 	);
 }
