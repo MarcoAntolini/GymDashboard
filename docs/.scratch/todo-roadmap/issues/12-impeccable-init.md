@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Esiste contesto prodotto persistito leggibile dai comandi Impeccable successivi
 - [ ] Il contesto riflette dominio palestra OLTP: Amministratore vs Dipendente, operazioni quotidiane — non marketing
@@ -14,3 +14,7 @@
 **Source:** `docs/.scratch/dashboard-data-ux/issues/01-impeccable-init.md`
 
 Usare skill /impeccable (init). Glossario: CONTEXT.md.
+
+## Comments
+
+- 2026-07-23 22:13 UTC — claimed by implement loop (cloud / ticket-loop)
