@@ -20,6 +20,10 @@
 .DS_Store
 *.pem
 
+# local profile photo uploads (keep directory)
+/public/uploads/profiles/*
+!/public/uploads/profiles/.gitkeep
+
 # debug
 npm-debug.log*
 yarn-debug.log*

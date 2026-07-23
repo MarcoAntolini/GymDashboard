@@ -105,9 +105,12 @@ export default function DashboardLayout({
 										<span>{username}</span>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
-										{/* <DropdownMenuItem className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground cursor-pointer">
-											Settings
-										</DropdownMenuItem> */}
+										<DropdownMenuItem
+											onClick={() => router.push("/profile")}
+											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground cursor-pointer"
+										>
+											Profilo
+										</DropdownMenuItem>
 										<DropdownMenuItem
 											onClick={() => setIsLogoutDialogOpen(true)}
 											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground hover:!bg-destructive cursor-pointer"

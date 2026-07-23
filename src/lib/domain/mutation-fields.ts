@@ -152,7 +152,7 @@ export const MUTATION_FIELD_MATRIX: Record<MutationEntity, readonly MutationFiel
 			key: "password",
 			flags: ["write-only", "create"],
 			notes:
-				"Write-only on create; absent from update. List UI masks with per-row reveal (ticket 15); self-service change → ticket 17",
+				"Write-only on create; absent from Admin update. List UI masks with per-row reveal (ticket 15); self-service change via profile DA (ticket 17) with current-password check + ownership",
 		},
 		{
 			key: "role",
@@ -261,7 +261,7 @@ export const MUTATION_EDGE_CASES = [
 	{
 		id: "account-password",
 		summary:
-			"Password Account: write-only in create; assente da update. Lista mascherata con reveal per riga (ticket 15). Change password self-service → ticket 17. role/approved = admin-only (RBAC).",
+			"Password Account: write-only in create; assente da Admin update. Lista mascherata con reveal per riga (ticket 15). Self-service (ticket 17): changeOwnPassword richiede password attuale e rifiuta targetUsername ≠ session; username self via changeOwnUsername. role/approved = admin-only (RBAC).",
 	},
 ] as const;
 
