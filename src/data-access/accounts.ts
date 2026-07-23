@@ -1,11 +1,16 @@
 "use server";
 
-import { requireRole, requireRoleUnlessPublic } from "@/lib/auth";
+import {
+	assertAccountDeleteAllowed,
+	assertAccountRoleMutation,
+	toAppRole,
+} from "@/lib/domain/account-role-hierarchy";
+import { AuthError, requireRole, requireRoleUnlessPublic } from "@/lib/auth";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 
-/** Public register helper; when a session exists, Admin-only (dashboard create). */
+/** Public register helper; when a session exists, Admin+ only (dashboard create). */
 export async function createAccount(input: {
 	username: string;
 	password: string;
@@ -59,14 +64,38 @@ export async function getAccountSafe(username: string) {
 	});
 }
 
+/**
+ * Admin+ may edit Accounts; hierarchy: only strictly inferior roles.
+ * Assigning Owner is never allowed via this path (DB-only promotion).
+ */
 export async function editAccount(input: {
 	employeeId: number;
 	role: Role;
 	approved: boolean;
 }) {
-	await requireRole("Admin");
+	const session = await requireRole("Admin");
 	assertAllowedMutation("account", "update", input);
 	const { employeeId, role, approved } = input;
+
+	const target = await db.account.findUnique({ where: { employeeId } });
+	if (!target) {
+		throw new AuthError("Account non trovato", 404);
+	}
+
+	const actorRole = toAppRole(session.r);
+	const targetRole = toAppRole(target.role);
+	const nextRole = toAppRole(role);
+
+	try {
+		assertAccountRoleMutation({
+			actorRole,
+			targetCurrentRole: targetRole,
+			nextRole,
+		});
+	} catch (err) {
+		throw new AuthError(err instanceof Error ? err.message : "Forbidden", 403);
+	}
+
 	return await db.account.update({
 		where: {
 			employeeId,
@@ -79,7 +108,20 @@ export async function editAccount(input: {
 }
 
 export async function deleteAccount({ employeeId }: { employeeId: number }) {
-	await requireRole("Admin");
+	const session = await requireRole("Admin");
+	const target = await db.account.findUnique({ where: { employeeId } });
+	if (!target) {
+		throw new AuthError("Account non trovato", 404);
+	}
+
+	const actorRole = toAppRole(session.r);
+	const targetRole = toAppRole(target.role);
+	try {
+		assertAccountDeleteAllowed({ actorRole, targetRole });
+	} catch (err) {
+		throw new AuthError(err instanceof Error ? err.message : "Forbidden", 403);
+	}
+
 	return await db.account.delete({
 		where: {
 			employeeId,

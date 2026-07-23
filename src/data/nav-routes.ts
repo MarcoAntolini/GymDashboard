@@ -1,9 +1,19 @@
 /**
  * Edge-safe path → role map. `links.ts` adds icons only.
  * Do not import Node-only or Prisma client modules here (middleware).
+ *
+ * Hierarchy: Owner > Admin > Employee
  */
 
-export type AppRole = "Admin" | "Employee";
+export type AppRole = "Owner" | "Admin" | "Employee";
+
+export const APP_ROLES: readonly AppRole[] = ["Owner", "Admin", "Employee"] as const;
+
+const ROLE_RANK: Record<AppRole, number> = {
+	Employee: 1,
+	Admin: 2,
+	Owner: 3,
+};
 
 export type NavRoute = {
 	title: string;
@@ -50,17 +60,34 @@ export const NAV_ROUTE_GROUPS: { group: NavRoute[] }[] = [
 	},
 ];
 
+export function roleRank(role: AppRole): number {
+	return ROLE_RANK[role];
+}
+
+/** Route access: actor must be ≥ required role. */
 export function roleAllows(userRole: AppRole, requiredRole: AppRole): boolean {
-	if (userRole === "Admin") return true;
-	return userRole === requiredRole;
+	return roleRank(userRole) >= roleRank(requiredRole);
+}
+
+/**
+ * Account management: actor may create/edit/promote/demote/delete only
+ * roles strictly below them. Peers and superiors are forbidden.
+ */
+export function canManageRole(actorRole: AppRole, targetRole: AppRole): boolean {
+	return roleRank(actorRole) > roleRank(targetRole);
+}
+
+/** Roles the actor may assign via UI/server (never self/peer/superior; never Owner from app). */
+export function assignableRoles(actorRole: AppRole): AppRole[] {
+	return APP_ROLES.filter((role) => canManageRole(actorRole, role));
 }
 
 export function landingPathForRole(role: AppRole): string {
-	return role === "Admin" ? "/accounts" : "/entrances";
+	return role === "Employee" ? "/entrances" : "/accounts";
 }
 
 export function isAppRole(value: unknown): value is AppRole {
-	return value === "Admin" || value === "Employee";
+	return value === "Owner" || value === "Admin" || value === "Employee";
 }
 
 /** Exact match against known dashboard routes; null = no RBAC path rule. */

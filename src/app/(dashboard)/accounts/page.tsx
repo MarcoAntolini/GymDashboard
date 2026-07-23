@@ -6,12 +6,13 @@ import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { isAppRole, type AppRole } from "@/data/nav-routes";
 import { createAccount, deleteAccount, editAccount, getAllAccounts } from "@/data-access/accounts";
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
 import { Account, Employee } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { columns } from "./columns";
 
@@ -22,6 +23,23 @@ const createAccountSchema = z.object({
 });
 
 export default function Accounts() {
+	const [actorRole, setActorRole] = useState<AppRole | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		(async () => {
+			const res = await fetch("/api/auth/me");
+			if (!res.ok) return;
+			const me = await res.json();
+			if (!cancelled && me?.role && isAppRole(me.role)) {
+				setActorRole(me.role);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
 	const {
 		data: accounts,
 		setData: setAccounts,
@@ -178,14 +196,14 @@ export default function Accounts() {
 		},
 	];
 
-	return isLoading ? (
+	return isLoading || !actorRole ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
-					columns={columns(handleDelete, handleEdit)}
+					columns={columns(handleDelete, handleEdit, actorRole)}
 					data={accounts}
 					filters={["username"]}
 					facetedFilters={["role", "approved"]}

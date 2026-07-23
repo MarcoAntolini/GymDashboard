@@ -4,14 +4,22 @@
 
 **Blocked by:** 11 — Mutazioni: allowlist campi editabili; 13 — RBAC Admin/Employee + landing role-aware
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] Enum/ruolo Owner presente in schema, session e RBAC
-- [ ] Owner gestisce Admin e Dipendente; Admin gestisce solo Dipendente; Dipendente non gestisce ruoli
-- [ ] UI e server actions rifiutano tentativi di toccare pari grado o superiori
-- [ ] Più Owner ammessi; nessuna auto-promozione a Owner dall’UI Admin
-- [ ] Route/azioni riservate Owner (gestione Admin) protette anche via URL diretto
+- [x] Enum/ruolo Owner presente in schema, session e RBAC
+- [x] Owner gestisce Admin e Dipendente; Admin gestisce solo Dipendente; Dipendente non gestisce ruoli
+- [x] UI e server actions rifiutano tentativi di toccare pari grado o superiori
+- [x] Più Owner ammessi; nessuna auto-promozione a Owner dall’UI Admin
+- [x] Route/azioni riservate Owner (gestione Admin) protette anche via URL diretto
 
 ## Comments
 
 - 2026-07-23 — claimed by ticket-loop cloud worker
+
+## Done
+
+- Added Prisma `Role.Owner` (`Proprietario`) + migration; session/`AppRole`/`roleAllows` inherit Owner > Admin > Employee.
+- Hierarchy helpers (`canManageRole`, `assignableRoles`, `assertAccountRoleMutation`) enforce strict-inferior management; Owner never assignable via app (DB-only).
+- `editAccount` / `deleteAccount` load target role and reject peer/superior touches with 403; Admin cannot manage Admin/Owner.
+- Accounts UI: role Select limited to assignable roles; edit/delete disabled for peers/superiors; no Owner option in Admin UI.
+- Tests: `nav-routes`, `account-role-hierarchy`, session Owner round-trip; `scripts/smoke-rbac.mjs` updated.

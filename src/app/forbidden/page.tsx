@@ -27,7 +27,7 @@ export default async function ForbiddenPage({
 					Non hai i privilegi per questa area
 				</h1>
 				<p className="text-pretty text-muted-foreground">
-					Il tuo Account non include i privilegi di Amministratore richiesti
+					Il tuo Account non include i privilegi richiesti
 					{fromPath ? (
 						<>
 							{" "}

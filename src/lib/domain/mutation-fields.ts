@@ -6,7 +6,7 @@
  * - `update` — accepted as mutable data on update
  * - `identity` — PK / where key on update (not rewritten as data unless also `update`)
  * - `immutable` — never accepted from clients (join / derivata / server-only snapshot)
- * - `admin-only` — mutable only by Admin+ (session gate via requireRole in data-access; Owner → ticket 14)
+ * - `admin-only` — mutable only by Admin+ (session gate via requireRole; Owner inherits; hierarchy on Account → ticket 14)
  * - `write-only` — accepted on create; never read back as an editable form value
  */
 
@@ -157,12 +157,13 @@ export const MUTATION_FIELD_MATRIX: Record<MutationEntity, readonly MutationFiel
 		{
 			key: "role",
 			flags: ["admin-only", "update"],
-			notes: "Admin+ only; enforced by requireRole(Admin) on editAccount",
+			notes:
+				"Admin+ only; requireRole(Admin) + hierarchy (Owner>Admin>Employee); Owner never assignable via UI",
 		},
 		{
 			key: "approved",
 			flags: ["admin-only", "update"],
-			notes: "Approvazione — Admin+ only; enforced by requireRole(Admin) on editAccount",
+			notes: "Approvazione — Admin+ only; same hierarchy gate as role on editAccount",
 		},
 		{ key: "employee", flags: ["immutable"], notes: "join / include" },
 	],

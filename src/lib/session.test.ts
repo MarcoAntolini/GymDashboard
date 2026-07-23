@@ -13,6 +13,14 @@ describe("session role payload", () => {
 		assert.deepEqual(verified, payload);
 	});
 
+	it("round-trips Owner role", async () => {
+		const now = 1_700_000_000;
+		const { payloadB64, payload } = createSessionValue("owner1", "Owner", now);
+		assert.equal(payload.r, "Owner");
+		const verified = await verifySessionValue(await signSessionValue(payloadB64), now);
+		assert.deepEqual(verified, payload);
+	});
+
 	it("rejects payload without a valid role", async () => {
 		const now = 1_700_000_000;
 		const { payloadB64 } = createSessionValue("admin", "Admin", now);

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
 	NAV_ROUTE_GROUPS,
+	assignableRoles,
+	canManageRole,
 	isAppRole,
 	landingPathForRole,
 	requiredRoleForPath,
@@ -9,19 +11,51 @@ import {
 } from "./nav-routes";
 
 describe("roleAllows", () => {
-	it("lets Admin reach Admin and Employee routes", () => {
+	it("lets Owner reach Owner, Admin, and Employee routes", () => {
+		assert.equal(roleAllows("Owner", "Owner"), true);
+		assert.equal(roleAllows("Owner", "Admin"), true);
+		assert.equal(roleAllows("Owner", "Employee"), true);
+	});
+
+	it("lets Admin reach Admin and Employee routes but not Owner", () => {
 		assert.equal(roleAllows("Admin", "Admin"), true);
 		assert.equal(roleAllows("Admin", "Employee"), true);
+		assert.equal(roleAllows("Admin", "Owner"), false);
 	});
 
 	it("lets Employee reach only Employee routes", () => {
 		assert.equal(roleAllows("Employee", "Employee"), true);
 		assert.equal(roleAllows("Employee", "Admin"), false);
+		assert.equal(roleAllows("Employee", "Owner"), false);
+	});
+});
+
+describe("canManageRole / assignableRoles", () => {
+	it("Owner manages Admin and Employee only (not Owner peers)", () => {
+		assert.equal(canManageRole("Owner", "Admin"), true);
+		assert.equal(canManageRole("Owner", "Employee"), true);
+		assert.equal(canManageRole("Owner", "Owner"), false);
+		assert.deepEqual(assignableRoles("Owner"), ["Admin", "Employee"]);
+	});
+
+	it("Admin manages Employee only (not Admin peers or Owner)", () => {
+		assert.equal(canManageRole("Admin", "Employee"), true);
+		assert.equal(canManageRole("Admin", "Admin"), false);
+		assert.equal(canManageRole("Admin", "Owner"), false);
+		assert.deepEqual(assignableRoles("Admin"), ["Employee"]);
+	});
+
+	it("Employee manages no roles", () => {
+		assert.equal(canManageRole("Employee", "Employee"), false);
+		assert.equal(canManageRole("Employee", "Admin"), false);
+		assert.equal(canManageRole("Employee", "Owner"), false);
+		assert.deepEqual(assignableRoles("Employee"), []);
 	});
 });
 
 describe("landingPathForRole", () => {
-	it("sends Admin to accounts and Employee to entrances", () => {
+	it("sends Owner and Admin to accounts, Employee to entrances", () => {
+		assert.equal(landingPathForRole("Owner"), "/accounts");
 		assert.equal(landingPathForRole("Admin"), "/accounts");
 		assert.equal(landingPathForRole("Employee"), "/entrances");
 	});
@@ -54,5 +88,14 @@ describe("NAV_ROUTE_GROUPS", () => {
 		}
 		assert.ok(hrefs.has("/accounts"));
 		assert.ok(hrefs.has("/entrances"));
+	});
+});
+
+describe("isAppRole", () => {
+	it("accepts Owner, Admin, Employee", () => {
+		assert.equal(isAppRole("Owner"), true);
+		assert.equal(isAppRole("Admin"), true);
+		assert.equal(isAppRole("Employee"), true);
+		assert.equal(isAppRole("Nope"), false);
 	});
 });
