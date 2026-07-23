@@ -18,7 +18,6 @@ export async function mockClients(db: PrismaClient) {
         houseNumber: faker.location.buildingNumber(),
         city: faker.location.city(),
         province: faker.location.state(),
-        remainingEntrances: faker.number.int({ min: 10, max: 100 }),
       },
     });
   }

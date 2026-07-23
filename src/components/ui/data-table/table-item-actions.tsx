@@ -27,6 +27,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
@@ -66,10 +67,16 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	}
 
 	function onDeleteSubmit() {
-		deleteAction().then(() => {
-			setIsDeleteDialogOpen(false);
-			router.refresh();
-		});
+		deleteAction()
+			.then(() => {
+				setIsDeleteDialogOpen(false);
+				router.refresh();
+			})
+			.catch((err: unknown) => {
+				const message =
+					err instanceof Error ? err.message : "Eliminazione non riuscita.";
+				toast.error(message);
+			});
 	}
 
 	return (
