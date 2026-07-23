@@ -4,6 +4,16 @@ Roadmap unificata da `TODO.md` + ticket preesistenti in `docs/.scratch/*`.
 
 Le cartelle scratch precedenti restano come storico; **questa** è la fonte di lavoro da implementare (`/implement` un ticket alla volta dalla frontier).
 
+## Loop di implementazione
+
+Prompt operativo (claim → implement → commit → stop/next): **[LOOP.md](./LOOP.md)**.
+
+Avvio consigliato (chat Agent nuova, un ticket per sessione):
+
+```text
+Esegui docs/.scratch/todo-roadmap/LOOP.md — un solo ticket, poi stop.
+```
+
 ## Frontier iniziale
 
 - [01 — Migrate + reset schema](./issues/01-migrate-reset-schema.md)
