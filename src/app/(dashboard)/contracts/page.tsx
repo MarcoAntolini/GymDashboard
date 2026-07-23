@@ -5,6 +5,8 @@ import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
+import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -16,12 +18,19 @@ import {
 	deleteContract,
 	editContract,
 	EmployeesEarningsInPeriod,
-	getAllContracts,
 	getEmployeesEarningsInPeriod,
+	listContracts,
+	type ContractListResult,
 	type ContractRow,
 } from "@/data-access/contracts";
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
+import { useServerListQuery } from "@/hooks/useServerListQuery";
+import {
+	CONTRACT_LIST_DEFAULT_SORT,
+	CONTRACT_LIST_FILTER_IDS,
+	CONTRACT_LIST_SORT_COLUMNS,
+} from "@/lib/domain/contract-list-query";
 import { cn } from "@/lib/utils";
 import { ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -35,49 +44,89 @@ import { columns, formSchema } from "./columns";
 const earningsFormSchema = z.object({
 	date: z.object({
 		from: z.date(),
-		to: z.date()
-	})
+		to: z.date(),
+	}),
 });
 
+const CONTRACT_FILTER_FIELDS: ServerListFilterField[] = [
+	{ id: "employeeId", label: "ID dipendente", placeholder: "ID dipendente" },
+	{
+		id: "type",
+		label: "Tipo contratto",
+		placeholder: "FixedTerm / Tempo determinato",
+	},
+];
+
+const EMPTY_FILTERS = Object.fromEntries(
+	CONTRACT_LIST_FILTER_IDS.map((id) => [id, ""])
+) as Record<(typeof CONTRACT_LIST_FILTER_IDS)[number], string>;
+
 export default function Contracts() {
-	const {
-		data: contracts,
-		setData: setContracts,
-		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<ContractRow, "employeeId" | "startingDate">(
-		useMemo(
-			() => ({
-				getAll: getAllContracts,
-				deleteAction: deleteContract,
-				editAction: editContract,
-			}),
-			[]
-		),
-		["employeeId", "startingDate"]
+	const listQuery = useServerListQuery({
+		allowedSortColumns: CONTRACT_LIST_SORT_COLUMNS,
+		defaultSort: CONTRACT_LIST_DEFAULT_SORT,
+		initialFilters: EMPTY_FILTERS,
+	});
+
+	const [result, setResult] = useState<ContractListResult | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	const fetchList = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const next = await listContracts(listQuery.input);
+			setResult(next);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [listQuery.input]);
+
+	useEffect(() => {
+		void fetchList();
+	}, [fetchList]);
+
+	const { data: employeesWithoutContract, setData: setEmployeesWithoutContract } =
+		useEntityData<Employee, "id">(
+			useMemo(
+				() => ({
+					getAll: getEmployeesWithoutContract,
+				}),
+				[]
+			),
+			["id"]
+		);
+
+	const refreshEmployeesWithoutContract = useCallback(async () => {
+		const next = await getEmployeesWithoutContract();
+		setEmployeesWithoutContract(next);
+	}, [setEmployeesWithoutContract]);
+
+	const handleDelete = useCallback(
+		async (contract: Pick<ContractRow, "employeeId" | "startingDate">) => {
+			await deleteContract(contract);
+			await fetchList();
+			await refreshEmployeesWithoutContract();
+		},
+		[fetchList, refreshEmployeesWithoutContract]
 	);
 
-	const { data: employeesWithoutContract, setData: setEmployeesWithoutContract } = useEntityData<Employee, "id">(
-		useMemo(
-			() => ({
-				getAll: getEmployeesWithoutContract,
-			}),
-			[]
-		),
-		["id"]
+	const handleEdit = useCallback(
+		async (contract: ContractRow) => {
+			await editContract(contract);
+			await fetchList();
+		},
+		[fetchList]
 	);
 
 	const handleCreateContract = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newContract = await createContract(values);
-			setContracts((prevContracts) => [...prevContracts, newContract]);
-			setEmployeesWithoutContract((prevEmployees) =>
-				prevEmployees.filter((employee) => employee.id !== values.employeeId)
-			);
+			await createContract(values);
+			await fetchList();
+			await refreshEmployeesWithoutContract();
 		},
-		[setContracts, setEmployeesWithoutContract]
+		[fetchList, refreshEmployeesWithoutContract]
 	);
+
 	const createContractFormData: FormData<typeof formSchema> = {
 		formSchema,
 		defaultValues: {
@@ -91,25 +140,30 @@ export default function Contracts() {
 	};
 
 	const [isEarningsSheetOpen, setIsEarningsSheetOpen] = useState(false);
-	const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(null);
-	const handleCalculateEarnings = useCallback(async (values: z.infer<typeof earningsFormSchema>) => {
-		const earnings = await getEmployeesEarningsInPeriod({
-			startingDate: values.date.from,
-			endingDate: values.date.to
-		});
-		setEarningsData(earnings);
-		setSelectedDateRange(values.date);
-		setIsEarningsSheetOpen(true);
-	}, []);
+	const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(
+		null
+	);
+	const handleCalculateEarnings = useCallback(
+		async (values: z.infer<typeof earningsFormSchema>) => {
+			const earnings = await getEmployeesEarningsInPeriod({
+				startingDate: values.date.from,
+				endingDate: values.date.to,
+			});
+			setEarningsData(earnings);
+			setSelectedDateRange(values.date);
+			setIsEarningsSheetOpen(true);
+		},
+		[]
+	);
 	const earningsFormData: FormData<typeof earningsFormSchema> = {
 		formSchema: earningsFormSchema,
 		defaultValues: {
 			date: {
 				from: new Date(),
-				to: new Date()
-			}
+				to: new Date(),
+			},
 		},
-		submitAction: handleCalculateEarnings
+		submitAction: handleCalculateEarnings,
 	};
 	const [earningsData, setEarningsData] = useState<EmployeesEarningsInPeriod[]>([]);
 
@@ -122,6 +176,11 @@ export default function Contracts() {
 			});
 	}, []);
 
+	const tableColumns = useMemo(
+		() => columns(handleDelete, handleEdit, employeeId),
+		[handleDelete, handleEdit, employeeId]
+	);
+
 	const actions: Action[] = [
 		{
 			title: "Add Contract",
@@ -129,7 +188,9 @@ export default function Contracts() {
 			dialogContent: (
 				<>
 					{employeesWithoutContract.length === 0 ? (
-						<div className="text-center text-sm text-muted-foreground">There are no employees without a contract</div>
+						<div className="text-center text-sm text-muted-foreground">
+							There are no employees without a contract
+						</div>
 					) : (
 						<>
 							<FormField
@@ -202,7 +263,10 @@ export default function Contracts() {
 												<FormControl>
 													<Button
 														variant={"outline"}
-														className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+														className={cn(
+															"w-full pl-3 text-left font-normal",
+															!field.value && "text-muted-foreground"
+														)}
 													>
 														{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
 														<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -228,7 +292,7 @@ export default function Contracts() {
 					)}
 				</>
 			),
-			formData: createContractFormData
+			formData: createContractFormData,
 		},
 		{
 			title: "Calculate Earnings",
@@ -255,7 +319,8 @@ export default function Contracts() {
 													{field.value?.from ? (
 														field.value.to ? (
 															<>
-																{format(field.value.from, "LLL dd, y")} - {format(field.value.to, "LLL dd, y")}
+																{format(field.value.from, "LLL dd, y")} -{" "}
+																{format(field.value.to, "LLL dd, y")}
 															</>
 														) : (
 															format(field.value.from, "LLL dd, y")
@@ -284,22 +349,39 @@ export default function Contracts() {
 					/>
 				</>
 			),
-			formData: earningsFormData
-		}
+			formData: earningsFormData,
+		},
 	];
 
-	return isLoading ? (
+	const showPlaceholder = isLoading && result === null;
+
+	return showPlaceholder ? (
 		<DashboardPlaceholder />
 	) : (
 		<>
 			<Dashboard
 				actions={actions}
 				table={
-					<DataTable
-						columns={columns(handleDelete, handleEdit, employeeId)}
-						data={contracts}
-						filters={["employeeId"]}
-						facetedFilters={["type"]}
+					<ServerDataTable
+						columns={tableColumns}
+						data={result?.rows ?? []}
+						total={result?.total ?? 0}
+						page={listQuery.page}
+						pageSize={listQuery.pageSize}
+						pageCount={result?.pageCount ?? 0}
+						sort={listQuery.sort}
+						onSortChange={listQuery.setSort}
+						onPageChange={listQuery.setPage}
+						onPageSizeChange={listQuery.setPageSize}
+						filterFields={CONTRACT_FILTER_FIELDS}
+						draftFilters={listQuery.draftFilters}
+						onDraftFilterChange={listQuery.setDraftFilter}
+						onApplyFilters={listQuery.applyFilters}
+						onResetFilters={listQuery.resetFilters}
+						isFilterDirty={listQuery.isFilterDirty}
+						hasAppliedFilters={listQuery.hasAppliedFilters}
+						emptyKind={result?.emptyKind ?? null}
+						datasetEmptyMessage="Nessun contratto registrato."
 					/>
 				}
 			/>
@@ -334,24 +416,8 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
 		cell: ({ row }) => {
 			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
-		}
+		},
 	},
-	// {
-	// 	accessorKey: "startingDate",
-	// 	header: ({ column }) => <TableSortableHeader column={column} title="Starting Date" />,
-	// 	cell: ({ row }) => {
-	// 		const date = new Date(row.getValue("startingDate"));
-	// 		return <div className="font-medium">{date.toLocaleDateString()}</div>;
-	// 	}
-	// },
-	// {
-	// 	accessorKey: "endingDate",
-	// 	header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
-	// 	cell: ({ row }) => {
-	// 		const date = new Date(row.getValue("endingDate"));
-	// 		return <div className="font-medium">{date.toLocaleDateString()}</div>;
-	// 	}
-	// },
 	{
 		accessorKey: "hourlyFee",
 		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
@@ -359,12 +425,12 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 			const amount = parseFloat(row.getValue("hourlyFee"));
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
-				currency: "USD"
+				currency: "USD",
 			})
 				.format(amount)
 				.replace("$", "$ ");
 			return <div className="font-medium">{formatted}</div>;
-		}
+		},
 	},
 	{
 		accessorKey: "totalEarnings",
@@ -373,15 +439,15 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 			const amount = parseFloat(row.getValue("totalEarnings"));
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
-				currency: "USD"
+				currency: "USD",
 			})
 				.format(amount)
 				.replace("$", "$ ");
 			return <div className="font-medium">{formatted}</div>;
-		}
+		},
 	},
 	{
 		id: "actions",
-		cell: ({ row }) => {}
-	}
+		cell: () => {},
+	},
 ];

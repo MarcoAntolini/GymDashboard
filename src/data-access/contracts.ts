@@ -2,6 +2,12 @@
 
 import { requireRole } from "@/lib/auth";
 import {
+	CONTRACT_LIST_DEFAULT_SORT,
+	CONTRACT_LIST_SORT_COLUMNS,
+	buildContractListWhere,
+	contractListHasActiveFilters,
+} from "@/lib/domain/contract-list-query";
+import {
 	CONTRACT_OVERLAP_ERROR,
 	contractIntervalsOverlap,
 	type ContractInterval,
@@ -11,8 +17,16 @@ import {
 	normalizeContractEndingDate,
 } from "@/lib/domain/contract-term";
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import { listEmptyKind } from "@/lib/domain/list-query";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
+import {
+	prismaOrderBy,
+	runListQuery,
+	toPrismaSkipTake,
+	type ListQueryInput,
+	type ListQueryResult,
+} from "@/data-access/list-query";
 import { ContractType, Prisma } from "@prisma/client";
 
 type ContractIdentity = {
@@ -101,6 +115,72 @@ export async function createContract(input: {
 	return withHourlyFeeString(created);
 }
 
+export type ContractListResult = ListQueryResult<ContractRow> & {
+	/** Count with no filters — for empty-state kind (dataset vs filters). */
+	totalUnfiltered: number;
+	emptyKind: ReturnType<typeof listEmptyKind>;
+};
+
+/**
+ * Server-side Contratti list (ticket 29): filters + ORDER BY + LIMIT/OFFSET.
+ * Call only on Filtra / sort / page change — not on every keystroke.
+ */
+export async function listContracts(
+	input: ListQueryInput
+): Promise<ContractListResult> {
+	await requireRole("Admin");
+
+	let totalUnfiltered = 0;
+
+	const result = await runListQuery(
+		input,
+		async (params) => {
+			const where = buildContractListWhere(
+				params.filters
+			) as Prisma.ContractWhereInput;
+			const orderBy =
+				prismaOrderBy(params.sort, CONTRACT_LIST_DEFAULT_SORT) ??
+				prismaOrderBy(CONTRACT_LIST_DEFAULT_SORT);
+			const skipTake = toPrismaSkipTake(params);
+
+			const needsUnfiltered = contractListHasActiveFilters(params.filters);
+
+			const [rows, total, unfiltered] = await Promise.all([
+				db.contract.findMany({
+					where,
+					orderBy,
+					...skipTake,
+				}),
+				db.contract.count({ where }),
+				needsUnfiltered
+					? db.contract.count()
+					: Promise.resolve(null as number | null),
+			]);
+
+			totalUnfiltered = unfiltered ?? total;
+			return {
+				rows: rows.map(withHourlyFeeString),
+				total,
+			};
+		},
+		{
+			allowedSortColumns: CONTRACT_LIST_SORT_COLUMNS,
+			defaultSort: CONTRACT_LIST_DEFAULT_SORT,
+		}
+	);
+
+	return {
+		...result,
+		totalUnfiltered,
+		emptyKind: listEmptyKind({
+			totalUnfiltered,
+			total: result.total,
+			rowCount: result.rows.length,
+		}),
+	};
+}
+
+/** Full table — prefer {@link listContracts} for the Contratti page list. */
 export async function getAllContracts(): Promise<ContractRow[]> {
 	await requireRole("Admin");
 	const contracts = await db.contract.findMany();
