@@ -4,158 +4,142 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Catalog, PurchaseType } from "@prisma/client";
+import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
+import {
+	PRODUCT_KIND_LABELS,
+	type ProductKind,
+} from "@/lib/domain/product-kind";
+import type { CatalogRow } from "@/data-access/catalogs";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
+/** Create/edit payload: composite key only — no tipo; price as ≤2-decimal string. */
 export const formSchema = z.object({
-  year: z.number().int().positive("Year must be a positive integer"),
-  type: z.nativeEnum(PurchaseType),
-  productCode: z.string().min(1, "Product code is required"),
-  price: z.number().positive("Price must be a positive number"),
+	year: z.number().int().positive("Year must be a positive integer"),
+	productCode: z.string().min(1, "Product code is required"),
+	price: z
+		.string()
+		.min(1, "Price is required")
+		.refine(isValidCatalogPriceString, {
+			message: "Price must be a positive amount with at most 2 decimal places",
+		}),
 });
 
+export type CatalogProductOption = {
+	code: string;
+	membership: { duration: number } | null;
+	entranceSet: { entranceNumber: number } | null;
+};
+
 export const columns = (
-  handleDelete: (catalog: Pick<Catalog, "year" | "type" | "productCode">) => Promise<void>,
-  handleEdit: (catalog: Catalog) => Promise<void>
-): ColumnDef<Catalog>[] => [
-  {
-    accessorKey: "year",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Year"
-      />
-    ),
-  },
-  {
-    accessorKey: "type",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Type"
-      />
-    ),
-  },
-  {
-    accessorKey: "productCode",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Product Code"
-      />
-    ),
-  },
-  {
-    accessorKey: "price",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Price"
-      />
-    ),
-    cell: ({ row }) => {
-      const price = parseFloat(row.getValue("price"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(price);
-      return <div className="font-medium">{formatted}</div>;
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <ItemActions
-        row={row}
-        formSchema={formSchema}
-        editFormContent={
-          <>
-            <FormField
-              name="year"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Year</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      disabled
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(PurchaseType).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="productCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Code</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        }
-        editAction={async ({ values }) => {
-          const updatedCatalog = {
-            ...row.original,
-            ...values,
-          };
-          await handleEdit(updatedCatalog);
-        }}
-        deleteAction={() => handleDelete({ year: row.original.year, type: row.original.type, productCode: row.original.productCode })}
-      />
-    ),
-  },
+	handleDelete: (catalog: Pick<CatalogRow, "year" | "productCode">) => Promise<void>,
+	handleEdit: (catalog: CatalogRow) => Promise<void>
+): ColumnDef<CatalogRow>[] => [
+	{
+		accessorKey: "year",
+		header: ({ column }) => <TableSortableHeader column={column} title="Year" />,
+	},
+	{
+		accessorKey: "productKind",
+		header: ({ column }) => <TableSortableHeader column={column} title="Type" />,
+		cell: ({ row }) => {
+			const kind = row.original.productKind;
+			return (
+				<div className="font-medium">
+					{kind ? PRODUCT_KIND_LABELS[kind as ProductKind] : "—"}
+				</div>
+			);
+		},
+	},
+	{
+		accessorKey: "productCode",
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Product Code" />
+		),
+	},
+	{
+		accessorKey: "price",
+		header: ({ column }) => <TableSortableHeader column={column} title="Price" />,
+		cell: ({ row }) => {
+			const price = parseFloat(row.getValue("price"));
+			const formatted = new Intl.NumberFormat("it-IT", {
+				style: "currency",
+				currency: "EUR",
+			}).format(price);
+			return <div className="font-medium">{formatted}</div>;
+		},
+	},
+	{
+		id: "actions",
+		cell: ({ row }) => (
+			<ItemActions
+				row={row}
+				formSchema={formSchema}
+				editFormContent={
+					<>
+						<FormField
+							name="year"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Year</FormLabel>
+									<FormControl>
+										<Input
+											type="number"
+											{...field}
+											onChange={(e) => field.onChange(parseInt(e.target.value))}
+											disabled
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							name="productCode"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Product Code</FormLabel>
+									<FormControl>
+										<Input {...field} disabled />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							name="price"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Price</FormLabel>
+									<FormControl>
+										<Input
+											type="text"
+											inputMode="decimal"
+											placeholder="0.00"
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</>
+				}
+				editAction={async ({ values }) => {
+					await handleEdit({
+						...row.original,
+						year: values.year,
+						productCode: values.productCode,
+						price: values.price,
+					});
+				}}
+				deleteAction={() =>
+					handleDelete({
+						year: row.original.year,
+						productCode: row.original.productCode,
+					})
+				}
+			/>
+		),
+	},
 ];

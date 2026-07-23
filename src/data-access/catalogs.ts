@@ -1,81 +1,130 @@
 "use server";
 
+import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import { deriveProductKind, type ProductKind } from "@/lib/domain/product-kind";
 import { db } from "@/lib/db";
-import { Catalog, PurchaseType } from "@prisma/client";
+import { Catalog, Prisma } from "@prisma/client";
+
+export type CatalogRow = {
+	year: number;
+	productCode: string;
+	/** Always a 2-decimal string for forms/display (Decimal end-to-end via Prisma write). */
+	price: string;
+	/** Derived from Prodotto specialization — never persisted on Listino. */
+	productKind: ProductKind | null;
+	product: {
+		code: string;
+		membership: { duration: number } | null;
+		entranceSet: { entranceNumber: number } | null;
+	};
+};
+
+type CatalogWithProduct = Catalog & {
+	product: {
+		code: string;
+		membership: { duration: number } | null;
+		entranceSet: { entranceNumber: number } | null;
+	};
+};
+
+function toCatalogRow(catalog: CatalogWithProduct): CatalogRow {
+	return {
+		year: catalog.year,
+		productCode: catalog.productCode,
+		price: formatCatalogPrice(catalog.price),
+		productKind: deriveProductKind(catalog.product),
+		product: catalog.product,
+	};
+}
+
+const catalogInclude = {
+	product: {
+		include: {
+			membership: true,
+			entranceSet: true,
+		},
+	},
+} as const;
+
+type CatalogWriteInput = {
+	year: number;
+	productCode: string;
+	price: string | number | Prisma.Decimal;
+};
 
 export async function createCatalog({
-  year,
-  type,
-  productCode,
-  price,
-}: Omit<Catalog, "id">) {
-  return await db.catalog.create({
-    data: {
-      year,
-      type,
-      productCode,
-      price,
-    },
-    include: {
-      product: true,
-    },
-  });
+	year,
+	productCode,
+	price,
+}: CatalogWriteInput): Promise<CatalogRow> {
+	const created = await db.catalog.create({
+		data: {
+			year,
+			productCode,
+			price: new Prisma.Decimal(price),
+		},
+		include: catalogInclude,
+	});
+	return toCatalogRow(created);
 }
 
-export async function getAllCatalogs() {
-  return await db.catalog.findMany({
-    include: {
-      product: true,
-    },
-  });
+export async function getAllCatalogs(): Promise<CatalogRow[]> {
+	const catalogs = await db.catalog.findMany({
+		include: catalogInclude,
+		orderBy: [{ year: "desc" }, { productCode: "asc" }],
+	});
+	return catalogs.map(toCatalogRow);
 }
 
-export async function getCatalog(year: number, type: PurchaseType, productCode: string) {
-  return await db.catalog.findUnique({
-    where: {
-      year_type_productCode: {
-        year,
-        type,
-        productCode,
-      },
-    },
-    include: {
-      product: true,
-    },
-  });
+export async function getCatalog(
+	year: number,
+	productCode: string
+): Promise<CatalogRow | null> {
+	const catalog = await db.catalog.findUnique({
+		where: {
+			year_productCode: {
+				year,
+				productCode,
+			},
+		},
+		include: catalogInclude,
+	});
+	return catalog ? toCatalogRow(catalog) : null;
 }
 
 export async function editCatalog({
-  year,
-  type,
-  productCode,
-  price,
-}: Catalog) {
-  return await db.catalog.update({
-    where: {
-      year_type_productCode: {
-        year,
-        type,
-        productCode,
-      },
-    },
-    data: {
-      price,
-    },
-    include: {
-      product: true,
-    },
-  });
+	year,
+	productCode,
+	price,
+}: CatalogWriteInput): Promise<CatalogRow> {
+	const updated = await db.catalog.update({
+		where: {
+			year_productCode: {
+				year,
+				productCode,
+			},
+		},
+		data: {
+			price: new Prisma.Decimal(price),
+		},
+		include: catalogInclude,
+	});
+	return toCatalogRow(updated);
 }
 
-export async function deleteCatalog({ year, type, productCode }: { year: number; type: PurchaseType; productCode: string }) {
-  return await db.catalog.delete({
-    where: {
-      year_type_productCode: {
-        year,
-        type,
-        productCode,
-      },
-    },
-  });
+export async function deleteCatalog({
+	year,
+	productCode,
+}: {
+	year: number;
+	productCode: string;
+}): Promise<Catalog> {
+	return await db.catalog.delete({
+		where: {
+			year_productCode: {
+				year,
+				productCode,
+			},
+		},
+	});
 }
