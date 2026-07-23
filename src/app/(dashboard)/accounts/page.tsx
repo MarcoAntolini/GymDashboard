@@ -3,7 +3,8 @@
 import { ApprovalQueueSheet } from "@/app/(dashboard)/accounts/approval-queue-sheet";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
-import { DataTable } from "@/components/ui/data-table";
+import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
+import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -14,12 +15,20 @@ import {
 	createAccount,
 	deleteAccount,
 	editAccount,
-	getAllAccounts,
+	getAccount,
 	getPendingAccounts,
+	listAccounts,
 	rejectAccount,
+	type AccountListResult,
 } from "@/data-access/accounts";
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
+import { useServerListQuery } from "@/hooks/useServerListQuery";
+import {
+	ACCOUNT_LIST_DEFAULT_SORT,
+	ACCOUNT_LIST_FILTER_IDS,
+	ACCOUNT_LIST_SORT_COLUMNS,
+} from "@/lib/domain/account-list-query";
 import { Account, Employee } from "@prisma/client";
 import { ClipboardCheck, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -32,11 +41,32 @@ const createAccountSchema = z.object({
 	password: z.string(),
 });
 
+const ACCOUNT_FILTER_FIELDS: ServerListFilterField[] = [
+	{ id: "username", label: "Username", placeholder: "Username" },
+	{ id: "role", label: "Ruolo", placeholder: "Ruolo (Admin/Employee/…)" },
+	{ id: "approved", label: "Approvato", placeholder: "Approvato (true/false)" },
+	{ id: "employeeId", label: "ID dipendente", placeholder: "ID dipendente" },
+];
+
+const EMPTY_FILTERS = Object.fromEntries(
+	ACCOUNT_LIST_FILTER_IDS.map((id) => [id, ""])
+) as Record<(typeof ACCOUNT_LIST_FILTER_IDS)[number], string>;
+
 export default function Accounts() {
 	const [actorRole, setActorRole] = useState<AppRole | null>(null);
 	const [isApprovalSheetOpen, setIsApprovalSheetOpen] = useState(false);
 	const [pendingAccounts, setPendingAccounts] = useState<Account[]>([]);
 	const [pendingLoading, setPendingLoading] = useState(false);
+	const [newUsername, setNewUsername] = useState<string>("");
+	const [isPending, setIsPending] = useState(false);
+	const [result, setResult] = useState<AccountListResult | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	const listQuery = useServerListQuery({
+		allowedSortColumns: ACCOUNT_LIST_SORT_COLUMNS,
+		defaultSort: ACCOUNT_LIST_DEFAULT_SORT,
+		initialFilters: EMPTY_FILTERS,
+	});
 
 	useEffect(() => {
 		let cancelled = false;
@@ -53,66 +83,19 @@ export default function Accounts() {
 		};
 	}, []);
 
-	const {
-		data: accounts,
-		setData: setAccounts,
-		isLoading,
-		handleDelete,
-		handleEdit,
-	} = useEntityData<Account, "employeeId">(
-		useMemo(
-			() => ({
-				getAll: getAllAccounts,
-				deleteAction: deleteAccount,
-				editAction: async (entity: Account) => {
-					await editAccount({
-						employeeId: entity.employeeId,
-						role: entity.role,
-						approved: entity.approved,
-					});
-					return entity;
-				},
-			}),
-			[]
-		),
-		["employeeId"]
-	);
-	const { data: employeesWithoutAccount, setData: setEmployeesWithoutAccount } = useEntityData<Employee, "id">(
-		useMemo(
-			() => ({
-				getAll: getEmployeesWithoutAccount,
-			}),
-			[]
-		),
-		["id"]
-	);
+	const fetchList = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const next = await listAccounts(listQuery.input);
+			setResult(next);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [listQuery.input]);
 
-	const [newUsername, setNewUsername] = useState<string>("");
-	const [isPending, setIsPending] = useState(false);
-	const handleCreateAccount = useCallback(
-		async (values: z.infer<typeof createAccountSchema>) => {
-			setIsPending(true);
-			const newAccount = await createAccount({ ...values, username: newUsername });
-			setAccounts((prevAccounts) => [...prevAccounts, newAccount]);
-			setIsPending(false);
-			setNewUsername("");
-			setEmployeesWithoutAccount((prevEmployees) =>
-				prevEmployees.filter((employee) => employee.id !== values.employeeId)
-			);
-		},
-		[setAccounts, setEmployeesWithoutAccount, newUsername]
-	);
-	function generateUsername(employee?: Employee) {
-		if (!employee || !employee.name || !employee.surname) {
-			return "";
-		}
-		const username = `${employee.name.slice(0, 5)}.${employee.surname.slice(0, 5)}`;
-		let number = 1;
-		while (accounts.some((account) => account.username === username + number)) {
-			number++;
-		}
-		setNewUsername(username + number);
-	}
+	useEffect(() => {
+		void fetchList();
+	}, [fetchList]);
 
 	const refreshPending = useCallback(async () => {
 		setPendingLoading(true);
@@ -124,6 +107,75 @@ export default function Accounts() {
 		}
 	}, []);
 
+	useEffect(() => {
+		void refreshPending();
+	}, [refreshPending]);
+
+	const { data: employeesWithoutAccount, setData: setEmployeesWithoutAccount } = useEntityData<Employee, "id">(
+		useMemo(
+			() => ({
+				getAll: getEmployeesWithoutAccount,
+			}),
+			[]
+		),
+		["id"]
+	);
+
+	const handleDelete = useCallback(
+		async (account: Pick<Account, "employeeId">) => {
+			await deleteAccount(account);
+			await fetchList();
+			await refreshPending();
+		},
+		[fetchList, refreshPending]
+	);
+
+	const handleEdit = useCallback(
+		async (account: Account) => {
+			await editAccount({
+				employeeId: account.employeeId,
+				role: account.role,
+				approved: account.approved,
+			});
+			await fetchList();
+			await refreshPending();
+		},
+		[fetchList, refreshPending]
+	);
+
+	const handleCreateAccount = useCallback(
+		async (values: z.infer<typeof createAccountSchema>) => {
+			setIsPending(true);
+			try {
+				await createAccount({ ...values, username: newUsername });
+				setNewUsername("");
+				setEmployeesWithoutAccount((prevEmployees) =>
+					prevEmployees.filter((employee) => employee.id !== values.employeeId)
+				);
+				await fetchList();
+			} finally {
+				setIsPending(false);
+			}
+		},
+		[fetchList, setEmployeesWithoutAccount, newUsername]
+	);
+
+	async function generateUsername(employee?: Employee) {
+		if (!employee || !employee.name || !employee.surname) {
+			setNewUsername("");
+			return;
+		}
+		const base = `${employee.name.slice(0, 5)}.${employee.surname.slice(0, 5)}`;
+		let number = 1;
+		let candidate = base + number;
+		// Uniqueness against full DB (not only the current page).
+		while (await getAccount({ username: candidate })) {
+			number += 1;
+			candidate = base + number;
+		}
+		setNewUsername(candidate);
+	}
+
 	const openApprovalQueue = useCallback(async () => {
 		setIsApprovalSheetOpen(true);
 		await refreshPending();
@@ -131,28 +183,27 @@ export default function Accounts() {
 
 	const handleApprovePending = useCallback(
 		async (employeeId: number) => {
-			const updated = await approveAccount({ employeeId });
+			await approveAccount({ employeeId });
 			setPendingAccounts((prev) => prev.filter((a) => a.employeeId !== employeeId));
-			setAccounts((prev) => {
-				const exists = prev.some((a) => a.employeeId === employeeId);
-				if (exists) {
-					return prev.map((a) => (a.employeeId === employeeId ? updated : a));
-				}
-				return [...prev, updated];
-			});
+			await fetchList();
 		},
-		[setAccounts]
+		[fetchList]
 	);
 
 	const handleRejectPending = useCallback(
 		async (employeeId: number) => {
 			await rejectAccount({ employeeId });
 			setPendingAccounts((prev) => prev.filter((a) => a.employeeId !== employeeId));
-			setAccounts((prev) => prev.filter((a) => a.employeeId !== employeeId));
 			const employees = await getEmployeesWithoutAccount();
 			setEmployeesWithoutAccount(employees);
+			await fetchList();
 		},
-		[setAccounts, setEmployeesWithoutAccount]
+		[fetchList, setEmployeesWithoutAccount]
+	);
+
+	const tableColumns = useMemo(
+		() => (actorRole ? columns(handleDelete, handleEdit, actorRole) : []),
+		[actorRole, handleDelete, handleEdit]
 	);
 
 	const createAccountFormData: FormData<typeof createAccountSchema> = {
@@ -183,7 +234,7 @@ export default function Accounts() {
 										<Select
 											onValueChange={(value) => {
 												field.onChange(parseInt(value, 10));
-												generateUsername(
+												void generateUsername(
 													employeesWithoutAccount.find((employee) => employee.id === parseInt(value, 10))
 												);
 											}}
@@ -213,7 +264,7 @@ export default function Accounts() {
 							/>
 							<FormField
 								name="username"
-								render={({ field }) => (
+								render={() => (
 									<FormItem>
 										<FormLabel>Username</FormLabel>
 										<Input
@@ -250,9 +301,10 @@ export default function Accounts() {
 		},
 	];
 
-	const pendingCount = accounts.filter((a) => !a.approved).length;
+	const pendingCount = pendingAccounts.length;
+	const showPlaceholder = (isLoading && result === null) || !actorRole;
 
-	return isLoading || !actorRole ? (
+	return showPlaceholder ? (
 		<DashboardPlaceholder />
 	) : (
 		<>
@@ -273,11 +325,26 @@ export default function Accounts() {
 					</Button>
 				}
 				table={
-					<DataTable
-						columns={columns(handleDelete, handleEdit, actorRole)}
-						data={accounts}
-						filters={["username"]}
-						facetedFilters={["role", "approved"]}
+					<ServerDataTable
+						columns={tableColumns}
+						data={result?.rows ?? []}
+						total={result?.total ?? 0}
+						page={listQuery.page}
+						pageSize={listQuery.pageSize}
+						pageCount={result?.pageCount ?? 0}
+						sort={listQuery.sort}
+						onSortChange={listQuery.setSort}
+						onPageChange={listQuery.setPage}
+						onPageSizeChange={listQuery.setPageSize}
+						filterFields={ACCOUNT_FILTER_FIELDS}
+						draftFilters={listQuery.draftFilters}
+						onDraftFilterChange={listQuery.setDraftFilter}
+						onApplyFilters={listQuery.applyFilters}
+						onResetFilters={listQuery.resetFilters}
+						isFilterDirty={listQuery.isFilterDirty}
+						hasAppliedFilters={listQuery.hasAppliedFilters}
+						emptyKind={result?.emptyKind ?? null}
+						datasetEmptyMessage="Nessun Account registrato."
 					/>
 				}
 			/>
