@@ -2,45 +2,112 @@
 
 import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
-import { DataTable } from "@/components/ui/data-table";
-import { deleteBill, editBill, getAllBills } from "@/data-access/bills";
-import { useEntityData } from "@/hooks/useEntityData";
+import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
+import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
+import {
+	deleteBill,
+	editBill,
+	listBills,
+	type BillListResult,
+} from "@/data-access/bills";
+import { useServerListQuery } from "@/hooks/useServerListQuery";
+import {
+	BILL_LIST_DEFAULT_SORT,
+	BILL_LIST_FILTER_IDS,
+	BILL_LIST_SORT_COLUMNS,
+} from "@/lib/domain/bill-list-query";
 import { Bill } from "@prisma/client";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { columns } from "./columns";
 
+const BILL_FILTER_FIELDS: ServerListFilterField[] = [
+	{ id: "paymentId", label: "ID pagamento", placeholder: "ID pagamento" },
+	{ id: "provider", label: "Fornitore", placeholder: "Fornitore" },
+];
+
+const EMPTY_FILTERS = Object.fromEntries(
+	BILL_LIST_FILTER_IDS.map((id) => [id, ""])
+) as Record<(typeof BILL_LIST_FILTER_IDS)[number], string>;
+
 export default function BillsPage() {
-	const {
-		data: bills,
-		setData: setBills,
-		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<Bill, "paymentId">(
-		useMemo(
-			() => ({
-				getAll: getAllBills,
-				deleteAction: deleteBill,
-				editAction: async (entity: Bill) => {
-					await editBill({
-						paymentId: entity.paymentId,
-						description: entity.description,
-						provider: entity.provider,
-					});
-					return entity;
-				},
-			}),
-			[]
-		),
-		["paymentId"]
+	const listQuery = useServerListQuery({
+		allowedSortColumns: BILL_LIST_SORT_COLUMNS,
+		defaultSort: BILL_LIST_DEFAULT_SORT,
+		initialFilters: EMPTY_FILTERS,
+	});
+
+	const [result, setResult] = useState<BillListResult | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	const fetchList = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const next = await listBills(listQuery.input);
+			setResult(next);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [listQuery.input]);
+
+	useEffect(() => {
+		void fetchList();
+	}, [fetchList]);
+
+	const handleDelete = useCallback(
+		async (bill: Pick<Bill, "paymentId">) => {
+			await deleteBill(bill);
+			await fetchList();
+		},
+		[fetchList]
 	);
 
-	return isLoading ? (
+	const handleEdit = useCallback(
+		async (bill: Bill) => {
+			await editBill({
+				paymentId: bill.paymentId,
+				description: bill.description,
+				provider: bill.provider,
+			});
+			await fetchList();
+		},
+		[fetchList]
+	);
+
+	const tableColumns = useMemo(
+		() => columns(handleDelete, handleEdit),
+		[handleDelete, handleEdit]
+	);
+
+	const showPlaceholder = isLoading && result === null;
+
+	return showPlaceholder ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={[]}
-			table={<DataTable columns={columns(handleDelete, handleEdit)} data={bills} filters={["paymentId", "provider"]} />}
+			table={
+				<ServerDataTable
+					columns={tableColumns}
+					data={result?.rows ?? []}
+					total={result?.total ?? 0}
+					page={listQuery.page}
+					pageSize={listQuery.pageSize}
+					pageCount={result?.pageCount ?? 0}
+					sort={listQuery.sort}
+					onSortChange={listQuery.setSort}
+					onPageChange={listQuery.setPage}
+					onPageSizeChange={listQuery.setPageSize}
+					filterFields={BILL_FILTER_FIELDS}
+					draftFilters={listQuery.draftFilters}
+					onDraftFilterChange={listQuery.setDraftFilter}
+					onApplyFilters={listQuery.applyFilters}
+					onResetFilters={listQuery.resetFilters}
+					isFilterDirty={listQuery.isFilterDirty}
+					hasAppliedFilters={listQuery.hasAppliedFilters}
+					emptyKind={result?.emptyKind ?? null}
+					datasetEmptyMessage="Nessuna bolletta registrata."
+				/>
+			}
 		/>
 	);
 }
