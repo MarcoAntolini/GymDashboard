@@ -4,7 +4,7 @@
 
 **Blocked by:** 11 — Mutazioni: allowlist campi editabili; 13 — RBAC Admin/Employee + landing role-aware
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Voce Profilo nel dropdown utente in navbar apre la gestione profilo
 - [ ] Update anagrafica self sul Dipendente collegato all’Account corrente
