@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Migrate + reset DB al nuovo schema Prisma
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Create/edit/list Cliente non espongono né persistono remainingEntrances
 - [ ] Mock e form/Zod allineati: nessun campo residuo sul Cliente
