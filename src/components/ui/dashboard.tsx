@@ -26,7 +26,15 @@ export type FormData<TFormSchema extends z.ZodType<any, any>> = {
 	submitAction: (values: z.infer<TFormSchema>) => Promise<any>;
 };
 
-export default function Dashboard({ actions, table }: { actions: Action[]; table: React.ReactNode }) {
+export default function Dashboard({
+	actions,
+	table,
+	toolbarExtra,
+}: {
+	actions: Action[];
+	table: React.ReactNode;
+	toolbarExtra?: React.ReactNode;
+}) {
 	return (
 		<div className="flex flex-col h-full">
 			<div className="h-[52px] flex gap-2 items-center px-4">
@@ -37,6 +45,7 @@ export default function Dashboard({ actions, table }: { actions: Action[]; table
 							action={action}
 						/>
 					))}
+				{toolbarExtra}
 			</div>
 			<Separator />
 			<div className="flex-1 overflow-hidden">

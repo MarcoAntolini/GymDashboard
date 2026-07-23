@@ -1,17 +1,27 @@
 "use client";
 
+import { ApprovalQueueSheet } from "@/app/(dashboard)/accounts/approval-queue-sheet";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isAppRole, type AppRole } from "@/data/nav-routes";
-import { createAccount, deleteAccount, editAccount, getAllAccounts } from "@/data-access/accounts";
+import {
+	approveAccount,
+	createAccount,
+	deleteAccount,
+	editAccount,
+	getAllAccounts,
+	getPendingAccounts,
+	rejectAccount,
+} from "@/data-access/accounts";
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
 import { Account, Employee } from "@prisma/client";
-import { PlusCircle } from "lucide-react";
+import { ClipboardCheck, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { columns } from "./columns";
@@ -24,6 +34,9 @@ const createAccountSchema = z.object({
 
 export default function Accounts() {
 	const [actorRole, setActorRole] = useState<AppRole | null>(null);
+	const [isApprovalSheetOpen, setIsApprovalSheetOpen] = useState(false);
+	const [pendingAccounts, setPendingAccounts] = useState<Account[]>([]);
+	const [pendingLoading, setPendingLoading] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -100,6 +113,47 @@ export default function Accounts() {
 		}
 		setNewUsername(username + number);
 	}
+
+	const refreshPending = useCallback(async () => {
+		setPendingLoading(true);
+		try {
+			const pending = await getPendingAccounts();
+			setPendingAccounts(pending);
+		} finally {
+			setPendingLoading(false);
+		}
+	}, []);
+
+	const openApprovalQueue = useCallback(async () => {
+		setIsApprovalSheetOpen(true);
+		await refreshPending();
+	}, [refreshPending]);
+
+	const handleApprovePending = useCallback(
+		async (employeeId: number) => {
+			const updated = await approveAccount({ employeeId });
+			setPendingAccounts((prev) => prev.filter((a) => a.employeeId !== employeeId));
+			setAccounts((prev) => {
+				const exists = prev.some((a) => a.employeeId === employeeId);
+				if (exists) {
+					return prev.map((a) => (a.employeeId === employeeId ? updated : a));
+				}
+				return [...prev, updated];
+			});
+		},
+		[setAccounts]
+	);
+
+	const handleRejectPending = useCallback(
+		async (employeeId: number) => {
+			await rejectAccount({ employeeId });
+			setPendingAccounts((prev) => prev.filter((a) => a.employeeId !== employeeId));
+			setAccounts((prev) => prev.filter((a) => a.employeeId !== employeeId));
+			const employees = await getEmployeesWithoutAccount();
+			setEmployeesWithoutAccount(employees);
+		},
+		[setAccounts, setEmployeesWithoutAccount]
+	);
 
 	const createAccountFormData: FormData<typeof createAccountSchema> = {
 		formSchema: createAccountSchema,
@@ -196,19 +250,45 @@ export default function Accounts() {
 		},
 	];
 
+	const pendingCount = accounts.filter((a) => !a.approved).length;
+
 	return isLoading || !actorRole ? (
 		<DashboardPlaceholder />
 	) : (
-		<Dashboard
-			actions={actions}
-			table={
-				<DataTable
-					columns={columns(handleDelete, handleEdit, actorRole)}
-					data={accounts}
-					filters={["username"]}
-					facetedFilters={["role", "approved"]}
-				/>
-			}
-		/>
+		<>
+			<Dashboard
+				actions={actions}
+				toolbarExtra={
+					<Button
+						type="button"
+						variant="ghost"
+						onClick={openApprovalQueue}
+						disabled={pendingLoading}
+					>
+						<ClipboardCheck className="mr-2 h-4 w-4 text-muted-foreground" />
+						Approvazione
+						{pendingCount > 0 ? (
+							<span className="ml-2 text-xs text-muted-foreground">({pendingCount})</span>
+						) : null}
+					</Button>
+				}
+				table={
+					<DataTable
+						columns={columns(handleDelete, handleEdit, actorRole)}
+						data={accounts}
+						filters={["username"]}
+						facetedFilters={["role", "approved"]}
+					/>
+				}
+			/>
+			<ApprovalQueueSheet
+				open={isApprovalSheetOpen}
+				onOpenChange={setIsApprovalSheetOpen}
+				actorRole={actorRole}
+				pendingAccounts={pendingAccounts}
+				onApprove={handleApprovePending}
+				onReject={handleRejectPending}
+			/>
+		</>
 	);
 }

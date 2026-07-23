@@ -4,13 +4,20 @@
 
 **Blocked by:** 13 — RBAC Admin/Employee + landing role-aware; 14 — Ruolo Owner + gerarchia
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] Ingresso UI dedicato (pulsante) che apre sheet/modale — non mescolato come unica UX della tabella Account
-- [ ] Elenco solo Account non approvati
-- [ ] Azioni approva e rifiuta (o equivalenti) con feedback chiaro
-- [ ] Accessibile solo a Admin e Owner; Dipendente bloccato anche via URL/azione
+- [x] Ingresso UI dedicato (pulsante) che apre sheet/modale — non mescolato come unica UX della tabella Account
+- [x] Elenco solo Account non approvati
+- [x] Azioni approva e rifiuta (o equivalenti) con feedback chiaro
+- [x] Accessibile solo a Admin e Owner; Dipendente bloccato anche via URL/azione
 
 ## Comments
 
 - 2026-07-23 — claimed by implement loop (cloud)
+
+## Done
+
+- Toolbar **Approvazione** on Accounts opens a dedicated bottom Sheet (not table-only UX).
+- Sheet lists `approved: false` via `getPendingAccounts`; Approva / Rifiuta with toasts + reject confirm (delete).
+- Server actions `approveAccount` / `rejectAccount` gated by `requireRole("Admin")` + ticket-14 hierarchy; Employee blocked by middleware on `/accounts`.
+- Domain helpers `canActOnPendingAccount` / `filterApprovableAccounts` + unit tests.

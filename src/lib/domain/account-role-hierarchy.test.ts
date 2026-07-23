@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import {
 	assertAccountDeleteAllowed,
 	assertAccountRoleMutation,
+	canActOnPendingAccount,
+	filterApprovableAccounts,
 	toAppRole,
 } from "./account-role-hierarchy";
 
@@ -105,5 +107,36 @@ describe("toAppRole", () => {
 
 	it("rejects unknown", () => {
 		assert.throws(() => toAppRole("Nope"), /non valido/);
+	});
+});
+
+describe("canActOnPendingAccount / filterApprovableAccounts", () => {
+	it("allows Owner to act on Admin and Employee pending accounts", () => {
+		assert.equal(canActOnPendingAccount("Owner", "Admin"), true);
+		assert.equal(canActOnPendingAccount("Owner", "Employee"), true);
+		assert.equal(canActOnPendingAccount("Owner", "Owner"), false);
+	});
+
+	it("allows Admin to act on Employee only", () => {
+		assert.equal(canActOnPendingAccount("Admin", "Employee"), true);
+		assert.equal(canActOnPendingAccount("Admin", "Admin"), false);
+		assert.equal(canActOnPendingAccount("Admin", "Owner"), false);
+	});
+
+	it("filters pending queue to hierarchy-allowed targets", () => {
+		const pending = [
+			{ employeeId: 1, role: "Employee" },
+			{ employeeId: 2, role: "Admin" },
+			{ employeeId: 3, role: "Owner" },
+			{ employeeId: 4, role: "Nope" },
+		];
+		assert.deepEqual(
+			filterApprovableAccounts("Admin", pending).map((a) => a.employeeId),
+			[1]
+		);
+		assert.deepEqual(
+			filterApprovableAccounts("Owner", pending).map((a) => a.employeeId),
+			[1, 2]
+		);
 	});
 });

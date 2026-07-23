@@ -33,6 +33,15 @@ export async function getAllAccounts() {
 	return await db.account.findMany();
 }
 
+/** Accounts waiting for Approvazione (ticket 16). Admin+ only. */
+export async function getPendingAccounts() {
+	await requireRole("Admin");
+	return await db.account.findMany({
+		where: { approved: false },
+		orderBy: { employeeId: "asc" },
+	});
+}
+
 /** Public login/register lookup — no session gate. */
 export async function getAccount({ username, employeeId }: { username?: string; employeeId?: number }) {
 	if (username) {
@@ -104,6 +113,66 @@ export async function editAccount(input: {
 			role,
 			approved,
 		},
+	});
+}
+
+/** Approve a pending Account (keeps current role). Hierarchy-gated. */
+export async function approveAccount({ employeeId }: { employeeId: number }) {
+	const session = await requireRole("Admin");
+	const target = await db.account.findUnique({ where: { employeeId } });
+	if (!target) {
+		throw new AuthError("Account non trovato", 404);
+	}
+	if (target.approved) {
+		throw new AuthError("Account già approvato", 400);
+	}
+
+	const payload = {
+		employeeId,
+		role: target.role,
+		approved: true,
+	};
+	assertAllowedMutation("account", "update", payload);
+
+	const actorRole = toAppRole(session.r);
+	const targetRole = toAppRole(target.role);
+	try {
+		assertAccountRoleMutation({
+			actorRole,
+			targetCurrentRole: targetRole,
+			nextRole: targetRole,
+		});
+	} catch (err) {
+		throw new AuthError(err instanceof Error ? err.message : "Forbidden", 403);
+	}
+
+	return await db.account.update({
+		where: { employeeId },
+		data: { approved: true },
+	});
+}
+
+/** Reject a pending registration by deleting the Account. Hierarchy-gated. */
+export async function rejectAccount({ employeeId }: { employeeId: number }) {
+	const session = await requireRole("Admin");
+	const target = await db.account.findUnique({ where: { employeeId } });
+	if (!target) {
+		throw new AuthError("Account non trovato", 404);
+	}
+	if (target.approved) {
+		throw new AuthError("Account già approvato: usa eliminazione dalla tabella", 400);
+	}
+
+	const actorRole = toAppRole(session.r);
+	const targetRole = toAppRole(target.role);
+	try {
+		assertAccountDeleteAllowed({ actorRole, targetRole });
+	} catch (err) {
+		throw new AuthError(err instanceof Error ? err.message : "Forbidden", 403);
+	}
+
+	return await db.account.delete({
+		where: { employeeId },
 	});
 }
 

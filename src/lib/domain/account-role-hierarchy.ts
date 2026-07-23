@@ -29,6 +29,28 @@ export function assertAccountDeleteAllowed(params: {
 	}
 }
 
+/**
+ * Pending-approval queue (ticket 16): actor may approve/reject only
+ * accounts whose current role is strictly below theirs.
+ */
+export function canActOnPendingAccount(actorRole: AppRole, targetRole: AppRole): boolean {
+	return canManageRole(actorRole, targetRole);
+}
+
+/** Filter pending accounts the actor is allowed to approve or reject. */
+export function filterApprovableAccounts<T extends { role: unknown }>(
+	actorRole: AppRole,
+	accounts: T[]
+): T[] {
+	return accounts.filter((account) => {
+		try {
+			return canActOnPendingAccount(actorRole, toAppRole(account.role));
+		} catch {
+			return false;
+		}
+	});
+}
+
 export function toAppRole(role: unknown): AppRole {
 	if (!isAppRole(role)) {
 		throw new Error("Ruolo Account non valido.");
