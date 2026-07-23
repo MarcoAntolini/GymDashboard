@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Migrate + reset DB al nuovo schema Prisma
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Create Contratto con overlap sullo stesso Dipendente → reject
 - [ ] Update Contratto che introdurrebbe overlap → reject
@@ -12,3 +12,7 @@
 - [ ] Contratti adiacenti half-open ammessi vengono salvati
 
 **Source:** `docs/.scratch/align-prisma-app/issues/06-contratti-no-overlap.md`
+
+## Comments
+
+- 2026-07-23 — claimed by implement loop (cloud)
