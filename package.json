@@ -7,7 +7,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"test": "tsx --test src/lib/domain/**/*.test.ts",
+		"test": "tsx --test src/lib/domain/**/*.test.ts src/data/**/*.test.ts src/lib/**/*.test.ts",
 		"prisma": "npx prisma generate && npx prisma db push && npx prisma studio"
 	},
 	"dependencies": {

@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
@@ -45,6 +46,7 @@ function withAmountString<
 }
 
 export async function createPayment(data: PaymentData): Promise<PaymentRow> {
+	await requireRole("Employee");
 	assertAllowedMutation("pagamenti", "create", data);
 	const amountString = formatCatalogPrice(
 		typeof data.amount === "string" ? data.amount : String(data.amount)
@@ -104,6 +106,7 @@ export async function createPayment(data: PaymentData): Promise<PaymentRow> {
 }
 
 export async function getAllPayments(): Promise<PaymentRow[]> {
+	await requireRole("Employee");
 	const payments = await db.payment.findMany({
 		include: paymentInclude,
 	});
@@ -111,6 +114,7 @@ export async function getAllPayments(): Promise<PaymentRow[]> {
 }
 
 export async function getPayment(id: number): Promise<PaymentRow | null> {
+	await requireRole("Employee");
 	const payment = await db.payment.findUnique({
 		where: { id },
 		include: paymentInclude,
@@ -124,6 +128,7 @@ export async function editPayment(input: {
 	amount: string | number | Prisma.Decimal;
 	type: PaymentType;
 }): Promise<PaymentRow> {
+	await requireRole("Employee");
 	assertAllowedMutation("pagamenti", "update", input);
 	const { id, date, amount, type } = input;
 	const amountString = formatCatalogPrice(
@@ -142,6 +147,7 @@ export async function editPayment(input: {
 }
 
 export async function deletePayment({ id }: { id: number }): Promise<PaymentRow> {
+	await requireRole("Employee");
 	const existing = await db.payment.findUniqueOrThrow({
 		where: { id },
 		include: paymentInclude,

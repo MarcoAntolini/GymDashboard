@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import {
@@ -53,6 +54,7 @@ type CreatePurchaseInput = {
  * Later product/listino edits must not rewrite these columns.
  */
 export async function createPurchase(input: CreatePurchaseInput) {
+	await requireRole("Employee");
 	assertAllowedMutation("acquisti", "create", input);
 	const { clientId, date, amount, productCode } = input;
 	const product = await db.product.findUnique({
@@ -97,6 +99,7 @@ export async function createPurchase(input: CreatePurchaseInput) {
 }
 
 export async function getAllPurchases(): Promise<PurchaseWithSnapshot[]> {
+	await requireRole("Employee");
 	const purchases = await db.purchase.findMany({
 		include: {
 			client: true,
@@ -109,6 +112,7 @@ export async function getAllPurchases(): Promise<PurchaseWithSnapshot[]> {
 }
 
 export async function getPurchase(id: number) {
+	await requireRole("Employee");
 	const purchase = await db.purchase.findUnique({
 		where: { id },
 		include: {
@@ -131,6 +135,7 @@ type EditPurchaseInput = {
  * immutable after sale (see MUTATION_FIELD_MATRIX.acquisti + edge cases).
  */
 export async function editPurchase(input: EditPurchaseInput) {
+	await requireRole("Employee");
 	assertAllowedMutation("acquisti", "update", input);
 	const { id, clientId, date } = input;
 
@@ -151,6 +156,7 @@ export async function editPurchase(input: EditPurchaseInput) {
 }
 
 export async function deletePurchase({ id }: { id: number }) {
+	await requireRole("Employee");
 	try {
 		return await db.purchase.delete({
 			where: { id },

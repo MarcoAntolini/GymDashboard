@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { NAV_ROUTE_GROUPS } from "@/data/nav-routes";
 import {
 	AlarmSmoke,
 	BellElectric,
@@ -9,7 +9,7 @@ import {
 	HandCoins,
 	Handshake,
 	Lightbulb,
-	LucideIcon,
+	type LucideIcon,
 	Package,
 	ReceiptText,
 	ShoppingBasket,
@@ -19,128 +19,38 @@ import {
 	UserRoundCog,
 } from "lucide-react";
 
+const ICONS_BY_HREF: Record<string, LucideIcon> = {
+	"/accounts": UserRoundCog,
+	"/employees": BriefcaseBusiness,
+	"/contracts": ReceiptText,
+	"/clockings": BellElectric,
+	"/salaries": HandCoins,
+	"/equipment": Dumbbell,
+	"/bills": Lightbulb,
+	"/interventions": AlarmSmoke,
+	"/clients": UserRound,
+	"/entrances": DoorOpen,
+	"/products": ShoppingBasket,
+	"/memberships": Handshake,
+	"/entrance-sets": Package,
+	"/catalogs": FolderKanban,
+	"/payments": TrendingDown,
+	"/purchases": TrendingUp,
+};
+
 export const links: {
 	group: {
 		title: string;
 		href: string;
-		requiredRole: Role;
+		requiredRole: "Admin" | "Employee";
 		icon: LucideIcon;
 	}[];
-}[] = [
-	{
-		group: [
-			{
-				title: "Accounts",
-				href: "/accounts",
-				requiredRole: "Admin",
-				icon: UserRoundCog,
-			},
-			{
-				title: "Employees",
-				href: "/employees",
-				requiredRole: "Admin",
-				icon: BriefcaseBusiness,
-			},
-			{
-				title: "Contracts",
-				href: "/contracts",
-				requiredRole: "Admin",
-				icon: ReceiptText,
-			},
-			{
-				title: "Clockings",
-				href: "/clockings",
-				requiredRole: "Admin",
-				icon: BellElectric,
-			},
-		],
-	},
-	{
-		group: [
-			{
-				title: "Salaries",
-				href: "/salaries",
-				requiredRole: "Admin",
-				icon: HandCoins,
-			},
-			{
-				title: "Equipment",
-				href: "/equipment",
-				requiredRole: "Employee",
-				icon: Dumbbell,
-			},
-			{
-				title: "Bills",
-				href: "/bills",
-				requiredRole: "Employee",
-				icon: Lightbulb,
-			},
-			{
-				title: "Interventions",
-				href: "/interventions",
-				requiredRole: "Employee",
-				icon: AlarmSmoke,
-			},
-		],
-	},
-	{
-		group: [
-			{
-				title: "Clients",
-				href: "/clients",
-				requiredRole: "Employee",
-				icon: UserRound,
-			},
-			{
-				title: "Entrances",
-				href: "/entrances",
-				requiredRole: "Employee",
-				icon: DoorOpen,
-			},
-			{
-				title: "Products",
-				href: "/products",
-				requiredRole: "Employee",
-				icon: ShoppingBasket,
-			},
-		],
-	},
-	{
-		group: [
-			{
-				title: "Memberships",
-				href: "/memberships",
-				requiredRole: "Employee",
-				icon: Handshake,
-			},
-			{
-				title: "Entrance Sets",
-				href: "/entrance-sets",
-				requiredRole: "Employee",
-				icon: Package,
-			},
-			{
-				title: "Catalogs",
-				href: "/catalogs",
-				requiredRole: "Employee",
-				icon: FolderKanban,
-			},
-		],
-	},
-	{
-		group: [
-			{
-				title: "Payments",
-				href: "/payments",
-				requiredRole: "Employee",
-				icon: TrendingDown,
-			},
-			{
-				title: "Purchases",
-				href: "/purchases",
-				requiredRole: "Employee",
-				icon: TrendingUp,
-			},
-		],
-	},
-];
+}[] = NAV_ROUTE_GROUPS.map(({ group }) => ({
+	group: group.map((route) => {
+		const icon = ICONS_BY_HREF[route.href];
+		if (!icon) {
+			throw new Error(`Missing icon for nav route ${route.href}`);
+		}
+		return { ...route, icon };
+	}),
+}));

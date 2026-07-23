@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import {
@@ -9,6 +10,7 @@ import {
 import { Client } from "@prisma/client";
 
 export async function createClient(input: Omit<Client, "id">) {
+	await requireRole("Employee");
 	assertAllowedMutation("clienti", "create", input);
 	const {
 		taxCode,
@@ -41,10 +43,12 @@ export async function createClient(input: Omit<Client, "id">) {
 }
 
 export async function getAllClients() {
+	await requireRole("Employee");
 	return await db.client.findMany();
 }
 
 export async function getClient(id: number) {
+	await requireRole("Employee");
 	return await db.client.findUnique({
 		where: {
 			id,
@@ -53,6 +57,7 @@ export async function getClient(id: number) {
 }
 
 export async function editClient(input: Client) {
+	await requireRole("Employee");
 	assertAllowedMutation("clienti", "update", input);
 	const {
 		id,
@@ -89,6 +94,7 @@ export async function editClient(input: Client) {
 }
 
 export async function deleteClient({ id }: { id: number }) {
+	await requireRole("Employee");
 	try {
 		return await db.client.delete({
 			where: {

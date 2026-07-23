@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import {
 	CONTRACT_OVERLAP_ERROR,
 	contractIntervalsOverlap,
@@ -72,6 +73,7 @@ export async function createContract(input: {
 	startingDate: Date;
 	endingDate?: Date | null;
 }): Promise<ContractRow> {
+	await requireRole("Admin");
 	assertAllowedMutation("contratti", "create", input);
 	const { employeeId, type, hourlyFee, startingDate, endingDate } = input;
 	const normalizedEndingDate = normalizeContractEndingDate(type, endingDate);
@@ -100,6 +102,7 @@ export async function createContract(input: {
 }
 
 export async function getAllContracts(): Promise<ContractRow[]> {
+	await requireRole("Admin");
 	const contracts = await db.contract.findMany();
 	return contracts.map(withHourlyFeeString);
 }
@@ -108,6 +111,7 @@ export async function getContract(
 	employeeId: number,
 	startingDate: Date
 ): Promise<ContractRow | null> {
+	await requireRole("Admin");
 	const contract = await db.contract.findUnique({
 		where: {
 			employeeId_startingDate: {
@@ -126,6 +130,7 @@ export async function editContract(input: {
 	hourlyFee: string | number | Prisma.Decimal;
 	endingDate?: Date | null;
 }): Promise<ContractRow> {
+	await requireRole("Admin");
 	assertAllowedMutation("contratti", "update", input);
 	const { employeeId, startingDate, type, hourlyFee, endingDate } = input;
 	const normalizedEndingDate = normalizeContractEndingDate(type, endingDate);
@@ -167,6 +172,7 @@ export async function deleteContract({
 	employeeId: number;
 	startingDate: Date;
 }): Promise<ContractRow> {
+	await requireRole("Admin");
 	const existing = await db.contract.findUniqueOrThrow({
 		where: {
 			employeeId_startingDate: {
@@ -201,6 +207,7 @@ export async function getEmployeesEarningsInPeriod({
 	startingDate: Date;
 	endingDate: Date;
 }): Promise<EmployeesEarningsInPeriod[]> {
+	await requireRole("Admin");
 	const clockings = await db.clocking.findMany({
 		where: {
 			entranceTime: {

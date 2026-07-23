@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { deriveProductKind, type ProductKind } from "@/lib/domain/product-kind";
@@ -61,6 +62,7 @@ type CatalogWriteInput = {
 };
 
 export async function createCatalog(input: CatalogWriteInput): Promise<CatalogRow> {
+	await requireRole("Employee");
 	assertAllowedMutation("listino", "create", input);
 	const { year, productCode, price } = input;
 	const created = await db.catalog.create({
@@ -75,6 +77,7 @@ export async function createCatalog(input: CatalogWriteInput): Promise<CatalogRo
 }
 
 export async function getAllCatalogs(): Promise<CatalogRow[]> {
+	await requireRole("Employee");
 	const catalogs = await db.catalog.findMany({
 		include: catalogInclude,
 		orderBy: [{ year: "desc" }, { productCode: "asc" }],
@@ -86,6 +89,7 @@ export async function getCatalog(
 	year: number,
 	productCode: string
 ): Promise<CatalogRow | null> {
+	await requireRole("Employee");
 	const catalog = await db.catalog.findUnique({
 		where: {
 			year_productCode: {
@@ -99,6 +103,7 @@ export async function getCatalog(
 }
 
 export async function editCatalog(input: CatalogWriteInput): Promise<CatalogRow> {
+	await requireRole("Employee");
 	assertAllowedMutation("listino", "update", input);
 	const { year, productCode, price } = input;
 	const updated = await db.catalog.update({
@@ -123,6 +128,7 @@ export async function deleteCatalog({
 	year: number;
 	productCode: string;
 }): Promise<Catalog> {
+	await requireRole("Employee");
 	return await db.catalog.delete({
 		where: {
 			year_productCode: {

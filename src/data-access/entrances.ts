@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import {
 	NO_JUSTIFYING_PURCHASE_ERROR,
 	selectJustifyingPurchaseId,
@@ -53,6 +54,7 @@ type RegisterEntranceInput = {
 export async function registerEntrance(
 	input: RegisterEntranceInput
 ): Promise<EntranceRow> {
+	await requireRole("Employee");
 	assertAllowedMutation("ingressi", "create", input);
 	const { clientId, date } = input;
 	const at = date ?? new Date();
@@ -95,10 +97,12 @@ export async function registerEntrance(
 
 /** Alias used by the Ingressi form — same domain registration path. */
 export async function createEntrance(input: RegisterEntranceInput) {
+	await requireRole("Employee");
 	return registerEntrance(input);
 }
 
 export async function getAllEntrances(): Promise<EntranceRow[]> {
+	await requireRole("Employee");
 	return await db.entrance.findMany({
 		include: entranceInclude,
 		orderBy: [{ date: "desc" }, { id: "desc" }],
@@ -106,6 +110,7 @@ export async function getAllEntrances(): Promise<EntranceRow[]> {
 }
 
 export async function getEntrance(id: number): Promise<EntranceRow | null> {
+	await requireRole("Employee");
 	return await db.entrance.findUnique({
 		where: { id },
 		include: entranceInclude,
@@ -124,6 +129,7 @@ type EditEntranceInput = {
  * with the same transaction + tie-break rules as registration.
  */
 export async function editEntrance(input: EditEntranceInput): Promise<EntranceRow> {
+	await requireRole("Employee");
 	assertAllowedMutation("ingressi", "update", input);
 	const { id, date, clientId } = input;
 	return await db.$transaction(
@@ -179,6 +185,7 @@ export async function editEntrance(input: EditEntranceInput): Promise<EntranceRo
 }
 
 export async function deleteEntrance({ id }: { id: number }) {
+	await requireRole("Employee");
 	return await db.entrance.delete({
 		where: { id },
 	});
@@ -198,6 +205,7 @@ type MonthlyEntrances = {
 };
 
 export async function getDailyEntrances(startDate: Date, endDate: Date): Promise<DailyEntrances[]> {
+	await requireRole("Employee");
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {
@@ -222,6 +230,7 @@ export async function getDailyEntrances(startDate: Date, endDate: Date): Promise
 }
 
 export async function getWeeklyEntrances(startDate: Date, endDate: Date): Promise<WeeklyEntrances[]> {
+	await requireRole("Employee");
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {
@@ -250,6 +259,7 @@ export async function getMonthlyEntrances(
 	startDate: Date,
 	endDate: Date
 ): Promise<MonthlyEntrances[]> {
+	await requireRole("Employee");
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {

@@ -6,7 +6,7 @@
  * - `update` — accepted as mutable data on update
  * - `identity` — PK / where key on update (not rewritten as data unless also `update`)
  * - `immutable` — never accepted from clients (join / derivata / server-only snapshot)
- * - `admin-only` — mutable only by Admin+ (session gate deferred to tickets 13/14)
+ * - `admin-only` — mutable only by Admin+ (session gate via requireRole in data-access; Owner → ticket 14)
  * - `write-only` — accepted on create; never read back as an editable form value
  */
 
@@ -157,12 +157,12 @@ export const MUTATION_FIELD_MATRIX: Record<MutationEntity, readonly MutationFiel
 		{
 			key: "role",
 			flags: ["admin-only", "update"],
-			notes: "Admin+ only; session RBAC gate deferred to tickets 13/14",
+			notes: "Admin+ only; enforced by requireRole(Admin) on editAccount",
 		},
 		{
 			key: "approved",
 			flags: ["admin-only", "update"],
-			notes: "Approvazione — Admin+ only; session RBAC gate deferred to tickets 13/14",
+			notes: "Approvazione — Admin+ only; enforced by requireRole(Admin) on editAccount",
 		},
 		{ key: "employee", flags: ["immutable"], notes: "join / include" },
 	],
@@ -260,7 +260,7 @@ export const MUTATION_EDGE_CASES = [
 	{
 		id: "account-password",
 		summary:
-			"Password Account: write-only in create; assente da update. Maschera/UI e change password → ticket 15. role/approved = admin-only (RBAC session → 13/14).",
+			"Password Account: write-only in create; assente da update. Maschera/UI e change password → ticket 15. role/approved = admin-only (RBAC session on editAccount).",
 	},
 ] as const;
 

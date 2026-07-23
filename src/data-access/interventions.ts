@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { Intervention } from "@prisma/client";
@@ -11,6 +12,7 @@ export async function createIntervention(input: {
 	startingTime: Date;
 	endingTime: Date;
 }) {
+	await requireRole("Employee");
 	assertAllowedMutation("interventi", "create", input);
 	const { paymentId, description, maker, startingTime, endingTime } = input;
 	return await db.intervention.create({
@@ -25,6 +27,7 @@ export async function createIntervention(input: {
 }
 
 export async function getAllInterventions() {
+	await requireRole("Employee");
 	return await db.intervention.findMany({
 		include: {
 			payment: true,
@@ -33,6 +36,7 @@ export async function getAllInterventions() {
 }
 
 export async function getIntervention(paymentId: number) {
+	await requireRole("Employee");
 	return await db.intervention.findUnique({
 		where: {
 			paymentId,
@@ -44,6 +48,7 @@ export async function getIntervention(paymentId: number) {
 }
 
 export async function editIntervention(input: Intervention) {
+	await requireRole("Employee");
 	assertAllowedMutation("interventi", "update", input);
 	const { paymentId, description, maker, startingTime, endingTime } = input;
 	return await db.intervention.update({
@@ -60,6 +65,7 @@ export async function editIntervention(input: Intervention) {
 }
 
 export async function deleteIntervention({ paymentId }: { paymentId: number }) {
+	await requireRole("Employee");
 	return await db.intervention.delete({
 		where: {
 			paymentId,

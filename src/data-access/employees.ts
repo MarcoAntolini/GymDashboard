@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole, requireRoleUnlessPublic } from "@/lib/auth";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 
@@ -16,6 +17,7 @@ export async function createEmployee(input: {
 	email?: string;
 	hiringDate?: Date;
 }) {
+	await requireRole("Admin");
 	assertAllowedMutation("dipendenti", "create", input);
 	const {
 		taxCode,
@@ -28,7 +30,7 @@ export async function createEmployee(input: {
 		province,
 		phoneNumber,
 		email,
-		hiringDate
+		hiringDate,
 	} = input;
 	return await db.employee.create({
 		data: {
@@ -42,20 +44,23 @@ export async function createEmployee(input: {
 			province,
 			phoneNumber: phoneNumber || "",
 			email: email || "",
-			hiringDate: hiringDate || new Date()
-		}
+			hiringDate: hiringDate || new Date(),
+		},
 	});
 }
 
 export async function getAllEmployees() {
+	await requireRole("Admin");
 	return await db.employee.findMany();
 }
 
+/** Public register lookup; authenticated callers need Employee+ (Admin inherits). */
 export async function getEmployee(id: number) {
+	await requireRoleUnlessPublic("Employee");
 	return await db.employee.findUnique({
 		where: {
-			id
-		}
+			id,
+		},
 	});
 }
 
@@ -73,6 +78,7 @@ export async function editEmployee(input: {
 	email: string;
 	hiringDate: Date;
 }) {
+	await requireRole("Admin");
 	assertAllowedMutation("dipendenti", "update", input);
 	const {
 		id,
@@ -86,11 +92,11 @@ export async function editEmployee(input: {
 		province,
 		phoneNumber,
 		email,
-		hiringDate
+		hiringDate,
 	} = input;
 	return await db.employee.update({
 		where: {
-			id
+			id,
 		},
 		data: {
 			taxCode,
@@ -103,35 +109,38 @@ export async function editEmployee(input: {
 			province,
 			phoneNumber,
 			email,
-			hiringDate
-		}
+			hiringDate,
+		},
 	});
 }
 
 export async function deleteEmployee({ id }: { id: number }) {
+	await requireRole("Admin");
 	return await db.employee.delete({
 		where: {
-			id
-		}
+			id,
+		},
 	});
 }
 
 export async function getEmployeesWithoutAccount() {
+	await requireRole("Admin");
 	return await db.employee.findMany({
 		where: {
 			account: {
-				is: null
-			}
-		}
+				is: null,
+			},
+		},
 	});
 }
 
 export async function getEmployeesWithoutContract() {
+	await requireRole("Admin");
 	return await db.employee.findMany({
 		where: {
 			contracts: {
-				none: {}
-			}
-		}
+				none: {},
+			},
+		},
 	});
 }

@@ -4,8 +4,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { links } from "@/data/links";
+import { isAppRole, roleAllows, type AppRole } from "@/data/nav-routes";
 import { cn } from "@/lib/utils";
-import { Role } from "@prisma/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,7 +14,7 @@ import { BeatLoader } from "react-spinners";
 export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 	const router = useRouter();
 	let pathname = usePathname();
-	const [userRole, setUserRole] = useState<Role>();
+	const [userRole, setUserRole] = useState<AppRole>();
 	const [selectedLink, setSelectedLink] = useState("/" + pathname.split("/").pop());
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -26,11 +26,11 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 				const res = await fetch("/api/auth/me");
 				const me = res.ok ? await res.json() : null;
 				if (cancelled) return;
-				if (!me?.role) {
+				if (!me?.role || !isAppRole(me.role)) {
 					router.push("/auth");
 					return;
 				}
-				setUserRole(me.role as Role);
+				setUserRole(me.role);
 			} catch {
 				if (cancelled) return;
 				router.push("/auth");
@@ -63,13 +63,7 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 						className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
 					>
 						{l.group
-							.filter((link) => {
-								if (userRole === "Admin") {
-									return true;
-								} else {
-									return link.requiredRole === userRole;
-								}
-							})
+							.filter((link) => (userRole ? roleAllows(userRole, link.requiredRole) : false))
 							.map((link, index) => {
 								const variant = link.href === selectedLink ? "default" : "ghost";
 								return isCollapsed ? (

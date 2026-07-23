@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import {
 	PRODUCT_HAS_PURCHASES_MESSAGE,
@@ -9,6 +10,7 @@ import { db } from "@/lib/db";
 import { Product } from "@prisma/client";
 
 export async function createProduct(input: Omit<Product, "id">) {
+	await requireRole("Employee");
 	assertAllowedMutation("prodotti", "create", input);
 	const { code } = input;
 	return await db.product.create({
@@ -19,6 +21,7 @@ export async function createProduct(input: Omit<Product, "id">) {
 }
 
 export async function getAllProducts() {
+	await requireRole("Employee");
   return await db.product.findMany({
     include: {
       membership: true,
@@ -28,6 +31,7 @@ export async function getAllProducts() {
 }
 
 export async function getProduct(code: string) {
+	await requireRole("Employee");
   return await db.product.findUnique({
     where: {
       code,
@@ -40,6 +44,7 @@ export async function getProduct(code: string) {
 }
 
 export async function editProduct(input: Pick<Product, "code">) {
+	await requireRole("Employee");
 	assertAllowedMutation("prodotti", "update", input);
 	const { code } = input;
 	return await db.product.update({
@@ -53,6 +58,7 @@ export async function editProduct(input: Pick<Product, "code">) {
 }
 
 export async function deleteProduct({ code }: { code: string }) {
+	await requireRole("Employee");
   try {
     return await db.product.delete({
       where: {
