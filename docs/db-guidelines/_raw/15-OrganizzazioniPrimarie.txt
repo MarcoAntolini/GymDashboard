@@ -1,0 +1,707 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Organizzazioni primarie
+
+
+===== PAGE 2 =====
+
+2
+ Sono state già discusse in precedenza le modalità di memorizzazione dei
+dati a livello fisico e le principali tecniche di gestione delle pagine. Un
+file è una collezione di pagine ciascuna delle quali è una collezione di
+record.
+Introduzione alle organizzazioni dei file
+I livelli di un DBMS che
+intervengono nella gestione dei
+dati residenti sui dispositivi di
+memoria secondaria sono
+schematizzati in figura.
+Query Optimization and Execution
+Relational Operators
+File Organizations and Access 
+Methods
+Buffer Management
+Disk Space Management
+DBMS Layers
+DB
+
+
+===== PAGE 3 =====
+
+3
+Tipi di organizzazioni dei dati
+ Primaria vs secondaria:
+ Un’organizzazione primaria definisce un criterio di allocazione dei
+dati nei file. Un’organizzazione secondaria rappresenta un ulteriore
+metodo di accesso all’organizzazione primaria.
+ Statica vs dinamica:
+ Un’organizzazione dinamica si adatta alla mole effettiva dei dati.
+Viceversa, un’organizzazione statica prevede fasi di
+“riorganizzazione” globale a fronte di variazioni, più o meno
+consistenti, del volume di dati da gestire.
+ Per chiave primaria vs chiave secondaria
+ Il valore della chiave identifica un unico record in un’organizzazione
+per chiave primaria, e più record nel secondo caso.
+N.B. Il termine chiave indica una combinazione di campi che identificaunivocamente un record; spesso è usato anche con il significato di chiave diricerca, ovvero uno o più campi tramite i quali si accede ai dati.
+N.B. Spesso il termine blocco è usato in questa sede come sinonimo di pagina.
+
+===== PAGE 4 =====
+
+4
+Le operazioni, per quanto complesse, sono riconducibili, in termini di
+I/O, ad alcune primitive di base:
+ Ricerca (esatta) che può essere per:
+ chiave primaria: restituisce al più un solo record
+es. lo studente con matricola 2106110234
+ chiave secondaria: restituisce 0 o più record
+es. gli studenti residenti a Cesena
+ intervallo: restituisce 0 o più record
+es. i contribuenti con reddito inferiore a 40.000 €
+ varie combinazioni: restituisce 0 o più record
+es. i giocatori dell’Inter o della Juventus di età inferiore a 19 anni
+ Inserimento di uno o più record
+ Cancellazione di uno o più record
+ Modifica di uno o più record
+ Può essere vista come la combinazione di cancellazione e inserimento.
+Tipi di operazioni
+
+===== PAGE 5 =====
+
+5
+Clustering e indexing
+ Clustering: presenza di “addensamenti” di dati, nei blocchi del
+file; si noti che l’ordinamento è un caso particolare.
+ La presenza di clustering è importante per ricerche su chiave secondaria,
+e può essere indotto da dipendenze esistenti tra gli attributi (si pensi, ad
+esempio, alla dipendenza tra età e stipendio di un impiegato, oppure fra
+tipo merce e scaffale di allocazione in un supermercato).
+ Indexing: a differenza del clustering che riguarda come i dati
+sono raggruppati nei blocchi, il concetto di indexing concerne
+aspetti relativi all’accesso ai dati, cioè la possibilità effettiva di
+risolvere efficacemente operazioni di ricerca e aggiornamento
+tramite opportune strutture dati e metodi di accesso.
+
+===== PAGE 6 =====
+
+6
+Astrazioni di file: richiami
+ A livello di applicazione un file è un’organizzazione di
+dati astratta.
+ File “non strutturato”: sequenza di byte (stream) su cui è
+possibile operare attraverso primitive orientate alla
+manipolazione del singolo byte o di blocchi di byte.
+ Esempi di uso sono: gestione di immagini bit map, operazioni
+che prescindono dalla struttura logica dei record (copie di
+backup, trasferimenti in rete, ecc.).
+ File strutturato: collezione di record, a lunghezza fissa o
+variabile, che appartengono a un certo tipo di dato
+astratto.
+ Esempi: un file di persone, un file di libri, un file di testo, …
+
+===== PAGE 7 =====
+
+7
+Assunzioni di base
+ Al fine di semplificare l’analisi della complessità degli algoritmi, valutata solo in
+termini di costi di I/O, e più precisamente come numero di letture e/o scritture di
+blocchi (pagine), i modelli di stima adottati in questa sede fanno alcune assunzioni:
+ si assume che i record del file abbiano tutti la medesima lunghezza; non sono
+pertanto previsti record a lunghezza variabile;
+ si assume che ogni blocco del file contenga un numero intero e costante di record
+(a parte eventualmente l’ultimo blocco che può contenere un numero inferiore di
+record); non è dunque previsto il caso di record che occupino più di un blocco;
+ per la ricerca di un record in un file si assume che ogni blocco del file abbia la
+stessa probabilità di ospitarlo
+a 19
+d 21
+g 24
+b 14
+c 33
+e 16
+d 31
+m 3
+r 16
+a 14
+d 7
+p 2
+a 30
+a 21
+g 44
+b 16
+c 40
+e 12
+d 90
+m 13
+r 1
+a 68
+d 17
+p 20
+d 11
+m 8
+r 10
+a 15
+d 70
+p 10
+record (tuple)
+ data block (page)
+file
+
+===== PAGE 8 =====
+
+8
+Organizzazioni primarie e secondarie
+ Le organizzazioni primarie di base si possono suddividere in quattro
+principali categorie:
+ strutture sequenziali non ordinate (heap)
+ strutture sequenziali ordinate (sorted sequential file);
+ ad accesso calcolato (hash file);
+ ad albero (indexed organization).
+ A ciascuna di queste organizzazioni si possono associare alcuni
+ulteriori metodi di accesso rispetto a quelli propri stabiliti dalle
+modalità di allocazione dei record nei blocchi del file. Ad esempio,
+per un sorted file si può costruire un indice ad albero, per facilitare
+ricerche sulla combinazione di attributi di ordinamento, e altri indici
+per ricerche su altri attributi.
+ Le organizzazioni secondarie sono principalmente strutture ad albero,
+anche se sono possibili indici hash e altre tipologie di indici (es.
+bitmap index), e di fatto rappresentano ulteriori cammini d’accesso al
+file dati.
+
+===== PAGE 9 =====
+
+9
+Organizzazioni di file: esempio
+Hash-structured data file
+A key
+ HASH
+Tree index
+(secondary organization on attribute B)
+(primary organization on attribute A) 
+B key
+31 BO 16 MI
+20 MI37 RM
+SELECT * 
+FROM R 
+WHERE B  'MI'
+SELECT * 
+FROM R 
+WHERE A  37
+
+===== PAGE 10 =====
+
+10
+Organizzazioni sequenziali
+ Indipendentemente dalla reale allocazione fisica dei blocchi, la sequenza logica di
+registrazione dei record può rispettare:
+ l’ordine temporale della registrazione e l’organizzazione è detta seriale o heap
+o pile o anche unsorted file;
+ un ordinamento in base a un campo chiave e l’organizzazione è detta sorted
+sequential file o clustered file.
+ Un heap file è in generale disordinato rispetto ai valori della chiave primaria o ai
+valori di una qualunque combinazione di attributi, a meno che l’operazione di
+caricamento dei dati non sia effettuata rispettando un ordine che il DBMS non può
+comunque conoscere a priori.
+ Un sorted sequential file facilita la ricerca sugli attributi di ordinamento; tuttavia,
+mantenere l’ordinamento dei record è oneroso e comporta il ricorso a opportune
+tecniche di gestione di record in overflow.
+ Per entrambe le organizzazioni si rendono necessarie operazioni di riorganizzazione
+a fronte di numerose modifiche, inserimenti e cancellazioni di record.
+ Di solito queste organizzazioni sono in stretta associazione con l’uso di indici.
+
+===== PAGE 11 =====
+
+11
+Heap file
+ Nella versione più semplice:
+ l’inserimento di un nuovo record è sempre effettuato appendendolo alla fine del file,
+pertanto è sufficiente mantenere un riferimento all’ultimo blocco del file;
+ l’eliminazione comporta semplicemente marcare come “non valido” il record
+interessato.
+ La struttura permette di gestire record a lunghezza fissa o variabile, nonché record che
+occupano più pagine.
+ Per scandire il file in sequenza il DBMS deve tenere traccia dei blocchi (pagine) che
+contengono i vari record.
+ Nel caso di record a lunghezza fissa è semplice implementare un accesso logico basato su
+un numero d’ordine del record (relative file).
+ I DBMS implementano opportuni accorgimenti per gestire le eliminazioni e gli inserimenti
+di record in posizioni marcate non più valide, cercando così di non degradare l’efficienza
+delle operazioni di ricerca e di minimizzare lo spreco di spazio. Con questi metodi,
+tuttavia, l’inserimento di un record può comportare l’accesso a molte pagine dati fino a
+trovarne una atta ad ospitarlo e si rende, inoltre, necessario tracciare le pagine con
+record marcati “non validi”.
+ La modifica di un record a lunghezza variabile può richiedere la cancellazione del
+vecchio record e l’inserimento in altra pagina che ha spazio sufficiente.
+
+===== PAGE 12 =====
+
+12
+Heap file: organizzazione delle pagine
+Page 1
+Page 2
+Page NP
+Header
+page Questa soluzione gestisce invece una
+directory per tener traccia delle pagine
+con spazi liberi. In tal modo è più
+semplice la ricerca di spazio per
+allocare un nuovo record.
+Directory
+Questa soluzione prevede due doubly
+linked list. Cercare uno spazio per un
+nuovo record può comportare la visita
+di svariate pagine nella lista di quelle
+con spazi liberi.
+Header
+page
+
+===== PAGE 13 =====
+
+13
+Heap file: utilità
+ La struttura non è efficiente per memorizzare record a lunghezza
+variabile, se soggetta a frequenti aggiornamenti.
+ Periodicamente deve essere effettuata una riorganizzazione del file
+compattando i record ed eliminando quelli marcati come non più
+validi.
+ Queste organizzazioni sono utili in particolari situazioni:
+ Piccoli volumi di dati;
+ operazioni che interessano tutti o gran parte dei record, ad esempio:
+ lettura file di configurazione;
+ calcolo della media dei valori di un campo;
+ interrogazioni poco selettive;
+ aggiornamenti poco frequenti.
+ Spesso queste organizzazioni (di base nei DBMS) sono usate in
+combinazioni con indici come percorsi di accesso alternativi.
+
+===== PAGE 14 =====
+
+14
+blocco (pagina)
+…..
+NP2 i1
+…..Z321
+Y210
+B102
+D123
+L210
+M321
+L113
+G010
+F124
+X113
+B101
+A010
+ record
+File disordinato rispetto alla chiave di ricerca. Per semplicità l’esempio
+assume che il file contenga valori unici per la chiave di ricerca. La figura
+mostra solo l’attributo relativo alla chiave di ricerca.
+Il modello assume che ogni blocco abbia probabilità 1/NP di ospitare il record 
+cercato:
+ caso di esistenza del record cercato:
+– in media si accede a σ𝑖=1
+NP 𝑖 ×
+1
+NP =
+NP+1
+2 ≈
+NP
+2 blocchi per NP  1;
+– nel caso peggiore si accede a NP blocchi;
+ caso di non esistenza del record cercato:
+– si visitano NP blocchi. 
+Heap file: ricerca di un valore di chiave
+N.B. Nel caso di valori ripetuti il 
+costo della ricerca è pari a NP.
+
+===== PAGE 15 =====
+
+15
+Heap file: prestazioni
+Operazione Descrizione Costo num. op. I/O
+Ricerca di un valore di
+chiave (la prima
+occorrenza)
+Scansione sequenziale delle
+pagine
+(NP+1)/2 caso di esistenza in media
+NP caso peggiore
+NP caso di non esistenza
+Ricerca di valori all’interno
+di un intervallo
+Scansione sequenziale di
+tutte le pagine
+NP
+Ricerca di multiple
+occorrenze di un valore
+Scansione sequenziale di
+tutte le pagine
+NP
+Inserimento di un record Si appende in fondo al file 2 (lettura di una pagina e riscrittura)
+Eliminazione di un solo
+record
+Ricerca del record e
+marcatura (si assume che
+esista)
+C(ricerca) + 1 (riscrittura pagina)
+(ipotesi nessun compattamento)
+C(ricerca) = 1 se è noto il RID del record da 
+eliminare
+Modifica di un solo record Ricerca del record e
+aggiornamento (si assume
+che esista)
+C(ricerca) + 1 (riscrittura pagina)
+C(ricerca) = 1 se è noto il RID del record da 
+modificare
+
+===== PAGE 16 =====
+
+16
+Sorted sequential file
+ Questo tipo di organizzazione può dare vantaggi nel caso in cui si debba
+ricercare record secondo l’ordine dei valori di chiave di ordinamento (caso
+tipico chiave primaria):
+ ricerca di un singolo record;
+ ricerche di intervallo;
+ È possibile far ricorso a un algoritmo di ricerca dicotomica.
+ Rispetto a un heap file non si ottiene nessun vantaggio per ricerche su altri
+attributi non di ordinamento.
+ Mantenere l’ordinamento puntuale a fronte di inserimenti, cancellazioni e
+modifiche può essere molto dispendioso. Per rendere più efficiente
+l’inserimento si prevedono di solito spazi liberi nei blocchi e l’allocazione di
+ulteriori blocchi in un overflow file non ordinato distinto dal file master. Le
+ricerche coinvolgono a questo punto anche il file di overflow in modalità di
+scansione lineare essendo il file mantenuto non ordinato. Periodicamente i
+due file vengono fusi per produrre un unico file ordinato.
+
+===== PAGE 17 =====
+
+17
+Sorted sequential file: ricerca valore di chiave
+…..
+blocco (pagina)NP2 i1
+…..A010
+B101
+B102
+D123
+F124
+G010
+L113
+L210
+M321
+X113
+Y210
+Z321
+ record
+File ordinato su un attributo o combinazione di attributi. Per semplicità si
+assume che il file contenga valori unici per la chiave di ricerca.
+ Ricerca sequenziale: sia in caso di esistenza sia in caso di non esistenza si 
+accede in media a (NP1)/2  blocchi.
+ Ricerca dicotomica (assumendo NP = 2M 1, con M intero  0)
+ caso di esistenza del record cercato (con NP>>1):
+ in media si accede a log2 NP blocchi;
+ nel caso peggiore si accede a log2 NP + 1 blocchi;
+ caso di non esistenza del record cercato: si visitano al più log2 NP + 1
+blocchi.
+
+===== PAGE 18 =====
+
+18
+Sorted sequential file: prestazioni
+Operazione Descrizione Costo num. op. I/O
+Ricerca di un valore
+di chiave
+Ricerca dicotomica log2 NP caso di esistenza
+Ricerca di valori
+all’interno di un
+intervallo (attributo
+di tipo numerico)
+Si leggono solo le pagine con
+valori di chiave in [L,H];
+si assume distribuzione
+uniforme dei valori di chiave
+log2 NP + H − L
+HK − LK × NP− 1
+Inserimento di un
+record
+Si suppone vi sia spazio per
+l’inserimento nella pagina
+log2 NP +1(ricerca + riscrittura pagina) 
+Eliminazione di un
+record
+Ricerca del record e
+marcatura (si assume che
+esista)
+log2 NP +1 (ricerca + riscrittura pagina) 
+C(ricerca)  1 se è noto il RID del record
+Modifica di un
+record su attributi
+diversi dalla chiave.
+Ricerca del record e
+aggiornamento (si assume
+che esista)
+log2 NP +1 (ricerca + riscrittura pagina) se
+ricerca sulla chiave
+C(ricerca)  1 se è noto il RID del record
+C(ricerca)  (NP+1)/2 se ricerca su altri campi
+N.B. HK e LK rappresentano rispettivamente il
+valore massimo e il valore minimo della chiave
+
+===== PAGE 19 =====
+
+19
+Hash file
+ Un altro tipo di organizzazione primaria prevede l’uso di funzioni
+hash per allocare i record nei blocchi, di norma sulla base di un
+attributo chiave.
+ Ogni indirizzo generato dalla funzione hash H individua una pagina
+logica (denominata usualmente bucket).
+ Salvo casi particolari, le funzioni hash non sono iniettive, cioè non
+rispettano la proprietà k1 ≠ k2  H(k1) ≠ H(k2), e quindi possono
+verificarsi collisioni: k1 e k2 collidono  H(k1) = H(k2).
+ Se una chiave viene assegnata a un bucket che non ha spazio, si
+verifica un overflow.
+Key Address
+H
+
+
+===== PAGE 20 =====
+
+20
+Bucket overflow: esempio
+ L’area di memoria costituita dai bucket indirizzabili dalla funzione hash è
+detta area primaria.
+ La presenza di overflow può richiedere, dipendentemente dalla specifica
+organizzazione, l’uso di un’area di memoria separata, detta appunto area
+di overflow.
+ Pur in presenza di collisioni, le organizzazioni hash sono in genere efficienti per il
+reperimento di un singolo record dato il suo valore di chiave. Non sono affatto utili
+per altre tipi di ricerca (es. intervallo) in quanto di norma non preservano
+l’ordinamento rispetto al valore di chiave.
+32
+27
+52
+(C  3)
+H(k) 
+k mod 5
+21
+46
+1
+ 2
+H(97) = 2
+bucket
+20
+65
+0
+VERDI ROSSI
+GRIGIBIANCHI
+VERDI
+NERI
+GIALLI
+overflow
+97ROSSETTI
+23
+63
+BIONDI
+BELLI
+14
+74
+MORI
+BRUNI
+3 4
+24 BASSI
+?
+
+===== PAGE 21 =====
+
+21
+ Una funzione hash deve essere suriettiva, e quindi generare NP indirizzi
+(0,1,...,NP1), tanti quanti sono i bucket dell’area primaria.
+ Organizzazione statica: il valore di NP è fissato all’atto della creazione
+della struttura, e mantenuto costante.
+ In questo caso, il dimensionamento dell’area primaria è parte
+integrante del progetto dell’organizzazione. In presenza di degrado
+di prestazioni causato da eccessivi overflow si rende necessario
+provvedere a una riorganizzazione dell’intera struttura.
+ Organizzazione dinamica: il valore di NP è variabile, ovvero l’area
+primaria può espandersi e contrarsi, per adattarsi meglio al volume
+effettivo dei dati da gestire.
+ In questo scenario si rendono necessarie più funzioni hash.
+Organizzazioni statiche e dinamiche
+
+===== PAGE 22 =====
+
+22
+ Per entrambi i tipi di organizzazione statica e dinamica, vi sono aspetti
+comuni che meritano considerazione:
+ scelta della funzione hash H;
+ politica di gestione degli overflow;
+ capacità C dei bucket dell’area primaria;
+ Capacità Cov dei bucket dell’eventuale area di overflow (non
+necessariamente uguale a C);
+ utilizzazione della memoria allocata.
+Parametri di progetto
+
+===== PAGE 23 =====
+
+23
+ Un semplice esempio in cui:
+ le chiavi sono numeri naturali;
+ l’area primaria consiste di NP  5 bucket di capacità C  5;
+ la funzione hash è: H(ki) = ki mod 5;
+ gli overflow sono gestiti allocando, per ogni bucket dell’area primaria, uno
+o più bucket di overflow, di capacità Cov  5, collegati a lista.
+Organizzazioni hash statiche
+0
+1
+2
+3
+4
+21 16 31
+32 1777 12 2 22
+53
+69 24
+Primary area
+Overflow area
+Ipotesi di gestione degli 
+overflow in area separata
+
+===== PAGE 24 =====
+
+24
+ Il limite principale delle organizzazioni hash statiche riguarda l’allocazione
+(statica) dell’area primaria. Nel caso di file (fortemente) dinamici
+un’allocazione statica è inadeguata, a causa o dell’eccessivo spreco di
+memoria (bassa utilizzazione) o del deterioramento delle prestazioni (alta
+utilizzazione).
+ Le organizzazioni hash dinamiche non presentano questi problemi, in quanto
+adattano l’allocazione dell’area primaria alla dimensione corrente del file.
+ Esistono due grandi famiglie di organizzazioni hash dinamiche:
+ con directory (struttura ausiliaria), tra cui:
+Virtual hashing, Dynamic Hashing, Extendible Hashing
+ senza directory, tra cui:
+Linear Hashing, Spiral Hashing
+Organizzazioni hash dinamiche
+
+===== PAGE 25 =====
+
+25
+ L’idea su cui si basa il Virtual hashing (Litwin 1978) consiste nel
+raddoppiare l’area primaria quando si verifica un overflow in un bucket,
+e ridistribuire i record tra il bucket saturo e il suo “buddy”, facendo uso
+di una nuova funzione hash. In pratica si esegue lo “split” del bucket
+saturo.
+overflow
+buddies
+double
+primary
+area
+Virtual hashing
+Poiché, a un certo istante, solo
+alcuni buddy sono effettivamente
+in uso, è necessario fare ricorso a
+una struttura ausiliaria che
+permetta di determinare se
+occorre utilizzare la vecchia
+funzione hash o la nuova.
+
+===== PAGE 26 =====
+
+26
+Linear hashing
+ L’idea di base del Linear hashing e delle
+altre organizzazioni hash dinamiche a
+“espansione lineare”, è come segue:
+non si esegue lo split del bucket in cui si è
+verificato un overflow , ma si suddivide un
+altro bucket, scelto secondo un criterio
+prefissato.
+ Le principali conseguenze sono:
+ non è necessaria una directory, in quanto
+si è a conoscenza dei bucket che sono
+stati suddivisi;
+ occorre gestire l’overflow in area 
+primaria o in area separata;
+ l’area primaria cresce “linearmente”; non 
+si effettuano raddoppi.
+ Gestendo gli overflow in area separata, ed
+eseguendo gli split in sequenza ordinata, a
+partire dal bucket 0, si ha lo schema base
+del linear hashing.
+overflow
+overflow 
+bucket
+split bucket new bucket
+
+===== PAGE 27 =====
+
+27
+Gestione dell’area primaria
+ Inizialmente si allocano NP0 bucket e si usa la funzione hash:
+H0(k) = k mod NP0
+ Si mantiene un puntatore (detto split pointer, SP) al prossimo bucket
+che deve essere suddiviso. Inizialmente SP  0.
+ Se si verifica un overflow si aggiunge in coda un bucket di indirizzo
+NP0  SP, si riallocano i record del bucket SP (inclusi quelli
+eventualmente presenti in area di overflow) facendo uso della nuova
+funzione hash:
+H1(k) = k mod (2  NP0) e si incrementa SP ( SP  1).
+ Dopo NP0 overflow si è operata un’espansione completa dell’area
+primaria, in quanto il numero di bucket è ora pari a 2  NP0.
+ Dopo un’espansione completa, ci si predispone per una nuova
+espansione…
+
+===== PAGE 28 =====
+
+28
+Hash file: prestazioni
+Modello semplificato: si considera che non ci siano record in overflow.
+Operazione Descrizione Costo num. op. I/O
+Ricerca di un valore
+di chiave
+Si accede a una sola pagina 1
+Ricerca all’interno
+di un intervallo
+Si leggono tutte le pagine NP
+Inserimento di un
+record
+Si suppone vi sia spazio per
+l’inserimento nella pagina
+1 (lettura) + 1 (riscrittura pagina) 
+Eliminazione di un
+record
+Ricerca del record e marcatura
+(si assume che esista)
+1 (lettura) + 1 (riscrittura pagina) 
+Modifica di un
+record su attributi
+diversi dalla chiave.
+Ricerca del record e
+aggiornamento (si assume che
+esista)
+1 (lettura) + 1 (riscrittura pagina) 
+
+===== PAGE 29 =====
+
+29
+Osservazioni sulle organizzazioni primarie
+ Ciascuna delle organizzazioni primarie esaminate sin ora presenta
+vantaggi e svantaggi e la scelta più consona dipende da molteplici
+fattori tra cui: occupazione di memoria, carico di lavoro, esigenze
+particolari di tempi di risposta, ecc.
+ Nessuna di esse esibisce comportamenti soddisfacenti a fronte delle
+diverse tipologie di operazioni richieste. Certamente non sono in grado
+di rispondere efficientemente a ricerche su attributi diversi da quelli usati
+per l’allocazione dei record.
+ Queste sono le motivazioni per far ricorso a strutture di indicizzazione,
+che possono essere di varia natura. Nel contesto dei DBMS per
+convenzionali applicazioni gestionali molto utilizzati sono indici B-tree,
+B+-tree e loro varianti.
+
+===== PAGE 30 =====
+
+30
+Domande?

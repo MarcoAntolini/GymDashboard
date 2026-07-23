@@ -1,0 +1,1528 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Indici
+radice
+foglie
+nodi intermedi
+
+===== PAGE 2 =====
+
+2
+◼ Un indice, nel contesto dei database, è definito come una
+struttura dati che rende disponibile un “cammino d’accesso”
+atto a localizzare efficientemente i record d’interesse nel
+rispetto di un criterio di selezione.
+SELECT E.EmpNo, E.FirstName, E.LastName, E.Job 
+FROM EMPLOYEES E
+WHERE E.Salary BETWEEN 30000 AND 40000
+ORDER BY E.Salary
+record
+Premessa
+
+===== PAGE 3 =====
+
+3
+◼ Un indice può essere definito come una struttura progettata per ottimizzare
+le ricerche di record che soddisfano un certo predicato di selezione.
+…
+all data blocks
+index
+selection
+predicate
+matching records
+matching blocks
+❑ Un indice concettualmente può essere visto come una mappa che memorizza
+entrate del tipo: [valore di chiave di ricerca, riferimento/i al/ai record].
+❑ Sono di rilevante interesse due grandi famiglie di indici:
+o ordered index: i valori di chiave sono mantenuti ordinati; questi indici
+possono essere a uno o più livelli (secondo una struttura ad albero a più
+vie, es. B+-tree);
+o hash index: i valori di chiave, con i relativi riferimenti ai record, sono
+memorizzati in bucket i cui indirizzi sono generati da una funzione hash.
+Introduzione agli indici
+
+===== PAGE 4 =====
+
+4
+◼ Un indice ordinato, se contiene al proprio interno i record, funge da
+organizzazione primaria; un esempio classico è rappresentato da un
+B+-tree che memorizza nelle foglie i record ordinati per valore
+della chiave primaria. In un certo senso si può affermare che, in
+questi casi, l’indice stesso costituisce l’organizzazione primaria.
+◼ Un indice ordinato rappresenta un’organizzazione secondaria (cioè
+aggiuntiva) se è, invece, un ulteriore cammino d’accesso per
+accedere all’organizzazione primaria del file dati (che può essere
+realizzato, ad esempio, come heap, sorted sequential file, struttura
+hash o anche ad albero) per facilitare ricerche su singolo attributo o
+combinazione di attributi (in genere diverso/a dalla chiave
+primaria) con eventuali valori ripetuti.
+◼ Si ricorda che anche un hash index è una struttura secondaria
+mentre un hash file, ovvero un file ove i dati sono allocati tramite
+hashing, è una organizzazione primaria.
+Ordered index e hash index
+
+===== PAGE 5 =====
+
+5
+Le entry [valore di chiave di ricerca, riferimento/i al/ai record] sono organizzate in
+una struttura hash.
+È una organizzazione secondaria molto efficiente per ricerche su singolo valore.
+Hash index
+CodImp Cognome Nome CodComune
+…   …   …
+…   …   …
+…   …   …
+…   …   …
+…   …   …
+A017 Grigi Marco 063049
+A221 Verdi Giorgio 015146
+C100 Rossi Anna 012119
+H022 Rossi Maria 058091
+H023 Violetti Franco 015146
+012119
+015146
+…
+0
+1
+2
+5
+6
+Hash index su CodComune
+063049
+015146
+058091…..
+…..
+…..
+…..
+…..
+012119
+buckets
+H(k) = k mod 7
+
+===== PAGE 6 =====
+
+6
+ L’idea alla base di un indice ordinato consiste nell’associare al file dati una
+“tabella” in cui l’entrata i-esima memorizza una coppia del tipo (ki,pi) dove:
+◼ ki : è un valore di chiave dell’attributo su cui l’indice è costruito;
+◼ pi : è un “riferimento” al record (eventualmente il solo) con valore di chiave ki.
+ Il riferimento (puntatore) può essere un indirizzo (logico o fisico) di record o di
+blocco.
+ Il vantaggio di usare un indice nasce dal fatto che la chiave è solo parte
+dell’informazione contenuta in un record. Pertanto, l’indice occupa un spazio
+minore rispetto al file dati (questa considerazione vale anche per gli indici hash).
+ I diversi indici ordinati differiscono essenzialmente nel modo con cui organizzano
+l’insieme {(ki,pi)} di coppie.
+C5
+0 64 128 192 256
+C2 C11 C7 C4
+valore di chiave 
+nel record
+File Dati C2   
+C4 
+C5   
+C7 
+C11
+chiave indirizzo
+Indice ordinato64 
+256 
+0 
+192 
+128
+…... …... …... …... …...
+(caso di valori non ripetuti)
+Ordered index: idea di base
+
+===== PAGE 7 =====
+
+7
+160229323 ………… Bianchi Giorgio MI
+160235467 ………… Rossi Anna BO
+160239654 ………… Verdi Marco MI
+160229323
+160239980
+160240576
+……
+data blocks
+valore di 
+chiave
+puntatore 
+a blocco
+160239980 ………… Gialli Giorgio RM
+160240467 ………… Rossi Anna RM
+160240532 ………… Grigi Tullio BO
+160240576 ………… …… …… RM
+160240600 ………… …… …… MI
+160240623 ………… …… …… …..
+…
+BO
+…
+…
+…
+valore di 
+chiave
+….. ….. ….. …..
+…
+…
+…
+…
+…
+…
+…
+RM
+…
+…
+…
+…
+MI
+…
+…
+…
+lista 
+puntatori 
+a record
+…
+…
+..
+sparse index on UserID
+dense index on City
+UserID LastName FirstName City……
+…
+…
+Indici mono-livello: esempio
+
+===== PAGE 8 =====
+
+8
+Si consideri un indice mono-livello su chiave primaria (o altro attributo a valori unici)
+ricerca del record con chiave ki
+1. accesso all’indice
+2. ricerca della coppia (ki, pi)
+3. conversione di pi in indirizzo assoluto
+4. accesso al blocco dati relativo
+k i pi
+1
+2
+3
+4
+Convert
+Index Data file
+k i .....
+Nonostante occupi un minor
+spazio rispetto al file dati, un
+indice può anche raggiungere
+notevoli dimensioni che
+determinano problemi di
+gestione simili a quelli del file
+dati.
+Esempio:
+un indice per un file di 50K record,
+in cui i valori di chiave sono
+stringhe di 20 byte e i puntatori
+sono di 4 byte, richiede circa 1.2
+MB.
+Accesso con indice mono-livello
+
+===== PAGE 9 =====
+
+9
+ Poiché l’indice contiene un insieme di valori di chiave, le coppie (ki,pi)
+possono essere mantenute ordinate in base ai valori ki, al fine di poter
+applicare la ricerca binaria.
+ In generale, questa tecnica permette risparmi tanto più marcati quanto
+minore è la dimensione (in byte) del campo chiave rispetto a quella del
+record intero.
+Ricerca binaria su indice mono-livello
+
+===== PAGE 10 =====
+
+10
+Tipi di indice ordinato: una classificazione
+Caratteristica Denominazione Significato
+Unicità dei valori 
+di chiave
+Primary (unique) index
+Indice su un attributo (o combinazione di 
+attributi) che assume valori unici (non 
+ripetuti)
+Secondary index Indice su un attributo (o combinazione di 
+attributi) che può assumere valori ripetuti
+Ordinamento del 
+file dati
+Clustered index Indice su un attributo  (o combinazione di 
+attributi) secondo cui il file dati è ordinato
+Unclustered index
+Indice su un attributo (o combinazione di
+attributi) secondo cui il file dati non è
+ordinato
+Numero di coppie 
+nell’indice
+Dense index Indice in cui il numero di coppie (ki,pi) è 
+pari al numero di record dati
+Sparse index Indice in cui il numero di coppie (ki,pi) è 
+minore del numero di record dati
+Numero di livelli 
+dell’indice
+Single-level index Indice organizzato in modo “flat”
+Multi-level index Indice organizzato in più livelli (albero)
+
+===== PAGE 11 =====
+
+11
+Quasi tutte le combinazioni di tipi di indice sono possibili.
+In principio, l’unica incompatibilità è data dalla combinazione sparse & unclustered
+che non permetterebbe di reperire i record i cui relativi riferimenti non sono
+nell’indice.
+160229323 BNCGRG84H21A944K Bianchi Giorgio
+160235467 RSSNNA78A53A944N Rossi Anna
+160239654 VRDMRC79H20F839U Verdi Marco
+160239980 VRDMRT80A41G478I Verdoni Marta
+160240467 ………………… ……….. ………..
+160240532 ………………… ……….. ………..
+160240576 ………………… ……….. ………..
+160240600 ………………… ……….. ………..
+160240623 ………………… ……….. ………..
+160229323
+160239980
+160240576
+……
+blocchi dati
+primary clustered sparse single-level index
+valore di 
+chiave
+puntatore 
+a blocco
+Primary clustered sparse single-level index
+
+===== PAGE 12 =====
+
+12
+160229323 BNCGRG84H21A944K Bianchi Giorgio
+160235467 RSSNNA78A53A944N Rossi Anna
+160239654 VRDMRC79H20F839U Verdi Marco
+160239980 VRDMRT80A41G478I Verdoni Marta
+160240467 ………………… Alessandri Maria
+160240532 ………………… Bianchini Carlo
+160240576 ………………… Rossi Demetrio
+160240600 ………………… Bianchi Arrigo
+160240623 ………………… Verdi Remo
+Alessandri
+Bianchi
+Bianchini
+blocchi dati
+secondary unclustered dense single-level index
+valore di 
+chiave
+lista di 
+puntatori 
+a record
+………………… ………………… ………………… ………………… 
+… … … 
+Rossi
+…..
+……
+Verdi
+Verdoni
+…… …
+N.B. La lista può essere realizzata come: 
+…. ….
+valore di 
+chiave
+puntatore a blocco 
+di puntatori
+puntatori a record
+Secondary unclustered dense single-level index
+
+===== PAGE 13 =====
+
+13
+ Una soluzione sparse & unclustered particolare, nota col nome di partial
+index, per un secondary index, può essere interessante se si escludono
+dall’indice i valori di chiave molto ripetuti, per i quali l’uso dell’indice stesso
+può rivelarsi inutile se non controproducente.
+ Si pensi ad esempio al log degli accessi al web server di una grande
+organizzazione.
+ Esempio in PosgreSQL:
+Sparse & unclustered
+ Se si è interessati principalmente a monitorare gli accessi da IP al di fuori
+dell’organizzazione, poiché la stragrande maggioranza degli accessi è
+originata da IP interni all’organizzazione stessa, non è conveniente costruire
+un indice sull’attributo ClientIP che riporti tutti i suoi possibili valori.
+CREATE TABLE ACCESS_LOG ( Url varchar, ClientIP inet, ... )
+CREATE INDEX AccessLogClientIP_IX ON ACCESS_LOG (ClientIP) WHERE NOT 
+(ClientIP > inet '192.168.100.0' AND ClientIP < inet '192.168.100.255'); 
+ Un altro esempio riguarda un unclustered secondary index su un attributo A
+che ammette NULL, se il DMBS non indicizza valori di chiave NULL; in tal
+caso di fatto è uno sparse & unclustered index.
+
+===== PAGE 14 =====
+
+14
+S2 P4 SCREW A1
+S6 P7 NUT A1
+S3 P1 SCREW A1
+S2 P1 SCREW A1
+S6 P2 NUT A1
+S1 P3 BOLT A2
+S5 P11 CAM A2
+S3 P3 NUT A2
+S5 P12 CAM A2
+BOLT (2,2) (3,2) (3,3)  CAM (2,3) (3,1) (3,4)  NUT (1,2) (2,1) (2,4)  SCREW (1,1) (1,3) (1,4)
+S5 P3 BOLT A3
+S3 P5 BOLT A3
+S4 P11 CAM A4
+SUPPNO PTNO PTYPE SHELF
+indice su PTYPE con puntatori (RID) a record
+1,1
+1,2
+1,3
+1,4
+2,1
+2,2
+2,3
+2,4
+3,1
+3,2
+3,3
+3,4
+N° blocco
+N° record
+nel blocco
+BOLT (2) (3)  CAM (2) (3)  NUT (1) (2) SCREW (1)
+indice su PTYPE con puntatori a blocchi
+Record Pointer vs Block Pointer
+
+===== PAGE 15 =====
+
+15
+Per ragioni di efficienza un indice in memoria secondaria è, di solito,
+organizzato in più livelli.
+FILE DATI
+III livello
+II livello
+I livello
+In memoria centrale la soluzione più
+comune per un indice si basa su AVL
+(alberi binari bilanciati). La
+“paginazione” di alberi non è
+adeguata dal punto di vista
+dinamico, in quanto:
+• le operazioni di bilanciamento degli
+AVL non tengono conto di
+un’organizzazione a blocchi;
+pertanto i costi di I/O dovuti a
+inserimenti e cancellazioni possono
+risultare elevati;
+• volendo ridurre i costi, non si hanno
+garanzie sull’utilizzazione minima
+dei blocchi allocati.
+7 nodi per 
+blocco
+Indici multilivello
+
+===== PAGE 16 =====
+
+16
+Un indice multilivello per memoria secondaria deve soddisfare i seguenti requisiti:
+❑ Bilanciamento: l’indice deve essere sì bilanciato, ma considerando i blocchi
+anziché i singoli nodi, in quanto è il numero di blocchi a cui bisogna accedere
+che determina il costo di I/O di una ricerca.
+❑ Occupazione minima: è importante che si possa stabilire un limite inferiore
+all’utilizzazione dei blocchi, onde evitare eccessivo spreco di memoria.
+❑ Efficienza di aggiornamento: i due requisiti espressi devono essere soddisfatti
+garantendo al tempo stesso che le operazioni di aggiornamento abbiano un
+costo limitato.
+albero sbilanciato rispetto ai
+blocchi, bilanciato rispetto ai nodi
+Indici multilivello a blocchi
+
+===== PAGE 17 =====
+
+17
+❑ Una famiglia di indici multilivello che soddisfa i tre requisiti (bilanciamento a
+blocchi, occupazione minima, efficienza di aggiornamento) è collettivamente
+nota con il nome di B-tree, dove la B sta per (?):
+▪ Balanced tree,
+▪ Bayer, inventore insieme a McCreight
+▪ Boeing, la compagnia per la quale gli autori lavoravano
+▪ Broad
+▪ Bushy
+“What really lives to say is: the more you think about what the B in B-trees 
+means, the better you understand B-trees.” (E. McCreight, 2013)
+❑ Esistono molte varianti, tra cui il B-tree “vero e proprio”, il B*- tree e il B+-
+tree.
+B-tree (Bayer, McCreight 1972)
+Rudolf Bayer, Edward Meyers McCreight 
+Organization and Maintenance of Large Ordered Indexes
+Acta Informatica 1, 173-189 0972)
+
+===== PAGE 18 =====
+
+18
+B-tree
+Un B-tree è un albero (direzionato) a più vie perfettamente bilanciato
+organizzato a nodi, che corrispondono a blocchi dati (pagine) di uno storage
+device.
+radice
+foglie
+nodi intermedi
+
+===== PAGE 19 =====
+
+19
+❑ Siano g, h  0 due numeri naturali, detti rispettivamente ordine e altezza
+del B-tree. L’ordine g corrisponde al numero minimo di chiavi in un nodo
+non radice.
+❑ Un B-tree T della classe (g,h) ha le seguenti proprietà:
+1. ogni percorso dalla radice a una foglia ha sempre la stessa
+lunghezza h, chiamata altezza del B-tree (h = numero nodi nel
+percorso);
+2. ogni nodo, a eccezione della radice e delle foglie, ha almeno g+1
+figli. La radice o è una foglia (h = 1) o ha almeno 2 figli; le foglie
+non hanno figli.
+3. la radice e ogni nodo intermedio hanno al più 2g+1 nodi figli.
+B-tree: definizione
+
+===== PAGE 20 =====
+
+20
+B-tree: ipotesi semplificative ed esempio
+❑ Per semplicità di spiegazione, assumiamo:
+o indice su singolo attributo che assume valori non ripetuti;
+o ordinamento crescente dei valori di chiave all’interno di ogni nodo;
+o uguale lunghezza per ogni valore di chiave;
+o stesso formato del nodo sia per le foglie sia per gli altri nodi;
+o record memorizzati in area separata rispetto all’indice B-tree.
+Un B-tree T  della classe (2,3) – esempio di indice su chiave primaria. 
+RID
+14
+3
+ 11
+6
+ 17
+ 21
+1
+ 2
+ 7
+ 8
+ 9 10
+4
+ 5
+12
+ 13
+18
+ 19
+ 20
+ 22
+ 23
+ 24 25
+15
+ 16
+data pagesroot
+intermediate nodes
+leaves
+null pointer 
+
+===== PAGE 21 =====
+
+21
+Ricerca in un B-tree: un esempio
+14
+3    6    11
+1   2
+ 4   5
+ 7   8   9   10
+17    21
+12   13
+ 22  23   24  25 
+18  19  20
+root
+intermediate nodes
+leaves
+15   16
+a) Percorso per la ricerca del record con valore di chiave uguale a 16
+b) Percorso per la ricerca del record con valore di chiave uguale a 6
+
+===== PAGE 22 =====
+
+22
+Diversi possibili B-tree fissati g e h
+È possibile ottenere diversi B-tree T della classe (2,3) per i medesimi valori di chiave, a seconda della
+sequenza d’inserimento e degli algoritmi utilizzati.
+https://www.cs.usfca.edu/~galles/visualization/BTree.html
+N.B. nel tool l’ordine è definito in modo diverso
+
+===== PAGE 23 =====
+
+23
+Diversi possibili B-tree variando g e h
+È possibile ottenere diversi B-tree T di diverse classi (g,h) per i medesimi valori di chiave e per
+la medesima sequenza d’inserimento:
+(1,3) 
+ (2,2) 
+N.B. Nel tool l’ordine è m = Max. Degree, essendo m il massimo numero di figli che può avere
+un nodo non foglia (m−1 è il massimo numero di chiavi in un nodo): per m dispari vale la
+corrispondenza: g = (m−1)/2. La definizione di Bayer e McCreight non consente un numero
+pari per il massimo numero di figli di un nodo non foglia.
+Max. Degree=3 Max. Degree=5
+Max. Degree=7
+(3,2) 
+
+===== PAGE 24 =====
+
+24
+Un B-tree è organizzato a nodi (detti anche pagine logiche o index page):
+1. ogni nodo intermedio o nodo foglia memorizza tra g e 2g chiavi (intese come
+valori della chiave di ricerca); la radice può contenere da 1 a 2g chiavi e può
+avere di conseguenza da 0 a 2g+1 puntatori a figli;
+2. un nodo intermedio con l chiavi (g ≤ l ≤ 2g) ha l+1 puntatori ad altrettanti nodi
+figli;
+3. in ogni nodo le chiavi sono memorizzate in ordine crescente.
+B-tree: organizzazione di un nodo
+q0 k1 p1 q1 k2 p2
+ qiki piq2
+spazio  
+non usato…..
+ ……
+qi+1ki+1 pi+1
+ qlkl pl
+ki : generico valore di chiave;
+❑ per i =1,…, l –1
+pi : puntatore (Row Identifier – RID) al record con valore di chiave ki ;
+qi-1 : puntatore (Page Identifier – PID, null se P è un nodo foglia) al nodo figlio che
+contiene valori di chiave k  ki ;
+qi : puntatore (Page Identifier – PID, null se P è un nodo foglia) al nodo figlio che
+contiene valori di chiave ki  k  ki+1 ;
+❑ per i = l
+ql è il puntatore (null se P è un nodo foglia) al nodo figlio che contiene valori k  kl.
+P: index page
+
+===== PAGE 25 =====
+
+25
+Sia K(qi) l’insieme dei valori di chiave del sottoalbero la cui radice è il nodo
+P di indirizzo qi. Si ha:
+01
+i i i 1
+y K(q ): (y<k )
+y K(q ): (k y k )    i=1,2,..., -1
+y K(q ): (k y)
++
+
+   
+  
+ k1
+ ki
+ ki+1
+………
+ ………
+ kl
+q0 k1 p1 q1 k2 p2
+ qiki piq2
+spazio  
+non usato…..
+ ……
+qi+1ki+1 pi+1
+ qlkl pl
+B-tree: insieme dei valori 
+Ipotesi: ordinamento crescente
+e valori di chiavi non ripetuti.
+K(qi) K(q0) K(ql) 
+
+===== PAGE 26 =====
+
+26
+Ricerca in un B-tree
+P(q) il nodo puntato da q
+k1,...,kl le chiavi in P(q)
+q0,...,ql i puntatori in P(q)
+y il valore di chiave da cercare
+root il puntatore alla radice
+s puntatore per inserimento
+Il costo di ricerca di un valore di
+chiave è pari al numero di nodi
+letti:
+1  C(search)  h
+{q  root;   
+s  null; 
+trovata  false;
+while (qnull) and (not trovata) do
+{ s  q;
+if yk1 then q  q0
+else if   i (y=ki) 
+then trovata  true
+else if  i (kiyki+1)
+then q  qi
+else q  ql
+}
+}
+Al termine della ricerca:
+se trovata = true 
+allora q punta al nodo dove 
+risiede il valore cercato y
+altrimenti
+q = null e s punta al nodo dove 
+andrebbe inserito il valore y
+
+===== PAGE 27 =====
+
+27
+ L’idea chiave su cui si basano gli algoritmi per l’inserimento e la cancellazione in un
+B-tree è la seguente:
+le modifiche partono sempre dalle foglie e l’albero cresce o si accorcia verso l’alto
+ovvero, nel caso di inserimenti, non si “appendono” nuovi nodi alle foglie ma, se
+necessario, si crea una nuova foglia allo stesso livello delle altre e si propaga un
+valore di chiave (separatore) verso l’alto.
+ Questo modo di procedere è reso possibile dal fatto che i nodi ai livelli superiori
+non sono necessariamente pieni, e quindi possono “assorbire” le informazioni che si
+propagano a partire dalle foglie. La propagazione degli effetti sino alla radice
+può provocare l’aumento dell’altezza dell’albero. In questo senso si dice che i
+B-tree crescono verso l’alto.
+Foglia piena
+Evoluzione di un B-tree
+NO
+ SI
+“Split”
+separatore
+
+===== PAGE 28 =====
+
+28
+L’inserimento di una nuova chiave in un B-tree comporta una ricerca per
+verificare se essa è già presente nell’albero. Nell’ipotesi di non consentire
+duplicati (es. primary index), si procede all’inserimento solo in caso di
+insuccesso della ricerca. L’inserimento avviene sempre in una foglia.
+Si distinguono due casi:
+❑ se la foglia non è piena, si inserisce la chiave e il puntatore al record,
+quindi si riscrive la foglia così aggiornata;
+❑ se la foglia è piena, si attiva un processo di “splitting” che può essere
+ricorsivo e, nel caso peggiore, propagarsi fino alla radice.
+Inserimento di una chiave nel B-tree
+
+===== PAGE 29 =====
+
+29
+1 3
+6
+7
+9
+13
+<6 >6 <9 >9
+1 3
+6
+7
+9
+13
+<6 >6 <9 >9
+8
+Prima dell’inserimento del valore di chiave 8:
+Dopo l’inserimento:
+Caso 1: foglia non piena
+
+===== PAGE 30 =====
+
+30
+12    13    14   15
+5  11   16   21
+1     2     3     4
+6     7     8    10 17   18    19    20
+22   23    24    25
+12    13    14    15
+17    18    19    20
+22    23    24    25
+•11 •
+• 5 • 8 • • 16 • 21 • 
+1     2     3     4 
+6   7   
+9 10   
+split
+split
+Caso 2: foglia piena (splitting)
+Prima dell’inserimento della
+chiave 9 nel B-tree
+T della classe (2,2) 
+Dopo l’inserimento del valore 9:
+T della classe (2,3) 
+9 ?
+N.B. Non sono mostrati i puntatori ai record
+
+===== PAGE 31 =====
+
+31
+ P: nodo pieno dove inserire una chiave
+ Q: nodo padre di P
+ Si consideri la sequenza * ordinata di 2g+1 entrate che si verrebbe a
+creare in P (si omettono i puntatori pi)
+ Valore mediano di chiave: kg+1.
+ Si alloca un nuovo nodo P’ e si partizionano le restanti chiavi tra P e P’.
+ Si inserisce in Q l’entrata (kg+1,q’).
+q0,(k1,q1),(k2,q2),..,(kg,qg),(kg+1,qg+1),(kg+2,qg+2),...,(k2g+1,q2g+1) 
+Q
+P*
+……………………………….
+Splitting di un nodo: valore mediano
+
+===== PAGE 32 =====
+
+32
+ Risultato dopo lo splitting di P
+ Se anche Q risulta pieno e non riesce a ospitare l’aggiunta di un’entrata, il
+processo di splitting si propaga.
+ Se il nodo da sdoppiare è la radice del B-tree, allora la nuova radice Q
+conterrà (q,kg+1,q’) dove q punta a P e q’ punta a P’.
+ L’algoritmo di splitting preserva l’ordine g del B-tree e le proprietà 1,2,3
+definite in precedenza.
+Q
+P’
+.………….…kg+1,q’…………………..
+q0, (k1,q1), (k2,q2), .... ,(kg,qg) 
+ 
+qg+1, (kg+2,qg+2), .... ,(k2g+1,q2g+1) 
+P
+g chiavi, g+1 puntatori g chiavi, g+1 puntatori
+Splitting e modifica del nodo padre 
+
+===== PAGE 33 =====
+
+33
+ Due nodi P e P* sono adiacenti se figli dello stesso padre Q e indirizzati da
+puntatori adiacenti in Q.
+ Una strategia per evitare eccessivi split: si accede a un nodo adiacente P* al nodo P
+pieno e si ridistribuiscono le chiavi tra P, P* e Q.
+❑ Un B-tree che adotta questa
+strategia è detto un B-tree che
+gestisce l’overflow.
+❑ La gestione dell’overflow tende
+a generare alberi con nodi più
+pieni, ma comporta, in generale,
+maggiori costi di inserimento.
+❑ La gestione dell’overflow può
+essere generalizzata, infatti si
+possono considerare per la
+ridistribuzione 3 o più nodi
+fratelli anziché 2.
+Gestione dell’overflow
+81  87
+75 81  87
+Dopo l’inserimento della chiave 60:
+16 
+ 42 
+ 73 
+ 142 
+16 
+ 42 
+ 75 
+ 142 
+45  52 59 60
+45
+ 52
+ 59
+ 73
+P
+ P*
+Q
+75 
+P
+ P*
+Q
+Prima dell’inserimento della chiave 60:
+
+===== PAGE 34 =====
+
+34
+ Se la chiave y da cancellare si trova in una foglia L, si rimuove.
+ In caso contrario, y è rimpiazzata dal valore di chiave più piccolo del suo
+sottoalbero di destra.
+In entrambi i casi un valore
+che risiede in una certa
+foglia L deve essere
+cancellato.
+Se, in conseguenza di ciò, L
+viene a contenere un
+numero di chiavi inferiore a
+g, si rende necessario
+modificare la struttura
+dell’albero tramite processi
+di catenation e underflow.
+Eliminazione di una chiave
+...    10 50    ...
+20    26    35   ...
+12 15    17   ...
+...    12    50    ...
+20    26    35   ...
+15    17   ...
+y = 10
+L
+
+===== PAGE 35 =====
+
+35
+{ ricerca la chiave y;
+if trovata
+then { if y in una foglia L
+then cancella  y da L
+else { ricerca nel sottoalbero di destra fino a una foglia 
+L seguendo la catena dei puntatori q0;
+sostituisci a y la prima chiave k di L;
+cancella la prima chiave k di L;
+};
+if L contiene meno di g chiavi
+then attiva catenation e underflow
+}
+}
+Algoritmo per l’eliminazione di una chiave
+
+===== PAGE 36 =====
+
+36
+ La catenation di due nodi
+adiacenti P e P’ è possibile
+se, complessivamente, i due
+nodi contengono meno di
+2g chiavi.
+ Poiché ogni nodo contiene
+almeno g chiavi, la
+catenation si attiva quando
+P ha g−1 chiavi e P’
+esattamente g.
+ Come conseguenza della
+cancellazione dell’entrata
+(yj,q’) nel nodo Q, è
+possibile che anche Q
+venga a contenere meno di
+g chiavi e pertanto il
+processo si può propagare
+fino alla radice.
+Q
+...,(y     ,q),(y ,q'),(y     ,q    ),...
+j-1
+ j
+ j+1
+ j+1
+0
+ 1
+ 1
+ l
+l
+ q' ,(k     ,q ),...
+0
+ l+1
+P
+ P’
+q
+ k
+ q
+,
+, (
+ )
+ ,...,
+ (k
+ ,
+ q
+ )
+Catenation
+l+1
+Q
+...,(y     ,q),(y    ,q    ),...j-1 j+1 j+1
+q0,(k1 ,q1 ),...,(k ,q ),(yj ,q‘0 ),(k     ,q    ),...
+l l
+P
+catenation
+l+1
+ l+1
+
+===== PAGE 37 =====
+
+37
+T(2,3) prima
+della cancellazione
+della chiave 9.
+T(2,2) dopo la
+cancellazione della
+chiave 9.
+12  13  14  15
+17  18  19  20
+22  23  24  25
+·
+ 11 
+ ·
+· 
+5 
+· 
+ 8 
+ · 
+ · 
+16 
+ · 
+ 21 
+ · 
+1   2   3   4
+9 10   
+12  13  14  15
+5  11  16  21
+1   2   3   4
+6   7   8  10
+ 17  18  19  20
+22  23  24  25
+6   7
+Esempio di catenation
+
+===== PAGE 38 =====
+
+38
+ Se, prima della cancellazione, la somma del numero delle chiavi in P e P’ è
+maggiore di 2g, allora le chiavi devono essere ridistribuite tra i due nodi e il
+nodo padre Q.
+ Il processo di underflow non si propaga in quanto Q viene modificato ma il
+numero delle sue chiavi non varia.
+Prima della cancellazione
+della chiave 52 :
+Underflow
+45  52
+ 75  81  87
+16 
+ 42 
+ 73 
+ 142 
+Q
+P
+ P’
+45  73
+ 81  87
+Dopo la cancellazione della chiave 52 :
+16 
+ 42 
+ 75 
+ 142 
+Q
+P
+ P’
+
+
+===== PAGE 39 =====
+
+39
+ Numero minimo di nodi IPmin di un albero T (g,h):
+h
+1
+2
+…
+ …
+3
+…
+ …
+ …
+…
+ …
+ …
+1
+ 2
+2
+1
+ 1
+ 2
+g+1
+ g+1
+1
+ g+1
+ g+1
+ 1
+1
+ 1
+g+1
+ g+1
+…………
+Numero minimo di nodi di un B-tree
+…………
+ …………
+…………
+ …………
+…..
+IPmin = 1 + 2 + 2 g + 1 + 2 g + 1 g + 1 + ⋯ + 2 g + 1 h−2 =
+= 1 + 2 g + 1 0 + g + 1 1 + g + 1 2 + ⋯ + g + 1 h−2 =
+= 1 + 2 σi=0
+h−2 g + 1 𝑖 = 1 + 2
+g+1 h−1−1
+g+1 −1 = 1 +
+2
+g g + 1 ℎ−1 − 1
+
+===== PAGE 40 =====
+
+40
+1
+1
+1
+2g+1
+1
+2
+h
+h - 1
+2g+1
+2g+1
+ Numero massimo di nodi IPmax di un albero T (g,h):
+Numero massimo di nodi di un B-tree
+…..
+IPmax = ෍
+i=0
+h−1
+2g + 1 i = 2g + 1 h − 1
+2g + 1 − 1 = 1
+2g 2g + 1 h − 1
+
+===== PAGE 41 =====
+
+41
+ Caso peggiore: il minimo numero di chiavi presenti in un B-tree T (g,h) si
+ha quando il numero di nodi è pari a IPmin e quindi ogni nodo, eccetto la
+radice, contiene g chiavi, e la radice una sola chiave.
+NKmin = 1 + g × IPmin − 1 = 2 × g + 1 h−1 − 1
+ Caso migliore: il massimo numero di chiavi presenti in un B-tree T (g,h)
+si ha quando il numero di nodi è pari a IPmax e quindi ogni nodo, compresa
+la radice, contiene 2g chiavi:
+NKmax = 2g × IPmax = 2g + 1 h − 1
+ pertanto se il B-tree ha NK chiavi si ha:
+log2g+1 NK + 1 ≤ h ≤ 1 + logg+1
+NK + 1
+2
+Altezza di un B-tree
+
+===== PAGE 42 =====
+
+42
+❑ Un B-tree è molto efficiente per la ricerca e la modifica di singoli record.
+❑ Esiste un limite inferiore all’utilizzazione della memoria (50%), ma
+l’utilizzazione media è solo del 69%.
+❑ Un B-tree non è particolarmente adatto per elaborazioni di tipo
+sequenziale nell’ordine dei valori di chiave, e nel reperimento di valori di
+chiave in un intervallo dato. L’inefficienza deriva dal fatto che i RID sono
+memorizzati all’interno dei nodi.
+❑ La ricerca del successore di un valore di chiave può comportare la
+scansione di molti nodi.
+❑ La ricerca del valore di chiave più piccolo, che si trova nella foglia più a
+sinistra, implica l’accesso a tutti i nodi del percorso tra la radice e la
+foglia.
+Pregi e difetti dei B-tree
+
+===== PAGE 43 =====
+
+43
+❑ Poiché un nodo può contenere in genere molti valori di chiave, un B-tree
+può indicizzare file con un numero molto elevato di record, offrendo
+benefici in termini di operazioni di I/O per ricerche su singolo valore di
+chiave.
+Esempio: B-tree di ordine m = 1001.
+B-tree: note
+
+===== PAGE 44 =====
+
+44
+❑ Il B*-tree (adottando il termine da Knuth) è una variante del B-tree in cui
+l’utilizzazione dei nodi è almeno pari a 2/3 anziché 1/2.
+❑ L’inserimento in un B*-tree implica l’adozione di uno schema di
+ridistribuzione locale così da ritardare lo splitting al caso in cui due fratelli
+adiacenti siano entrambi completamente pieni.
+❑ In questo caso da 2 nodi se ne derivano 3 ciascuno riempito per 2/3. La
+figura illustra la differenza con i B-tree che gestiscono l’overflow.
+B-tree
+B*-tree
+1/2
+2/3
+B* - tree
+
+
+===== PAGE 45 =====
+
+45
+ In un B-tree, i valori di chiave svolgono una duplice funzione:
+ come separatori permettono di determinare il cammino da seguire in
+fase di ricerca;
+ come valori di chiave permettono di accedere all’informazione a essi
+associata.
+ Nei B+-tree queste funzioni sono, invece, mantenute separate:
+ le foglie contengono tutti i valori di chiave;
+ la radice e i nodi interni, organizzati come un B-tree, costituiscono solo
+una “mappa” per consentire una rapida localizzazione delle chiavi, e
+memorizzano “separatori” di cammino;
+ a parità di dimensione del nodo, l’ordine del B-tree che funge da
+mappa è più grande rispetto a quello di un solo B-tree, non dovendo né
+la radice né i nodi interni memorizzare puntatori a record.
+ Al fine di facilitare elaborazioni sequenziali e su intervalli, le foglie sono
+tra loro concatenate in una lista. È inoltre presente un puntatore alla testa
+della lista. La lista, nella maggior parte delle attuali implementazioni, è
+doppiamente concatenata (doubly-linked list).
+B+-tree
+
+===== PAGE 46 =====
+
+46
+Struttura di un B+-tree
+ki
+Map organized as a B-tree
+...
+B-tree
+Leaf nodes
+pointer to root node
+…  …
+…  …
+next
+previous
+PIDs: pointers to data block containing records with key value ki
+or
+RIDs: pointers to data records with key value ki 
+
+===== PAGE 47 =====
+
+47
+B+-tree : formato dei nodi
+6
+ 6
+ 6
+ 9
+9
+ 13
+7
+ 8
+7
+9
+ 7
+  7
+ 9
+1
+ 3
+ 6
+Format of a leaf node
+t  2gq : pointer to subtree (PID)
+p : pointer to record (RID); next, prev: pointer to leaf
+S : separator; k : key value
+Format of the root and internal nodes
+r  2g
+q2q1q0 … … qi qi+1 … … qrS2S1 SiS3 Si+1 Sr
+k3k2k1 … … pi … … ptp2p1 kip3 ktprevnext
+
+===== PAGE 48 =====
+
+48
+Struttura di un B+-tree come data file
+Map organized as a B-tree
+B-tree
+Leaf nodes
+pointer to root node
+…  …
+…  …
+ki
+PIDs: pointers to data blocks (leaf nodes) containing records with some key values ki
+PIDs
+Clustered index:
+leaf nodes store 
+records sorted by 
+key value.
+
+
+===== PAGE 49 =====
+
+49
+ In un B+-tree, la sola funzione dei separatori è determinare il giusto
+cammino quando si ricerca un valore di chiave. Dunque è anche possibile
+che un separatore non sia un valore di chiave presente nel file dati.
+Nell’esempio si considera ordinamento crescente:
+ il sottoalbero sinistro di un separatore contiene valori di chiave minori o
+uguali al separatore;
+ il sottoalbero destro contiene valori di chiave strettamente maggiori del
+separatore.
+Separatori
+12
+ 15
+ 18
+ 25
+ 32
+ 41
+ 50
+ 55
+18
+ 35
+
+
+===== PAGE 50 =====
+
+50
+ In un B+-tree, nel caso di chiavi alfanumeriche la scelta dei separatori è
+particolarmente importante, in quanto, facendo uso di separatori di
+lunghezza ridotta si risparmia spazio e si riduce, eventualmente, l’altezza
+dell’albero.
+ Esistono molte varianti in cui si esegue una “compressione” dei separatori;
+tra queste si ricordano i Simple Prefix B+-tree (di cui la figura è un
+esempio) e i Prefix B+-tree.
+Separatori come prefissi
+Anne...Betsie
+ Betty...Carol
+ Caroline...Frank
+ Fred...George
+Bett
+ Carol
+ Fre
+ ....
+
+
+===== PAGE 51 =====
+
+51
+Fonte: Oracle
+Esempio B+-tree con prefissi
+
+===== PAGE 52 =====
+
+52
+ In un B+-tree l’ordine è un concetto ancora significativo solo se si fa uso di
+separatori di lunghezza fissa.
+ Negli altri casi si può considerare, con un certo grado di approssimazione, la
+lunghezza media dei separatori stessi.
+ Si supponga che la dimensione di un nodo sia fissata a D byte (es. 4096
+byte) e che ogni puntatore, q, a nodi del B+-tree richieda len(q) byte. Si
+supponga inoltre che i separatori siano gli stessi valori di chiave, di
+lunghezza len(k) byte. Assumiamo per semplicità il formato di un nodo non
+foglia rappresentato in figura:
+Ordine di un B+-tree
+q: pointer to subtree (PID)
+S: separator; 
+Format of the root and internal nodes
+r  2g
+q2q1q0 … … qi qi+1 … … qrS2S1 SiS3 Si+1 Sr
+D bytes
+len(q) bytes len(k) bytes
+
+===== PAGE 53 =====
+
+53
+ Con le ipotesi fatte, poiché ogni nodo non foglia può ospitare al massimo
+2g separatori e (2g+1) puntatori q a nodi figli, si ha:
+2g  len(k) + (2g +1)  len(q)  D
+ Allora si deriva, trascurando l’header della pagina, che l’ordine di un B+-
+tree è:
+g = D − len q
+2 len k + len q
+ Con pagine di D = 4096 byte, len(q) = 4 byte, e chiavi con len(k) = 10
+caratteri, si ha un B+-tree di ordine g = 146, con 4 byte inutilizzati in ogni
+nodo. Con chiavi di 40 caratteri l’ordine si riduce a 46, con 42 byte
+inutilizzati in ogni nodo.
+Ordine di un B+-tree: derivazione
+
+===== PAGE 54 =====
+
+54
+ In un B+-tree per chiave primaria il numero delle foglie dipende
+dal numero dei record, NR, presenti nel file, dalla dimensione dei
+nodi D, e dall’utilizzazione delle foglie stesse.
+ Si può dimostrare (e si verifica sperimentalmente) che
+l’utilizzazione media delle foglie, u, è pari a circa ln 2  0.69.
+ Trascurando, per semplicità, il puntatore alla foglia successiva (e,
+se presente, il puntatore alla foglia precedente), e considerando
+chiavi di lunghezza len(k) e puntatori ai record dati (RID) di
+lunghezza len(p), il numero di foglie, NL, si può approssimare come:
+NL = NR × len k + len p
+D × u
+Primary B+-tree: numero foglie
+
+===== PAGE 55 =====
+
+55
+ Si ottiene quando tutti i nodi dei livelli intermedi (radice compresa) sono
+pieni. Poiché al penultimo livello sono necessari almeno NL puntatori alle
+foglie, si ottiene:
+( )
+1
+21
+h
+g NL
+−
++
+1
+1
+1
+2g+1
+1
+2
+h
+h −1
+2g+1
+2g+1
+Primary B+-tree: altezza minima
+211 log gh NL ++ 
+da cui si ricava
+
+===== PAGE 56 =====
+
+56
+ Nel caso peggiore la radice contiene 2 soli puntatori e ogni nodo dei livelli
+intermedi ne contiene g+1, da cui segue:
+2 × g + 1 h−2 ≤ NL
+e quindi
+h ≤ 2 + logg+1
+NL
+2
+ Ne consegue che l’altezza h di un primary B+-tree di ordine g è:
+1 + log2g+1 NL ≤ h ≤ 2 + logg+1
+NL
+2
+Primary B+-tree: altezza massima
+
+===== PAGE 57 =====
+
+57
+ Il costo della ricerca di un singolo valore di chiave, misurato in numero di nodi
+visitati, è sempre pari all’altezza h. A questo costo si deve aggiungere 1 per
+accedere alla pagina ove risiede il record nel caso in cui i record non sono
+memorizzati direttamente nelle foglie.
+ Dunque, per il caso medio, il costo di ricerca nell’indice è superiore a quello che si ha
+con un B-tree, e ciò è dovuto al fatto che i valori di chiave sono nelle foglie e i livelli
+superiori contengono solo separatori.
+ Sia NK il numero di valori distinti di chiave; nel caso di una query di range [klow, khigh]
+la ricerca si avvale delle sequenze memorizzate nelle foglie che sono tra loro
+concatenate.
+Ricerca di valori in un primary B+-tree
+La ricerca nelle foglie termina
+essendo 164  khigh .
+k  100
+30  k
+Esempio: k nel range [35,160]
+
+===== PAGE 58 =====
+
+58
+Clustered vs Unclustered B+-tree
+Clustered
+B-tree
+….
+….
+Leaves
+Data pages
+B+-tree
+ B+-tree
+Unclustered
+….
+….
+B-tree
+Leaves
+Data pages
+
+
+===== PAGE 59 =====
+
+59
+ B+-tree a RID (TID)
+ In un B+-tree per chiavi secondarie, per ogni valore di chiave “si gestisce” nelle
+foglie una lista di puntatori (RID: Record Identifier detto anche TID: Tuple
+Identifier) ai record con quel valore (questa soluzione è anche nota come
+inverted index).
+ La lista di RID, per ogni per singolo valore di chiave, è normalmente mantenuta
+ordinata per valori crescenti, sia nel caso di indice clustered sia nel caso di indice
+unclustered. Ciò consente di minimizzare i costi d’accesso alle pagine dati che
+contengono record con quel valore di chiave.
+ B+-tree a PID
+ Anziché fare uso di RID, si impiegano identificatori di pagina (PID: Page
+Identifier).
+ Per un valore di chiave, la lista consiste di tanti PID quante sono le pagine del
+file dati che contengono almeno un record con quel valore di chiave.
+ È pertanto una soluzione particolarmente conveniente nel caso in cui molti record
+con lo stesso valore di chiave si trovino nella stessa pagina (es. indice clustered),
+o comunque quando vi sono molte pagine che contengono addensamenti di
+record con lo stesso valore di chiave.
+Secondary B+-tree
+
+===== PAGE 60 =====
+
+60
+B+-tree a RID
+ Indice clustered su chiave secondaria
+A
+A A A A  B  B B  C  D D  D  Dpagine  
+dati
+1 2 3 4
+(1,1),(1,2),(1,3),(2,1) B (2,2),(2,3),(3,1) C (3,2) D (3,3),(4,1),(4,2)(4,3)
+foglie con
+valori di chiave
+e lista di RID
+Secondary clustered B+-tree (RID)
+N.B. In questo schema semplificato e nei successivi un RID è visualizzato come coppia
+(numero di pagina logica - PID, numero del record all’interno della pagina).
+
+===== PAGE 61 =====
+
+61
+B+-tree a PID
+Indice clustered su chiave secondaria
+A
+A A A A B B B C D D D Dpagine  
+dati
+1 2 3 4
+(1),(2) B (2),(3) C (3) D (3),(4)
+foglie con
+valori di chiave
+e lista di PID
+Secondary clustered B+-tree (PID)
+
+
+===== PAGE 62 =====
+
+62
+A
+A  B  A A D B D C D B D Apagine  
+dati
+1 2 3 4
+(1,1),(1,3),(2,1),(4,3) B (1,2),(2,3),(4,1) C (3,2) D (2,2),(3,1),(3,3)(4,2)
+RID ordinati 
+all’interno di  
+un gruppo
+Secondary unclustered B+-tree (RID)
+B+-tree a RID
+Indice unclustered su chiave secondaria
+
+===== PAGE 63 =====
+
+63
+A
+A  B  A A D B D C D B D Apagine  
+dati
+1 2 3 4
+(1),(2),(4) B (1),(2),(4) C (3) D (2),(3),(4)
+PID ordinati 
+all’interno di  
+un gruppo
+B+-tree a PID
+Indice unclustered su chiave secondaria
+Secondary unclustered B+-tree (PID)
+
+===== PAGE 64 =====
+
+64
+ (B+-tree a RID): il numero delle foglie dipende ora anche dal numero di
+valori di chiave distinti, NK, in quanto (sempre trascurando i puntatori alla
+foglia precedente e successiva) si può stimare come:
+NL = NK × len k + NR × len p
+D × u
+ Considerando D* < D per tener conto dello spazio per l’header e per i
+puntatori alla foglia successiva e alla precedente si ha una stima migliore.
+ È importante considerare che una foglia deve essere indirizzata dal livello
+superiore solo se contiene RID di un “nuovo” valore di chiave. Per calcolare
+l’altezza è quindi necessario usare min{NK, NL} in luogo di NL.
+Secondary B+-tree: numero di foglie
+12
+ 15
+ 15
+ 15
+ 15
+ 15
+ 20
+ 20
+15
+15
+
+
+===== PAGE 65 =====
+
+65
+Domande?

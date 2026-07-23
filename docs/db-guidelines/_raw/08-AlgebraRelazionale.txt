@@ -1,0 +1,1800 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Algebra relazionale
+
+===== PAGE 2 =====
+
+2
+Linguaggi di manipolazione per DB 
+ Un linguaggio di manipolazione, o DML, permette di interrogare e
+modificare istanze di basi di dati.
+ A parte i linguaggi utente, quali SQL, ne esistono altri, formalmente definiti,
+che rivestono notevole importanza in quanto enfatizzano gli aspetti
+“essenziali” dell’interazione con un DB relazionale.
+ In particolare due linguaggi che si concentrano sugli aspetti d’interrogazione
+sono:
+ calcolo relazionale
+ linguaggio dichiarativo basato sulla logica dei predicati del primo ordine;
+ algebra relazionale
+ linguaggio procedurale di tipo algebrico i cui operandi sono relazioni.
+ Calcolo relazionale e algebra relazionale sono equivalenti in termini di potere
+espressivo (“ciò che possono calcolare”).
+ L’algebra relazionale (AR) costituisce le basi formali per le operazioni del
+modello relazionale e per la loro implementazione in un RDBMS.
+ Il linguaggio SQL incorpora aspetti di calcolo relazionale e algebra relazionale.
+
+===== PAGE 3 =====
+
+3
+Algebra relazionale: premesse
+ Le limitazioni espressive dell’algebra e del calcolo relazionale sono in parte dettate
+dall’esigenza di garantire una soluzione efficiente al problema dell’ottimizzazione
+delle interrogazioni, soluzione che non risulterebbe possibile nel caso di un linguaggio
+general-purpose. L’insieme delle operazioni dell’AR non è Turing-completo.
+ La principale limitazione dell’AR è legata all’impossibilità di esprimere interrogazioni
+ricorsive (il caso paradigmatico è il calcolo della chiusura transitiva di una relazione
+binaria).
+ La relazione (Start,End), chiusura transitiva di (From,To), non è computabile né
+mediante algebra relazionale né con calcolo relazionale.
+1
+4
+ 3
+2
+From To
+1 2
+3 2
+2 3
+3 4
+Start End
+1 2
+3 2
+2 3
+3 4
+1 3
+1 4
+2 4
+
+===== PAGE 4 =====
+
+4
+Algebra relazionale: introduzione
+ L’algebra relazionale (AR) è costituita da un insieme di operatori di base che
+si applicano a una o più relazioni e che producono una relazione:
+ operatori di base unari: selezione , proiezione  , ridenominazione ;
+ operatori di base binari: unione , differenza , join (naturale) .
+ Altri operatori derivati possono essere definiti a partire da quelli di base.
+ La semantica di ogni operatore si definisce specificando:
+ come lo schema (insieme di attributi) del risultato dipende dallo schema degli
+operandi;
+ come lo stato della relazione risultato dipende dagli stati delle relazioni in
+ingresso.
+ Gli operatori si possono comporre, dando luogo a espressioni algebriche di
+complessità arbitraria.
+ Gli operandi sono o (nomi di) relazioni del DB o espressioni (ben formate).
+ Per il momento, si assume che non siano presenti valori nulli.
+
+===== PAGE 5 =====
+
+5
+Completezza dell’insieme degli operatori
+ Si dimostra che l’insieme {, , , , , } degli operatori di base
+dell’algebra relazionale è completo, ovvero ogni altra operazione può
+essere espressa come composizione di operazioni di questo insieme.
+ In altri testi si preferisce indicare come insieme di base {, , , , , }
+essendo  il prodotto cartesiano.
+ In realtà un join naturale può essere specificato con un prodotto cartesiano
+preceduto da una ridenominazione e seguito dalle operazioni di selezione e
+proiezione; anche un theta join (la forma più generale di join) può essere
+espresso come sottoinsieme del prodotto cartesiano .
+ Dunque, ai fini del potere espressivo dell’AR le varie operazioni di join non
+sono strettamente necessarie, ma è importante considerarle separatamente
+perché sono più “comode” da usare e sono eseguite frequentemente nei
+RDBMS.
+ In questa sede si sceglie {, , , , , } come set degli operatori di
+base.
+
+===== PAGE 6 =====
+
+6
+Selezione
+L’operatore di selezione, , permette di selezionare un sottoinsieme
+delle tuple di una relazione, applicando a ciascuna di esse una formula
+booleana F.
+ F si compone di predicati connessi da AND (), OR () e NOT ().
+ Ogni predicato è del tipo A  c oppure A  B, dove:
+ A  X e B  X sono attributi;
+ c  dom(A) è una costante;
+  è un operatore di confronto,   {=, , <, >, , } .
+Espressione: F(R)
+Schema R(X) X
+Stato r F (r) = { t | t  r  AND F(t) = vero }
+Input Output
+
+===== PAGE 7 =====
+
+7
+Valutazione della formula F
+ Data una formula booleana F e una tupla t, per determinare se
+F(t) è vera si procede come appresso riportato.
+ Per ogni predicato in F:
+ A  c è vero per t se t[A] è in relazione  con c
+( ad esempio: A  c è vero se t[A]  c )
+ A  B è vero per t se t[A] è in relazione  con t[B]
+( ad esempio: A  B è vero se t[A]  t[B])
+ Per gli operatori booleani ,  e  valgono le regole dell’algebra di
+Boole.
+
+===== PAGE 8 =====
+
+8
+Selezione: esempio (1)
+Matricola CodCorso Voto Lode
+29323 483 28 no
+39654 729 30 sì
+29323 913 26 no
+35467 913 30 no
+31283 729 30 no
+ESAMI
+(Voto = 30) AND (Lode ='no')(ESAMI) Matricola CodCorso Voto Lode
+35467 913 30 no
+31283 729 30 no
+(CodCorso = 729) OR (Voto = 30)(ESAMI) Matricola CodCorso Voto Lode
+39654 729 30 sì
+35467 913 30 no
+31283 729 30 no
+
+===== PAGE 9 =====
+
+9
+Giornata Casa Ospite GolCasa GolOspite
+4 Crotone Inter 0 2
+4 Fiorentina Bologna 2 1
+5 Cagliari Sassuolo 0 1
+5 Bologna Inter 1 1
+5 Lazio Napoli 1 4
+PARTITE
+(Giornata = 5) AND (GolCasa = GolOspite)(PARTITE)
+(Ospite = 'Inter') AND (GolCasa  GolOspite)(PARTITE)
+Giornata Casa Ospite GolCasa GolOspite
+5 Bologna Inter 1 1
+Giornata Casa Ospite GolCasa GolOspite
+4 Crotone Inter 0 2
+5 Bologna Inter 1 1
+Selezione: esempio (2)
+
+===== PAGE 10 =====
+
+10
+Proiezione
+L’operatore di proiezione, , è ortogonale alla selezione, in quanto
+permette di selezionare un sottoinsieme Y degli attributi di una
+relazione. Espressione: Y(R)
+Schema R(X) Y
+Stato r Y(r) = { t[Y] | t  r }
+Input Output
+Selezione
+Y X-Y XY
+Proiezione
+N.B. Il risultato è una relazione, dunque
+eventuali duplicati vengono eliminati.
+N.B. Nell’algebra estesa ai multiset si
+definisce anche l’operazione di
+proiezione senza eliminazione di
+repliche.
+
+===== PAGE 11 =====
+
+11
+Proiezione: esempio (1)
+CodCorso Titolo CodDocente Anno
+483 Analisi 0201 1
+729 Analisi 0021 1
+913 Sistemi Informativi 0123 2
+CORSI
+CodCorso,CodDocente(CORSI) CodCorso CodDocente
+483 0201
+729 0021
+913 0123
+CodCorso,Anno(CORSI) CodCorso Anno
+483 1
+729 1
+913 2
+
+===== PAGE 12 =====
+
+12
+Proiezione: esempio (2)
+Titolo(CORSI)
+CodDocente(CORSI)
+Titolo
+Analisi 
+Sistemi Informativi
+CodDocente
+0201
+0021
+0123
+CodCorso Titolo CodDocente Anno
+483 Analisi 0201 1
+729 Analisi 0021 1
+913 Sistemi Informativi 0123 2
+CORSI
+
+===== PAGE 13 =====
+
+13
+Proiezione: cardinalità del risultato
+ In generale, la cardinalità di Y(r) è minore o uguale della
+cardinalità di r (la proiezione “elimina i duplicati”).
+ L’uguaglianza è garantita se e solo se Y è una superchiave di
+R(X).
+ Dimostrazione:
+ (Se) Se Y è una superchiave di R(X), in ogni stato legale r di R(X) non
+esistono due tuple distinte t1 e t2 tali che t1[Y] = t2[Y].
+ (Solo se) Se Y non è superchiave allora è possibile costruire uno stato
+legale r con due tuple distinte t1 e t2 tali che t1[Y] = t2[Y]. Tali tuple
+“collassano” in una singola tupla a seguito della proiezione.
+ Si noti che il risultato ammette la possibilità che “per caso” la
+cardinalità non vari anche se Y non è superchiave.
+Nell’esempio precedente: CodDocente(CORSI)
+
+===== PAGE 14 =====
+
+14
+Join naturale
+ L’operatore di join naturale,  , combina le tuple di due relazioni
+sulla base dell’uguaglianza dei valori degli attributi comuni alle due
+relazioni, cioè quelli presenti in X1  X2.
+ Ogni tupla che compare nel risultato del join naturale di r1 e r2,
+estensioni rispettivamente di R1(X1) e R2(X2), è ottenuta come
+combinazione (“match”) di una tupla di r1 con una tupla di r2 sulla
+base dell’uguaglianza dei valori degli attributi comuni.
+ Inoltre, lo schema della relazione risultato è l’unione X1  X2 degli
+schemi degli operandi.
+Espressione: R1  R2
+Schema R1(X1), R2(X2) X1X2
+Stati r1, r2 r1  r2 = { t | t[X1]  r1 AND t[X2]  r2 }
+Input Output
+
+===== PAGE 15 =====
+
+15
+Join naturale: esempio (1)
+CodCorso Titolo CodDocente Anno
+483 Analisi 0201 1
+729 Analisi 0021 1
+913 Sistemi Informativi 0123 2
+Matricola CodCorso Voto Lode
+29323 483 28 no
+39654 729 30 sì
+29323 913 26 no
+35467 913 30 no
+CORSIESAMI
+Matricola CodCorso Voto Lode Titolo CodDocente Anno
+29323 483 28 no Analisi 0201 1
+39654 729 30 sì Analisi 0021 1
+29323 913 26 no Sistemi Informativi 0123 2
+35467 913 30 no Sistemi Informativi 0123 2
+ESAMI  CORSI
+match
+X1  X2 ={CodCorso}
+X1  X2 ={Matricola,CodCorso,Voto,Lode,Titolo, CodDocente,Anno}
+
+===== PAGE 16 =====
+
+16
+CodVolo Data CodComandante
+AZ427 21/07/2017 C002314
+AZ427 23/07/2017 C126721
+AA056 21/07/2017 C201205
+VOLI
+PRENOTAZIONI
+CodVolo Partenza Arrivo
+AZ427 FCO JFK
+AA056 LAX FCO
+ROTTE
+CodVolo Data Posto CodCliente
+AZ427 21/07/2017 12A BNCGRG84H21A944K
+AZ427 21/07/2017 27B DNMFNC52L70F839FU
+AZ427 23/07/2017 14H MAIMRA61P18F205P
+CodVolo Data CodComandante Partenza Arrivo
+AZ427 21/07/2017 C002314 FCO JFK
+AZ427 23/07/2017 C126721 FCO JFK
+AA056 21/07/2017 C201205 LAX FCO
+VOLI  ROTTE
+Join naturale: esempio (2)
+
+===== PAGE 17 =====
+
+17
+Join naturale: esempio (3)
+CodVolo Data CodComandante Posto CodCliente
+AZ427 21/07/2017 C002314 12A BNCGRG84H21A944K
+AZ427 21/07/2017 C002314 27B DNMFNC52L70F839FU
+AZ427 23/07/2017 C126721 14H MAIMRA61P18F205P
+VOLI  PRENOTAZIONI
+CodVolo Data CodComandante
+AZ427 21/07/2017 C002314
+AZ427 23/07/2017 C126721
+AA056 21/07/2017 C201205
+VOLI
+PRENOTAZIONI
+CodVolo Partenza Arrivo
+AZ427 FCO JFK
+AA056 LAX FCO
+ROTTE
+CodVolo Data Posto CodCliente
+AZ427 21/07/2017 12A BNCGRG84H21A944K
+AZ427 21/07/2017 27B DNMFNC52L70F839FU
+AZ427 23/07/2017 14H MAIMRA61P18F205P
+
+===== PAGE 18 =====
+
+18
+Join naturale: esempio (4)
+ROTTE  PRENOTAZIONI
+CodVolo Partenza Arrivo Data Posto CodCliente
+AZ427 FCO JFK 21/07/2001 12A BNCGRG84H21A944K
+AZ427 FCO JFK 21/07/2001 27B DNMFNC52L70F839FU
+AZ427 FCO JFK 23/07/2001 14H MAIMRA61P18F205P
+CodVolo Data CodComandante
+AZ427 21/07/2017 C002314
+AZ427 23/07/2017 C126721
+AA056 21/07/2017 C201205
+VOLI
+PRENOTAZIONI
+CodVolo Partenza Arrivo
+AZ427 FCO JFK
+AA056 LAX FCO
+ROTTE
+CodVolo Data Posto CodCliente
+AZ427 21/07/2017 12A BNCGRG84H21A944K
+AZ427 21/07/2017 27B DNMFNC52L70F839FU
+AZ427 23/07/2017 14H MAIMRA61P18F205P
+
+===== PAGE 19 =====
+
+19
+Join naturale: proprietà e osservazioni
+ Il join naturale è commutativo e associativo:
+ r1  r2 = r2  r1
+ r1  r2  r3 = (r1  r2 )  r3
+ È possibile che una tupla di una delle relazioni (operandi) non faccia match
+con nessuna tupla dell’altra relazione; in tal caso questa tupla è denominata
+“dangling”.
+ Nel caso limite è quindi possibile che il risultato del join sia vuoto; all’altro
+estremo è possibile che ogni tupla di r1 si combini con ogni tupla di r2. Ne
+consegue che per la cardinalità del join, r1r2:
+0  r1r2  r1  r2
+ Se il join è eseguito su una superchiave di R1(X1), allora ogni tupla di r2 fa
+match con al massimo una tupla di r1, quindi r1r2  r2 .
+ Se X1  X2 è una chiave di R1(X1), e foreign key in R2(X2) (e quindi vi è un
+vincolo d’integrità referenziale) allora r1r2 = r2. Questa
+affermazione è vera in assenza di valori nulli.
+
+===== PAGE 20 =====
+
+20
+Join naturale: note cardinalità (1)
+A B C D
+1 X1 C2 D1
+R1  R2
+A B C
+1 X1 C2
+2 Y4 C5
+3 Z3 C2
+R1 A B D
+1 X1 D1
+3 Z2 D3
+R2
+Join naturale su AB che è superchiave di R1
+Se il join è eseguito su una superchiave di R1(X1), allora ogni tupla di r2 fa
+match con al massimo una tupla di r1, quindi r1r2  r2.
+Con                                                  si ottiene inveceA B D
+1 X1 D1
+3 Z3 D3
+R2
+A B C D
+1 X1 C2 D1
+3 Z3 C2 D3
+R1  R2
+
+===== PAGE 21 =====
+
+21
+Join naturale: note cardinalità (2)
+A B C D E
+1 X1 C2 D1 E1
+3 Z3 C2 D2 E3
+3 Z3 C2 D3 E3
+R1  R2
+A B C
+1 X1 C2
+2 Y4 C5
+3 Z3 C2
+R1 A D E
+1 D1 E1
+3 D2 E3
+3 D3 E3
+R2
+Join naturale su A che è primary key di R1 e foreign key per R2
+Se X1  X2 è una chiave di R1(X1), e foreign key in R2(X2) (e quindi vi è un
+vincolo d’integrità referenziale) allora r1  r2 = r2. Questa affermazione
+è vera in assenza di valori nulli.
+
+===== PAGE 22 =====
+
+22
+Join naturale e intersezione
+ Quando le due relazioni hanno lo stesso schema (X1=X2) allora
+due tuple fanno match se e solo se hanno lo stesso valore per
+tutti gli attributi, ovvero sono identiche, per cui:
+se X1 = X2 il join naturale equivale all’intersezione ()
+delle due relazioni
+Codice Data
+IB123 21/01/2018
+FR278 28/01/2018
+VY338 18/02/2018
+VOLI_CHARTER Codice Data
+FR278 28/01/2018
+FR315 30/01/2018
+VOLI_NON_STOP
+VOLI_CHARTER  VOLI_NON_STOP Codice Data
+FR278 28/01/2018
+
+===== PAGE 23 =====
+
+23
+Join naturale e prodotto cartesiano
+ Se non vi sono attributi in comune (X1X2 = ) allora, non essendovi
+condizioni di join, due tuple fanno sempre match, per cui:
+se X1  X2 =  il join naturale equivale al prodotto cartesiano
+ Si noti che, a differenza del caso matematico, il prodotto cartesiano
+non è ordinato.
+Codice Data Numero Giorno
+IB123 21/01/2018 FR278 28/01/2018
+FR278 28/01/2018 FR278 28/01/2018
+VY338 18/02/2018 FR278 28/01/2018
+IB123 21/01/2018 FR315 30/01/2018
+FR278 28/01/2018 FR315 30/01/2018
+VY338 18/02/2018 FR315 30/01/2018
+Codice Data
+IB123 21/01/2018
+FR278 28/01/2018
+VY338 18/02/2018
+VOLI_CHARTER
+Numero Giorno
+FR278 28/01/2018
+FR315 30/01/2018
+VOLI_NON_STOP
+VOLI_NON_STOP  VOLI_CHARTER
+
+===== PAGE 24 =====
+
+24
+Unione e differenza
+ Poiché le relazioni sono insiemi, sono ben definite le operazioni di unione ,
+e differenza .
+ Entrambi gli operatori si applicano a relazioni con lo stesso insieme di
+attributi.
+ N.B. L’intersezione si può anche scrivere come: r1  r2 = r1 – (r1 – r2) .
+Espressione: R1  R2
+Schema R1(X), R2(X) X
+Stati r1, r2 r1  r2 = { t | t  r1 OR t  r2 }
+Input Output
+Espressione: R1 – R2
+Schema R1(X), R2(X) X
+Stati r1, r2 r1 r2 = { t | t  r1 AND t  r2 }
+Input Output
+
+===== PAGE 25 =====
+
+25
+Codice Data
+IB123 21/01/2018
+FR278 28/01/2018
+VY338 18/02/2018
+FR315 30/01/2018
+VOLI_CHARTER  VOLI_NON_STOP
+Unione e differenza: esempi
+Codice Data
+IB123 21/01/2018
+FR278 28/01/2018
+VY338 18/02/2018
+VOLI_CHARTER Codice Data
+FR278 28/01/2018
+FR315 30/01/2018
+VOLI_NON_STOP
+VOLI_CHARTER – VOLI_NON_STOP
+VOLI_NON_STOP – VOLI_CHARTER
+Codice Data
+IB123 21/01/2018
+VY338 18/02/2018
+Codice Data
+FR315 30/01/2018N.B. Unione e intersezione sono operazioni
+commutative, mentre la differenza non è
+commutativa:
+R ∪ S = S ∪ R; R ∩ S = S ∩ R; R − S ≠ S − R
+
+===== PAGE 26 =====
+
+26
+Intersezione: r1  r2 = r1 – (r1 – r2) 
+Codice Data
+IB123 21/01/2018
+FR278 28/01/2018
+VY338 18/02/2018
+VOLI_CHARTER Codice Data
+FR278 28/01/2018
+FR315 30/01/2018
+VOLI_NON_STOP
+VOLI_CHARTER – VOLI_NON_STOP
+Codice Data
+IB123 21/01/2018
+VY338 18/02/2018
+VOLI_CHARTER  VOLI_NON_STOP
+Codice Data
+FR278 28/01/2018
+r1 r2
+r1 – r2
+r1 – (r1 – r2) 
+L’intersezione r1  r2 si può esprimere tramite l’operatore differenza:
+r1  r2 = r1 – (r1 – r2) . È pertanto un operatore derivato.
+
+===== PAGE 27 =====
+
+27
+Il problema dei nomi
+ Il join naturale, l’unione e la differenza operano, seppur diversamente, sulla
+base degli attributi comuni a due schemi. Ciò comporta alcuni problemi come
+si può desumere dagli esempi appresso riportati.
+Matricola CodiceFiscale Cognome Nome DataNascita
+29323 BNCGRG84H21A944K Bianchi Giorgio 21/06/1984
+35467 RSSNNA90L53G125Z Rossi Anna 13/07/1990
+IMPIEGATI
+CF Imponibile
+BNCGRG84H21A944K 27000
+REDDITI
+Come si possono effettuare l’unione e la differenza?
+Come si esegue il join?
+Codice Data
+IB123 21/01/2018
+FR278 28/01/2018
+VY338 18/02/2018
+VOLI_CHARTER Numero Giorno
+FR278 28/01/2018
+FR315 30/01/2018
+VOLI_NON_STOP
+
+===== PAGE 28 =====
+
+28
+Prodotto cartesiano: chiarimenti (1)
+ La definizione di prodotto cartesiano assume che gli insiemi degli attributi di
+R1 e R2 siano disgiunti, cioè X1  X2 = , ed è dunque coincidente con la
+definizione data per il join naturale.
+ N.B. Se X1  X2   e se si vuole effettivamente eseguire un prodotto
+cartesiano si deve procedere a una ridenominazione degli attributi comuni,
+in modo da rendere diversi i loro nomi.
+Espressione: R1  R2
+Schema R1(X1), R2(X2) con 
+X1  X2 =  X1X2
+Stati r1, r2 r1  r2 = { t | t[X1]  r1 AND t[X2]  r2 }
+Input Output
+
+===== PAGE 29 =====
+
+29
+Esempio di cross product
+IdPietanza Nome
+101 Omelette con verdure
+123 Insalata di pollo
+321 Frittura di calamari
+PIETANZE
+IdBevanda NomeBevanda
+01 Calice di vino
+04 Birra 33 cl
+11 Acqua ½ litro
+BEVANDE
+Possibili menu:  PIETANZE × BEVANDE
+IdPietanza Nome
+101 Omelette con verdure
+101 Omelette con verdure
+101 Omelette con verdure
+IdBevanda NomeBevanda
+01 Calice di vino
+04 Birra 33 cl
+11 Acqua ½ litro
+123 Insalata di pollo
+123 Insalata di pollo
+123 Insalata di pollo
+01 Calice di vino
+04 Birra 33 cl
+11 Acqua ½ litro
+321 Frittura di calamari
+321 Frittura di calamari
+321 Frittura di calamari
+01 Calice di vino
+04 Birra 33 cl
+11 Acqua ½ litro
+
+===== PAGE 30 =====
+
+30
+Ridenominazione
+ L’operatore di ridenominazione, , modifica lo schema di una relazione,
+cambiando i nomi di uno o più attributi. La definizione formale si omette per
+semplicità d’esposizione. È sufficiente ricordare che:
+ dato lo schema R(XZ), YX(R) cambia lo schema in YZ, lasciando invariati
+i valori delle tuple;
+ nel caso in cui si cambi il nome di più attributi, allora l’ordine in cui si
+elencano è significativo.
+ In alcuni testi l’operatore  ha anche una forma per modificare il nome della
+relazione, ad esempio: S(YX) (R) modifica R(XZ) in S(YZ).
+Espressione: YX(R)
+Schema R(XZ) YZ
+Input Output
+Ridenominazione
+X Z
+ Y Z
+
+===== PAGE 31 =====
+
+31
+Ridenominazione: esempi
+CodiceFiscale Imponibile
+BNCGRG84H21A944K 27000
+CodiceFiscaleCF(REDDITI)
+CF Imponibile
+BNCGRG84H21A944K 27000
+REDDITI Numero Giorno
+FR278 28/01/2018
+FR315 30/01/2018
+Codice Data
+FR278 28/01/2018
+FR315 30/01/2018
+Codice,DataNumero,Giorno(VOLI_NON_STOP)
+VOLI_NON_STOP
+
+
+===== PAGE 32 =====
+
+32
+Self-join
+ La ridenominazione permette di eseguire in modo significativo il join di una
+relazione con sé stessa (“self-join”) (si ricordi che r  r = r ).
+Genitore Figlio
+Luca Anna
+Maria Anna
+Giorgio Luca
+Silvia Maria
+Enzo Maria
+GENITORI
+Per trovare nonni e nipoti:
+Nonno Genitore
+Luca Anna
+Maria Anna
+Giorgio Luca
+Silvia Maria
+Enzo Maria
+Nonno,GenitoreGenitore,Figlio(GENITORI)  GENITORI
+Nonno Genitore Figlio
+Giorgio Luca Anna
+Silvia Maria Anna
+Enzo Maria Anna
+Nonno,GenitoreGenitore,Figlio(GENITORI)
+… poi si può ridenominare Figlio in 
+Nipote e proiettare su {Nonno,Nipote}
+
+===== PAGE 33 =====
+
+33
+Self-join: un altro esempio
+ID Cognome Progetto
+1 Rossi A
+2 Neri A
+3 Neri B
+4 Bianchi B
+IMPIEGATI
+R= ID1,ImpID,Cognome(IMPIEGATI)  IMPIEGATI 
+Trovare gli impiegati che lavorano allo stesso progetto a cui lavora Rossi.
+ID1 Imp Progetto
+1 Rossi A
+2 Neri A
+3 Neri B
+4 Bianchi B
+ID1 Imp Progetto ID Cognome
+1 Rossi A 1 Rossi
+1 Rossi A 2 Neri
+2 Neri A 1 Rossi
+2 Neri A 2 Neri
+3 Neri B 3 Neri
+3 Neri B 4 Bianchi
+4 Bianchi B 3 Neri
+4 Bianchi B 4 Bianchi
+ID1,ImpID,Cognome(IMPIEGATI) 
+ID,Cognome(Imp=‘Rossi’ and Cognome<> ‘Rossi’ (R))
+Imp=‘Rossi’ (R)
+per eliminare Rossi dal risultato
+
+===== PAGE 34 =====
+
+34
+Operatori derivati: la divisione
+ Gli operatori sinora visti definiscono completamente l’algebra relazionale.
+Tuttavia, per praticità, è talvolta utile ricorrere ad altri operatori “derivati”,
+quali la divisione e il theta-join.
+ La divisione, , di r1 per r2 , con r1 su R1(X1X2) e r2 su R2(X2), è il più
+grande insieme di tuple t  X1(r1), e dunque con schema X1, tale che,
+facendo il prodotto cartesiano con r2, ciò che si ottiene è una relazione
+contenuta in r1 o uguale a r1.
+R1  R2 si può esprimere come: X1(R1)  X1( (X1(R1)  R2)  R1).
+Espressione: R1  R2
+Schema R1(X1 X2), R2(X2) X1
+Stati r1, r2 r1  r2 = { t | {t}  r2  r1}
+Input Output
+In modo equivalente si definisce  r1  r2 = { t | t  X1(r1)   ur2 (tur1 )}
+
+===== PAGE 35 =====
+
+35
+Divisione: esempio (1) - a
+A B C D
+a1 b1 c1 d1
+a2 b2 c2 d2
+a1 b1 c2 d2
+a3 b2 c1 d1
+a2 b2 c1 d1
+a1 b1 c3 d2
+R1 C D
+c1 d1
+c2 d2
+R2 A B
+a1 b1
+a2 b2
+R1  R2
+In generale, la divisione è utile per interrogazioni di tipo “universale”.
+
+===== PAGE 36 =====
+
+36
+Divisione: esempio (1) - b
+A B C D
+a1 b1 c1 d1
+a2 b2 c2 d2
+a1 b1 c2 d2
+a3 b2 c1 d1
+a2 b2 c1 d1
+a1 b1 c3 d2
+R1 C D
+c1 d1
+c2 d2
+R2
+R1  R2 si può esprimere come: X1(R1)  X1( (X1(R1)  R2)  R1)
+X1(R1) A B
+a1 b1
+a2 b2
+a3 b2
+X1(R1)  R2 A B C D
+a1 b1 c1 d1
+a1 b1 c2 d2
+a2 b2 c1 d1
+a2 b2 c2 d2
+a3 b2 c1 d1
+a3 b2 c2 d2
+(X1(R1)  R2)  R1 A B C D
+a3 b2 c2 d2
+X1( (X1(R1)  R2)  R1) A B
+a3 b2
+R1  R2 = X1(R1)  X1( (X1(R1)  R2)  R1) A B
+a1 b1
+a2 b2
+X1 = {A,B} X2 = {C,D}
+
+===== PAGE 37 =====
+
+37
+Codice Data
+AZ427 21/07/2017
+AZ427 23/07/2017
+AZ427 24/07/2017
+AA056 21/07/2017
+AA056 24/07/2017
+AA056 25/07/2017
+VOLI Codice
+AZ427
+AA056
+LINEE_VOLI VOLI  LINEE_VOLI Data
+21/07/2017
+24/07/2017
+(VOLI  LINEE_VOLI)  LINEE_VOLI Codice Data
+AZ427 21/07/2017
+AZ427 24/07/2017
+AA056 21/07/2017
+AA056 24/07/2017
+La
+ divisione trova le date con voli
+effettuati da tutte le linee aeree.
+Divisione: esempio (2)
+
+===== PAGE 38 =====
+
+38
+Tecnico Reparto
+Bianchi Produzione
+Bianchi Vendite
+Gialli Marketing
+Gialli Produzione
+Gialli Vendite
+Neri Produzione
+Neri Vendite
+Rossi Marketing
+Rossi Produzione
+Rossi Vendite
+MANSIONI Reparto
+Marketing
+Produzione
+Vendite
+REPARTI
+MANSIONI  REPARTI TECNICO
+Gialli
+Rossi
+La divisione trova i tecnici che lavorano in
+tutti i reparti.
+Divisione: esempio (3)
+
+
+===== PAGE 39 =====
+
+39
+Operatori derivati: theta-join
+ L’operatore theta-join,  F, è la combinazione di prodotto cartesiano e
+selezione:
+Espressione: R1  F R2
+Schema
+R1(X1), R2(X2) con 
+X1  X2 =  X1X2
+Stati r1, r2 r1  F r2 = F(r1  r2)
+Input Output
+con R1 e R2 senza attributi in comune e F formula composta di “predicati 
+di join”, ossia del tipo A  B, con A  X1 e B  X2 . 
+ Se F è una congiunzione di uguaglianze, si parla più propriamente
+di equijoin (o equi-join).
+ Il natural join può essere simulato per mezzo della ridenominazione,
+dell’equijoin e della proiezione.
+ Il theta-join e il join naturale sono detti anche inner join.
+
+===== PAGE 40 =====
+
+40
+Theta-join: esempi
+CodRicercatore CodProgetto
+115623 HK27
+100104 HAL2000
+116232 HK27
+100104 HK28
+201401 HAL2000
+PARTECIPAZIONI
+Sigla CodResponsabile
+HK27 116232
+HAL2000 201401
+HK28 100104
+PROGETTI
+CodRicercatore CodProgetto Sigla CodResponsabile
+115623 HK27 HK27 116232
+100104 HAL2000 HAL2000 201401
+116232 HK27 HK27 116232
+100104 HK28 HK28 100104
+201401 HAL2000 HAL2000 201401
+PARTECIPAZIONI  CodProgetto=SiglaPROGETTI
+PARTECIPAZIONI  (CodProgetto=Sigla) AND PROGETTI
+(CodRicercatore ≠ CodResponsabile)
+CodRicercatore CodProgetto Sigla CodResponsabile
+115623 HK27 HK27 116232
+100104 HAL2000 HAL2000 201401
+
+===== PAGE 41 =====
+
+41
+Theta-join: una precisazione
+ Così come è stato definito, il theta-join richiede in ingresso relazioni con
+schemi disgiunti.
+ In diversi libri di testo e lavori scientifici (e anche nei RDBMS), viceversa, il
+theta-join accetta relazioni con schemi arbitrari e “prende il posto” del join
+naturale, ossia: tutti i predicati di join sono esplicitati.
+ In questo caso, per garantire l’univocità (distinguibilità) degli attributi nello
+schema risultato, è necessario adottare “alcuni accorgimenti”, ad esempio
+usare anche il nome dello schema per denotare un attributo.
+PARTECIPAZIONI  (CodProgetto=Sigla) AND PROGETTI
+(PARTECIPAZIONI.CodRicercatore ≠ PROGETTI.CodRicercatore)
+RICERCATORI.CodRicercatore CodProgetto Sigla PROGETTI.CodRicercatore
+115623 HK27 HK27 116232
+CodRicercatore CodProgetto
+115623 HK27
+116232 HK27
+100104 HK28
+PARTECIPAZIONI Sigla CodRicercatore
+HK27 116232
+HK28 100104
+PROGETTI
+
+===== PAGE 42 =====
+
+42
+Theta-join: un esempio d’uso di self join (1)
+ Dato lo schema ABBONAMENTI(Provider, CostoAnnuo) trovare i
+Provider il cui abbonamento ha costo annuo minimo.
+Provider CostoAnnuo
+A 100
+B 120
+C 100
+D 110
+E 130
+ABBONAMENTI
+1) Si opera una ridenominazione
+2) Si esegue il theta-join tra ABBONAMENTI e la sua ridenominazione
+3) Si effettua la differenza Provider(ABBONAMENTI) – Provider(T)
+P ,CProvider,CostoAnnuo(ABBONAMENTI)
+T = ABBONAMENTI  (CostoAnnuo>C)  ( P ,CProvider,CostoAnnuo(ABBONAMENTI) )
+
+===== PAGE 43 =====
+
+43
+Theta-join: un esempio d’uso di self join (2)
+Provider CostoAnnuo
+A 100
+B 120
+C 100
+D 110
+E 130
+ABBONAMENTI A = P ,CProvider,CostoAnnuo(ABBONAMENTI)
+P C
+A 100
+B 120
+C 100
+D 110
+E 130
+Provider CostoAnnuo
+B 120
+B 120
+B 120
+D 110
+D 110
+P C
+A 100
+C 100
+D 110
+A 100
+C 100
+T = ABBONAMENTI (CostoAnnuo>C)  A
+E 130
+E 130
+E 130
+E 130
+A 100
+B 120
+C 100
+D 110Provider
+A
+B
+C
+D
+E
+Provider
+B
+D
+E
+Provider(ABBONAMENTI) Provider(T)
+Provider(ABBONAMENTI) – Provider(T)
+Provider
+A
+C
+
+===== PAGE 44 =====
+
+44
+Semijoin
+ Il semijoin (o semi-join) da S a R, indicato con , è la proiezione del
+natural join R  S sugli attributi dello schema R; è detto anche left
+semijoin.
+Espressione: R ⋉ S
+Schema R (X), S (Y) X
+Stati r, s r ⋉ s = X(r  s)  = r  XY(s)
+Input Output
+ Il semijoin è utile in ambiente distribuito in quanto, se r ed s sono su
+nodi diversi della rete, consente di ridurre la mole dei dati da
+trasferire; infatti vale la seguente proprietà:
+ s = (s ⋉ r)   r = r  s
+N.B. In generale il semijoin non è simmetrico:
+La definizione di semijoin si può estendere anche al theta-join.
+R ⋉ S
+ Si definisce anche il right semijoin S R che equivale a⋊ R ⋉ S
+(r ⋉ s)
+(r ⋉ s)  (s ⋉ r)  
+
+===== PAGE 45 =====
+
+45
+Semijoin: esempio
+IMPIEGATI IdImp Cognome Nome Qualifica
+100 Bianchi Mario 1
+200 Neri Carlotta 2
+250 Rossi Giorgio 1
+300 Verdi Maria 2
+Qualifica Stipendio
+1 18000
+2 22500
+3 30000
+QUAL_STIP
+o Il semijoin con schema IQ(Qualifica,Stipendio) corrisponde alle 
+qualifiche per le quali vi è almeno un impiegato che percepisce stipendio.
+QUAL_STIP ⋉ IMPIEGATI
+Qualifica Stipendio
+1 18000
+1 18000
+2 22500
+2 22500
+IdImp Cognome Nome
+100 Bianchi Mario
+250 Rossi Giorgio
+200 Neri Carlotta
+300 Verdi Maria
+QUAL_STIP  IMPIEGATI
+Qualifica,Stipendio (QUAL_STIP  IMPIEGATI)
+
+QUAL_STIP ⋉ IMPIEGATI
+Qualifica Stipendio
+1 18000
+2 22500
+IQ
+
+===== PAGE 46 =====
+
+46
+Algebra con valori nulli
+ La presenza di valori nulli nelle relazioni richiede un’estensione della
+semantica degli operatori. Si ricorda d’altra parte quanto sia
+importante, ai fini pratici, la gestione dei valori nulli.
+ Inoltre, è utile considerare un’estensione del join naturale che non
+scarta le tuple dangling, ma genera valori nulli.
+ È opportuno sottolineare che esistono diversi approcci al trattamento
+dei valori nulli, nessuno dei quali è completamente soddisfacente per
+ragioni formali e/o pragmatiche.
+ L’approccio presentato in questa sede è quello “tradizionale” e ha il
+pregio di essere molto simile a quello adottato in SQL, e quindi dai
+DBMS relazionali.
+
+===== PAGE 47 =====
+
+47
+, ,  con i valori nulli 
+Proiezione, unione e differenza continuano a comportarsi usualmente, quindi due tuple
+sono uguali anche se ci sono dei valori NULL.
+N.B. Nell’esempio per motivi di spazio nella slide si omettono altri attributi (es. nome di
+un impiegato).
+CodImp Cognome Ufficio
+123 Rossi A12
+231 Verdi NULL
+373 Verdi A27
+435 NULL A35
+521 Verdi NULL
+IMPIEGATI RESPONSABILI
+Cognome,Ufficio(IMPIEGATI)
+CodImp Cognome Ufficio
+123 Rossi A12
+NULL NULL A27
+435 NULL A35
+Cognome Ufficio
+Rossi A12
+Verdi NULL
+Verdi A27
+NULL A35
+IMPIEGATI  RESPONSABILI
+CodImp Cognome Ufficio
+123 Rossi A12
+231 Verdi NULL
+373 Verdi A27
+435 NULL A35
+521 Verdi NULL
+NULL NULL A27
+
+===== PAGE 48 =====
+
+48
+ con valori nulli 
+ Per la selezione il problema è stabilire se, in presenza di NULL, un
+predicato è vero o meno per una data tupla. Si consideri ad esempio
+la selezione
+e lo stato della relazione
+ Sicuramente la prima tupla fa parte del risultato e la terza no.
+ Ma la seconda? Non si hanno elementi sufficienti per decidere…
+ … e lo stesso vale per la selezione
+CodImp Cognome Ufficio
+123 Rossi A12
+231 Verdi NULL
+373 Verdi A27
+IMPIEGATI
+Ufficio = 'A12'(IMPIEGATI)
+Ufficio 'A12' (IMPIEGATI)
+
+===== PAGE 49 =====
+
+49
+Logica a tre valori 
+ Oltre ai valori di verità Vero (V) e Falso (F), si introduce il valore
+“Sconosciuto” (?).
+ Una selezione produce le sole tuple per cui l’espressione di predicati
+risulta vera.
+ Per operare esplicitamente con i valori NULL si introduce l’operatore
+di confronto IS, ad esempio: A IS NULL.
+ NOT ( A IS NULL) si scrive anche A IS NOT NULL.
+NOT AND V F ? OR V F ?
+V F V V F ? V V V V
+F V F F F F F V F ?
+? ? ? ? F ? ? V ? ?
+
+===== PAGE 50 =====
+
+50
+Selezione con valori nulli: esempi 
+CodImp Cognome Ufficio
+123 Rossi A12
+231 Verdi NULL
+373 Verdi A27
+385 NULL A27
+IMPIEGATI
+Ufficio = 'A12' (IMPIEGATI)
+CodImp Cognome Ufficio
+123 Rossi A12
+373 Verdi A27
+385 NULL A27
+CodImp Cognome Ufficio
+123 Rossi A12
+(Ufficio = 'A12' ) OR (Ufficio ≠ 'A12')(IMPIEGATI)
+(Ufficio = 'A27') AND (Cognome = 'Verdi')(IMPIEGATI)
+CodImp Cognome Ufficio
+373 Verdi A27
+(Ufficio = 'A27') OR (Cognome = 'Verdi')(IMPIEGATI)
+CodImp Cognome Ufficio
+231 Verdi NULL
+373 Verdi A27
+385 NULL A27
+Ufficio IS NULL(IMPIEGATI)
+CodImp Cognome Ufficio
+231 Verdi NULL
+(Ufficio IS NULL) AND (Cognome IS NULL)(IMPIEGATI)
+CodImp Cognome Ufficio
+
+===== PAGE 51 =====
+
+51
+ con valori nulli 
+ Il join naturale non combina due tuple se queste hanno entrambe
+valore nullo su un attributo in comune (e valori uguali sugli eventuali
+altri attributi comuni).
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+231 Verdi 5 NULL
+373 Verdi 6 A27
+435 NULL 4 A35
+521 Verdi NULL A35
+IMPIEGATI DIRIGENTI
+CodImp Livello Ufficio
+123 7 A12
+NULL 8 A27
+521 NULL A35
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+IMPIEGATI  DIRIGENTI
+
+===== PAGE 52 =====
+
+52
+Join ≠ intersezione con valori nulli (1) 
+ In assenza di valori nulli l’intersezione di r1 e r2 si può esprimere in due modi:
+ mediante il join naturale, r1  r2 = r1  r2;
+ sfruttando l’uguaglianza r1  r2 = r1  (r1  r2).
+ In presenza di valori nulli, dalle definizioni date si ha che:
+ nel primo caso il risultato non contiene tuple con valori nulli;
+ nel secondo caso, viceversa, tali tuple compaiono nel risultato.
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+231 Verdi 5 NULL
+373 Verdi 6 A27
+435 NULL 4 A35
+521 Verdi NULL A35
+IMPIEGATI DIRIGENTI
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+NULL NULL 8 A27
+521 Verdi NULL A35
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+IMPIEGATI  DIRIGENTI
+
+===== PAGE 53 =====
+
+53
+Join ≠ intersezione con valori nulli (2) 
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+231 Verdi 5 NULL
+373 Verdi 6 A27
+435 NULL 4 A35
+521 Verdi NULL A35
+IMPIEGATI DIRIGENTI
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+NULL NULL 8 A27
+521 Verdi NULL A35
+IMPIEGATI  DIRIGENTI
+CodImp Cognome Livello Ufficio
+231 Verdi 5 NULL
+373 Verdi 6 A27
+435 NULL 4 A35
+IMPIEGATI  (IMPIEGATI  DIRIGENTI)
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+521 Verdi NULL A35
+CodImp Cognome Livello Ufficio
+123 Rossi 7 A12
+IMPIEGATI  DIRIGENTI
+
+===== PAGE 54 =====
+
+54
+ In alcuni casi è utile che anche le tuple dangling di un join compaiano nel
+risultato.
+ A tale scopo si introduce l’operatore outer join (detto anche external join)
+che “completa” con valori nulli le tuple dangling.
+ Esistono tre varianti:
+ Left outer join ( = ): sono incluse solo le tuple dangling dell’operando
+sinistro, e completate con NULL.
+ Right outer join ( = ): sono incluse solo le tuple dangling dell’operando
+destro, e completate con NULL.
+ Full outer join ( == ): sono considerate le tuple dangling di entrambi gli
+operandi, e completate con NULL.
+Outer join
+Left outer join
+Inner join
+ Right outer join
+ Full outer join
+
+===== PAGE 55 =====
+
+55
+CF CodComune
+BNCGRG84H21A944K A347
+TRLFNC60L31G713L A944
+MAIMRA61P18F839O A347
+RLFRC72L60G713J M185
+CLIENTI CodFornitore CodComune
+F001 A347
+F002 G125
+F003 A944
+F004 H501
+FORNITORI
+Left outer join: esempio A
+CLIENTI = FORNITORI
+CF CodComune
+BNCGRG84H21A944K A347
+TRLFNC60L31G713L A944
+MAIMRA61P18F839O A347
+RLFRC72L60G713J M185
+CodFornitore
+F001
+F003
+F001
+NULL
+
+===== PAGE 56 =====
+
+56
+CF CodComune
+BNCGRG84H21A944K A347
+TRLFNC60L31G713L A944
+MAIMRA61P18F839O A347
+RLFRC72L60G713J M185
+CLIENTI CodFornitore CodComune
+F001 A347
+F002 G125
+F003 A944
+F004 H501
+FORNITORI
+Right outer join: esempio A
+CLIENTI = FORNITORI
+CF CodComune
+BNCGRG84H21A944K A347
+MAIMRA61P18F839O A347
+NULL G125
+TRLFNC60L31G713L A944
+NULL H501
+CodFornitore
+F001
+F001
+F002
+F003
+F004
+N.B. Il risultato non
+ammette una chiave
+primaria sulla base
+degli attributi definiti.
+Nei RDBMS si dispone in
+ogni caso di un
+identificatore di riga.
+
+===== PAGE 57 =====
+
+57
+CF CodComune
+BNCGRG84H21A944K A347
+TRLFNC60L31G713L A944
+MAIMRA61P18F839O A347
+RLFRC72L60G713J M185
+CLIENTI CodFornitore CodComune
+F001 A347
+F002 G125
+F003 A944
+F004 H501
+FORNITORI
+Full outer join: esempio A
+CLIENTI == FORNITORI CF CodComune
+BNCGRG84H21A944K A347
+TRLFNC60L31G713L A944
+MAIMRA61P18F839O A347
+RLFRC72L60G713J M185
+NULL G125
+NULL H501
+CodFornitore
+F001
+F003
+F001
+NULL
+F002
+F004
+N.B. Il risultato non
+ammette una chiave
+primaria.
+
+===== PAGE 58 =====
+
+58
+CodStudente CodEsercizio
+S001 E001
+S002 E002
+S003 NULL
+S004 E001
+STUDENTI CodEsercizio Argomento
+E001 Algebra relazionale
+E002 Entity/Relationship
+E003 Normalizzazione
+ESERCIZI
+Left outer join: esempio B
+STUDENTE ASSEGNAZIONE ESERCIZIO
+(0,1) (0,N)
+CodStudente CodEsercizio Argomento
+S001 E001 Algebra relazionale
+S002 E002 Entity/Relationship
+S003 NULL NULL
+S004 E001 Algebra relazionale
+STUDENTI = ESERCIZI
+
+===== PAGE 59 =====
+
+59
+CodStudente CodEsercizio
+S001 E001
+S002 E002
+S003 NULL
+S004 E001
+STUDENTI CodEsercizio Argomento
+E001 Algebra relazionale
+E002 Entity/Relationship
+E003 Normalizzazione
+ESERCIZI
+Right outer join: esempio B
+CodStudente CodEsercizio Argomento
+S001 E001 Algebra relazionale
+S002 E002 Entity/Relationship
+S004 E001 Algebra relazionale
+NULL E003 Normalizzazione
+STUDENTI = ESERCIZI
+N.B. Il risultato non
+ammette una chiave
+primaria.
+
+===== PAGE 60 =====
+
+60
+CodStudente CodEsercizio
+S001 E001
+S002 E002
+S003 NULL
+S004 E001
+STUDENTI CodEsercizio Argomento
+E001 Algebra relazionale
+E002 Entity/Relationship
+E003 Normalizzazione
+ESERCIZI
+Full outer join: esempio B
+CodStudente CodEsercizio Argomento
+S001 E001 Algebra relazionale
+S002 E002 Entity/Relationship
+S003 NULL NULL
+S004 E001 Algebra relazionale
+NULL E003 Normalizzazione
+STUDENTI == ESERCIZI
+N.B. Il risultato non
+ammette una chiave
+primaria.
+
+===== PAGE 61 =====
+
+61
+CodRicercatore CodProgetto
+115623 HK27
+116232 HK27
+100104 HK28
+201401 HAL2000
+PARTECIPAZIONI
+CodProgetto CodResponsabile
+HK27 116232
+HAL2000 201401
+HK28 NULL
+PLUS 201401
+PROGETTI
+PARTECIPAZIONI = PROGETTI
+CodRicercatore CodProgetto CodResponsabile
+115623 HK27 116232
+116232 HK27 116232
+100104 HK28 NULL
+201401 HAL2000 201401
+Left outer join: esempio C
+In questo caso 
+coincide con il 
+join naturale.
+
+===== PAGE 62 =====
+
+62
+CodRicercatore CodProgetto
+115623 HK27
+116232 HK27
+100104 HK28
+201401 HAL2000
+PARTECIPAZIONI
+CodProgetto CodResponsabile
+HK27 116232
+HAL2000 201401
+HK28 NULL
+PLUS 201401
+PROGETTI
+CodRicercatore CodProgetto CodResponsabile
+115623 HK27 116232
+116232 HK27 116232
+201401 HAL2000 201401
+100104 HK28 NULL
+NULL PLUS 20141
+Right outer join: esempio C
+PARTECIPAZIONI = PROGETTI
+N.B. Il risultato non
+ammette una chiave
+primaria.
+
+===== PAGE 63 =====
+
+63
+CodRicercatore CodProgetto
+115623 HK27
+116232 HK27
+100104 HK28
+201401 HAL2000
+PARTECIPAZIONI
+CodProgetto CodResponsabile
+HK27 116232
+HAL2000 201401
+HK28 NULL
+PLUS 201401
+PROGETTI
+CodRicercatore CodProgetto CodResponsabile
+115623 HK27 116232
+116232 HK27 116232
+100104 HK28 NULL
+201401 HAL2000 201401
+NULL PLUS 20141
+Full outer join: esempio C
+PARTECIPAZIONI == PROGETTI
+N.B. Il risultato non
+ammette una chiave
+primaria.
+In questo caso coincide 
+con il right outer join.
+
+===== PAGE 64 =====
+
+64
+Espressioni
+ Gli operatori dell’AR si possono liberamente combinare tra loro,
+avendo cura di rispettare le regole stabilite per la loro applicabilità.
+ È anche possibile, oltre alla rappresentazione “lineare”, adottare una
+rappresentazione grafica in cui l’espressione è rappresentata con un
+albero.
+ La valutazione di un’espressione procede ”bottom-up“.
+PROGETTIPARTECIPAZIONI
+CodRicercatore = '115623'(PARTECIPAZIONI  PROGETTI)
+CodRicercatore = '115623'
+
+
+===== PAGE 65 =====
+
+65
+Viste
+ Al fine di “semplificare” espressioni complesse è anche possibile fare
+uso di viste, ovvero espressioni a cui viene assegnato un nome e che è
+possibile riutilizzare all’interno di altre espressioni.
+ La sintassi è V = E dove V è il nome della vista ed E è l’espressione.
+PROGETTI_115623 = CodRicercatore = '115623' (PARTECIPAZIONI  PROGETTI)
+PROGETTIPARTECIPAZIONI
+CodRicercatore = '115623'
+PROGETTI_115623 =
+
+===== PAGE 66 =====
+
+66
+DB di riferimento per gli esempi
+CodProg Sede
+P01 S01
+P01 S02 
+P02 S02
+Sede CodResponsabile Città
+S01 E007 Milano
+S02 E008 Bologna
+S03 E009 Milano
+IMPIEGATI
+PROGETTISEDI
+CodImpiegato Nome Cognome Sede Ruolo Stipendio
+E001 Carlo Rossi S01 Analista 2000
+E002 Mario Verdi S02 Sistemista 1500
+E003 Maria Bianchi S01 Programmatore 1000
+E004 Caterina Gialli S03 Programmatore 1000
+E005 Ennio Neri S02 Analista 2500
+E006 Flavio Grigi S01 Sistemista 1400
+E007 Giuseppe Biondi S01 Responsabile 3200
+E008 Giorgia Mori S02 Responsabile 3000
+E009 Carlo Fulvi S03 Responsabile 3500
+
+===== PAGE 67 =====
+
+67
+Codice, cognome, nome, sede e stipendio degli impiegati che non ricoprono il
+ruolo di responsabile e che guadagnano più di 1300 Euro
+IMPIEGATI_TOP=
+CodImpiegato,Nome,Cognome,Sede,Stipendio ((Stipendio > 1300) AND (Ruolo  'Responsabile')(IMPIEGATI))
+CodImpiegato Nome Cognome Sede Stipendio
+E001 Carlo Rossi S01 2000
+E002 Mario Verdi S02 1500
+E005 Ennio Neri S02 2500
+E006 Flavio Grigi S01 1400
+IMPIEGATI_TOP=
+(Stipendio > 1300) AND (Ruolo  'Responsabile')(CodImpiegato,Nome,Cognome,Sede,Ruolo,Stipendio(IMPIEGATI))
+oppure:
+IMPIEGATI_TOP
+Espressioni: esempio (1)
+N.B. La tabella in figura corrisponde alla prima espressione; la seconda infatti
+porterebbe a uno schema che include anche l’attributo Ruolo.
+
+===== PAGE 68 =====
+
+68
+Sede, città, e codice del responsabile per ogni sede dove vi sono impiegati, non
+responsabili, che guadagnano più di 1300 €:
+SEDI  (Sede((Stipendio > 1300) AND (Ruolo 'Responsabile')(IMPIEGATI)))
+oppure:
+Sede,CodResponsabile,Città(SEDI  IMPIEGATI_TOP)
+Espressioni: esempio (2)
+Sede CodResponsabile Città
+S01 E007 Milano
+S02 E008 Bologna
+ Per ottenere anche il nome e cognome del responsabile si deve eseguire un altro
+join:
+TEMP = (Sede,CodResponsabile,Città(SEDI  IMPIEGATI_TOP))  CodImpiegato=CodResponsabileIMPIEGATI
+SEDI.Sede,CodResponsabile,Città,Nome,Cognome(TEMP)
+SEDI.Sede SEDI.CodResponsabile SEDI.Città IMPIEGATI.Nome IMPIEGATI.Cognome
+S01 E007 Milano Giuseppe Biondi
+S02 E008 Bologna Giorgia Mori
+
+===== PAGE 69 =====
+
+69
+Progetti e città nelle sedi dove vi sono impiegati, non
+responsabili, che guadagnano più di 1300 Euro: CodProg Città
+P01 Milano
+P01 Bologna
+P02 Bologna
+Espressioni: esempi (3 e 4)
+CodProg, Città(PROGETTI  (SEDI  IMPIEGATI_TOP))
+Codici dei responsabili delle sedi dove sono presenti tutti i
+ruoli:
+CodResponsabile(SEDI  (Sede,Ruolo(IMPIEGATI)  Ruolo(IMPIEGATI)))
+CodResponsabile
+EOO7
+SEDI
+CodResponsabile
+
+Sede,Ruolo Ruolo
+IMPIEGATI IMPIEGATI
+Esercizio:
+si modifichi l’espressione per
+restituire anche il nome e il
+cognome dei responsabili.
+
+===== PAGE 70 =====
+
+70
+Codici dei responsabili delle sedi che non hanno sistemisti:
+oppure:
+CodResponsabile(SEDI  (Sede(SEDI)  Sede(Ruolo ='Sistemista'(IMPIEGATI))))
+CodResponsabile
+E009
+CodResponsabile((SEDI = (Ruolo ='Sistemista' (IMPIEGATI))) 
+(SEDI  (Ruolo ='Sistemista'(IMPIEGATI))))
+Espressioni: esempio (5)
+
+IMPIEGATI
+Ruolo ='Sistemista'
+SEDI
+Sede
+
+CodResponsabile
+SEDI
+Sede
+-
+=
+CodResponsabile
+
+SEDI SEDI
+IMPIEGATI IMPIEGATI
+Ruolo ='Sistemista' Ruolo ='Sistemista'
+
+===== PAGE 71 =====
+
+71
+Un altro modo per ottenere il risultato:
+CodResponsabile(CodImpiegato IS NULL(SEDI = (Ruolo = 'Sistemista'(IMPIEGATI))))
+Espressioni: esempio (5 bis)
+CodResponsabile
+E009
+SEDI
+CodResponsabile
+IMPIEGATI
+Ruolo ='Sistemista'
+CodImp IS NULL
+=
+Ragionamento: si effettua un left outer
+join e poi un test sul valore
+dell’attributo CodImpiegati di
+IMPIEGATI; se la tupla di SEDI non è
+dangling, quel valore è sicuramente
+non nullo.
+
+===== PAGE 72 =====
+
+72
+Equivalenza di espressioni
+ Un’interrogazione su un database con schema DB può a tutti gli effetti
+essere vista come una funzione che a ogni stato db del database associa
+una relazione risultato con un dato schema.
+ Un’espressione E dell’AR costituisce quindi una modalità specifica per
+esprimere tale funzione; E(db) denota il risultato dell’applicazione di E allo
+stato db. Due espressioni sono tra loro equivalenti se rappresentano la
+stessa funzione:
+due espressioni E1 ed E2 espresse su un database con schema DB si dicono
+equivalenti rispetto a DB (E1 DB E2) se e solo se per ogni stato db
+producono lo stesso risultato, E1(db) = E2(db).
+ Si noti che quando E è un’espressione composta, ad esempio se E = Ea 
+Eb allora E(db) = Ea(db)  Eb(db) ; il caso di base riguarda uno stato r di
+una relazione R nell’estensione db del data base con schema DB.
+
+===== PAGE 73 =====
+
+73
+Equivalenza di espressioni
+ In alcuni casi l’equivalenza non dipende dallo schema DB specifico,
+nel qual caso si scrive E1  E2 (ossia E1 DB E2 è valida per ogni
+schema DB).
+Esempio: per ogni DB si ha:
+AB(A=a(R))  A=a(AB(R)), come è facile verificare;
+a è un generico valore di dom(A).
+ D’altra parte l’equivalenza
+AB(R1)  BC(R2) DB ABC(R1  R2)
+è garantita solo se anche nel secondo caso il join è solo su B, come
+avviene nell’espressione a sinistra.
+
+===== PAGE 74 =====
+
+74
+Equivalenze: considerazioni
+ Due espressioni equivalenti E1 ed E2 garantiscono lo stesso risultato, ma ciò
+non significa che la scelta sia indifferente in termini di “risorse” necessarie.
+ Considerazioni di questo tipo sono essenziali per un RDBMS durante la fase
+di ottimizzazione delle interrogazioni.
+ La conoscenza delle regole di equivalenza può consentire di eseguire
+trasformazioni che possono portare a un’espressione valutabile in modo più
+efficiente rispetto a quella iniziale.
+ In particolare le regole più interessanti sono quelle che permettono di
+ridurre la cardinalità degli operandi e quelle che portano a una
+semplificazione dell’espressione (es.: R  R  R se non sono presenti valori
+nulli).
+
+===== PAGE 75 =====
+
+75
+Regole di equivalenza
+ Tra le regole base di equivalenza, si ricordano quelle appresso elencate.
+ Il join naturale è commutativo e associativo:
+E1  E2  E2  E1 (E1  E2 )  E3  E1  (E2  E3 )  E1  E2  E3
+ Selezione e proiezione si possono raggruppare:
+F1(F2(E))  F1 AND F2 (E) Y(YZ(E))  Y(E) 
+ Selezione e proiezione commutano (se F si riferisce esclusivamente ad attributi in
+Y):
+Y(F(E))  F(Y(E)) 
+ “Push-down”della selezione rispetto al join (se F è sullo schema di E1):
+F(E1  E2)  F(E1)  E2
+
+===== PAGE 76 =====
+
+76
+Push-down delle proiezioni
+ Usualmente un RDBMS cerca di eliminare quanto prima gli attributi che non
+servono per produrre il risultato di una query.
+ Un attributo A è utile se è richiesto in output o è necessario per un operatore
+che non è stato ancora eseguito.
+ Esempio: nome, cognome e stipendio degli impiegati che lavorano nelle sedi
+di Bologna:
+
+Città ='Bologna'IMPIEGATI
+Nome,Cognome,Stipendio
+SEDI
+
+Città ='Bologna'IMPIEGATI
+Nome,Cognome,Stipendio
+SEDI
+Nome,Cognome,Sede,Stipendio
+ Sede
+
+
+===== PAGE 77 =====
+
+77
+Strumenti per AR
+ RelaX è un servizio online che permette di eseguire interrogazioni in algebra
+relazionale con una sintassi simile a quella utilizzata nel corso.
+ RelaX, sviluppato l’Università di Innsbruck, consente di scrivere ed eseguire
+espressioni di algebra relazionale; mette anche a disposizione alcuni DB di
+prova. Altri DB sono reperibili presso i siti web di alcuni corsi universitari e,
+nell’ambito di questo corso, sono disponibili esempi nel materiale didattico
+fornito per le esercitazioni sulla piattaforma virtuale Unibo.
+ Relax offre anche la possibilità di scrivere alcuni tipi di query in SQL e
+mostrare l’albero dell’equivalente espressione in algebra relazionale.
+ Esistono anche software, a scopo didattico, per convertire espressioni di
+algebra relazionale in SQL; un esempio di free software è RAT. Un esempio
+di interprete di espressioni algebriche relazionali è RA.
+
+===== PAGE 78 =====
+
+78
+Un esempio con RelaX
+espressione
+Albero d’esecuzione della queryRisultato
+Si acceda a RelaX; per caricare il DB di prova, indicato in figura, s’inserisca
+nel campo “Load dataset stored in a gist” la stringa
+021f3f0fdac45f4d3cea85dfe7070d71 e successivamente si prema il
+bottone “Load” .
+
+===== PAGE 79 =====
+
+79
+Domande?

@@ -1,0 +1,2604 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Il modello Entity-Relationship
+ISCRIZIONE
+
+===== PAGE 2 =====
+
+2
+Modelli dei dati: logici vs concettuali
+ Un modello dei dati è una collezione di concetti che sono utilizzati per
+descrivere i dati, le loro associazioni, e i vincoli che questi devono rispettare.
+ Un ruolo di primaria importanza nella definizione di un modello dei dati è
+svolto dai meccanismi che possono essere usati per strutturare i dati.
+ Modelli logici:
+ utilizzati nei DBMS per l’organizzazione dei dati;
+ utilizzati dai programmi - indipendenti dalle strutture fisiche.
+ Modelli concettuali: permettono di rappresentare i dati in modo
+indipendente da ogni particolare sistema;
+ cercano di descrivere i concetti del mondo reale;
+ sono utilizzati nelle fasi preliminari di progettazione.
+
+===== PAGE 3 =====
+
+3
+I modelli concettuali dei dati
+ Lo scopo è pervenire a uno schema
+che rappresenti la realtà di interesse
+in modo indipendente dal DBMS.
+ Si cerca un livello di astrazione “intermedio”
+tra sistema e utenti, che sia al tempo stesso:
+ flessibile
+ intuitivo
+ espressivo
+ .... caratteristiche che mancano ai modelli logici.
+ I modelli concettuali prevedono tipicamente una
+rappresentazione grafica, che risulta anche utile
+come strumento di documentazione e
+comunicazione.
+ Il più noto modello concettuale in ambito DB è il
+modello E/R.
+
+
+===== PAGE 4 =====
+
+4
+Il modello Entity-Relationship
+ Proposto originariamente da Peter Pin-Shan Chen nel 1976
+rappresenta oggi uno “standard de facto” per la progettazione
+concettuale di una base dati.
+ Spesso si usano i termini EER o ERD intendendo una versione estesa,
+in termini di costrutti, rispetto al modello originario Entity-
+Relationship (E/R o E-R).
+ È caratterizzato da una rappresentazione grafica intuitiva che
+consente di disegnare schemi E/R facilitando la comprensione e
+l’interpretazione dei requisiti informativi modellati.
+ Esistono molti dialetti E/R che presentano alcune differenze in termini
+di costrutti e di notazione grafica adottata.
+ In questa sede si illustra un’estensione del modello originario che si
+differenzia sia nelle definizioni sia in parte nella rappresentazione
+grafica.
+ Sono oggi disponibili molteplici tool di ausilio alla progettazione di
+DB relazionali che impiegano varianti del modello E/R.
+
+===== PAGE 5 =====
+
+5
+Costrutti del modello E/R
+ Concetti fondamentali del modello E/R
+ Entità (entity)
+ Associazione (relationship)
+ Attributo (attribute)
+ e inoltre:
+ Vincolo di cardinalità (cardinality constraint)
+ Identificatore (identifier)
+ Gerarchia di generalizzazione (generalization)
+
+===== PAGE 6 =====
+
+6
+Entità
+ Un’entità rappresenta una classe (insieme) di oggetti della realtà di
+interesse che possiedono caratteristiche comuni (es. persone, automobili, …)
+e che hanno esistenza “autonoma” (ovvero indipendente dalle proprietà ad
+esse associate).
+ Graficamente un’entità si rappresenta con un rettangolo al cui interno è
+evidenziata la denominazione dell’entità stessa:
+ N.B. È fortemente sconsigliato usare sigle (es. E001, E002…) in luogo di
+denominazioni “parlanti” per denotare entità. Fanno eccezioni le sigle note
+nel dominio applicativo. Considerazioni analoghe valgono per gli attributi e
+le associazioni.
+ N.B. Si ricorda che in matematica per definizione un insieme non può avere
+elementi ripetuti, cosa che è invece consentita in un multiinsieme (multiset,
+bag).
+PERSONA AUTOMOBILE LIBRO
+
+===== PAGE 7 =====
+
+7
+Livello intensionale
+ Lo schema che rappresenta un’entità, ne descrive la struttura, cioè l’aspetto
+intensionale. A livello intensionale un’entità non è rappresentata facendo
+esplicito riferimento alle sue singole istanze in un certo stato osservabile; si fa
+invece ricorso all’astrazione di “classificazione” riconoscendo che le possibili
+istanze dell’entità in ogni stato osservabile sono caratterizzate da proprietà
+comuni.
+A questo livello intensionale si può parlare di “prototipo” d’istanza di entità:
+ad esempio “p è un’istanza ammissibile nell’estensione di PERSONA”. E se ne
+può parlare anche prescindendo dai valori delle proprietà (attributi), che
+dovranno essere poi specificate nello schema E/R, sempre a livello intensionale.
+PERSONA
+PERSONANome
+Cognome
+CodiceFiscale
+…..
+
+===== PAGE 8 =====
+
+8
+Livello estensionale: istanze di un’entità
+ Un’istanza (elemento, occorrenza) di un’entità (in una sua estensione) è uno specifico 
+oggetto appartenente all’insieme che quella entità rappresenta.
+PERSONA
+AUTOMOBILE
+LIBRO
+BNCFLV80L70H501G, FLAVIA, BIANCHI, ROMA, …
+istanza di PERSONA
+EP125WF, 12/11/2015, MERCEDES, GASOLIO, …
+istanza di AUTOMOBILE
+006.42.B008, Il barone rampante, ITALO, CALVINO, 
+…
+istanza di LIBRO
+
+===== PAGE 9 =====
+
+9
+Estensione di un’entità
+ Da quanto finora detto ne discende che a livello estensionale un’entità (più
+precisamente un’istanza dello schema che rappresenta un’entità) è un insieme
+di istanze (occorrenze, elementi) ammissibili per quella entità; dunque,
+un’estensione di un’entità a un certo tempo è un insieme di specifici oggetti.
+RSSNNA78A53A944N, ANNA, ROSSI, BOLOGNA, …
+VRDMRC79H20F839U, MARCO, VERDI, NAPOLI, ….
+VRDMRC79A41D969I, MARICA, VERDI, GENOVA, … 
+BNCFLV81M13G478H, FLAVIO, BIANCHI, PERUGIA,
+Un’estensione di PERSONA
+BNCFLV80L70H501G, FLAVIA, BIANCHI, ROMA, …
+istanza di PERSONA
+N.B. Quando si rappresenta un’estensione di un’entità (es. PERSONA) spesso si denota
+una specifica persona con una “etichetta” (es. p5), una notazione sintetica per indicare
+l’intero oggetto (“in carne e ossa”) ed esprimere che p5 è un’istanza di PERSONA ed è
+distinguibile dalle altre nell’estensione esaminata.
+
+===== PAGE 10 =====
+
+10
+Associazione
+ Un’associazione (detta anche relazione e in inglese relationship)
+rappresenta un legame logico tra entità, rilevante nella realtà che si sta
+considerando.
+ Istanza di associazione: combinazione (aggregazione) di istanze delle entità
+che prendono parte all’associazione; dunque una ennupla costituita da
+occorrenze di entità, una per ogni entità coinvolta nell’associazione.
+ Graficamente un’associazione si rappresenta con un rombo al cui interno ne
+viene evidenziata la denominazione. Un esempio di associazione binaria:
+ Se p è un’istanza di Persona e c è un’istanza di Città, allora la coppia (p, c)
+è un’istanza dell’associazione Residenza.
+ Anche per le associazioni è buona norma far ricorso a denominazioni
+autoesplicative dei concetti che si vuole rappresentare.
+PERSONA RESIDENZA CITTÀ
+
+===== PAGE 11 =====
+
+11
+PERSONA NASCITA CITTÀ
+Rappresentazione a livello intensionale.
+Rappresentazione a livello estensionale
+per un possibile stato dell’associazione
+NASCITA.
+N.B. Per semplicità, per non appesantire
+la notazione si usa lo stesso nome per
+indicare un’entità (o un’associazione) a
+livello intensionale e a livello
+estensionale.
+NASCITA
+<C11,Gialli>
+<B23, Rossi>
+<A12,Neri>
+<A10,Bianchi)
+<A944,Bologna,BO>
+<F839,Napoli,NA>
+PERSONA CITTÀ
+<H501,Roma,RM>
+Ogni legame rappresenta una coppia
+di istanze (p, c) e l’estensione
+dell’associazione NASCITA per
+l’esempio in esame può essere
+visualizzabile utilizzando una classica
+rappresentazione insiemistica.
+(<B23, Rossi>,<A944,Bologna,BO>)
+(<C11, Gialli>,<A944,Bologna,BO>)
+(<A12, Neri>,<F839,Napoli,NA>)
+(<A10, Bianchi>,<H501,Roma,RM>)
+Associazione: a livello di istanze… (1)
+
+===== PAGE 12 =====
+
+12
+PRODOTTO 
+f4
+f3
+f2
+f1
+d1 d2
+d3 d4
+FORNITORE
+p1
+p2
+p3
+p4
+(p2,d3,f2)
+(p4,d2,f4)(p4,d1,f3)
+DIPARTIMENTO
+PRODOTTO FORNITURA FORNITORE
+DIPARTIMENTO
+Rappresentazione a livello intensionale. Rappresentazione a livello estensionale per un
+possibile stato dell’associazione FORNITURA.
+Si ricorda che il simbolo usato per indicare
+un’istanza (es. p1) rappresenta una notazione
+sintetica per indicare l’intero oggetto che a
+livello estensionale sarà caratterizzato dai
+valori delle proprietà definite per l’entità a cui
+appartiene.
+N.B. Per ogni attributo definito sull’associazione, a ogni
+legame associativo si aggiunge un valore (eventualmente
+assente se l’attributo è opzionale). Per l’esempio in esame si
+provi a visualizzare un’estensione dell’associazione
+definendo l’attributo Quantità per FORNITURA.
+Associazione: a livello di istanze… (3)
+
+===== PAGE 13 =====
+
+13
+Note sulla definizione di entità
+ Nel lavoro di Peter Chen, e anche in testi e tool di design, la
+definizione di entità è sostanzialmente diversa (e forse più
+aderente al significato che il termine ha nel linguaggio comune)
+da quella adottata in questa sede e in molti testi sulle basi di
+dati:
+ entity (entità) è un oggetto ”che esiste nella nostra mente“ che si
+distingue da altri oggetti;
+ le entità sono classificate in differenti entity set (insiemi che possono
+essere non disgiunti);
+ un entity set si rappresenta con un rettangolo al cui interno è evidenziata
+la denominazione dell’insieme di entità.
+EMPLOYEE PROJECTEsempi di entity set
+
+===== PAGE 14 =====
+
+14
+Note sulla definizione di associazione
+ Nel lavoro di Peter Chen, di conseguenza, anche la 
+definizione di associazione è diversa da quella adottata:
+ relationship set è una relazione matematica fra n entità
+{ [e1, e2,…, en] | e1  E1 , e2  E2 , …. , en  En } dove
+ei è una generica entità;
+Ei un generico entity set (gli Ei possono essere non distinti);
+[e1, e2,.., en] è una ennupla di entità detta relationship.
+ Un relationship set si rappresenta con un rombo al cui interno è 
+evidenziata la denominazione dell’insieme delle ennuple di entità. 
+EMPLOYEE PROJECTPROJECT-WORKER
+relationship setentity set entity set
+
+===== PAGE 15 =====
+
+15
+Definizioni a confronto (1)
+ Un esempio di diagramma entity-relationship riportato nel lavoro di Chen che 
+introduce il modello E/R, con relativa indicazione del tipo di relationship set.
+Definizione adottata Definizione di Peter Chen
+entità entity set
+istanza di entità entity
+associazione (a livello di entità) relationship set
+istanza di associazione (a livello di istanze di entità) relationship
+Fonte: P. Chen, The Entity Relationship Model: Towarda Unified View of Data
+The relationship set PROJECT-WORKER is an
+m:n mapping, that is, each project may
+have zero, one, or more employees
+assigned to it and each employee may be
+assigned to zero, one, or more projects.
+
+===== PAGE 16 =====
+
+16
+Definizioni a confronto (2)
+Definizione adottata Definizione di Elmasri-Navathe
+entità entity type (livello intensionale)
+entità entity set (livello estensionale)
+istanza di entità entity
+associazione (a livello di entità) relationship type
+associazione (a livello di istanze) relationship set
+istanza di associazione relationship instance
+In questa sede, in conformità alle definizioni date nel testo di riferimento a cura di
+Atzeni et al., si usa lo stesso nome per indicare un tipo di entità e un insieme di
+entità, e analogamente per le associazioni. Ad esempio IMPIEGATO denota sia un
+tipo di entità sia l’insieme corrente delle sue istanze.
+ Un’altra definizione ricorrente nella letteratura sul modello E/R è quella
+riportata nel testo R.A. Elmasri, S. B. Navathe - Fundamentals of Database
+Systems, Pearson ed.
+
+===== PAGE 17 =====
+
+17
+Denominazione di un’entità: note
+ Il nome di un’entità deve essere univoco all’interno di uno schema.
+ Non esiste una convenzione universalmente accettata per il nome da assegnare a
+un’entità.
+ Se si vuole porre l’accento sull’aspetto intensionale, ovvero sul concetto di entità,
+come rappresentativo del generico oggetto di una classe, allora è preferibile, ove
+possibile, usare un sostantivo al singolare (convenzione molto diffusa).
+ Se invece si vuole dare risalto all’aspetto estensionale, cioè all’insieme di oggetti,
+allora potrebbe essere più indicato un sostantivo al plurale.
+ La convenzione adottata in questa sede (quasi sempre…) consiste nell’uso di un
+sostantivo al singolare.
+ Per rendere uno schema più leggibile si preferisce, inoltre, scrivere il nome di
+un’entità in maiuscolo.
+ Dunque:
+denominazione preferibile a PERSONA PERSONE
+
+===== PAGE 18 =====
+
+18
+Denominazione di un’associazione: note
+ Il nome di un’associazione deve essere univoco all’interno di uno schema.
+ È preferibile usare un sostantivo al singolare per denotare un’associazione, invece di
+un verbo o di una composizione di nomi di entità; in questo modo non si evidenzia
+una direzionalità nella lettura dello schema.
+RESIDENZA
+RISIEDE
+preferibile a
+PERSONA
+PERSONA
+CITTÀ
+CITTÀ
+ Sconsigliato l’uso di denominazioni che abbinano i nomi dell’entità partecipanti.
+STUDENTE-CORSOSTUDENTE CORSO
+ Che cosa rappresenta? ESAME, ISCRIZIONE, FREQUENZA o …?
+
+===== PAGE 19 =====
+
+19
+Istanze di associazioni
+ Per definizione l’insieme delle istanze di un’associazione è un sottoinsieme
+del prodotto cartesiano degli insiemi delle istanze di entità che partecipano
+all’associazione.
+ Ne segue che non possono esservi istanze ripetute in un’associazione.
+VISITAPAZIENTE MEDICO
+ Se p è un’istanza di PAZIENTE e m un’istanza di MEDICO, la coppia (p,m)
+può comparire un’unica volta nell’insieme delle istanze di VISITA.
+ Vedremo più avanti come rappresentare la possibilità da parte di un
+paziente di essere visitato più volte da uno stesso medico e, analogamente,
+come uno studente possa sostenere più volte l’esame relativo a un medesimo
+corso!
+ N.B. A volte per brevità si dice “p è una PERSONA” intendendo che è
+un’istanza dell’entità PERSONA.
+
+===== PAGE 20 =====
+
+20
+Grado delle associazioni
+ Un’associazione n-aria coinvolge n entità, non necessariamente
+distinte. Il grado di un’associazione è il numero di istanze di entità
+che sono coinvolte in un’istanza dell’associazione.
+ Associazione binaria: grado  2 (un’istanza dell’associazione è una
+coppia di istanze di entità).
+ Associazione ternaria: grado  3 (un’istanza dell’associazione è una
+tripla di istanze di entità).
+SEDE LAVOROPERSONA CITTÀ
+INCARICOIMPIEGATO PROGETTO
+SEDE
+
+===== PAGE 21 =====
+
+21
+Più associazioni tra le stesse entità
+ È possibile stabilire più associazioni, con diverso significato, tra le
+stesse entità:
+SEDE LAVORO
+RESIDENZA
+PERSONA CITTÀ
+SEDE OPERATIVA
+SEDE LEGALE
+ENTE CITTÀ
+
+===== PAGE 22 =====
+
+22
+Associazioni ad anello (1)
+ Un’associazione ad anello lega un’entità con sé stessa, e quindi mette 
+in relazione tra loro le istanze di una stessa entità:
+ Un’associazione ad anello può essere o meno: 
+ Simmetrica: (a,b)  A  (b,a)  A
+ Riflessiva: (a,a)  A
+ Transitiva: (a,b)  A, (b,c)  A  (a,c)  A
+ Com’è l’associazione AMICIZIA?
+PERSONA AMICIZIA
+
+===== PAGE 23 =====
+
+23
+Associazioni ad anello (2)
+ Nelle associazioni ad anello non simmetriche è necessario
+specificare, per ogni ramo dell’associazione, il relativo ruolo:
+ L’importanza di evidenziare i ruoli diventa evidente per esprimere
+correttamente i vincoli di cardinalità delle associazioni.
+ Le associazioni ad anello possono essere ricorsive, come sarà
+mostrato in seguito con alcuni esempi.
+DIPENDENTE SUPERVISIONE
+supervisore
+subalterno
+PARTE COMPOSIZIONE
+composto
+componente
+
+===== PAGE 24 =====
+
+24
+Associazioni ad anello (3)
+ È possibile avere anelli anche in relazioni n-arie generiche (n > 2):
+ Il significato di un’istanza dell’associazione (d1,d2,p) è:
+ il dipendente d1 dirige il dipendente d2 all’interno del progetto p
+o in maniera equivalente
+ il dipendente d2 è diretto dal dipendente d1 all’interno del progetto p
+DIPENDENTE DIREZIONE PROGETTO
+dirigente
+diretto
+
+===== PAGE 25 =====
+
+25
+Associazioni XOR/AND
+ In alcune estensioni del modello E/R è possibile, qualora la medesima entità
+partecipi in associazione con altre entità, specificare ulteriori tipi di
+partecipazione.
+RICHIESTA
+ACQUISTO
+ORDINE
+SERVIZIO
+PRODOTTO
+XOR
+EMISSIONE
+IMBALLO
+ORDINE
+FATTURA
+SPEDIZIONE
+AND
+Un ordine riguarda o
+l’acquisto di un prodotto o la
+richiesta di un servizio, ma
+non entrambe le cose.
+Ogni volta che si emette
+fattura a fronte di un ordine
+deve esserci anche il
+confezionamento dell’imballo
+per la spedizione di quanto
+ordinato.
+
+===== PAGE 26 =====
+
+26
+Un semplice schema E/R (incompleto!)
+N.B. In uno schema E/R ogni entità e ogni associazione devono avere un nome che
+deve essere univoco nello schema.
+base
+avanzato
+Attenzione: schema relativo a
+una singola università; snapshot
+di un A.A. ed esame registrato
+solo con esito positivo
+STUDENTE
+DOCENTE
+CORSO DI LAUREAISCRIZIONE
+CORSO
+OFFERTA
+ESAME SUPERATO
+FREQUENZA
+COMMISSIONE
+DOCENZA
+PROPEDEUTICITÀ
+
+===== PAGE 27 =====
+
+27
+Attributi
+ Un attributo è una proprietà elementare di un’entità o di un’associazione.
+ È denotato con un nome che deve essere univoco all’interno dell’entità o
+associazione a cui si riferisce. Anche per gli attributi è fortemente consigliato usare
+denominazioni “parlanti”.
+ Graficamente:
+ Nome, Cognome, CodiceFiscale sono tutti attributi di Persona.
+ Ogni attributo è definito su un dominio di valori.
+ Quindi un attributo associa a ogni istanza di entità (o associazione) un valore del
+corrispondente dominio.
+PERSONA
+Nome
+Cognome
+CodiceFiscale
+
+===== PAGE 28 =====
+
+28
+Attributi e domini: un esempio
+ Per l’entità PERSONA gli attributi e i relativi domini sono:
+ Nome:  stringa(20)
+ Cognome:  stringa(20)
+ CodiceFiscale:  stringa(16)
+ DataNascita:  Giorno  Mese  Anno
+ TitoloStudio:  stringa(50)
+dove i domini  Giorno,  Mese e  Anno sono rispettivamente:
+ Giorno  1, ..., 31
+ Mese  {Gen, Feb, Mar, Apr, Mag, Giu, Lug, Ago, Set, Ott, Nov, Dic}
+ Anno  1900, ..., 2100
+Nome
+PERSONA
+Cognome
+CodiceFiscale
+DataNascita
+TitoloStudio
+
+===== PAGE 29 =====
+
+29
+Attributi composti
+ Sono attributi che si ottengono aggregando altri (sotto-) attributi, i quali
+presentano una forte affinità nel loro uso e significato.
+ QualInd, NomeInd, NumCivico, Città e CAP formano l’attributo composto
+Indirizzo.
+ Si noti che se un attributo A è composto dagli attributi A1, A2, …, An
+con rispettivi domini D1, D2, …, Dn, allora il dominio di A è il prodotto
+cartesiano D  D1  D2  …  Dn.
+ Un attributo non composto è anche detto semplice.
+Indirizzo
+NomeInd
+Città
+NumCivico
+CAP
+QualInd
+PERSONA
+Nome
+Cognome
+CodiceFiscale
+
+===== PAGE 30 =====
+
+30
+Attributi delle entità o dell’associazione?
+ È importante fare attenzione a dove si specificano gli attributi.
+ Data e Voto non sono proprietà né di STUDENTE né di CORSO, ma dell’associazione
+ESAME (a livello estensionale il legame si crea in occasione dello svolgimento, in una
+certa data, di un esame da parte di uno studente per un corso e comporta
+l’attribuzione di un voto).
+ Attenzione: anche con questo schema l’esame da parte di uno studente per lo stesso
+corso non può essere ripetuto, a meno di non sovrascrivere Data e Voto.
+STUDENTE ESAME CORSO
+Data Voto
+PERSONA AUTO
+DataAcquisto
+Importo
+ACQUISTO
+No!
+
+===== PAGE 31 =====
+
+31
+Uno schema E/R (ancora incompleto!)
+Nome
+Cognome
+DataNascita
+Nome
+NomeCicloData Voto
+Nome Telefono
+Matricola
+CodiceDocente
+CodiceCdL
+Cognome
+STUDENTE CORSOESAME SUPERATO
+CORSO DI LAUREAISCRIZIONE
+OFFERTA
+base
+avanzato
+PROPEDEUTICITÀ
+DOCENTE
+COMMISSIONE
+DOCENZA
+FREQUENZA
+Indirizzo
+NomeInd
+Città
+NumCivico
+CAP
+QualInd
+N.B. Gli attributi evidenziati sono da intendersi a titolo esemplificativo.
+
+===== PAGE 32 =====
+
+32
+Vincoli nel modello E/R
+ In ogni schema E/R sono presenti vincoli.
+ Alcuni sono impliciti, in quanto dipendono dalla semantica stessa dei costrutti
+del modello:
+ ogni istanza di un’associazione deve riferirsi a istanze di entità; esempio: non
+può esservi la coppia (Di Maio, Basi di Dati) se Di Maio non è un’istanza
+dell’entità DOCENTE.
+ istanze diverse della stessa associazione devono riferirsi a differenti
+combinazioni di istanze delle entità partecipanti all’associazione; esempio: la
+coppia (Rossi, Basi di dati) non può essere presente due volte nell’associazione
+ESAME SUPERATO.
+ … e altri che saranno osservati in seguito.
+ Altri vincoli sono espliciti, e sono definiti da chi progetta lo schema E/R sulla
+base della conoscenza della realtà che sta modellando:
+ vincoli di cardinalità (per attributi e associazioni);
+ vincoli d’identificazione.
+
+===== PAGE 33 =====
+
+33
+Attributi: vincoli di cardinalità
+ Per un attributo è possibile specificare anche il numero minimo e il numero massimo
+di valori che possono essere associati a un’istanza della corrispondente
+associazione o entità a cui l’attributo appartiene. Attenzione: i valori devono essere
+distinti (in alcune estensioni, es. DB-Main, è possibile avere valori replicati).
+ Graficamente si può indicare la coppia (min-card, max-card) sulla linea che
+congiunge l’attributo all’entità o all’associazione, o di fianco al nome dell’attributo.
+ In assenza d’indicazione il valore di default è (1,1).
+ Un attributo è detto:
+ opzionale: se la cardinalità minima è 0 (es.: NumPatente);
+ monovalore: se la cardinalità massima è 1 (es.: CodiceFiscale);
+ multivalore (o ripetuto): se la cardinalità massima è N (es.: Telefono).
+(0,N)
+(0,1) PERSONA
+Telefono
+NumPatente
+CodiceFiscale
+
+===== PAGE 34 =====
+
+34
+Attributi ripetuti e composti
+ Nel caso di presenza di più attributi multivalore che sono semanticamente
+correlati, è necessaria la creazione di un attributo composto multivalore al
+fine di evitare ambiguità.
+ Ad esempio, se una persona può avere più indirizzi:
+ La seguente rappresentazione non sarebbe infatti corretta!
+NomeInd (1,N)
+Città (1,N)
+NumCivico (0,N)
+CAP (1,N)
+NO! QualInd (1,N)
+PERSONA
+Nome
+Cognome
+CodiceFiscale
+(0,1)
+Indirizzo
+NomeInd
+Città
+NumCivico
+CAP
+QualInd
+PERSONA
+Nome
+Cognome
+CodiceFiscale
+(1,N)
+
+===== PAGE 35 =====
+
+35
+Associazioni: vincoli di cardinalità
+ Sono coppie di valori (min-card, max-card) associati a ogni entità che
+partecipa a un’associazione; specificano il numero minimo e massimo di
+istanze dell’associazione a cui un’istanza dell’entità può partecipare.
+ Vale quanto già visto in precedenza, si tratta solo di un modo più compatto
+per rappresentare i vincoli.
+ Ad esempio, se i vincoli di cardinalità per un’entità E relativamente a
+un’associazione A sono (1, N) ciò significa che:
+ ogni istanza di E partecipa almeno a una istanza di A;
+ ogni istanza di E può partecipare a più istanze di A.
+ Graficamente:
+E A
+(1, N)
+
+===== PAGE 36 =====
+
+36
+Vincoli di cardinalità: un esempio
+ min-card(PERSONA, PROPRIETÀ)  0: 
+esistono persone che non possiedono un’automobile;
+ max-card(PERSONA, PROPRIETÀ)  N: 
+ogni persona può essere proprietaria di un numero arbitrario di automobili;
+ min-card(AUTOMOBILE, PROPRIETÀ)  0: 
+esistono automobili che non hanno un proprietario;
+ max-card(AUTOMOBILE, PROPRIETÀ)  N: 
+ogni automobile può avere 0, 1 o più proprietari.
+PERSONA PROPRIETÀ AUTOMOBILE(0, N) (0,N)
+
+===== PAGE 37 =====
+
+37
+Associazioni binarie uno a uno
+IMPIEGATO DIREZIONE DIPARTIMENTO(0, 1) (1,1)
+uno a uno (one-to-one)
+max-card(C1, A)  1
+max-card(C2, A)  1
+
+===== PAGE 38 =====
+
+38
+Associazioni binarie uno a molti
+uno a molti (one-to-many)
+max-card(C1, A)  N 
+max-card(C2, A)  1
+oppure
+max-card(C1, A)  1 
+max-card(C2, A)  N
+PERSONA RESIDENZA CITTÀ
+(1,1) (0,N)
+DOMINIOINTESTAZIONEENTE
+(1,1)(0,N)
+
+===== PAGE 39 =====
+
+39
+Associazioni binarie molti a molti
+molti a molti (many-to-many)
+max-card(C1, A)  N 
+max-card(C2, A)  M
+PERSONA LAVORO CITTÀ
+(0,N) (0,N)
+STUDENTE ESAME CORSO
+(0,N) (0,N)
+PROGETTISTA ASSEGNAZIONE PROGETTO
+(1,3) (0,10)
+
+===== PAGE 40 =====
+
+40
+Tipi di associazione: terminologia
+ Si dice inoltre che la partecipazione di E in A è:
+ Sulla base della cardinalità minima:
+Opzionale se min-card(E, A)  0
+Obbligatoria se min-card(E, A)  0
+ Sulla base della cardinalità massima:
+A valore singolo se max-card(E, A)  1
+A valore multiplo se max-card(E, A)  1
+
+===== PAGE 41 =====
+
+41
+PERSONA LAVORO COMUNE
+RESIDENZA
+Telefono
+NumPatente
+CodiceFiscale
+(0,N)
+(1,1) (0,N)
+(0,N)(0,1)
+(0,N)
+DataNascita
+Nome
+CAP
+Nome
+Nome Cognome
+(1,N)
+AREA 
+METROPOLITANA
+APPARTENENZA
+(0,1)
+(1,N)
+Superficie
+CodiceCatastale
+CodiceArea
+Indirizzo
+NomeInd
+CittàNumCivico CAP
+QualInd
+N.B. Manca ancora la definizione 
+degli identificatori delle entità.
+Vincoli di cardinalità: un esempio
+
+===== PAGE 42 =====
+
+42
+Ad esempio:
+ se PERSONA rappresenta il personale di un’azienda, allora è sensato
+imporre min-card(PERSONA, PROPRIETÀ)  0;
+ se, invece, si parla del DB del Pubblico Registro Automobilistico (PRA) e
+PERSONA rappresenta l’insieme dei proprietari di veicoli, allora si ha:
+min-card(PERSONA, PROPRIETÀ)  1; ciò significa d’altra parte che in fase
+di inserimento di una persona deve già esistere il veicolo affinché ne possa
+diventare proprietario.
+Vincoli di cardinalità: note (1)
+ Per stabilire i vincoli di cardinalità min e max nelle associazioni si
+deve sempre fare riferimento alla specifica realtà sotto
+osservazione.
+PERSONA PROPRIETÀ VEICOLO
+(?, N) (0,N)
+
+===== PAGE 43 =====
+
+43
+Vincoli di cardinalità: note (2)
+ A volte è opportuno ragionare sulla dinamica temporale della 
+creazione delle istanze
+ Potrebbe sembrare ovvio imporre min-card(GRUPPO, ISCRIZIONE)  1.
+ Tuttavia, se volessimo inserire un nuovo gruppo non potremmo
+aggiungerlo nel DB perché violerebbe i vincoli di cardinalità
+dell’associazione.
+ Pertanto è corretto imporre min-card(GRUPPO, ISCRIZIONE)  0.
+PERSONA ISCRIZIONE GRUPPO
+(1, 1) (?,N)
+
+===== PAGE 44 =====
+
+44
+Vincoli di cardinalità: note (3)
+ Deve essere chiaro che il modello E/R non modella aspetti dinamici. In termini
+matematici quando si definisce una relazione R fra due insiemi A e B, si suppone che
+gli insiemi esistano già.
+PERSONA NASCITA CITTÀ
+(1, 1) (0,N)
+NASCITA
+Mario
+Laura
+Elena
+Carlo
+Bologna
+New York
+Napoli
+Parigi
+Rimini
+PERSONA CITTÀ
+Mario
+Laura
+Elena
+Carlo
+PERSONA CITTÀ
+Bologna
+New York
+Napoli
+Parigi
+Rimini
+ In un DB gli insiemi cambiano dinamicamente, pertanto per rispettare i vincoli di
+cardinalità si devono operare opportuni accorgimenti nelle fasi di inserimento.
+Supponiamo di inserire Giorgio che è nato a Londra. Poiché Londra non è nel DB
+l’inserimento non è possibile. Si dovrà prima procedere a inserire la città di Londra.
+Naturalmente potremmo cancellare Parigi perché nessuno dei presenti vi è nato, ma
+non potremmo cancellare Bologna.
+
+===== PAGE 45 =====
+
+45
+Identificatori
+ Un vincolo d’identificazione per un’entità E definisce un identificatore per E.
+ Un identificatore ha lo scopo di permettere l’individuazione univoca delle
+istanze di un’entità. Su ogni entità si può definire un numero qualunque di
+vincoli di identificazione (almeno uno).
+ Deve valere anche la proprietà di minimalità: per ogni estensione
+ammissibile di un’entità nessun sottoinsieme proprio dell’identificatore deve
+essere a sua volta un identificatore.
+ Per definire un identificatore per un’entità E si hanno due possibilità di base:
+ identificatore interno: si usano uno o più attributi di E;
+ identificatore esterno: si usano altre (una o più) entità, collegate a E da
+associazioni, più eventuali attributi propri di E.
+ In alcuni testi si definisce misto un identificatore di E che usa sia altre entità
+sia attributi propri di E.
+ Se il numero di elementi (attributi o entità) che costituiscono un identificatore
+è pari a 1 si parla di identificatore semplice, altrimenti l’identificatore si
+definisce composto.
+
+===== PAGE 46 =====
+
+46
+Identificatori interni ed esterni (1)
+PERSONA
+CF
+Cognome
+identificatore interno semplice identificatore interno composto
+TurnoLab
+PCSTUDENTE
+Una matricola è univoca solo all’interno della
+medesima Università. Per identificare uno studente
+bisogna specificare qual è l’università a cui è iscritto e
+il numero di matricola a lui assegnato.
+STUDENTE ISCRIZIONE UNIVERSITÀ
+Matricola
+(1,1) (0,N)
+Denominazione
+Indirizzo
+Nome Cognome
+identificatore esterno e composto (misto)
+
+===== PAGE 47 =====
+
+47
+Identificatori interni ed esterni (2)
+• Deve essere min-card(STUDENTE, ISCRIZIONE)  max-card(STUDENTE, ISCRIZIONE)  1.
+• Se fosse max-card(STUDENTE, ISCRIZIONE) >1allora uno studente sarebbe identificato 
+dall’insieme di università a cui è iscritto, ma ciò non è possibile.
+• Se fosse min-card(STUDENTE, ISCRIZIONE)=0 allora non si potrebbe identificare lo
+studente, perché parte dell’identificatore non sarebbe definito (e non si comprende
+nemmeno quale sarebbe il significato di Matricola nel contesto in esame).
+N.B. Notazione alternativa
+utilizzata a volte per
+semplicità di disegno.
+STUDENTE ISCRIZIONE UNIVERSITÀ
+Matricola
+(1,1) (0,N)
+Denominazione
+Indirizzo
+Nome Cognome
+identificatore esterno e composto (misto)
+
+===== PAGE 48 =====
+
+48
+Identificatori interni ed esterni (3)
+ Un tipico errore consiste nel produrre lo schema appresso riportato che
+evita l’uso di un identificatore esterno ma non risolve affatto il problema
+dell’identificazione.
+STUDENTE ISCRIZIONE UNIVERSITÀ
+Matricola
+(1,1) (0,N)
+NomeUniversità
+Indirizzo
+Nome Cognome
+NomeUniversità
+N.B. Lo schema è errato perché la semantica dello schema E/R non consente
+di affermare che l’attributo NomeUniversità di STUDENTE e l’attributo
+NomeUniversità di UNIVERSITÀ hanno il medesimo significato.
+
+===== PAGE 49 =====
+
+49
+Identificatori interni ed esterni (4)
+Modello
+FABBRICAZIONE
+Nome
+(1,N)
+(1,1)
+VEICOLO CASA COSTRUTTRICE
+identificatore esterno e composto (misto)
+BLOG
+CodBlog UrlBlog
+(1,1)(0,N)
+NumProg
+SUDDIVISIONE SEZIONE
+NomeSezione
+identificatore esterno e composto (misto)
+
+
+===== PAGE 50 =====
+
+50
+Identificatori interni ed esterni (5)
+Ordine n° 17 del 12/02/2020
+1 P1 Cuscino 2 10,00
+2 P7 Piumone 1 90,50
+3 P15 Set lenzuola 1 59,49
+Totale (Euro) 169,99
+Ordine n° 30 del 21/02/2020
+1 P1 Cuscino 1 15,00
+2 P7 Piumone 1 90,50
+3 P9 Set asciugamani 1 60,00
+Totale (Euro) 165,50
+ N.B. Ogni linea d’ordine riguarda un solo prodotto, ordinato in quantità, con indicazione
+del nome e del prezzo unitario. Nello schema si assume che nello stesso ordine un prodotto
+non possa comparire più di una volta su linee d’ordine diverse. Il prezzo di uno stesso
+prodotto può variare all’interno di diversi ordini.
+Linee
+d’ordine
+NumeroLinea CodiceProdotto
+(1,N) (1,1)
+CodiceOrdine
+COMPOSIZIONE
+(1,1) (0,N)
+I1
+I2
+ORDINE DETTAGLIO
+ORDINE PRODOTTORIFERIMENTO
+Data PrezzoUnitario
+Due identificatori alternativi: I1 esterno e composto,  I2 esterno e composto (misto)
+Quantità Nome
+Le quotazioni base, min e max per quantità e gli sconti 
+devono essere modellati in altra parte dello schema.
+
+===== PAGE 51 =====
+
+51
+Identificatori interni ed esterni (6)
+ N.B. Assumere come identificatore esterno e composto quello indicato nello schema sotto
+riportato è un errore.
+NumeroLinea CodiceProdotto
+(1,N) (1,1)
+CodiceOrdine
+COMPOSIZIONE
+(1,1) (0,N)
+I
+ORDINE DETTAGLIO
+ORDINE PRODOTTORIFERIMENTO
+Data PrezzoUnitario
+Quantità
+Nome
+ Infatti sarebbero consentite istanze di DETTAGLIO ORDINE dove NumeroLinea all’interno di
+uno stesso ordine potrebbe avere valori replicati, violando il vincolo che all’interno di ogni
+ordine le linee d’ordine devono essere numerate in modo distinguibile (progressivamente).
+?
+Ordine n° 35 del 24/02/2020
+1 P1 Cuscino 2 15,00
+1 P7 Piumone 1 90,50
+3 P15 Set lenzuola 1 59,49
+Totale (Euro) 179,99
+
+===== PAGE 52 =====
+
+52
+Identificatori possibili
+ Ogni entità deve avere almeno un identificatore (interno o esterno) ma ne
+può avere più di uno.
+ In base al contesto dei requisiti informativi, tutti i possibili identificatori di
+un’entità devono essere indicati nello schema. Ciò riveste estrema rilevanza
+in fase di progettazione logica, dove uno di essi sarà scelto come chiave
+primaria e per gli altri si dovrà comunque imporre un vincolo di unicità.
+Turno_lab
+PCSTUDENTE
+Matricola
+LAVORATORE 
+AUTONOMO
+PartitaIva
+CodiceFiscale
+ Nel caso di più identificatori è ammesso che gli attributi o le entità coinvolti 
+in alcune identificazioni, tranne una, possano essere opzionali.
+PAZIENTE
+TesseraSanitaria
+CodiceProgressivo
+(0,1) N.B. L’entità PAZIENTE è identificata sempre
+da CodiceProgressivo; tuttavia deve essere
+vero che se un’istanza di PAZIENTE possiede
+una TesseraSanitaria, questa deve essere
+univoca all’interno dell’estensione dell’entità.
+
+===== PAGE 53 =====
+
+53
+Identificatori possibili: esempio
+ Un volo ha un codice univoco NumVolo.
+ Un volo è anche identificabile noti il giorno, l’ora, la linea aerea e la destinazione.
+DurataNumVolo CodLinea CodDest Giorno Ora Attivo
+AA056 L001 JFK LUN 9:00 2 SI
+AZ854 L002 FCO MER 22:30 8 SI
+…. …… …… ……
+VOLI
+N.B. L’altro vincolo d’identificazione deve essere sempre verificato.
+chiave 
+primaria
+LINEA 
+AEREA
+(1,N) (1,1) (1,1) (1,N)
+NumVolo
+Durata
+NomeLinea Giorno Ora CodDest NomeDest Nazione
+Attivo
+OFFERTA SERVIZIO DESTINAZIONEVOLO
+CodLinea
+
+===== PAGE 54 =====
+
+54
+Identificatori: ulteriori osservazioni
+ Se l’entità E è identificata esternamente attraverso l’associazione A,
+allora si ha min-card(E,A)  max-card(E,A)  1.
+ Se basta E1, tramite A, a identificare E, allora max-card(E1,A)  1; in
+caso contrario max-card(E1,A)  N.
+CORSO DI
+LAUREA ISCRIZIONE STUDENTE(0, N) (1,1)
+Codice Denominazione Matricola
+CORSO DI
+LAUREA COORDINAMENTO COORDINATORE(1, 1) (1,1)
+Codice Denominazione Nominativo Recapito
+Alle volte si dice che E è un’entità debole se ha solo identificatori esterni, e forte
+se ha solo identificatori interni.
+
+===== PAGE 55 =====
+
+55
+Entità debole
+ In alcune notazioni grafiche è possibile evidenziare un’entità debole E disegnando il
+rispettivo rettangolo con una cornice.
+ Le entità deboli sono quelle entità che contengono istanze la cui presenza nella base
+dati è accettata solo se sono presenti determinate istanze di altre entità da cui
+queste dipendono.
+ Se l’esistenza dell’entità E2 dipende dall’esistenza dell’entità E1:
+ E1 è detta entità dominante (o proprietaria)
+ E2 è detta entità debole (o subordinata).
+ Nel caso di eliminazione dell’istanza di riferimento le istanze deboli collegate
+devono essere eliminate.
+ L’identificatore dell’entità debole deve contenere l’identificatore dell’entità da cui
+dipende.
+ L’entità debole deve partecipare a una associazione con l’entità dominante con
+vincolo di identificazione e di partecipazione totale.
+E
+
+===== PAGE 56 =====
+
+56
+Entità deboli e identificatori esterni
+ Un’entità debole dipende dall’esistenza di altre entità e pertanto ciò si 
+riflette nell’individuazione dei suoi possibili identificatori.
+CORSO DI
+LAUREA ISCRIZIONE
+(0, N) (1,1)
+Codice Denominazione Matricola
+ Sarebbe dunque più corretto evidenziare negli schemi E/R le entità
+deboli come STUDENTE nell’esempio, ma spesso per non appesantire lo
+schema grafico la notazione viene trascurata, lasciando il compito di
+rappresentare questo concetto all’interpretazione dell’identificazione
+esterna.
+STUDENTE
+
+===== PAGE 57 =====
+
+57
+Un altro esempio di entità debole
+ L’entità MOVIMENTO è identificata dall’entità CONTO tramite l’associazione
+OPERAZIONE.
+ In via semplificativa possiamo anche dire: l’identificatore di MOVIMENTO è
+{CodiceMovimento, NumeroConto}.
+OPERAZIONE CONTO
+CodiceMovimento
+(1,1) (0,N)
+NumeroConto
+Identificatore esterno composto (misto):
+un movimento è univoco solo all’interno del
+medesimo conto.
+MOVIMENTO
+
+===== PAGE 58 =====
+
+58
+Esempio con più entità deboli
+COMPOSIZIONE ETR
+NumeroCarrozza
+(1,1) (1,N) NumeroETR
+CARROZZA
+Data
+ORGANIZZAZIONE
+FILA
+LetteraFila
+(1,1)
+(1,4)
+SUDDIVISIONE POSTO(1,1)(1,20)
+NumeroPosto
+
+===== PAGE 59 =====
+
+59
+Identificazione esterna: ulteriori note (1)
+Attenzione al formalismo grafico per gli identificatori esterni. Deve essere aderente alla
+definizione data e non ambiguo per associazione n-arie. Nella figura a sinistra tre
+notazioni ritenute non corrette.
+Per utilizzare ATTORE nell’identificazione di
+FILM la cardinalità card(FILM, RECITAZIONE)
+dovrebbe essere (1,1), ma ciò è in contrasto
+con la semantica del problema.
+RECITAZIONEFILM ATTORE
+Titolo Nome
+(1,N)
+(1,N)
+R
+A
+(1,N)(1,1)
+Id
+E2E1
+R
+A
+(1,N)(1,1)
+Id
+E2E1
+R
+A
+(1,N)(1,1)
+Id
+E2E1
+ERRORE TIPICO
+
+
+===== PAGE 60 =====
+
+60
+Identificazione esterna: ulteriori note (2)
+A ogni piano di un edificio le aule 
+sono numerate progressivamente.
+Esempi:
+Aula 1 - Piano 2 – Edificio A
+Aula 1 - Piano 2 – Edificio B
+IN_P EDIFICIOIN_E
+NumeroPiano CodiceEdificio
+(1,1)
+(1,1)
+NumeroAula
+(0,N)
+(1,N)
+PIANOAULA
+Una soluzione possibile
+è quella di utilizzare
+l’identificatore esterno
+composto
+{NumeroAula, PIANO}.
+Non è possibile utilizzare
+EDIFICIO nell’identificazione di
+AULA dato che non esiste un
+legame diretto.
+IN_P EDIFICIOIN_E
+NumeroPiano CodiceEdificio
+(1,1) (1,1)
+NumeroAula
+(0,N) (1,N)
+PIANOAULA
+Questo schema è errato.
+
+===== PAGE 61 =====
+
+61
+Uno schema E/R (ancora incompleto!)
+Nome
+Cognome
+DataNascita
+Nome
+Nome
+CicloData Voto
+Nome Telefono
+Matricola
+CodiceDocente
+CodiceCdL
+Cognome
+STUDENTE CORSOESAME SUPERATO
+CORSO DI LAUREAISCRIZIONE
+OFFERTA
+base
+avanzato
+PROPEDEUTICITÀ
+DOCENTE
+COMMISSIONE
+DOCENZA
+(0,N)
+(0,N) (0,N)
+FREQUENZA
+(0,N) (0,N)
+(1,1)
+(0,N)
+N.B. Snapshot per una singola università, per un A.A e registrazione 
+solo di esame superato.
+(0,N)
+(0,N)
+(0,N)
+(1,1)
+(3,5)
+(0,N)
+(0,N)
+(1,1)
+È preferibile usare un codice per identificare CORSO?
+Indirizzo
+NomeInd
+Città
+NumCivico
+CAP
+QualInd
+
+===== PAGE 62 =====
+
+62
+Note sugli attributi di una associazione (1)
+ È importante fare attenzione all’uso di attributi in un’associazione.
+ Ogni istanza rk dell’associazione R è dotata di un proprio valore per
+l’attributo d; d’altro canto si tenga presente che la semantica del modello
+E/R impedisce di usare d per identificare le istanze di R.
+A B
+Ra1
+a2
+...
+an
+b1
+b2
+...
+bm
+r1, r2, ...,rs
+d
+R
+r1, r2, ...,rs
+d
+
+
+===== PAGE 63 =====
+
+63
+Pattern ricorrenti: il matrimonio (1)
+N.B. In entrambi gli schemi:
+ uno stesso uomo può sposarsi più volte con donne diverse nella stessa data;
+ una stessa donna può sposarsi più volte con uomini diversi nella stessa data.
+Non possono essere presenti
+nell’associazione MATRIMONIO due
+istanze (Ui,Dj,d1) e (Ui,Dj,d2), dunque
+uno stesso uomo non può risposare
+la stessa donna (una stessa donna
+non può risposare lo stesso uomo).
+UOMO MATRIMONIO(0, N) (0,N)
+Data
+DONNA
+Un uomo può risposare la stessa
+donna più volte (una donna può
+risposare lo stesso uomo più volte)
+ma non nella stessa data.
+UOMO MATRIMONIO(0, N) (0,N)
+Data
+(1,N)
+DONNA
+
+===== PAGE 64 =====
+
+64
+Esempio: il matrimonio (2)
+o Uno stesso uomo e una stessa donna possono anche
+risposarsi tra loro.
+o Un uomo non può contrarre più di un matrimonio
+nello stesso giorno.
+o Una donna non può contrarre più di un matrimonio
+nello stesso giorno.
+ N.B. Entrambi i vincoli devono essere rispettati,
+pertanto a livello di schema relazionale si sceglierà
+come chiave primaria di MATRIMONIO uno dei due
+identificatori {IdDonna,Data} o {IdUomo, Data}, e si
+imporrà il rispetto dell’altro vincolo.
+ N.B. È un errore prevedere che {IdUomo, Data, IdDonna}
+identifichino MATRIMONIO nella progettazione dello
+schema relazionale! Ciò non rispetta infatti la semantica
+dello schema E/R.
+La soluzione consiste nel trasformare l’associazione MATRIMONIO
+in entità (“reificazione”), e usare identificazione esterna.
+IdDonna, Data  IdUomo; IdUomo, Data  IdDonna
+UOMO
+CONTRAE_DONNA
+DONNA
+(0, N)
+(0,N)
+MATRIMONIO
+CONTRAE_UOMO
+(1,1)
+(1,1)
+Data
+IdUomo
+IdDonna
+
+===== PAGE 65 =====
+
+65
+Esempio: il matrimonio (3)
+IdUomo Data IdDonna
+U1 12/02/2002 D3
+U2 15/04/2002 D5
+U2 12/02/2002 D3
+Dato lo schema E/R questa estensione non è ammissibile: 
+non soddisfa il vincolo:  IdDonna, Data  IdUomo
+soddisfa solo il vincolo:  IdUomo, Data  IdDonna
+MATRIMONIO a livello estensionale
+Se scegliessimo erroneamente {IdUomo, Data, IdDonna} come chiave primaria della relazione:
+IdUomo Data IdDonna
+U1 12/02/2002 D3
+U2 12/02/2002 D2
+U1 12/02/2002 D2
+E inoltre sarebbe possibile violare entrambi i vincoli.
+Sarebbe infatti ammessa anche l’estensione:
+UOMO
+CONTRAE_DONNA
+DONNA
+(0, N)
+(0,N)
+MATRIMONIO
+CONTRAE_UOMO
+(1,1)
+(1,1)
+Data
+IdUomo
+IdDonna
+
+===== PAGE 66 =====
+
+66
+Esempio: la visita (1)
+ Se gli attributi sono più di uno e ripetuti, la soluzione più elegante
+consiste nell’introduzione di una nuova entità.
+Data
+MEDICO
+PAZIENTE
+VISITA
+(0,N)
+Esito
+un medico potrebbe visitare 
+una sola volta un paziente 
+ASSURDO !
+(0,N)
+IdMedico
+IdPaziente
+non sarebbe possibile associare 
+l’esito della visita alla data in cui è 
+stata effettuata
+ERRATO
+Data
+MEDICO
+PAZIENTE
+VISITA
+Esito
+(1,N)
+(1,N)
+(0,N)
+(0,N)
+IdMedico
+IdPaziente
+N.B. Si può anche interpretare lo schema
+affermando che non si tiene traccia dello storico
+delle visite di uno stesso paziente effettuate da uno
+stesso medico.
+
+===== PAGE 67 =====
+
+67
+Esempio: la visita (2)
+Può essere CORRETTO (se sono
+ammesse anche più visite a un
+paziente da parte di uno stesso
+medico in uno stesso giorno) ma
+certamente poco leggibile.
+La soluzione consiste nel reificare
+VISITA, e usare l’identificazione
+esterna per l’entità così ottenuta.
+Data
+MEDICO
+PAZIENTE
+(0,N)
+VISITA
+(0,N)
+Esito
+(1, N)
+IdMedico
+IdPaziente
+Nell’ipotesi che un medico non visiti
+lo stesso paziente più di una volta
+nello stesso giorno.
+Data
+FA VISITA
+(1, 1)
+(0, N)
+IN VISITA
+(0, N)
+(1, 1)
+MEDICO
+VISITA
+PAZIENTE
+Esito
+IdMedico
+IdPaziente
+
+===== PAGE 68 =====
+
+68
+Riepilogo: reificazione di un’associazione
+Se un’associazione ha un attributo composto e ripetuto, e uno degli attributi
+componenti è necessario per identificare le istanze dell’associazione, si trasforma
+l’associazione in entità e si crea un identificatore misto.
+Dominio di Esito: {ritirato, respinto, rifiutato,18,19, …, 30L}
+ERRATO
+
+===== PAGE 69 =====
+
+69
+Associazioni ad anello non ricorsive: esempi
+PERSONA CONIUGIO
+moglie
+marito (0,1)
+(0,1)
+CF
+Cognome
+Nome
+A100 A250
+A130        A150
+A070        A350
+A110       A050
+……
+……
+marito moglie
+one to one
+sostituisce
+R100        R250
+R100        R300
+Bidirezionale
+R200        R300
+many to many
+RICAMBIO EQUIVALENZA
+sostituito
+(0,N)
+(0,N)
+Codice
+Descrizione
+Non bidirezionale
+sostituisce
+sostituito
+……
+R100        R250
+R250        R100
+R100        R300……
+
+===== PAGE 70 =====
+
+70
+Associazioni ad anello ricorsive: gerarchia
+IMPIEGATO DIREZIONE
+subordinato
+superiore (0,N)
+(0,1)
+Matricola
+Cognome
+Nome
+superiore subordinato
+one to many
+Grafo orientato aciclico, paternità singola
+GERARCHIA
+a b
+a e
+b v
+b d
+e f
+e g
+e s
+a
+eb
+dv sgf
+
+===== PAGE 71 =====
+
+71
+Associazioni ad anello ricorsive: part of
+Grafo orientato aciclico, paternità multipla
+PARTE COMPOSIZIONE
+componente di
+composto da (0,N)
+(0,N)
+Codice
+Descrizione
+many to many
+Quantità
+a
+eb
+dv sgf
+a
+a
+a a
+
+===== PAGE 72 =====
+
+72
+ Nel modello E/R di base non vi è un costrutto particolare per
+l’aggregazione, astrazione che consente di rappresentare il concetto di
+parte di (part of). Si deve pertanto ricorrere a un’associazione. Nel
+linguaggio di modellazione UML ciò è invece possibile.
+ Un intervento di manutenzione su un apparato si compone di 0 o più
+operazioni di sostituzione. Un’operazione di sostituzione è parte di un
+intervento di manutenzione.
+OPERAZIONE0..*INTERVENTO
+COMPOSIZIONEINTERVENTO
+(1,1)
+OPERAZIONE
+(0,N)
+UML
+E/R
+Aggregazione
+
+===== PAGE 73 =====
+
+73
+ I concetti di generalizzazione e specializzazione sono stati già introdotti in
+precedenza. Si rimanda pertanto, per le definizioni formali, alla lezione
+sui meccanismi d’astrazione. Ovviamente è sufficiente sostituire al termine
+“classe” il termine “entità”, a “sottoclasse” il termine “entità figlia” e a
+“superclasse” il termine “entità madre” o “entità genitore”.
+ Per una generalizzazione, che non sia un semplice subset, deve essere
+specificato anche il tipo di copertura.
+ Le proprietà di E sono ereditate da E1, E2, ... En (non vale l’inverso): ogni
+Ei possiede gli attributi di E e partecipa alle associazioni definite per E
+(non devono quindi essere replicati nello schema, sarebbe un errore).
+E
+E1 E2 En…
+Generalizzazione
+
+===== PAGE 74 =====
+
+74
+PERSONA
+MASCHIO FEMMINA
+(t,e)totale, esclusiva
+VEICOLO
+AUTOMOBILE AUTOBUS
+(p,e)parziale, esclusiva
+LAUREATO
+INGEGNERE FISICO
+(p,s)parziale, sovrapposta
+TECNICO IN AZIENDA
+MANUTENTORE
+(t,s)
+INSTALLATORE
+totale, sovrapposta
+COLLAUDATORE
+N.B. La classe madre TECNICO IN AZIENDA fa
+riferimento ad uno specifico contesto aziendale.
+Proprietà di copertura – esempi
+
+===== PAGE 75 =====
+
+75
+esistono anche altri ruoli(t,e)
+PERSONA
+DONNAUOMO MANAGER IMPIEGATO
+(p,e)
+MANAGER 
+AMMINISTRATIVO
+MANAGER 
+TECNICO
+(t,s)
+TECNICO AMMINISTRATIVOCOMMERCIALE
+(p,s)
+alcuni manager possono 
+ricoprire entrambi i ruoli
+esistono anche altri tipi di impiegati; alcuni
+impiegati possono avere più mansioni
+Gerarchia di generalizzazione: un esempio
+
+===== PAGE 76 =====
+
+76
+ Un’entità può essere madre di diverse entità in diverse generalizzazioni.
+PERSONA
+IMPIEGATO
+TECNICO AMMINISTRATIVO
+UOMOSTUDENTE DONNA
+COMMERCIALE
+(p,e) (t,e)
+(p,e)
+Più generalizzazioni: stessa entità madre
+
+===== PAGE 77 =====
+
+77
+ Una gerarchia di generalizzazione impone il vincolo che ciascuna 
+sottoclasse abbia una sola superclasse (ereditarietà singola). Alcune 
+estensioni del modello prevedono la modellazione di ereditarietà multipla.
+E
+E1 E2
+E11 E12 E22
+E12 non può essere sia figlia di E1 sia figlia di E2
+Ereditarietà singola
+
+===== PAGE 78 =====
+
+78
+Il solo ricorso a una gerarchia sovrapposta (schema A)
+non consente di specificare proprietà che sono valide
+solo se una persona è sia studente sia lavoratore.
+STUDENTE LAVORATORE
+PERSONA
+(p,s)
+schema A
+STUDENTE LAVORATORE
+PERSONA
+STUDENTE_LAVORATORE
+(p,s)
+schema B
+(p,e)
+LAVORATORE_
+NON_STUDENTE
+PERSONA
+STUDENTE_
+LAVORATORE
+STUDENTE_NON_
+LAVORATORE
+schema C
+In assenza di un costrutto che permetta
+ereditarietà multipla (schema B) si può adottare
+una soluzione (schema C) che, tuttavia, non ha la
+medesima espressività e costringe alla
+replicazione di attributi nello schema.
+Problema dell’ereditarietà multipla
+
+===== PAGE 79 =====
+
+79
+Ereditarietà delle proprietà
+Gli attributi comuni lungo una gerarchia devono essere riferiti all’entità più generica (in
+cui sono presenti obbligatoriamente); analogamente per le associazioni.
+PERSONA
+STUDENTE PROFESSORE
+(t,e)
+Matricola (0,1)
+Dipartimento (0,1)
+NomeNome
+ISCRIZIONE
+(0,1)(0,N)CDL
+Cognome Cognome
+
+===== PAGE 80 =====
+
+80
+Subset
+ Subset: è un caso particolare di gerarchia 
+(is a) in cui si evidenzia una sola classe 
+specializzata.
+ ogni istanza di Studente è anche 
+un’istanza di PERSONA;
+ Studente eredita le proprietà di 
+PERSONA e in più possiede una 
+proprietà ”Matricola”;
+ Ogni istanza di Studente ERASMUS è 
+un’istanza di STUDENTE.
+ Studente ERASMUS eredita le proprietà 
+di STUDENTE e in più possiede una 
+proprietà ”Provenienza”;
+ Non ha ovviamente senso parlare di 
+tipo di copertura.
+PERSONA
+STUDENTE
+Matricola
+DataNascita
+Nome
+CodiceFiscale
+Cognome
+STUDENTE
+ERASMUS
+Provenienza
+
+===== PAGE 81 =====
+
+81
+Un raffinamento dello schema E/R di esempio
+Nome
+Cognome
+DataNascita
+Nome
+Nome
+Ciclo
+Data Voto
+Nome Telefono
+Matricola
+CodiceDocente
+CodiceCdL
+Cognome
+STUDENTE CORSOESAME SUPERATO
+CORSO DI LAUREAISCRIZIONE
+OFFERTA
+base
+avanzato
+PROPEDEUTICITÀ
+DOCENTE
+COMMISSIONE
+DOCENZA
+(0,N)
+(0,N) (0,N)
+FREQUENZA
+(0,N) (0,N)
+(1,1)
+(0,N)
+(0,N)
+(0,N)
+(0,N)
+(1,1)
+(3,5)
+(0,N)
+(0,N)
+(1,1)LAUREANDO
+RELATORE
+(0,N)
+(1,1)
+TitoloTesi
+Indirizzo
+NomeInd
+CittàNumCivico
+CAP
+QualInd
+N.B. Mancano ancora molti requisiti informativi ….
+
+===== PAGE 82 =====
+
+82
+Gerarchie: modellare aspetti dinamici?
+ Nell’ambito della progettazione concettuale
+E/R le gerarchie di generalizzazione non
+dovrebbero essere impiegate per
+modellare aspetti dinamici della realtà di
+interesse. Ad esempio:
+Nome
+UOMO
+SPOSATO
+Data di nascita
+NomeMoglie
+DataMatrimonio
+DataNascitaMoglie
+CF
+Cognome
+CognomeMoglie
+UOMO PERSONA
+DataNascita
+CF CognomeNome
+(t,e)
+UOMO
+CONTRAE_DONNA
+DONNA
+(0, N)
+(0,N)
+CONTRAE_UOMO
+(1,1)
+(1,1)
+MATRIMONIO
+DataMatrimonio
+
+===== PAGE 83 =====
+
+83
+Gerarchie prive di senso
+ Attenzione a non confondere entità con istanze di entità tentando di
+modellare attraverso gerarchie la conoscenza di specifiche istanze.
+ Esempio: ... un campeggio è diviso in tre aree (spiaggia, centrale,
+ingresso) ognuna delle quali è caratterizzata da una certa tariffa ...
+AREA Tariffa
+TipoArea
+AREA
+SPIAGGIA INGRESSOCENTRALE
+Tariffa 
+spiaggia
+Tariffa
+ingresso
+Tariffa 
+centrale
+N.B. Si deve fare attenzione a non interpretare
+come tipologie (e quindi come specializzazioni
+di un’entità) quelle che sono solo istanze di
+un’entità.
+
+===== PAGE 84 =====
+
+84
+Gerarchie: modellare ruoli nel tempo?
+ Attenzione a non modellare attraverso gerarchie i ruoli che un’entità assume
+in diversi periodi temporali o in relazione ad altre entità:
+ Esempio: ... un circolo di tennis organizza periodicamente alcuni tornei
+riservati ai soci.... gli arbitri delle partite sono soci che non partecipano al
+torneo... (si osservi il seguente schema incompleto).
+tessera SOCIOnome ARBITRAGGIO PARTITAdata
+Il ruolo di ARBITRO è
+temporaneo (in un altro
+torneo lo stesso SOCIO
+potrebbe partecipare come
+GIOCATORE).
+Il vincolo che gli arbitri
+delle partite di un torneo
+non partecipino al torneo
+stesso deve essere
+modellato dinamicamente
+in altro modo.
+(t,e)
+tessera SOCIOnome
+GIOCATORE ARBITRO PARTITAdataARBITRAGGIO
+
+===== PAGE 85 =====
+
+85
+Associazioni ternarie: dipendenze funzionali
+Quando in un’associazione ternaria
+esistono dipendenze funzionali tra le
+entità in gioco è preferibile sostituire la
+ternaria con associazioni binarie (che
+modellano esplicitamente i vincoli del
+problema), reificando l’entità LEZIONE.
+L’associazione ternaria non modella il seguente
+vincolo:
+in un giorno della settimana si può tenere solo
+una lezione (in una specifica aula) di un corso:
+CodCorso, NomeGiorno  CodAula .
+CORSO LEZIONE AULA
+GIORNO
+(1, 3) (0, N)
+(0, N)
+CodAulaCodCorso
+NomeGiorno
+PREFERIBILE
+CORSO
+RIFERIMENTO
+AULA
+(1, 3)
+(0,N)
+LEZIONE
+SVOLGIMENTO
+(1,1)
+(1,1)
+NomeGiorno
+CodCorso
+CodAula
+GIORNO
+EFFETTUAZIONE
+(1,1)
+(0,N)
+
+===== PAGE 86 =====
+
+86
+Raffinamento
+Si può semplificare tenendo conto che GIORNO
+ha un solo attributo, esplicitando quindi due sole
+associazioni binarie e identificando LEZIONE
+tramite l’attributo NomeGiorno e l’entità CORSO.
+CORSO LEZIONE AULA
+GIORNO
+(1, 3) (0, N)
+(0, N)
+CodAulaCodCorso
+NomeGiorno
+PREFERIBILE
+CORSO
+RIFERIMENTO
+AULA
+(1, 3)
+(0,N)
+LEZIONE
+SVOLGIMENTO
+(1,1)
+(1,1)
+CodCorso
+CodAula
+NomeGiorno
+
+===== PAGE 87 =====
+
+87
+Associazioni ternarie: esempio
+Quantità
+(0,N) (0,N)
+(0,N)
+RagioneSociale PartitaIVA
+FORNITORE
+Descrizione CodProdotto
+PRODOTTO
+CodDipartimento
+NomeDipartimentoDIPARTIMENTO
+FORNITURA
+Non essendo specificati vincoli particolari, nell’estensione dell’associazione può
+comparire una qualunque tripla (f,p,d) (senza replicazioni ovviamente),
+abbinata a un valore q, avendo indicato con f un’istanza di FORNITORE, p
+un’istanza di PRODOTTO e d un’istanza di DIPARTIMENTO rispettivamente, e
+con q il valore dell’attributo Quantità.
+
+===== PAGE 88 =====
+
+88
+Trasformazione con associazioni binarie
+L’associazione ternaria FORNITURA, prima introdotta, è esprimibile ricorrendo
+ad associazione binarie, reificando FORNITURA (cioè elevandola al rango di
+entità), ma in questo caso di assenza di vincoli ulteriori questa trasformazione è
+di fatto già un passo di traduzione verso il modello logico relazionale e
+pertanto non è opportuna a livello concettuale.
+Descrizione CodProdotto
+PRODOTTO
+RagioneSociale PartitaIVA
+FORNITORE
+CodDipartimento
+NomeDipartimentoDIPARTIMENTO
+FORNITURA
+Quantità
+F-D
+F-F F-P
+(0,N) (1,1) (0,N)
+(0,N)
+(1,1)
+(1,1)
+In modo meno formale ma più intuitivo possiamo
+dire che l’entità FORNITURA è identificata da
+{PartitaIVA, CodProdotto, CodDipartimento}.
+L’entità FORNITURA è identificata dalle entità
+FORNITORE, PRODOTTO e DIPARTIMENTO
+tramite la partecipazione alle rispettive
+associazioni F-F, F-P e F-D .
+
+
+===== PAGE 89 =====
+
+89
+Esempio di estensioni nei due casi visti
+f p d q
+F1 P1 D2 10
+F1 P2 D2 20
+F2 P2 D2 5
+F3 P2 D2 5
+F4 P3 D2 1
+F1 P5 D4 4
+F1 P3 D2 10
+F3 P5 D1 10
+Ipotesi: 6 fornitori, 5 prodotti, 10 dipartimenti
+Caso 1: assenza di ulteriori vincoli.
+Sono possibili 6x5x10 triple distinte (f,p,d).
+In questa estensione sono incluse solo le triple 
+indicate nella relazione di figura.
+Caso 2: 
+CodProdotto,CodDipartimento  CodFornitore
+Sono possibili 5x10 triple distinte (f,p,d).
+In questa estensione sono incluse solo le triple indicate
+nella relazione di figura.
+Non sarebbe possibile inserire un’ulteriore riga
+<F2,P2,D2,5> perché violerebbe il vincolo.
+f p d q
+F1 P1 D2 10
+F1 P2 D2 20
+F4 P3 D2 1
+F1 P5 D4 4
+F3 P5 D1 10
+N.B. Per semplicità di disegno si usa un generico CodFornitore in luogo di PartitaIVA
+
+===== PAGE 90 =====
+
+90
+Trasformazione con vincolo
+Descrizione CodProdotto
+PRODOTTO
+RagioneSociale PartitaIVA
+FORNITORE
+CodDipartimento
+NomeDipartimentoDIPARTIMENTO
+FORNITURA
+Quantità
+F-D
+F-F F-P
+(0,N) (1,1) (0,N)
+(0,N)
+(1,1)
+(1,1)
+In modo meno formale ma più intuitivo possiamo dire che l’entità FORNITURA è identificata da
+{CodProdotto, CodDipartimento}.
+L’entità FORNITURA è identificata dalle entità PRODOTTO e DIPARTIMENTO tramite la
+partecipazione alle rispettive associazioni F-P e F-D .
+
+
+===== PAGE 91 =====
+
+91
+False ternarie
+Se una (o più) entità partecipano con cardinalità massima 1 a un’associazione
+ternaria siamo in presenza di una “falsa ternaria” che può essere sempre
+modellata, in modo equivalente, attraverso associazioni binarie (ma non sempre
+solo con due).
+(1,1)
+(0, N)
+(0, N)
+N.B. Il vincolo «una squadra non può autosfidarsi» va modellato a parte, così come il fatto
+che deve esserci una partita di ritorno se si tratta di un campionato nazionale di calcio.
+SQUADRA
+PARTITA
+SFIDA
+(1,1)
+(0, N)
+SQUADRA
+PARTITA
+(1,1)
+(0, N)
+SFIDA IN 
+CASA
+SFIDA 
+FUORI
+
+===== PAGE 92 =====
+
+92
+Associazioni ternarie “false”: esempio 1
+Dato un dipendente sono univocamente determinati il suo ruolo e il suo dipartimento di
+afferenza:
+CodDipendente  CodDipartimento,CodRuolo;
+CodDipendente  CodDipartimento;
+CodDipendente  CodRuolo. In sintesi DIPENDENTE è la sola entità identificante.
+(1,1) (0,N)
+(0,N)
+Cognome CodDipendente
+DIPENDENTE
+DescrizioneCodRuolo
+RUOLO
+CodDipartimento
+NomeDipartimentoDIPARTIMENTO
+INQUADRAMENTO
+Nome
+Poiché la cardinalità massima della
+partecipazione di DIPENDENTE
+all’associazione INQUADRAMENTO è
+pari a 1, in realtà l’associazione ternaria
+è più correttamente modellabile con
+associazioni binarie (“falsa” ternaria).
+
+===== PAGE 93 =====
+
+93
+Schema ristrutturato per l’esempio 1
+(1,1) (0,N)
+(0,N)
+Cognome CodDipendente
+DIPENDENTE
+DescrizioneCodRuolo
+RUOLO
+CodDipartimento
+NomeDipartimentoDIPARTIMENTO
+INQUADRAMENTO
+Nome
+AFFERENZA
+(1,1)
+Sono sufficienti 2 associazioni binarie, visto il vincolo
+introdotto max-card(DIPENDENTE,INQUADRAMENTO)  1
+nella ternaria dello schema precedente.
+Non è stata inserita un’esplicita
+associazione tra DIPARTIMENTO e
+RUOLO, perché derivabile attraverso
+DIPENDENTE ipotizzando di essere
+interessati solo ai ruoli attivi in un
+dipartimento, come d’altra parte
+modellato nella soluzione vista con la
+ternaria.
+
+===== PAGE 94 =====
+
+94
+Associazioni ternarie “quasi false”: esempio 2
+(0,N) (0,1)
+(0,N)
+Cognome CodTecnico
+TECNICO
+DescrizioneCodAttività
+ATTIVITÀ
+CodDipartimento
+NomeDipartimentoDIPARTIMENTO
+INTERVENTO
+Poiché
+ max-card(ATTIVITÀ,INTERVENTO)  1, in realtà l’associazione ternaria è
+modellabile con associazioni binarie; siamo in presenza di una “quasi falsa” ternaria, si
+deve infatti considerare anche che min-card(ATTIVITÀ,INTERVENTO)  0.
+È semplice derivare che ATTIVITÀ è la sola entità identificante, cioè ogni attività viene
+svolta in un solo dipartimento ed esclusivamente a cura di un solo tecnico.
+Nome
+Durata
+
+===== PAGE 95 =====
+
+95
+Primo schema ristrutturato per l’esempio 2
+(0,N) (0,1)
+(0,N)
+Cognome CodTecnico
+TECNICO
+DescrizioneCodAttività
+ATTIVITÀ
+CodDipartimento
+NomeDipartimento
+DIPARTIMENTO
+SVOLGIMENTO T-A
+Nome
+SVOLGIMENTO A-D
+(0,1)DurataN.B. Lo schema non è tuttavia
+equivalente al precedente, perché non
+esprime il seguente vincolo:
+se esiste un legame fra un’istanza a di
+ATTIVITÀ e un’istanza t di TECNICO deve
+esistere un legame anche tra a e
+un’istanza d di DIPARTIMENTO.
+Si noti la scelta di posizionamento
+dell’attributo Durata. In alternativa
+poteva essere attribuito all’altra
+associazione purché comunque sia
+verificato il vincolo suddetto.
+
+===== PAGE 96 =====
+
+96
+Secondo schema ristrutturato per l’esempio 2
+(0,N) (0,1)
+(0,N)
+DescrizioneCodAttività
+ATTIVITÀ
+CodDipartimento
+NomeDipartimento
+DIPARTIMENTO
+Cognome CodTecnico
+TECNICO
+Nome
+(1,1)
+Durata
+INTERVENTOT-I I-A
+(1,1) (1,1)
+I-D
+Ora il posizionamento dell’attributo
+Durata è sull’entità INTERVENTO che
+rappresenta la reificazione della
+associazione ternaria dello schema
+originario.
+Lo schema è ora equivalente a quello
+originario.
+L’entità INTERVENTO è identificata
+esternamente dall’entità ATTIVITÀ tramite
+la partecipazione all’associazione I-A.
+La soluzione corretta 
+consiste nel reificare 
+l’associazione INTERVENTO.
+
+===== PAGE 97 =====
+
+97
+Note sull’effetto del tempo
+Fotografia dei corsi attivati in un anno accademico:CodCorso
+CORSO RESPONSABILITÀ (0,N)(1,1)
+Nome Ciclo
+DOCENTE Nome
+Cognome
+DataNascita
+CodiceDocente
+N.B. Un corso in diversi anni
+accademici può essere attivato in
+cicli diversi.
+La storia considerando più anni accademici:
+(0,N)(1,1)
+AA ciclo
+ATTIVAZIONE
+(1,1)
+(0,N)
+CodCorso
+NomeCORSO
+DOCENTERESPONSABILITÀCORSO_AA
+CodiceDocente
+CognomeNome
+DataNascita
+
+===== PAGE 98 =====
+
+98
+L’orario dei treni, i ritardi e le prenotazioni
+ Si vuole memorizzare l’orario dei treni, e i ritardi che essi hanno. Inoltre si vogliono
+gestire le prenotazioni dei clienti… nell’ipotesi che:
+ l’orario sia sempre lo stesso indipendentemente dai giorni;
+ un treno non percorra la stessa tratta più di una volta al giorno.
+ N.B. Al fine di consentire prenotazioni da parte di un cliente, una tratta è intesa in
+questo contesto come un viaggio che può comprendere fermate intermedie, es. BO-
+AN, BO-RN e FC-AN sono tre tratte distinte ai fini della prenotazione anche se una
+parte del percorso è lo stesso. Ciò comporta tuttavia ridondanza di dati.
+ Il seguente schema (semplificato) non è corretto
+NumTreno CodCliente
+TRENO SERVIZIO CLIENTE
+(0,N)
+TRATTA
+(1,1)
+PRENOTAZIONE
+(0,N) (0,N)
+StazPar StazArr
+OrarioPar
+OrarioArr RitPar RitArr
+Data
+(1,N)
+
+===== PAGE 99 =====
+
+99
+Ritardi e prenotazioni variano nel tempo!
+ L’errore consiste nel mischiare specifiche che riguardano aspetti
+“statici” (l’orario) con specifiche “dinamiche” (ritardi e prenotazioni).
+ La soluzione consiste nell’introdurre una nuova entità:
+TRENO (0,N)
+TRATTA(1,1)
+PRENOTAZIONE
+(0,N) (0,N)
+NumTreno
+CodCliente
+RitPar
+RitArr
+Data
+TRATTA GIORNALIERA
+ATTIVAZIONE
+(1,1)
+(0,N)
+CLIENTE
+StazPar StazArr OrarioPar
+OrarioArr
+SERVIZIO
+N.B. Se uno stesso treno può
+percorrere la stessa tratta
+più volte in un giorno è
+necessaria un’opportuna
+modifica allo schema.
+N.B. Se per tratta si deve
+invece intendere il
+percorso fra due stazioni
+consecutive allora lo
+schema deve essere
+modificato sia per
+l’identificazione di TRATTA
+sia per la prenotazione di
+percorsi multi-tratta.
+
+===== PAGE 100 =====
+
+100
+Un altro caso ricorrente
+ In una biblioteca si vogliono mantenere informazioni sui libri (titolo, autore,
+anno, codice ISBN, stato conservazione) e sui prestiti relativi (data prestito,
+eventuale data restituzione, utente), segnalando eventuali danni apportati
+al volume …
+ Il seguente schema (semplificato) non è corretto:
+UTENTELIBRO PRESTITO(0,N) (0,N)
+ISBN NumeroTesseraTitolo
+Autore Anno
+(1,N)
+(1,N)
+Nome
+DataRestituzione
+DataPrestito
+(0,1)
+Danno
+(0,1)
+StatoConservazione
+Cognome
+Info
+
+===== PAGE 101 =====
+
+101
+Libro ≠ copia di libro!
+ Anche in questo caso si stanno mischiando insieme aspetti che si riferiscono a concetti
+diversi, ovvero “un libro” e le sue “copie”.
+ La soluzione consiste ancora nel separare i due concetti:
+LIBRO
+PRESTITO
+(0,N) (0,N)
+ISBN Titolo Autore
+Anno
+StatoConservazione
+NumeroCopia COPIA_LIBRO
+COPIA
+(1,1)
+(1,N)
+UTENTE
+NumeroTessera Nome
+(1,N)
+(1,N)
+DataPrestito
+DataRestituzione
+(0,1)
+Danno
+(0,1)
+Cognome
+Info
+
+===== PAGE 102 =====
+
+102
+Equivalenza di schemi? (1)
+(1,N) (0,N)
+(0,N)
+Cognome CodCliente
+CLIENTE
+DenominazionePartitaIVA
+BIRRERIA
+NomeBirra
+BIRRA
+PREFERENZA
+Nome
+Produttore
+ Se si considera la generica istanza dell’associazione (x,y,z) ove x è un’istanza di CLIENTE,
+y un’istanza di BIRRA e z un’istanza di BIRRERIA si vuole esprimere quanto segue:
+x ha avuto una preferenza per la birra y nella birreria z.
+ Sono ammesse tutte le possibili triple (x,y,z) non essendo stati specificati vincoli ulteriori.
+
+===== PAGE 103 =====
+
+103
+Equivalenza di schemi? (2)
+(1,N)
+(0,N)
+Cognome CodCliente
+CLIENTE
+DenominazionePartitaIVA
+BIRRERIAFREQUENZA
+Nome
+INTERESSE
+NomeBirra
+BIRRAProduttore
+(1,N) (0,N)
+VENDITA
+(0,N)(0,N)
+Questo schema non è equivalente al precedente: le associazioni qui espresse sono infatti
+indipendenti l’una dall’altra.
+Ad esempio il fatto che il cliente x abbia interesse per la birra y e frequenti la birreria z, non
+implica che l’abbia consumata presso quella birreria z, né che la birreria z venda quella birra y.
+
+===== PAGE 104 =====
+
+104
+Soluzioni a problemi comuni
+ In molti schemi E/R si ritrovano dei “pattern” comuni, ovvero soluzioni a
+problemi che si presentano di frequente.
+ Non esiste una “codifica” standard di questi pattern; rivisitiamo solo alcuni
+esempi particolarmente significativi già introdotti in precedenza:
+ “le aree del campeggio";
+ “farsi visitare più volte dallo stesso medico, ma non nello stesso giorno”;
+ “mi spiace, non può ripetere l’esame tra un’ora”;
+ “un docente non svolge mai più di una lezione al giorno per uno stesso
+corso”;
+ “chissà se l’anno prossimo terrò ancora il corso di Basi di dati e a quale
+ciclo”
+ “l’orario dei treni, i ritardi e le prenotazioni”.
+
+===== PAGE 105 =====
+
+105
+Osservazioni sugli errori negli schemi E/R
+ In tutti i casi visti, con schemi errati, si può affermare che il problema è originato da
+un’analisi dei requisiti poco accurata, che porta a soluzioni intuitive ma non
+adeguate.
+ I nomi di entità e associazioni alle volte traggono in inganno: è bene quindi, nel caso
+si presentino situazioni poco chiare, provare a ragionare anche a livello estensionale
+in termini di istanze e domandarsi che cosa “contiene” effettivamente un’entità o
+un’associazione.
+ Si deve porre molta attenzione ai vincoli d’integrità e, in particolare, alle
+dipendenze funzionali.
+ Quando, come accade quasi sempre nella pratica, interviene la variabile “tempo” è
+bene chiedersi quali siano gli aspetti che si devono modellare che sono indipendenti
+dal tempo e quali, viceversa, variano dinamicamente.
+ Problemi simili a quelli visti nell’ultimo pattern “l’orario dei treni, i ritardi e le
+prenotazioni” si presentano anche in assenza di aspetti temporali (ad esempio: libri
+e copie di libri).
+
+===== PAGE 106 =====
+
+106
+Riepilogo: le astrazioni nel modello E/R
+ Riassumendo quanto visto, nel modello E/R i meccanismi 
+d’astrazione sono usati come segue.
+ classificazione:
+ entità (a partire dalle istanze);
+ attributi (a partire dai valori);
+ aggregazione: 
+ entità (a partire dagli attributi);
+ associazione (a partire da entità e attributi);
+ attributo composto (a partire da altri attributi);
+ generalizzazione: 
+ gerarchie di generalizzazione.
+
+===== PAGE 107 =====
+
+107
+ Entità
+ Associazione
+ Attributo
+ Attributo composto
+ Identificatore
+ Gerarchia di generalizzazione
+ Subset
+ Vincoli di cardinalità (min-card, max-card)
+Notazione grafica adottata
+
+===== PAGE 108 =====
+
+108
+E/R: varianti ed estensioni (1)
+ Talvolta si introduce il concetto di entità associativa per la modellazione di
+associazioni con attributi.
+ Alcune versioni E/R prevedono meccanismi per semplificare la modellazione
+concettuale in presenza di esigenze di storicizzazione dei dati (E/R temporali).
+Tra le notazioni “equivalenti” più note:
+card (0,1)
+card (0,N)
+card (1,N)
+Le cardinalità sono espresse
+graficamente dalla parte
+dell'entità di destinazione.
+SCUOLA
+Un allievo è iscritto a una e una sola scuola: 
+card(1,1)
+ALLIEVO Le associazioni sono denotate
+da segmenti privi di rombo.
+A una scuola sono iscritti uno o più allievi:
+card(1,N)
+
+===== PAGE 109 =====
+
+109
+E/R: varianti ed estensioni (2)
+ In alcuni formalismi è possibile modellare anche ereditarietà multipla.
+ In una gerarchia ciascuna sottoclasse è figlia di una sola superclasse
+(ereditarietà singola). In un reticolo, invece, una sottoclasse può essere
+sottoclasse di più di una superclasse (ereditarietà multipla). Una sottoclasse
+con più di una superclasse (possibile solo in un reticolo) è chiamata
+sottoclasse condivisa.
+ Una sottoclasse condivisa contiene
+tutte le istanze provenienti
+dall’intersezione delle sue
+superclassi.
+ Un membro della sottoclasse
+condivisa deve esistere in tutte le
+sue superclassi.
+
+===== PAGE 110 =====
+
+110
+E/R: varianti ed estensioni (3)
+ A volte è necessario far ricorso al concetto
+di sottoclasse “categoria” o “tipo Unione”.
+ Esempio: in un database per il PRA, un
+proprietario di un veicolo può essere una
+persona, una banca (con un leasing) o
+un’azienda.
+ La categoria (sottoclasse) PROPRIETARIO
+(OWNER) contiene un sottoinsieme delle
+istanze provenienti dall’unione delle
+istanze delle entità DITTA, BANCA,
+PERSONA (superclassi).
+ Un membro della categoria deve esistere
+in almeno una delle sue superclassi.
+
+
+===== PAGE 111 =====
+
+111
+Notazione DB-Main
+ Diverse notazioni grafiche sono utilizzate dai tool commerciali; di 
+seguito una sintesi della notazione adottata da DB-Main:
+Entity type Relationship type
+Gerarchie (ISA hierarchy)
+ Attributi: sono elencati all’interno del simbolo grafico di entità o
+associazione.
+ Identificatori: gli attributi facenti parte dell’identificatore sono sottolineati.
+ Vincoli di cardinalità: si indicano separati da un trattino, es. 0-N:
+
+===== PAGE 112 =====
+
+112
+Notazione E/R di Peter Chen
+
+===== PAGE 113 =====
+
+113
+Dialetti E/R: notazioni grafiche
+Notazione usata nelle slide
+Notazione del tool DB-Main
+Fonte: Wikipedia
+PERSON BIRTHPLACE LOCATION(1,1) (0,N)
+
+===== PAGE 114 =====
+
+114
+Utilità del modello E/R
+Uno schema E/R è più espressivo di uno schema logico (relazionale),
+inoltre può essere impiegato con successo per altre attività, ad
+esempio:
+ documentazione
+ la simbologia grafica del modello E/R può essere facilmente compresa
+anche dai non “addetti ai lavori”;
+ reverse engineering
+ a partire da un DB esistente, in carenza di documentazione a livello
+concettuale, si può derivare una descrizione in termini E/R allo scopo di
+migliorare l’analisi del contesto applicativo ed eventualmente
+procedere a un’operazione di riprogettazione;
+ integrazione di sistemi
+ essendo indipendente dal modello logico dei dati, è possibile usare il
+modello E/R come “linguaggio comune” in cui rappresentare DB
+eterogenei, allo scopo di costruire un DB integrato.
+
+===== PAGE 115 =====
+
+115
+Limiti del modello E/R
+ Per quanto più espressivo di uno schema relazionale, uno schema E/R non
+è sufficiente a rappresentare tutti gli aspetti di interesse.
+ I limiti principali:
+ i nomi dei vari concetti possono non essere sufficienti per comprenderne
+il significato;
+ non tutti i vincoli di integrità sono esprimibili in uno schema E/R.
+ Ad esempio: per sostenere un esame è necessario avere sostenuto
+tutti gli esami propedeutici
+ un laureando deve aver sostenuto almeno tutti gli esami dei primi
+anni.
+ In fase di progettazione bisogna quindi fornire un’ulteriore
+documentazione appropriata a corredo degli schemi per consentire di
+affrontare correttamente le fasi successive di sviluppo.
+
+===== PAGE 116 =====
+
+116
+Domande?

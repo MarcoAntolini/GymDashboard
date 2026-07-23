@@ -1,0 +1,450 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Introduzione ai Sistemi Informativi e alle Basi di Dati
+Wisdom
+Knowledge
+Information
+Data
+
+===== PAGE 2 =====
+
+2
+Sistema informatico e sistema informativo
+ Un SI deve provvedere alla raccolta e alla classificazione delle
+informazioni, da attuarsi con procedure integrate e idonee, al
+fine di produrre in tempo utile e ai giusti livelli le sintesi
+necessarie per i processi decisionali, nonché per gestire e
+controllare le attività dell’ente nel suo complesso.
+ Gran parte delle attività di un moderno sistema informativo è
+svolta facendo ricorso alla tecnologia dell’informazione.
+Sistema Informatico Sistema Informativo
+≠
+
+===== PAGE 3 =====
+
+3
+Predeterminate
+Dettagliate
+Frequenti
+Storiche
+Interne
+Molto focalizzate
+Executive Support Systems
+Decision Support System
+A supporto dei processi direzionali e
+quindi delle decisioni non-strutturate.
+Transaction Processing System
+Transazionali a supporto dei processi
+operativi e quindi delle decisioni
+strutturate.
+Management Information System
+Tattici a supporto dei processi
+gestionali e quindi delle decisioni semi-
+strutturate.
+Classificazione dei SI
+DSS
+Management
+Transaction
+Processing
+Ad hoc
+Sintetiche
+Non frequenti/ripetitive
+Previsionali
+Esterne
+Ampio spettro
+
+
+===== PAGE 4 =====
+
+4
+Transaction Processing Systems
+
+
+===== PAGE 5 =====
+
+5
+Management Information Systems
+Sistema di gestione che integra i 
+processi di business rilevanti di 
+un’azienda. 
+ I dati vengono raccolti in modo 
+centralizzato (anche cloud) 
+nonostante provengano da 
+molteplici parti dell’ente.
+ Migliora l'efficienza dell’ente, 
+riducendo costi e rischi, e 
+aumenta il controllo sulla 
+gestione delle varie risorse.
+ERP (Enterprise Resource Planning)
+
+
+===== PAGE 6 =====
+
+6
+Decision Support Systems
+https://www.opml.co.uk/covid-19/decision-support-tool
+“This simple framework can 
+be used by policymakers of 
+low and middle income 
+countries (LMICs) to assess 
+whether the country should 
+impose tougher stringent 
+measures to reduce the 
+spread of covid-19 or may 
+consider relaxing them”
+
+===== PAGE 7 =====
+
+7
+Dato vs Informazione
+ Un dato è ciò che è immediatamente presente alla conoscenza prima di
+ogni elaborazione.
+ I dati, nell’ambito informatico, si presentano sotto varie forme (numeri,
+lettere dell’alfabeto, immagini, suoni, simboli ecc.); a essi si deve
+attribuire un significato affinché rappresentino una realtà d’interesse.
+ Informazione: notizia, dato o elemento che consente di avere
+conoscenza più o meno esatta di fatti, situazioni, modi di essere.
+(Definizioni da Vocabolario ed Enciclopedia Treccani)
+SISTEMA
+INFORMATIVO informazione
+conoscenza
+
+===== PAGE 8 =====
+
+8
+Dai dati alle informazioni
+COREFERENZA
+IDENTIFICAZIONE DI ISTANZE DI CLASSI
+classe
+istanza
+IDENTIFICAZIONE DI RELAZIONI
+?
+
+===== PAGE 9 =====
+
+9
+Che cosa rende un’informazione utile nel processo decisionale?
+ Soggettività: il valore associato a un’informazione differisce da individuo a
+individuo e dipende dal tipo di decisione.
+ Rilevanza: l’informazione deve essere pertinente alla decisione da prendere.
+ Tempestività: l’informazione è utile alla decisione solo se è disponibile nel
+momento decisionale.
+ Accuratezza: le informazioni devono essere corrette e precise.
+ Presentazione: l’informazione deve essere utilizzabile direttamente per la
+decisione senza ulteriori elaborazioni.
+ Accessibilità: le informazioni devono essere disponibili appena necessarie a
+chi le richiede.
+ Completezza: il decisore deve avere a disposizione tutte le informazioni
+necessarie per prendere una decisione corretta.
+Informazioni e processo decisionale
+
+===== PAGE 10 =====
+
+10
+File IMPIEGATI
+File SEDIFile PROGETTI
+Database
+File
+Record
+Field Bianchi
+Byte 01000010 Codice ASCII lettera B
+….….
+Programmi
+La gerarchia dei dati
+APPLICAZIONE
+LOGICA DI 
+CONTROLLO
+LOGICA DI
+GESTIONE DATI
+File IMPIEGATI
+File SEDIFile PROGETTI ….….
+read/write
+Modello di sviluppo di un’applicazione con
+linguaggi di programmazione tradizionali
+e supporto del file system
+Gestione dei dati con file system
+
+===== PAGE 11 =====
+
+11
+Perché non adottare un file system?
+NECESSITÀ
+Gestire grandi 
+quantità di dati,  
+potenzialmente 
+scalabili in 
+dimensione, in 
+modo persistente e 
+condiviso, e 
+consentire di 
+soddisfare 
+esigenze
+applicative che 
+mutano nel tempo
+Soluzione con file system
+ Povertà dell’astrazione offerta per modellare i dati.
+ È richiesta al programmatore l’esplicitazione, nel codice, dei
+percorsi per accedere ai dati e delle modalità di elaborazione..
+ Difficoltà per l’accesso alle informazioni
+ ogni nuova esigenza implica la scrittura di un modulo software.
+ I meccanismi di condivisione sono in genere limitati
+ l’accesso a file condivisi richiede una descrizione delle regole per
+gestire la concorrenza nel codice delle applicazioni,.
+ Non sempre sufficienti i meccanismi forniti per la protezione a
+fronte di guasti.
+ Vincoli d’integrità sui dati “cablati” nel codice
+ difficoltà notevoli per la modifica o l’aggiunta di vincoli.
+ Non sono disponibili i vari servizi aggiuntivi offerti da un
+DBMS, ad esempio in termini di strumenti d’amministrazione.
+
+===== PAGE 12 =====
+
+12
+Applicazioni
+di settore Utilizzatori
+Dati
+Applicazioni
+di settore Utilizzatori
+Dati
+Applicazioni
+di settore Utilizzatori
+Dati
+copia
+copia
+Sistemi informatici settoriali
+ Un’organizzazione è solitamente articolata in diversi settori di competenza.
+Ad esempio, in un’azienda manifatturiera settori tipici sono quelli della produzione, delle
+vendite, degli acquisti, del personale, del magazzino, ecc.
+ Il flusso di informazioni intra-settoriale è più intenso rispetto al flusso inter-
+settoriale.
+ Questa considerazione, unitamente ad aspetti di natura tecnologica, ha fatto
+sì che prima dell’avvento dei DBMS la gestione fosse realizzata con
+programmi applicativi ad hoc, e con file non condivisi con altri settori,
+basandosi sulle funzionalità offerte dal file.
+
+===== PAGE 13 =====
+
+13
+Problemi dei sistemi informatici settoriali (1)
+ La progettazione degli archivi di settore è effettuata sulla base
+di considerazioni locali.
+ La mancanza di standard a livello globale complica la gestione dei flussi
+inter-settoriali e può creare problemi di incompatibilità nelle
+rappresentazioni adottate.
+ I dati sono soggetti a diversi vincoli di integrità, che riflettono la
+conoscenza della realtà specifica rappresentata.
+ La presenza di copie dello stesso dato dà luogo a ridondanze.
+ Si ha un inutile spreco di memoria.
+ La ridondanza può dar luogo a problemi d‘inconsistenza delle copie e, in
+ogni caso, comporta la necessità di propagare le modifiche, con ulteriore
+spreco di risorse.
+
+===== PAGE 14 =====
+
+14
+Problemi dei sistemi informatici settoriali (2)
+ L‘uso di file non condivisi e il mero ricorso ai servizi del file
+system presenta molteplici problemi in termini di facilità
+d’accesso ai dati, di sviluppo delle applicazioni, di flessibilità,
+di controllo degli accessi concorrenti, di sicurezza, ecc.
+ Oggi un approccio alla gestione dei dati basato su file può
+essere accettabile solo nel caso di:
+ sistemi di piccole dimensioni
+ prevalentemente a uso personale
+ con scarsa necessità di condivisione dei dati
+
+===== PAGE 15 =====
+
+15
+Peculiarità di un DBMS
+ Le caratteristiche fondamentali di un DBMS possono essere così
+sintetizzate. Un DBMS è un sistema software che:
+ gestisce grandi quantità di dati persistenti e condivisi;
+ offre supporto per almeno un modello dei dati attraverso cui definire
+strutture di dati complesse e interagire con il DB;
+ attua indipendenza tra programmi e dati, e tra programmi e operazioni;
+ garantisce efficienza nella gestione di grandi quantità di dati e persegue
+obiettivi di efficacia.
+ La persistenza e la condivisione richiedono che un DBMS fornisca
+meccanismi per garantire l’affidabilità dei dati (fault tolerance), per
+il controllo degli accessi e per il controllo della concorrenza;
+ Diverse altre funzionalità sono messe a disposizione per semplificare
+la descrizione delle informazioni, lo sviluppo delle applicazioni,
+l’amministrazione di un DB, ecc.
+
+===== PAGE 16 =====
+
+16
+Progettazione di DB e di applicazioni
+ Di grande rilevanza è l’adozione di corrette metodologie per l’analisi
+e per la specificazione dei requisiti.
+ Il processo di analisi è incrementale e porta per passi successivi alla
+stesura di un insieme di documenti (e schemi) in grado di
+rappresentare un modello dell’organizzazione e comunicare, in modo
+non ambiguo, una descrizione esauriente, coerente e realizzabile dei
+vari aspetti statici, dinamici e funzionali di un SI.
+ La progettazione di una base di dati e delle relative applicazioni è
+una delle attività principali del processo di sviluppo di un sistema
+informativo.
+
+===== PAGE 17 =====
+
+17
+ Un’organizzazione con il proprio SI opera in base a un modello 
+della realtà.
+organizzazione
+Un divario percettivo 
+si traduce in una 
+diminuzione della 
+performance
+dati
+$%#
+#~^
+%4
+$$$
+-
+]]
+mondo reale
+Il divario percettivo
+percezione 
+della realtà
+
+===== PAGE 18 =====
+
+18
+Babele di linguaggi
+Esperto del dominio Esperto informatico
+GdP
+QGF
+PM
+misura cautelare reale
+stralcio fascicolo
+provvedimento definitorio
+NDR
+richiesta d’impugnazione
+decreto ingiuntivo
+diritto reale
+cause di prelazione
+rogatoria
+GIP
+scarico sentenza
+dispositivo per opponente
+misura personale
+copia tecnica per beni
+data pervenimento
+biglietto di cancelleria 
+effetto estensivo dell’appello
+XML
+HTTPS
+DBMS
+DW
+application server
+3-tier architecture
+E/R
+macchina virtuale
+client browser
+TCP/IP
+use case
+throughputSMTP
+Firewall
+crittografia asimmetrica
+SOA
+Business Logic
+Presentation layer
+SPCoop
+DFM
+Data mart
+JVM
+Function Point
+sequence diagram
+PEC
+SQL
+
+
+===== PAGE 19 =====
+
+19
+Come condurre
+un ciclo di sviluppo ?
+Qualità e know-how nei SI
+Stadio Costo relativo per la 
+correzione
+Analisi requisiti 0.1-0.2
+Progettazione 0.5
+Codifica 1
+Test 2
+Accettazione 5
+Manutenzione 20
+Più tardi viene scoperto un errore 
+nel ciclo di sviluppo, maggiore è il 
+costo di riparazione.
+
+===== PAGE 20 =====
+
+20
+Progettazione guidata dai dati
+ Due aspetti di primaria importanza nella
+progettazione di un SI:
+ progettazione della base dati;
+ progettazione delle applicazioni.
+ Il ruolo primario viene molto spesso svolto dai dati, 
+in quanto:
+ sono strutturalmente più stabili nel tempo;
+ sono condivisi da più applicazioni.
+
+===== PAGE 21 =====
+
+21
+Progettazione di una base dati
+Requisiti del
+Sistema Informativo
+Progettazione concettuale
+Progettazione logica
+Progettazione fisica
+SCHEMA LOGICO
+SCHEMA CONCETTUALE
+SCHEMA FISICO
+ applicazioniutenti
+interattivi
+1
+1
+0
+1
+0
+1
+0
+1
+0
+1
+0
+1
+
+
+===== PAGE 22 =====
+
+22
+Progettazione dell’applicazione
+Obiettivo
+: realizzazione moduli software per le funzioni e per
+l’interfaccia utente.
+select L.NomeLinea, V.NumVolo, V.Ora
+from VOLI V, DESTINAZIONI D, LINEE_AEREE L
+where D.NomeDest='New York"
+and V.Giorno="Lun"
+and D.CodDest = V.CodDest
+and L.CodLinea = V.CodLinea;
+Richiesta 
+orari
+NomeDest, Giorno
+NomeLinea, Numvolo, Ora
+ORARI VOLI
+CLIENTE
+
+===== PAGE 23 =====
+
+23
+Domande?

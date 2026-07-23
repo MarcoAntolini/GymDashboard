@@ -1,0 +1,472 @@
+
+
+===== PAGE 1 =====
+
+Annalisa Franco, Dario Maio
+Università di Bologna
+Object Relational Mapping (ORM)
+
+
+===== PAGE 2 =====
+
+2
+Gestione della persistenza dei dati
+ La maggior parte delle applicazioni richiede qualche
+forma di persistenza dei dati.
+ Possibili soluzioni:
+ Usare meccanismi di serializzazione del linguaggio a oggetti
+◼ Limitazioni sull’accesso a singoli oggetti (un oggetto
+serializzato può essere acceduto solo nella sua interezza)
+ Database object-oriented
+◼ Query language ancora incompleto
+◼ RDBMS ancora predominanti
+◼ Maggiormente affidabili (proprietà ACID)
+◼ Linguaggio SQL standard
+◼ Ampio supporto
+
+===== PAGE 3 =====
+
+3
+Object vs. Relational
+ Quando si lavora in sistemi software object-oriented ci si trova di
+fronte a un mismatch tra il modello a oggetti e il modello relazionale
+adottato dal database.
+Oggetti Java con proprietà e 
+associazioni
+Database relazionale con tabelle 
+e attributi
+
+===== PAGE 4 =====
+
+4
+Object Relational Mapping
+ ORM è una tecnica che favorisce l’integrazione di
+sistemi software aderenti al paradigma di
+programmazione a oggetti con sistemi RDBMS.
+OOP objects relational objects
+
+===== PAGE 5 =====
+
+5
+ORM: Object Relational Mapping
+ Un prodotto ORM fornisce, mediante un’interfaccia
+orientata agli oggetti, i servizi per la persistenza dei dati,
+astraendo al contempo dalle caratteristiche
+implementative dello specifico RDBMS utilizzato.
+ Vantaggi:
+▪ superamento dell’incompatibilità tra progettazione orientata
+agli oggetti e modello relazionale per la rappresentazione
+dei dati;
+▪ elevata portabilità rispetto alla tecnologia DBMS utilizzata;
+▪ sensibile riduzione dei tempi di sviluppo del codice;
+▪ approccio stratificato, isolando in un solo livello la logica di
+persistenza dei dati, a vantaggio della modularità complessiva
+del sistema.
+
+===== PAGE 6 =====
+
+6
+Framework ORM
+ Microsoft .NET
+ LINQ
+ Entity Framework
+ Python
+ Django
+ Java
+ Hibernate
+ JPA
+ Ruby on Rails
+ ActiveRecord
+ PHP
+ CodeIgniter
+ CakePHP
+
+===== PAGE 7 =====
+
+7
+Entity Framework Core
+ Entity Framework (EF) Core è una versione semplice, estendibile, open source e
+multipiattaforma della tecnologia Entity Framework.
+ Con Entity Framework Core, l'accesso ai dati viene eseguito tramite un modello. Un
+modello è costituito da classi di entità e da un contesto dell'oggetto che rappresenta
+una sessione con il database che consente di eseguire query e salvare i dati.
+ EF Core consente agli sviluppatori .NET di operare su un database usando oggetti
+.NET, eliminando la necessità della maggior parte del codice di accesso ai dati che in
+genere deve essere scritto.
+ EF Core supporta molti motori di database
+https://learn.microsoft.com/it-it/ef/core/providers/?tabs=dotnet-core-cli
+ Implementa operazioni CRUD e interrogazioni con linguaggio LINQ
+ Link utili:
+ https://learn.microsoft.com/en-us/ef/core/
+ https://www.entityframeworktutorial.net/efcore/entity-framework-core.aspx
+
+===== PAGE 8 =====
+
+8
+EF Core – applicazioni e OS
+ EF Core è pensato per essere usato in applicazioni .NET Core
+(ma può essere usato anche in applicazioni .NET 4.5+)
+https://www.entityframeworktutorial.net/efcore/entity-framework-core.aspx
+
+===== PAGE 9 =====
+
+9
+Entity Framework Core - approcci
+ Database-First: l’API EF Core crea automaticamente le classi sulla
+base di un database esistente.
+ Code-First: l’API EF Core crea il database e le tabelle usando un
+processo di migrazione sulla base delle classi definite nel codice.
+
+
+===== PAGE 10 =====
+
+10
+Approccio DB first: workflow
+Creare il 
+database
+Scrivere ed 
+eseguire una 
+query tramite 
+l’interfaccia 
+iQueryable
+EF Core 
+genera ed 
+esegue una 
+query SQL sul 
+database
+EF Core 
+trasforma il 
+risultato della 
+query in 
+oggetti .NET
+Modificare 
+eventualmente 
+i dati e 
+richiamare il 
+metodo «Save 
+Changes»
+EF Core 
+genera ed 
+esegue i 
+comandi per 
+modificare il 
+DB
+
+===== PAGE 11 =====
+
+11
+Installazione
+ Consigliata l’ultima versione di Visual Studio (2022).
+ È necessario installare due package nell’applicazione usando NuGet, un
+package manager per .NET.
+ MySql.EntityFrameworkCore (o specifico per altro DBMS): package che
+offre connettività ad applicazioni .NET con DBMS MySQL.
+Dependences:
+◼ Microsoft.EntityFrameworkCore
+◼ Microsoft.EntityFrameworkCore.Relational
+◼ MySql.Data
+ Microsoft.EntityFrameworkCore.Tools: package che supporta la fase di design,
+fornendo funzionalità per la migrazione di dati e la creazione di un DbContext
+tramite un processo di reverse engineer a partire da una database.
+
+===== PAGE 12 =====
+
+12
+Installazione - NuGet Package Manager
+• Cercare nella finestra Browse i package di interesse;
+• Procedere con l’installazione;
+• Accettare i termini d’uso.
+
+===== PAGE 13 =====
+
+13
+Componenti EntityFramework
+ Classe DbContext
+ Gestisce la connessione al DB
+ Mappa le relazioni in «entity classes»
+ Fornisce accesso ai dati attraverso il linguaggio LINQ
+(interfaccia iQueryable)
+ Fornisce API per le operazioni CRUD
+ Entity classes:
+ Rappresentato entità, ovvero oggetti con attributi e
+relazioni con altri oggetti
+ Ogni tabella del database è tipicamente mappata in
+una Entity class.
+
+===== PAGE 14 =====
+
+14
+Scaffold-DBContext
+ È il comando fondamentale che crea automaticamente il DbContext (con un
+insieme di Entity classes) a partire da un database (eseguire da Package
+Manager Console)
+Scaffold-DbContext
+"server=localhost;uid=student;password=student2357!;database=northwind" 
+MySql.EntityFrameworkCore -OutputDir NorthWind -f
+Connection string
+Stringa di connessione al database.
+Provider
+Provider da usare (in genere 
+nome del pacchetto NuGet per
+lo specifico DBMS)
+Output folder
+Directory in cui inserire i file Entity 
+classes. I percorsi sono relativi alla 
+directory del progetto
+Per la lista completa di parametri:
+https://learn.microsoft.com/it-it/ef/core/cli/powershell#scaffold-dbcontext
+
+===== PAGE 15 =====
+
+15
+DbContext
+ La durata di DbContext inizia quando
+l'istanza viene creata e termina quando
+l'istanza viene eliminata. Un'istanza di
+DbContext è progettata per essere usata
+per una singola unità di lavoro.
+ Un'unità di lavoro tipica quando si usa
+Entity Framework Core (EF Core) implica
+le operazioni seguenti:
+ Creazione di un'istanza di DbContext
+ Interrogazione delle istanze di entità dal
+DbContext.
+ Modifica alle entità rilevate in base alle
+esigenze per implementare la regola di
+business.
+ Salvataggio di eventuali modifiche apportate
+con SaveChanges o SaveChangesAsync. EF
+Core rileva le modifiche apportate e le scrive
+nel database.
+ Eliminazione dell'istanza di DbContext
+Rappresenta il database all’interno 
+dell’applicazione.
+
+===== PAGE 16 =====
+
+16
+EntityClasses
+Attributi della
+tabella 
+Oggetti collegati
+
+===== PAGE 17 =====
+
+17
+Esecuzione di query: il linguaggio LINQ
+ LINQ (Language-Integrated Query) è il nome di un set di tecnologie
+basate sull'integrazione delle funzionalità di query direttamente nel
+linguaggio C#.
+ Le espressioni di query vengono scritte con una sintassi di
+query dichiarativa che permette di eseguire operazioni di filtro,
+ordinamento e raggruppamento sulle origini dati usando una quantità
+minima di codice.
+ Le espressioni di query interrogano e trasformano i dati da qualsiasi
+origine dati abilitata per LINQ (es. SQL, XML).
+ La query specifica le informazioni da recuperare dall'origine o dalle
+origini dati. Una query può anche specificare il modo in cui ordinare,
+raggruppare e definire le informazioni prima di essere restituite. Una
+query viene archiviata in una variabile di query e inizializzata con
+un'espressione di query.
+
+===== PAGE 18 =====
+
+18
+Application
+LINQ to SQL
+SQL Server
+Enumerate
+SQL Query
+or 
+SProc
+Rows
+Objects
+ SubmitChanges
+()
+DML 
+or 
+SProcs
+Architettura LINQ to SQL
+
+===== PAGE 19 =====
+
+19
+Local variable type inference
+int i = 2010;
+string s = "Ciao";
+double d = 3.14;
+int[ ] numbers = new int[ ] {10, 20, 30};
+Dictionary<int,Order> orders = new Dictionary<int,Order>();
+var i = 2010;
+var s = “Ciao";
+var d = 3.14;
+var numbers = new int[ ] {10, 20, 30};
+var orders = new Dictionary<int,Order>();
+“Il tipo è dedotto dalla 
+parte a destra della 
+dichiarazione”
+
+===== PAGE 20 =====
+
+20
+Object initializers
+public class Point
+{
+private int x, y;
+public int X { get { return x; } set { x = value; } }
+public int Y { get { return y; } set { y = value; } }
+}
+Point myPoint = new Point { X = 0, Y = 1 };
+Point myPoint = new Point();
+myPoint.X = 0;
+myPoint.Y = 1;
+Field or property 
+assignments
+public class Point
+{
+public int X {get; set;}
+public int Y {get; set;}
+}
+Autoimplemented
+properties
+
+===== PAGE 21 =====
+
+21
+var p = new { Name = “Betty”, Age = 31 };
+class X
+{
+public string Name;
+public int Age;
+}
+X
+Anonymous Types
+
+===== PAGE 22 =====
+
+22
+Lambda Expressions
+❑ Una lambda expression è una funzione anonima che può contenere
+espressioni e istruzioni e che può essere utilizzata per creare delegati.
+Tutte le espressioni lambda utilizzano l’operatore lambda =, che è
+letto come “goes to”.
+❑ Il lato sinistro dell’operatore lambda specifica i parametri di input, se
+presenti, e il lato destro contiene l’espressione o il blocco di istruzioni.
+❑ L’espressione lambda x = xx viene letta “x goes to x times x”.
+Questa espressione può essere assegnata a un tipo delegato:
+delegate int del(int i); 
+static void Main(string[] args) 
+{ 
+del myDelegate = x => x * x;
+int k = myDelegate(6); //  k = 36
+} 
+
+===== PAGE 23 =====
+
+23
+from c in customers
+where c.City == "LONDON"
+select new { c.Name, c.Phone };
+customers
+.Where(c => c.City == “LONDON")
+.Select(c => new { c.Name, c.Phone });
+ Query che invocano metodi
+ Where, Join, OrderBy, Select, GroupBy, …
+Query Expressions → LINQ
+
+===== PAGE 24 =====
+
+24
+L’applicazione
+ Dichiarare e istanziare un opportuno DbContext
+var db = new NorthwindContext());
+❑ Inserire nella form gli opportuni controlli.
+Bottone per l’esecuzione della query
+DataGridView per la visualizzazione del risultato
+
+===== PAGE 25 =====
+
+25
+var query = from p in db.Products
+where String.Compare(p.Category.CategoryName, "M", true) > 0
+select p;
+dataGridViewResult.DataSource = query.ToList();
+Tutti i prodotti per i quali il nome della categoria inizia con una lettera maggiore
+della lettera "M".
+Query – 1
+I primi 5 prodotti per cui il nome della categoria inizia con la lettera "D"
+var query = (from p in db.Products
+where p.Category.CategoryName.StartsWith("D")
+select p).Take(5);
+
+===== PAGE 26 =====
+
+26
+Per le categorie che contengono più di un prodotto visualizzare per ciascun prodotto la
+quantità totale ordinata e il relativo ricavo.
+Implicitly Typed 
+Local Object
+Query – 3 (definizione)
+
+===== PAGE 27 =====
+
+27
+Per i clienti che hanno effettuato più di 20 ordini visualizzare, ordinati per codice
+cliente, il codice cliente, il nome della persona da contattare, il quantitativo di ordini
+e le spese totali di trasporto.
+Query – 4
+
+===== PAGE 28 =====
+
+28
+Per i clienti con sede a Washington visualizzare, ordinati in senso decrescente per
+data ordine, il nome della persona da contattare e la data.
+Query - 5
+
+===== PAGE 29 =====
+
+29
+Per i clienti che hanno effettuato ordini, ordinati per
+nome, visualizzare l’importo totale ordinato.
+Query - 6
+
+===== PAGE 30 =====
+
+30
+Visualizzare contatto e data ordine dei clienti
+di Londra che hanno effettuato ordini
+ordinando il risultato per contatto cliente.
+Query - 7
+
+===== PAGE 31 =====
+
+31
+var query = from c in db.Customers
+where c.Orders.All(o => o.ShipCity == c.City)
+select c;
+Visualizzare i clienti che fanno tutti gli ordini con consegna nella città dove risiedono.
+Visualizzare, per ciascuna categoria a cui appartengono più di 10 prodotti, la categoria
+e il prezzo medio dei prodotti che vi appartengono.
+Altri esempi di query
+
+===== PAGE 32 =====
+
+32
+Aggiorna il prezzo unitario di tutti i prodotti
+di categoria 4, aumentandolo del 10%.
+Modifica della persona 
+da contattare
+Cancellazione di un
+ordine (nell’ipotesi che
+non siano stati inseriti
+dettagli d’ordine)
+Esempi di aggiornamento del DB
+db.SaveChanges();
+db.SaveChanges();
+Inserimento di un
+nuovo ordine
+
+===== PAGE 33 =====
+
+33
+Domande?
