@@ -95,6 +95,7 @@ export const columns = (
 				title="Street"
 			/>
 		),
+		enableSorting: false,
 	},
 	{
 		accessorKey: "houseNumber",
@@ -114,9 +115,6 @@ export const columns = (
 				title="City"
 			/>
 		),
-		filterFn: (row, id, value) => {
-			return value.includes(row.getValue(id));
-		},
 	},
 	{
 		accessorKey: "province",
@@ -126,9 +124,6 @@ export const columns = (
 				title="Province"
 			/>
 		),
-		filterFn: (row, id, value) => {
-			return value.includes(row.getValue(id));
-		},
 	},
 	{
 		accessorKey: "phoneNumber",
