@@ -1,4 +1,4 @@
-import { PrismaClient, ContractType } from "@prisma/client";
+import { Prisma, PrismaClient, ContractType } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 import { normalizeContractEndingDate } from "../domain/contract-term";
 
@@ -16,7 +16,9 @@ export async function mockContracts(db: PrismaClient) {
       data: {
         employeeId: employee.id,
         type,
-        hourlyFee: faker.number.float({ min: 10, max: 50 }),
+        hourlyFee: new Prisma.Decimal(
+          faker.commerce.price({ min: 10, max: 50, dec: 2 })
+        ),
         startingDate: employee.hiringDate,
         endingDate,
       },

@@ -24,12 +24,13 @@ export async function mockAllData() {
 
 	// await clearAllData();
 
+	// Domain order: Prodotti/specializzazioni/Listino → Clienti → Acquisti → Ingressi → HR/ops
 	const mockFunctions = [
-		mockClients,
 		mockProducts,
 		mockMemberships,
 		mockEntranceSets,
 		mockCatalogs,
+		mockClients,
 		mockPurchases,
 		mockEntrances,
 		mockEmployees,

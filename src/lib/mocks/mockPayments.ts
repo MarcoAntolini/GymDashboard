@@ -1,4 +1,4 @@
-import { PrismaClient, PaymentType } from "@prisma/client";
+import { Prisma, PrismaClient, PaymentType } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 
 export async function mockPayments(db: PrismaClient) {
@@ -9,7 +9,9 @@ export async function mockPayments(db: PrismaClient) {
     await db.payment.create({
       data: {
         date: faker.date.recent(),
-        amount: faker.number.float({ min: 100, max: 5000 }),
+        amount: new Prisma.Decimal(
+          faker.commerce.price({ min: 100, max: 5000, dec: 2 })
+        ),
         type: faker.helpers.arrayElement(Object.values(PaymentType)),
       },
     });

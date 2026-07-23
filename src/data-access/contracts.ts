@@ -9,12 +9,22 @@ import {
 	assertContractEndingDate,
 	normalizeContractEndingDate,
 } from "@/lib/domain/contract-term";
+import { formatCatalogPrice } from "@/lib/domain/catalog-price";
 import { db } from "@/lib/db";
-import { Contract, ContractType } from "@prisma/client";
+import { ContractType, Prisma } from "@prisma/client";
 
 type ContractIdentity = {
 	employeeId: number;
 	startingDate: Date;
+};
+
+export type ContractRow = {
+	employeeId: number;
+	type: ContractType;
+	/** Always a 2-decimal string for forms/display (Decimal end-to-end via Prisma write). */
+	hourlyFee: string;
+	startingDate: Date;
+	endingDate: Date | null;
 };
 
 /**
@@ -45,19 +55,28 @@ async function assertNoOverlappingContract(
 	}
 }
 
+function withHourlyFeeString<
+	T extends { hourlyFee: string | number | { toFixed: (digits: number) => string } },
+>(contract: T): Omit<T, "hourlyFee"> & { hourlyFee: string } {
+	return {
+		...contract,
+		hourlyFee: formatCatalogPrice(contract.hourlyFee),
+	};
+}
+
 export async function createContract({
 	employeeId,
 	type,
 	hourlyFee,
 	startingDate,
-	endingDate
+	endingDate,
 }: {
 	employeeId: number;
 	type: ContractType;
-	hourlyFee: number;
+	hourlyFee: string | number | Prisma.Decimal;
 	startingDate: Date;
 	endingDate?: Date | null;
-}) {
+}): Promise<ContractRow> {
 	const normalizedEndingDate = normalizeContractEndingDate(type, endingDate);
 	assertContractEndingDate(type, startingDate, normalizedEndingDate);
 
@@ -67,33 +86,55 @@ export async function createContract({
 		endingDate: normalizedEndingDate,
 	});
 
-	return await db.contract.create({
+	const feeString = formatCatalogPrice(
+		typeof hourlyFee === "string" ? hourlyFee : String(hourlyFee)
+	);
+
+	const created = await db.contract.create({
 		data: {
 			employeeId,
 			type,
-			hourlyFee,
+			hourlyFee: new Prisma.Decimal(feeString),
 			startingDate,
-			endingDate: normalizedEndingDate
-		}
+			endingDate: normalizedEndingDate,
+		},
 	});
+	return withHourlyFeeString(created);
 }
 
-export async function getAllContracts() {
-	return await db.contract.findMany();
+export async function getAllContracts(): Promise<ContractRow[]> {
+	const contracts = await db.contract.findMany();
+	return contracts.map(withHourlyFeeString);
 }
 
-export async function getContract(employeeId: number, startingDate: Date) {
-	return await db.contract.findUnique({
+export async function getContract(
+	employeeId: number,
+	startingDate: Date
+): Promise<ContractRow | null> {
+	const contract = await db.contract.findUnique({
 		where: {
 			employeeId_startingDate: {
 				employeeId,
-				startingDate
-			}
-		}
+				startingDate,
+			},
+		},
 	});
+	return contract ? withHourlyFeeString(contract) : null;
 }
 
-export async function editContract({ employeeId, startingDate, type, hourlyFee, endingDate }: Contract) {
+export async function editContract({
+	employeeId,
+	startingDate,
+	type,
+	hourlyFee,
+	endingDate,
+}: {
+	employeeId: number;
+	startingDate: Date;
+	type: ContractType;
+	hourlyFee: string | number | Prisma.Decimal;
+	endingDate?: Date | null;
+}): Promise<ContractRow> {
 	const normalizedEndingDate = normalizeContractEndingDate(type, endingDate);
 	assertContractEndingDate(type, startingDate, normalizedEndingDate);
 
@@ -106,43 +147,63 @@ export async function editContract({ employeeId, startingDate, type, hourlyFee, 
 		{ employeeId, startingDate }
 	);
 
-	return await db.contract.update({
+	const feeString = formatCatalogPrice(
+		typeof hourlyFee === "string" ? hourlyFee : String(hourlyFee)
+	);
+
+	const updated = await db.contract.update({
 		where: {
 			employeeId_startingDate: {
 				employeeId,
-				startingDate
-			}
+				startingDate,
+			},
 		},
 		data: {
 			type,
-			hourlyFee,
-			endingDate: normalizedEndingDate
-		}
+			hourlyFee: new Prisma.Decimal(feeString),
+			endingDate: normalizedEndingDate,
+		},
 	});
+	return withHourlyFeeString(updated);
 }
 
-export async function deleteContract({ employeeId, startingDate }: { employeeId: number; startingDate: Date }) {
-	return await db.contract.delete({
+export async function deleteContract({
+	employeeId,
+	startingDate,
+}: {
+	employeeId: number;
+	startingDate: Date;
+}): Promise<ContractRow> {
+	const existing = await db.contract.findUniqueOrThrow({
 		where: {
 			employeeId_startingDate: {
 				employeeId,
-				startingDate
-			}
-		}
+				startingDate,
+			},
+		},
 	});
+	await db.contract.delete({
+		where: {
+			employeeId_startingDate: {
+				employeeId,
+				startingDate,
+			},
+		},
+	});
+	return withHourlyFeeString(existing);
 }
 
 export type EmployeesEarningsInPeriod = {
 	employeeId: number;
 	startingDate: Date;
-	endingDate: Date;
+	endingDate: Date | null;
 	hourlyFee: number;
 	totalEarnings: number;
 };
 
 export async function getEmployeesEarningsInPeriod({
 	startingDate,
-	endingDate
+	endingDate,
 }: {
 	startingDate: Date;
 	endingDate: Date;
@@ -151,72 +212,71 @@ export async function getEmployeesEarningsInPeriod({
 		where: {
 			entranceTime: {
 				gte: startingDate,
-				lte: endingDate
+				lte: endingDate,
 			},
 			exitTime: {
 				gte: startingDate,
-				lte: endingDate
+				lte: endingDate,
+			},
+		},
+	});
+	const contracts = await db.contract.findMany({
+		where: {
+			OR: [
+				{
+					startingDate: {
+						gte: startingDate,
+						lte: endingDate,
+					},
+				},
+				{
+					endingDate: {
+						gte: startingDate,
+						lte: endingDate,
+					},
+				},
+				{
+					startingDate: {
+						lte: startingDate,
+					},
+					OR: [
+						{
+							endingDate: {
+								gte: endingDate,
+							},
+						},
+						{
+							endingDate: null,
+						},
+					],
+				},
+			],
+		},
+	});
+
+	return contracts.map((contract) => {
+		let totalHours = 0;
+		for (const clocking of clockings) {
+			if (clocking.employeeId === contract.employeeId) {
+				if (
+					clocking.entranceTime >= contract.startingDate &&
+					(contract.endingDate === null || clocking.entranceTime <= contract.endingDate)
+				) {
+					totalHours +=
+						((clocking.exitTime != null ? clocking.exitTime.getTime() : Date.now()) -
+							clocking.entranceTime.getTime()) /
+						1000 /
+						3600;
+				}
 			}
 		}
+		const hourlyFee = Number(formatCatalogPrice(contract.hourlyFee));
+		return {
+			employeeId: contract.employeeId,
+			startingDate: contract.startingDate,
+			endingDate: contract.endingDate,
+			hourlyFee,
+			totalEarnings: hourlyFee * totalHours,
+		};
 	});
-	return (await db.contract
-		.findMany({
-			where: {
-				OR: [
-					{
-						startingDate: {
-							gte: startingDate,
-							lte: endingDate
-						}
-					},
-					{
-						endingDate: {
-							gte: startingDate,
-							lte: endingDate
-						}
-					},
-					{
-						startingDate: {
-							lte: startingDate
-						},
-						OR: [
-							{
-								endingDate: {
-									gte: endingDate
-								}
-							},
-							{
-								endingDate: null
-							}
-						]
-					}
-				]
-			}
-		})
-		.then((contracts) => {
-			return contracts.map((contract) => {
-				let totalHours = 0;
-				for (const clocking of clockings) {
-					if (clocking.employeeId === contract.employeeId) {
-						if (
-							clocking.entranceTime >= contract.startingDate &&
-							(contract.endingDate === null || clocking.entranceTime <= contract.endingDate)
-						) {
-							totalHours +=
-								((clocking.exitTime != null ? clocking.exitTime.getTime() : Date.now()) -
-									clocking.entranceTime.getTime()) /
-								1000 /
-								3600;
-						}
-					}
-				}
-				return {
-					employeeId: contract.employeeId,
-					startingDate: contract.startingDate,
-					endingDate: contract.endingDate,
-					hourlyFee: contract.hourlyFee,
-					totalEarnings: contract.hourlyFee * totalHours
-				};
-			});
-		})) as EmployeesEarningsInPeriod[];
 }

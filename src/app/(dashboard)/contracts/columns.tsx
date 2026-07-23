@@ -5,13 +5,15 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { ContractRow } from "@/data-access/contracts";
+import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
 import {
 	CONTRACT_ENDING_DATE_BEFORE_START_ERROR,
 	CONTRACT_ENDING_DATE_REQUIRED_ERROR,
 	formatContractEndingDateDisplay,
 	isFixedTermContract,
 } from "@/lib/domain/contract-term";
-import { Contract, ContractType } from "@prisma/client";
+import { ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 import { ContractEndingDateField } from "./contract-ending-date-field";
@@ -20,7 +22,12 @@ export const formSchema = z
 	.object({
 		employeeId: z.number().int().positive("Must select an employee"),
 		type: z.nativeEnum(ContractType),
-		hourlyFee: z.number().positive(),
+		hourlyFee: z
+			.string()
+			.min(1, "Hourly fee is required")
+			.refine(isValidCatalogPriceString, {
+				message: "Hourly fee must be a positive value with at most 2 decimal places",
+			}),
 		startingDate: z.date(),
 		endingDate: z.date().optional(),
 	})
@@ -46,10 +53,10 @@ export const formSchema = z
 	});
 
 export const columns = (
-	handleDelete: (contract: Pick<Contract, "employeeId" | "startingDate">) => Promise<void>,
-	handleEdit: (contract: Contract) => Promise<void>,
+	handleDelete: (contract: Pick<ContractRow, "employeeId" | "startingDate">) => Promise<void>,
+	handleEdit: (contract: ContractRow) => Promise<void>,
 	loggedEmployeeId: number
-): ColumnDef<Contract>[] => [
+): ColumnDef<ContractRow>[] => [
 	{
 		accessorKey: "employeeId",
 		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
@@ -73,14 +80,12 @@ export const columns = (
 		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("hourlyFee"));
-			const formatted = new Intl.NumberFormat("en-US", {
+			const formatted = new Intl.NumberFormat("it-IT", {
 				style: "currency",
-				currency: "USD"
-			})
-				.format(amount)
-				.replace("$", "$ ");
+				currency: "EUR",
+			}).format(amount);
 			return <div className="font-medium">{formatted}</div>;
-		}
+		},
 	},
 	{
 		accessorKey: "startingDate",
@@ -152,12 +157,7 @@ export const columns = (
 								<FormItem>
 									<FormLabel>Hourly Fee</FormLabel>
 									<FormControl>
-										<Input
-											type="number"
-											step="0.01"
-											{...field}
-											onChange={(e) => field.onChange(parseFloat(e.target.value))}
-										/>
+										<Input type="text" inputMode="decimal" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -179,13 +179,13 @@ export const columns = (
 					</>
 				}
 				editAction={async ({ values }) => {
-					const updatedContract = {
+					const updatedContract: ContractRow = {
 						...row.original,
 						...values,
 						endingDate: isFixedTermContract(values.type)
 							? (values.endingDate ?? null)
 							: null,
-					} as Contract;
+					};
 					await handleEdit(updatedContract);
 				}}
 				deleteAction={() =>

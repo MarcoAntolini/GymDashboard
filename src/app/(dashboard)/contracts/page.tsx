@@ -12,17 +12,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-    createContract,
-    deleteContract,
-    editContract,
-    EmployeesEarningsInPeriod,
-    getAllContracts,
-    getEmployeesEarningsInPeriod
+	createContract,
+	deleteContract,
+	editContract,
+	EmployeesEarningsInPeriod,
+	getAllContracts,
+	getEmployeesEarningsInPeriod,
+	type ContractRow,
 } from "@/data-access/contracts";
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
 import { cn } from "@/lib/utils";
-import { Contract, ContractType, Employee } from "@prisma/client";
+import { ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Calculator, Calendar as CalendarIcon, PlusCircle } from "lucide-react";
@@ -45,12 +46,12 @@ export default function Contracts() {
 		isLoading,
 		handleDelete,
 		handleEdit
-	} = useEntityData<Contract, "employeeId" | "startingDate">(
+	} = useEntityData<ContractRow, "employeeId" | "startingDate">(
 		useMemo(
 			() => ({
 				getAll: getAllContracts,
 				deleteAction: deleteContract,
-				editAction: editContract
+				editAction: editContract,
 			}),
 			[]
 		),
@@ -82,11 +83,11 @@ export default function Contracts() {
 		defaultValues: {
 			employeeId: 0,
 			type: ContractType.FixedTerm,
-			hourlyFee: 0,
+			hourlyFee: "",
 			startingDate: new Date(),
-			endingDate: undefined
+			endingDate: undefined,
 		},
-		submitAction: handleCreateContract
+		submitAction: handleCreateContract,
 	};
 
 	const [isEarningsSheetOpen, setIsEarningsSheetOpen] = useState(false);
@@ -185,17 +186,7 @@ export default function Contracts() {
 									<FormItem>
 										<FormLabel>Hourly Fee</FormLabel>
 										<FormControl>
-											<Input
-												min={0}
-												{...field}
-												onChange={(e) => {
-													if (e.target.value === "" || isNaN(field.value)) {
-														field.onChange(0);
-													} else {
-														field.onChange(parseFloat(e.target.value));
-													}
-												}}
-											/>
+											<Input type="text" inputMode="decimal" {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>

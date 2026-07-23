@@ -5,144 +5,146 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Payment, PaymentType } from "@prisma/client";
+import type { PaymentRow } from "@/data-access/payments";
+import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
+import { PaymentType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
 export const formSchema = z.object({
-  date: z.date(),
-  amount: z.number().positive("Amount must be a positive number"),
-  type: z.nativeEnum(PaymentType),
+	date: z.date(),
+	amount: z
+		.string()
+		.min(1, "Amount is required")
+		.refine(isValidCatalogPriceString, {
+			message: "Amount must be a positive value with at most 2 decimal places",
+		}),
+	type: z.nativeEnum(PaymentType),
 });
 
 export const columns = (
-  handleDelete: (payment: Pick<Payment, "id">) => Promise<void>,
-  handleEdit: (payment: Payment) => Promise<void>
-): ColumnDef<Payment>[] => [
-  {
-    accessorKey: "id",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="ID"
-      />
-    ),
-  },
-  {
-    accessorKey: "date",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Date"
-      />
-    ),
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("date"));
-      return <div className="font-medium">{date.toLocaleDateString()}</div>;
-    },
-  },
-  {
-    accessorKey: "amount",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Amount"
-      />
-    ),
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-      return <div className="font-medium">{formatted}</div>;
-    },
-  },
-  {
-    accessorKey: "type",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Type"
-      />
-    ),
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <ItemActions
-        row={row}
-        formSchema={formSchema}
-        editFormContent={
-          <>
-            <FormField
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(PaymentType).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        }
-        editAction={async ({ values }) => {
-          const updatedPayment = {
-            ...row.original,
-            ...values,
-          };
-          await handleEdit(updatedPayment);
-        }}
-        deleteAction={() => handleDelete({ id: row.original.id })}
-      />
-    ),
-  },
+	handleDelete: (payment: Pick<PaymentRow, "id">) => Promise<void>,
+	handleEdit: (payment: PaymentRow) => Promise<void>
+): ColumnDef<PaymentRow>[] => [
+	{
+		accessorKey: "id",
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="ID"
+			/>
+		),
+	},
+	{
+		accessorKey: "date",
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Date"
+			/>
+		),
+		cell: ({ row }) => {
+			const date = new Date(row.getValue("date"));
+			return <div className="font-medium">{date.toLocaleDateString()}</div>;
+		},
+	},
+	{
+		accessorKey: "amount",
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Amount"
+			/>
+		),
+		cell: ({ row }) => {
+			const amount = parseFloat(row.getValue("amount"));
+			const formatted = new Intl.NumberFormat("it-IT", {
+				style: "currency",
+				currency: "EUR",
+			}).format(amount);
+			return <div className="font-medium">{formatted}</div>;
+		},
+	},
+	{
+		accessorKey: "type",
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Type"
+			/>
+		),
+	},
+	{
+		id: "actions",
+		cell: ({ row }) => (
+			<ItemActions
+				row={row}
+				formSchema={formSchema}
+				editFormContent={
+					<>
+						<FormField
+							name="date"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Date</FormLabel>
+									<FormControl>
+										<Input
+											type="date"
+											{...field}
+											value={field.value ? new Date(field.value).toISOString().split("T")[0] : ""}
+											onChange={(e) => field.onChange(new Date(e.target.value))}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							name="amount"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Amount</FormLabel>
+									<FormControl>
+										<Input type="text" inputMode="decimal" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							name="type"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Type</FormLabel>
+									<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a type" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											{Object.values(PaymentType).map((type) => (
+												<SelectItem key={type} value={type}>
+													{type}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</>
+				}
+				editAction={async ({ values }) => {
+					const updatedPayment = {
+						...row.original,
+						...values,
+					};
+					await handleEdit(updatedPayment);
+				}}
+				deleteAction={() => handleDelete({ id: row.original.id })}
+			/>
+		),
+	},
 ];

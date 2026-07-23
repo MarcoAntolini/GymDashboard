@@ -8,6 +8,10 @@ export const CLIENT_HAS_PURCHASES_MESSAGE =
 export const PURCHASE_HAS_ENTRANCES_MESSAGE =
 	"Impossibile eliminare l'Acquisto: esistono Ingressi collegati.";
 
+/** User-facing message when deleting a Prodotto blocked by Acquisti (FK Restrict). */
+export const PRODUCT_HAS_PURCHASES_MESSAGE =
+	"Impossibile eliminare il Prodotto: esistono Acquisti collegati.";
+
 /**
  * Maps Prisma Restrict / required-relation failures to a clear Error.
  * Re-throws other errors unchanged.

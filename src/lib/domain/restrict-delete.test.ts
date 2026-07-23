@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { Prisma } from "@prisma/client";
 import {
 	CLIENT_HAS_PURCHASES_MESSAGE,
+	PRODUCT_HAS_PURCHASES_MESSAGE,
 	PURCHASE_HAS_ENTRANCES_MESSAGE,
 	rethrowRestrictDelete,
 } from "./restrict-delete";
@@ -45,6 +46,15 @@ describe("rethrowRestrictDelete", () => {
 				rethrowRestrictDelete(prismaKnownError("P2003"), PURCHASE_HAS_ENTRANCES_MESSAGE),
 			(err: unknown) =>
 				err instanceof Error && err.message === PURCHASE_HAS_ENTRANCES_MESSAGE
+		);
+	});
+
+	it("maps Restrict to Prodotto-has-Acquisti message", () => {
+		assert.throws(
+			() =>
+				rethrowRestrictDelete(prismaKnownError("P2003"), PRODUCT_HAS_PURCHASES_MESSAGE),
+			(err: unknown) =>
+				err instanceof Error && err.message === PRODUCT_HAS_PURCHASES_MESSAGE
 		);
 	});
 });

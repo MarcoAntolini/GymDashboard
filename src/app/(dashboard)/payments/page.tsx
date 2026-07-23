@@ -10,46 +10,60 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createPayment, deletePayment, editPayment, getAllPayments } from "@/data-access/payments";
+import {
+	createPayment,
+	deletePayment,
+	editPayment,
+	getAllPayments,
+	type PaymentRow,
+} from "@/data-access/payments";
 import { useEntityData } from "@/hooks/useEntityData";
+import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
 import { cn } from "@/lib/utils";
-import { Payment, PaymentType } from "@prisma/client";
+import { PaymentType } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
 import { columns } from "./columns";
 
+const moneyAmount = z
+	.string()
+	.min(1, "Amount is required")
+	.refine(isValidCatalogPriceString, {
+		message: "Amount must be a positive value with at most 2 decimal places",
+	});
+
 const paymentSchema = z.discriminatedUnion("type", [
 	z.object({
 		date: z.date(),
-		amount: z.number(),
-		type: z.literal("Salary"),
-		employeeId: z.number()
+		amount: moneyAmount,
+		type: z.literal(PaymentType.Salary),
+		employeeId: z.number(),
 	}),
 	z.object({
 		date: z.date(),
-		amount: z.number(),
-		type: z.literal("Bill"),
+		amount: moneyAmount,
+		type: z.literal(PaymentType.Bill),
 		description: z.string(),
-		provider: z.string()
+		provider: z.string(),
 	}),
 	z.object({
 		date: z.date(),
-		amount: z.number(),
-		type: z.literal("Equipment"),
+		amount: moneyAmount,
+		type: z.literal(PaymentType.Equipment),
 		description: z.string(),
-		provider: z.string()
+		provider: z.string(),
 	}),
 	z.object({
 		date: z.date(),
-		amount: z.number(),
-		type: z.literal("Intervention"),
+		amount: moneyAmount,
+		type: z.literal(PaymentType.Intervention),
 		description: z.string(),
 		maker: z.string(),
 		startingTime: z.date(),
-		endingTime: z.date()
-	})
+		endingTime: z.date(),
+	}),
 ]);
 
 export default function PaymentsPage() {
@@ -59,12 +73,12 @@ export default function PaymentsPage() {
 		isLoading,
 		handleDelete,
 		handleEdit
-	} = useEntityData<Payment, "id">(
+	} = useEntityData<PaymentRow, "id">(
 		useMemo(
 			() => ({
 				getAll: getAllPayments,
 				deleteAction: deletePayment,
-				editAction: editPayment
+				editAction: editPayment,
 			}),
 			[]
 		),
@@ -121,12 +135,7 @@ export default function PaymentsPage() {
 							<FormItem>
 								<FormLabel>Amount</FormLabel>
 								<FormControl>
-									<Input
-										type="number"
-										step="0.01"
-										{...field}
-										onChange={(e) => field.onChange(parseFloat(e.target.value))}
-									/>
+									<Input type="text" inputMode="decimal" {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -144,10 +153,10 @@ export default function PaymentsPage() {
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										<SelectItem value="Salary">Salary</SelectItem>
-										<SelectItem value="Bill">Bill</SelectItem>
-										<SelectItem value="Equipment">Equipment</SelectItem>
-										<SelectItem value="Intervention">Intervention</SelectItem>
+										<SelectItem value={PaymentType.Salary}>Salary</SelectItem>
+										<SelectItem value={PaymentType.Bill}>Bill</SelectItem>
+										<SelectItem value={PaymentType.Equipment}>Equipment</SelectItem>
+										<SelectItem value={PaymentType.Intervention}>Intervention</SelectItem>
 									</SelectContent>
 								</Select>
 								<FormMessage />
@@ -159,7 +168,7 @@ export default function PaymentsPage() {
 						render={({ field }) => {
 							const type = field.value as PaymentType;
 							switch (type) {
-								case "Salary":
+								case PaymentType.Salary:
 									return (
 										<FormField
 											name="employeeId"
@@ -178,8 +187,8 @@ export default function PaymentsPage() {
 											)}
 										/>
 									);
-								case "Bill":
-								case "Equipment":
+								case PaymentType.Bill:
+								case PaymentType.Equipment:
 									return (
 										<>
 											<FormField
@@ -208,7 +217,7 @@ export default function PaymentsPage() {
 											/>
 										</>
 									);
-								case "Intervention":
+								case PaymentType.Intervention:
 									return (
 										<>
 											<FormField
@@ -267,23 +276,23 @@ export default function PaymentsPage() {
 			formData: {
 				formSchema: z.object({
 					date: z.date(),
-					amount: z.number().min(0),
-					type: z.enum(["Salary", "Bill", "Equipment", "Intervention"]),
+					amount: moneyAmount,
+					type: z.nativeEnum(PaymentType),
 					employeeId: z.number().optional(),
 					description: z.string().optional(),
 					provider: z.string().optional(),
 					maker: z.string().optional(),
 					startingTime: z.date().optional(),
-					endingTime: z.date().optional()
+					endingTime: z.date().optional(),
 				}),
 				defaultValues: {
 					date: new Date(),
-					amount: 0,
-					type: "Salary" as const
+					amount: "",
+					type: PaymentType.Salary,
 				},
-				submitAction: handleCreatePayment
-			}
-		}
+				submitAction: handleCreatePayment,
+			},
+		},
 	];
 
 	return isLoading ? (

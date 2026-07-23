@@ -1,5 +1,9 @@
 "use server";
 
+import {
+	PRODUCT_HAS_PURCHASES_MESSAGE,
+	rethrowRestrictDelete,
+} from "@/lib/domain/restrict-delete";
 import { db } from "@/lib/db";
 import { Product } from "@prisma/client";
 
@@ -48,9 +52,13 @@ export async function editProduct({
 }
 
 export async function deleteProduct({ code }: { code: string }) {
-  return await db.product.delete({
-    where: {
-      code,
-    },
-  });
+  try {
+    return await db.product.delete({
+      where: {
+        code,
+      },
+    });
+  } catch (error) {
+    rethrowRestrictDelete(error, PRODUCT_HAS_PURCHASES_MESSAGE);
+  }
 }
