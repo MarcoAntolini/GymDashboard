@@ -49,7 +49,7 @@ Contratto e Timbratura restano deboli con PK esterna composta (stabile e suffici
 
 ### Residuo pacchetto (definizione formale)
 
-Per un Acquisto `A` il cui Prodotto è in `pacchetti_ingressi` con `numero_ingressi = N`:
+Per un Acquisto `A` con snapshot `A.numero_ingressi = N` (fissato alla vendita; **non** il valore corrente in `pacchetti_ingressi`):
 
 ```
 residuo(A) = N − |{ I ∈ ingressi | I.id_acquisto = A.id }|
@@ -59,7 +59,7 @@ Un ingresso su pacchetto è ammesso solo se `residuo(A) > 0` prima dell’insert
 
 ### Validità abbonamento e tie-break (definizione formale)
 
-Per un Acquisto `A` di Abbonamento con `durata = D` giorni e `A.data = t0`, la finestra di validità è `[t0, t0 + D giorni)`.  
+Per un Acquisto `A` di Abbonamento con snapshot `A.durata = D` giorni (fissato alla vendita; **non** il valore corrente in `abbonamenti`) e `A.data = t0`, la finestra di validità è `[t0, t0 + D giorni)`.  
 Un Ingresso con `data = t` può essere giustificato da `A` se `t ∈ [t0, t0 + D)`.
 
 Algoritmo di scelta (regola 9 in `02-schema-er.md`), deterministico:
@@ -80,6 +80,14 @@ Due contratti `C1`, `C2` dello stesso `id_dipendente` sono illegali se gli inter
 - l’acquisto fissa l’importo **al momento della vendita** (requisito di storicizzazione, `03-modello-er.md` — tempo e snapshot).
 
 All’inserimento l’applicazione propone di default il prezzo di `listini` per `(YEAR(data), codice_prodotto)`; scostamenti solo per sconto/deroga. Nessuna FK Acquisto→Listino (il listino dell’anno può mancare o essere aggiornato dopo).
+
+### Durata / N ingressi su acquisto (snapshot)
+
+Come l’importo, `acquisti.durata` e `acquisti.numero_ingressi` sono fatti storici della vendita:
+
+- alla create, l’applicazione copia `abbonamenti.durata` **oppure** `pacchetti_ingressi.numero_ingressi` sul rigo Acquisto;
+- un update successivo sul Prodotto **non** riscrive gli Acquisti già emessi;
+- residuo pacchetto e validità abbonamento (giustificazione Ingresso) leggono solo lo snapshot sull’Acquisto.
 
 ## Tavola volumi (ordine di grandezza)
 
@@ -113,7 +121,7 @@ Notazione: PK sottolineata; FK indicate.
 | `abbonamenti` | **codice_prodotto** → prodotti, durata | |
 | `pacchetti_ingressi` | **codice_prodotto** → prodotti, numero_ingressi | |
 | `listini` | **anno**, **codice_prodotto** → prodotti, prezzo | PK senza tipo |
-| `acquisti` | **id**, id_cliente → clienti, data, importo, codice_prodotto → prodotti | onDelete Client/Product: **Restrict** |
+| `acquisti` | **id**, id_cliente → clienti, data, importo, codice_prodotto → prodotti, durata?, numero_ingressi? | onDelete Client/Product: **Restrict**; `durata` / `numero_ingressi` = snapshot alla vendita (XOR per specializzazione) |
 | `ingressi` | **id**, data, id_acquisto → acquisti | onDelete Purchase: **Restrict** |
 
 Soldi (`importo`, `prezzo`, `costo_orario`): tipo **Decimal** (non Float) — evita errori di rappresentazione su moneta.
@@ -187,6 +195,7 @@ La FD “residuo” non è un attributo memorizzato; nessun rischio di anomalia 
 4. `Float` → `Decimal` su importi/prezzi/costo orario
 5. `acquisti` → `prodotti` e `acquisti` → `clienti`: `onDelete: Restrict`; `ingressi` → `acquisti`: `Restrict`
 6. Enum `PurchaseType` resta utile in applicazione per filtri UI derivati dal join a Membership/EntranceSet, non come colonna denormalizzata su Acquisto/Listino
+7. `acquisti.durata` / `acquisti.numero_ingressi`: snapshot alla vendita (XOR); residuo e validità abbonamento leggono solo queste colonne
 
 **Migrazione dati** (passata successiva, non in questo step):
 
@@ -197,7 +206,7 @@ La FD “residuo” non è un attributo memorizzato; nessun rischio di anomalia 
 ## Checklist corso
 
 - [x] Tavola volumi + operazione dominante (ingresso)
-- [x] Decisione ridondanze (`ingressi_rimanenti`, `tipo`, `clientId` su ingresso; snapshot `importo`)
+- [x] Decisione ridondanze (`ingressi_rimanenti`, `tipo`, `clientId` su ingresso; snapshot `importo` / `durata` / `numero_ingressi`)
 - [x] Gerarchie ristrutturate con motivazione
 - [x] Multivalore/composti aplanati
 - [x] Schema relazionale PK/FK allineato

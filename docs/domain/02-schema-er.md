@@ -209,8 +209,10 @@ Solo `Codice` (PK). Specializzazioni sotto. Il tipo (Abbonamento vs Pacchetto) �
 | Id | Identificatore surrogato (evento economico) |
 | Data | datetime dell’evento |
 | Importo | snapshot monetario alla vendita (vedi regola 12); non sostituito da join al Listino |
+| Durata | snapshot opzionale (giorni) se il Prodotto era Abbonamento alla vendita |
+| NumeroIngressi | snapshot opzionale se il Prodotto era Pacchetto alla vendita |
 
-Pattern visite/reificazione (`03-modello-er.md`): Acquisto è entità evento, non sola associazione N:M Cliente–Prodotto.
+Pattern visite/reificazione (`03-modello-er.md`): Acquisto è entità evento, non sola associazione N:M Cliente–Prodotto. Durata/N sono fatti storici (come Importo): un update sul Prodotto non riscrive Acquisti già emessi.
 
 ### INGRESSO
 

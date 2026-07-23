@@ -159,11 +159,15 @@ model Entrance {
 }
 
 model Purchase {
-  id          Int      @default(autoincrement())
-  clientId    Int      @map("id_cliente")
-  date        DateTime @default(now()) @map("data")
-  amount      Decimal  @map("importo") @db.Decimal(10, 2)
-  productCode String   @map("codice_prodotto")
+  id             Int      @default(autoincrement())
+  clientId       Int      @map("id_cliente")
+  date           DateTime @default(now()) @map("data")
+  amount         Decimal  @map("importo") @db.Decimal(10, 2)
+  productCode    String   @map("codice_prodotto")
+  /// Snapshot at sale: membership duration in days (null for entrance packs).
+  duration       Int?     @map("durata")
+  /// Snapshot at sale: included entrances (null for memberships).
+  entranceNumber Int?     @map("numero_ingressi")
 
   client    Client     @relation(fields: [clientId], references: [id], onDelete: Restrict)
   prodotto  Product    @relation(fields: [productCode], references: [code], onDelete: Restrict)
