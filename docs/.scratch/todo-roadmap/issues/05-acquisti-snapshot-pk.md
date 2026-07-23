@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Migrate + reset DB al nuovo schema Prisma; 04 — Listino senza tipo, chiave composta, Decimal
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Create/edit Acquisto non accettano né salvano tipo; mock senza tipo
 - [ ] In create, amount default = prezzo Listino (YEAR(date), productCode) se esiste; override sconto consentito
@@ -13,3 +13,7 @@
 - [ ] Filtro tipo in UI filtra Prodotti per specializzazione, non persiste enum come colonna
 
 **Source:** `docs/.scratch/align-prisma-app/issues/04-acquisti-snapshot-pk.md`
+
+## Comments
+
+- 2026-07-23 — claimed by implement loop (cloud)
