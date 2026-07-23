@@ -1,6 +1,7 @@
 "use server";
 
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { PaymentType, Prisma } from "@prisma/client";
 
@@ -44,6 +45,7 @@ function withAmountString<
 }
 
 export async function createPayment(data: PaymentData): Promise<PaymentRow> {
+	assertAllowedMutation("pagamenti", "create", data);
 	const amountString = formatCatalogPrice(
 		typeof data.amount === "string" ? data.amount : String(data.amount)
 	);
@@ -116,17 +118,14 @@ export async function getPayment(id: number): Promise<PaymentRow | null> {
 	return payment ? withAmountString(payment) : null;
 }
 
-export async function editPayment({
-	id,
-	date,
-	amount,
-	type,
-}: {
+export async function editPayment(input: {
 	id: number;
 	date: Date;
 	amount: string | number | Prisma.Decimal;
 	type: PaymentType;
 }): Promise<PaymentRow> {
+	assertAllowedMutation("pagamenti", "update", input);
+	const { id, date, amount, type } = input;
 	const amountString = formatCatalogPrice(
 		typeof amount === "string" ? amount : String(amount)
 	);

@@ -1,9 +1,12 @@
 "use server";
 
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { EntranceSet } from "@prisma/client";
 
-export async function createEntranceSet({ productCode, entranceNumber }: Omit<EntranceSet, "id">) {
+export async function createEntranceSet(input: Omit<EntranceSet, "id">) {
+	assertAllowedMutation("pacchetti_ingressi", "create", input);
+	const { productCode, entranceNumber } = input;
 	await await db.product.create({
 		data: {
 			code: productCode
@@ -39,7 +42,9 @@ export async function getEntranceSet(productCode: string) {
 	});
 }
 
-export async function editEntranceSet({ productCode, entranceNumber }: EntranceSet) {
+export async function editEntranceSet(input: EntranceSet) {
+	assertAllowedMutation("pacchetti_ingressi", "update", input);
+	const { productCode, entranceNumber } = input;
 	return await db.entranceSet.update({
 		where: {
 			productCode

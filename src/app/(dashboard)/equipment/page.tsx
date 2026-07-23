@@ -21,7 +21,14 @@ export default function EquipmentPage() {
 			() => ({
 				getAll: getAllEquipment,
 				deleteAction: deleteEquipment,
-				editAction: editEquipment
+				editAction: async (entity: Equipment) => {
+					await editEquipment({
+						paymentId: entity.paymentId,
+						description: entity.description,
+						provider: entity.provider,
+					});
+					return entity;
+				},
 			}),
 			[]
 		),

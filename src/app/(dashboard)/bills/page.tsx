@@ -21,7 +21,14 @@ export default function BillsPage() {
 			() => ({
 				getAll: getAllBills,
 				deleteAction: deleteBill,
-				editAction: editBill
+				editAction: async (entity: Bill) => {
+					await editBill({
+						paymentId: entity.paymentId,
+						description: entity.description,
+						provider: entity.provider,
+					});
+					return entity;
+				},
 			}),
 			[]
 		),

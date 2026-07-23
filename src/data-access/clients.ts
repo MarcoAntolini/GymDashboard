@@ -1,5 +1,6 @@
 "use server";
 
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import {
 	CLIENT_HAS_PURCHASES_MESSAGE,
@@ -7,19 +8,21 @@ import {
 } from "@/lib/domain/restrict-delete";
 import { Client } from "@prisma/client";
 
-export async function createClient({
-	taxCode,
-	name,
-	surname,
-	birthDate,
-	street,
-	houseNumber,
-	city,
-	province,
-	phoneNumber,
-	email,
-	enrollmentDate,
-}: Omit<Client, "id">) {
+export async function createClient(input: Omit<Client, "id">) {
+	assertAllowedMutation("clienti", "create", input);
+	const {
+		taxCode,
+		name,
+		surname,
+		birthDate,
+		street,
+		houseNumber,
+		city,
+		province,
+		phoneNumber,
+		email,
+		enrollmentDate,
+	} = input;
 	return await db.client.create({
 		data: {
 			taxCode,
@@ -49,20 +52,22 @@ export async function getClient(id: number) {
 	});
 }
 
-export async function editClient({
-	id,
-	taxCode,
-	name,
-	surname,
-	birthDate,
-	street,
-	houseNumber,
-	city,
-	province,
-	phoneNumber,
-	email,
-	enrollmentDate,
-}: Client) {
+export async function editClient(input: Client) {
+	assertAllowedMutation("clienti", "update", input);
+	const {
+		id,
+		taxCode,
+		name,
+		surname,
+		birthDate,
+		street,
+		houseNumber,
+		city,
+		province,
+		phoneNumber,
+		email,
+		enrollmentDate,
+	} = input;
 	return await db.client.update({
 		where: {
 			id,

@@ -1,6 +1,7 @@
 "use server";
 
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import {
 	catalogYearFromDate,
 	resolvePurchaseAmountString,
@@ -51,12 +52,9 @@ type CreatePurchaseInput = {
  * at sale time. Importo defaults to Listino for YEAR(date)+productCode when omitted.
  * Later product/listino edits must not rewrite these columns.
  */
-export async function createPurchase({
-	clientId,
-	date,
-	amount,
-	productCode,
-}: CreatePurchaseInput) {
+export async function createPurchase(input: CreatePurchaseInput) {
+	assertAllowedMutation("acquisti", "create", input);
+	const { clientId, date, amount, productCode } = input;
 	const product = await db.product.findUnique({
 		where: { code: productCode },
 		include: { membership: true, entranceSet: true },
@@ -126,34 +124,22 @@ type EditPurchaseInput = {
 	id: number;
 	clientId: number;
 	date: Date;
-	amount: string | number | Prisma.Decimal;
-	productCode: string;
 };
 
 /**
- * Edit mutable fields only. Snapshot durata / numero_ingressi are never rewritten
- * (not even when the live Prodotto duration/N changes).
+ * Edit mutable fields only. Snapshot amount / durata / N and productCode are
+ * immutable after sale (see MUTATION_FIELD_MATRIX.acquisti + edge cases).
  */
-export async function editPurchase({
-	id,
-	clientId,
-	date,
-	amount,
-	productCode,
-}: EditPurchaseInput) {
-	const amountString = resolvePurchaseAmountString(
-		typeof amount === "string" ? amount : String(amount),
-		null
-	);
+export async function editPurchase(input: EditPurchaseInput) {
+	assertAllowedMutation("acquisti", "update", input);
+	const { id, clientId, date } = input;
 
 	const updated = await db.purchase.update({
 		where: { id },
 		data: {
 			clientId,
 			date,
-			amount: new Prisma.Decimal(amountString),
-			productCode,
-			// intentionally omit duration / entranceNumber — sale snapshot is immutable
+			// intentionally omit amount / productCode / duration / entranceNumber
 		},
 		include: {
 			client: true,

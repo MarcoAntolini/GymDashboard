@@ -25,7 +25,13 @@ export default function MembershipsPage() {
       () => ({
         getAll: getAllMemberships,
         deleteAction: deleteMembership,
-        editAction: editMembership,
+        editAction: async (entity: Membership) => {
+          await editMembership({
+            productCode: entity.productCode,
+            duration: entity.duration,
+          });
+          return entity;
+        },
       }),
       []
     ),

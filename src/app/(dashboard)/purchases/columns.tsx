@@ -4,17 +4,11 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { PurchaseWithSnapshot } from "@/data-access/purchases";
 import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
-import {
-	PRODUCT_KIND_LABELS,
-	PRODUCT_KINDS,
-	type ProductKind,
-} from "@/lib/domain/product-kind";
 import { columnMeta } from "@/lib/domain/view-columns";
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
@@ -30,7 +24,7 @@ export type PurchaseProductOption = {
 
 export type PurchaseRow = PurchaseWithSnapshot;
 
-/** Create/edit payload: no tipo; amount as ≤2-decimal string; snapshots set server-side. */
+/** Create payload: amount optional override; snapshots durata/N set server-side. */
 export const formSchema = z.object({
 	clientId: z.number().int().positive(),
 	date: z.date(),
@@ -43,12 +37,15 @@ export const formSchema = z.object({
 	productCode: z.string().min(1),
 });
 
+/** Update payload: only mutable fields (snapshots + productCode immutable after sale). */
+export const editFormSchema = z.object({
+	clientId: z.number().int().positive(),
+	date: z.date(),
+});
+
 export const columns = (
 	handleDelete: (purchase: Pick<PurchaseRow, "id">) => Promise<void>,
-	handleEdit: (purchase: PurchaseRow) => Promise<void>,
-	filteredProducts: PurchaseProductOption[],
-	onKindChange: (kind: ProductKind) => void,
-	filterKind: ProductKind
+	handleEdit: (purchase: PurchaseRow) => Promise<void>
 ): ColumnDef<PurchaseRow>[] => [
 	{
 		accessorKey: "id",
@@ -141,7 +138,7 @@ export const columns = (
 		cell: ({ row }) => (
 			<ItemActions
 				row={row}
-				formSchema={formSchema}
+				formSchema={editFormSchema}
 				editFormContent={
 					<>
 						<FormField
@@ -195,79 +192,19 @@ export const columns = (
 								</FormItem>
 							)}
 						/>
-						<FormField
-							name="amount"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Amount</FormLabel>
-									<FormControl>
-										<Input
-											type="text"
-											inputMode="decimal"
-											placeholder="0.00"
-											{...field}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						{/* Tipo: UI-only product filter — not a FormField / not in formSchema */}
-						<div className="space-y-2">
-							<label className="text-sm font-medium leading-none">Product type filter</label>
-							<Select
-								value={filterKind}
-								onValueChange={(value) => onKindChange(value as ProductKind)}
-							>
-								<SelectTrigger>
-									<SelectValue placeholder="Filter products by type" />
-								</SelectTrigger>
-								<SelectContent>
-									{PRODUCT_KINDS.map((kind) => (
-										<SelectItem key={kind} value={kind}>
-											{PRODUCT_KIND_LABELS[kind]}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-						<FormField
-							name="productCode"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Product</FormLabel>
-									<Select
-										onValueChange={field.onChange}
-										value={field.value}
-										disabled={filteredProducts.length === 0}
-									>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue
-													placeholder={
-														filteredProducts.length === 0
-															? "No products available for selected type"
-															: "Select a product"
-													}
-												/>
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-											{filteredProducts.map((product) => (
-												<SelectItem key={product.code} value={product.code}>
-													{product.code}
-													{product.membership
-														? ` (${product.membership.duration} days)`
-														: ` (${product.entranceSet?.entranceNumber} entrances)`}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						{/* Snapshot / derived: read-only — not in formSchema / not submitted */}
+						{/* Snapshot / product identity: read-only — not in editFormSchema */}
+						<FormItem>
+							<FormLabel>Product (immutable after sale)</FormLabel>
+							<FormControl>
+								<Input value={row.original.productCode} disabled readOnly />
+							</FormControl>
+						</FormItem>
+						<FormItem>
+							<FormLabel>Amount (sale snapshot)</FormLabel>
+							<FormControl>
+								<Input value={row.original.amount} disabled readOnly />
+							</FormControl>
+						</FormItem>
 						<FormItem>
 							<FormLabel>Duration (sale snapshot)</FormLabel>
 							<FormControl>
@@ -291,10 +228,8 @@ export const columns = (
 				editAction={async ({ values }) => {
 					const updatedPurchase = {
 						...row.original,
-						...values,
-						// preserve immutable snapshots from the row
-						duration: row.original.duration,
-						entranceNumber: row.original.entranceNumber,
+						clientId: values.clientId,
+						date: values.date,
 					} as PurchaseRow;
 					await handleEdit(updatedPurchase);
 				}}

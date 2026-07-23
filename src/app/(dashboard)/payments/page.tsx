@@ -78,7 +78,15 @@ export default function PaymentsPage() {
 			() => ({
 				getAll: getAllPayments,
 				deleteAction: deletePayment,
-				editAction: editPayment,
+				editAction: async (entity: PaymentRow) => {
+					await editPayment({
+						id: entity.id,
+						date: entity.date,
+						amount: entity.amount,
+						type: entity.type,
+					});
+					return entity;
+				},
 			}),
 			[]
 		),

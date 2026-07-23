@@ -25,7 +25,13 @@ export default function EntranceSetsPage() {
       () => ({
         getAll: getAllEntranceSets,
         deleteAction: deleteEntranceSet,
-        editAction: editEntranceSet,
+        editAction: async (entity: EntranceSet) => {
+          await editEntranceSet({
+            productCode: entity.productCode,
+            entranceNumber: entity.entranceNumber,
+          });
+          return entity;
+        },
       }),
       []
     ),

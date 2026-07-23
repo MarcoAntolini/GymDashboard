@@ -1,6 +1,7 @@
 "use server";
 
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { deriveProductKind, type ProductKind } from "@/lib/domain/product-kind";
 import { db } from "@/lib/db";
 import { Catalog, Prisma } from "@prisma/client";
@@ -59,11 +60,9 @@ type CatalogWriteInput = {
 	price: string | number | Prisma.Decimal;
 };
 
-export async function createCatalog({
-	year,
-	productCode,
-	price,
-}: CatalogWriteInput): Promise<CatalogRow> {
+export async function createCatalog(input: CatalogWriteInput): Promise<CatalogRow> {
+	assertAllowedMutation("listino", "create", input);
+	const { year, productCode, price } = input;
 	const created = await db.catalog.create({
 		data: {
 			year,
@@ -99,11 +98,9 @@ export async function getCatalog(
 	return catalog ? toCatalogRow(catalog) : null;
 }
 
-export async function editCatalog({
-	year,
-	productCode,
-	price,
-}: CatalogWriteInput): Promise<CatalogRow> {
+export async function editCatalog(input: CatalogWriteInput): Promise<CatalogRow> {
+	assertAllowedMutation("listino", "update", input);
+	const { year, productCode, price } = input;
 	const updated = await db.catalog.update({
 		where: {
 			year_productCode: {

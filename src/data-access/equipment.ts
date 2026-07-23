@@ -1,17 +1,16 @@
 "use server";
 
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { Equipment } from "@prisma/client";
 
-export async function createEquipment({
-	paymentId,
-	description,
-	provider,
-}: {
+export async function createEquipment(input: {
 	paymentId: number;
 	description: string;
 	provider: string;
 }) {
+	assertAllowedMutation("attrezzatura", "create", input);
+	const { paymentId, description, provider } = input;
 	return await db.equipment.create({
 		data: {
 			paymentId,
@@ -40,7 +39,9 @@ export async function getEquipment(paymentId: number) {
 	});
 }
 
-export async function editEquipment({ paymentId, description, provider }: Equipment) {
+export async function editEquipment(input: Equipment) {
+	assertAllowedMutation("attrezzatura", "update", input);
+	const { paymentId, description, provider } = input;
 	return await db.equipment.update({
 		where: {
 			paymentId,

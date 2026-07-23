@@ -21,7 +21,16 @@ export default function InterventionsPage() {
 			() => ({
 				getAll: getAllInterventions,
 				deleteAction: deleteIntervention,
-				editAction: editIntervention
+				editAction: async (entity: Intervention) => {
+					await editIntervention({
+						paymentId: entity.paymentId,
+						description: entity.description,
+						maker: entity.maker,
+						startingTime: entity.startingTime,
+						endingTime: entity.endingTime,
+					});
+					return entity;
+				},
 			}),
 			[]
 		),

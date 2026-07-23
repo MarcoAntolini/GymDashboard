@@ -1,17 +1,16 @@
 "use server";
 
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 
-export async function createAccount({
-	username,
-	password,
-	employeeId
-}: {
+export async function createAccount(input: {
 	username: string;
 	password: string;
 	employeeId: number;
 }) {
+	assertAllowedMutation("account", "create", input);
+	const { username, password, employeeId } = input;
 	return await db.account.create({
 		data: {
 			username,
@@ -54,15 +53,13 @@ export async function getAccountSafe(username: string) {
 	});
 }
 
-export async function editAccount({
-	employeeId,
-	role,
-	approved
-}: {
+export async function editAccount(input: {
 	employeeId: number;
 	role: Role;
 	approved: boolean;
 }) {
+	assertAllowedMutation("account", "update", input);
+	const { employeeId, role, approved } = input;
 	return await db.account.update({
 		where: {
 			employeeId

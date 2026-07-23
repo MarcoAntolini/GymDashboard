@@ -21,7 +21,13 @@ export default function Salaries() {
 			() => ({
 				getAll: getAllSalaries,
 				deleteAction: deleteSalary,
-				editAction: editSalary
+				editAction: async (entity: Salary) => {
+					await editSalary({
+						paymentId: entity.paymentId,
+						employeeId: entity.employeeId,
+					});
+					return entity;
+				},
 			}),
 			[]
 		),

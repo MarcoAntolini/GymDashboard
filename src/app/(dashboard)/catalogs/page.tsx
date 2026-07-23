@@ -46,7 +46,14 @@ export default function CatalogsPage() {
 				}) as (
 					entity: Pick<CatalogRow, "year" | "productCode">
 				) => Promise<CatalogRow>,
-				editAction: editCatalog as (entity: CatalogRow) => Promise<CatalogRow>,
+				editAction: async (entity: CatalogRow) => {
+					await editCatalog({
+						year: entity.year,
+						productCode: entity.productCode,
+						price: entity.price,
+					});
+					return entity;
+				},
 			}),
 			[]
 		),

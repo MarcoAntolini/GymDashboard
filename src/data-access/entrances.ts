@@ -5,6 +5,7 @@ import {
 	selectJustifyingPurchaseId,
 	type PurchaseCandidate,
 } from "@/lib/domain/entrance-justification";
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { Entrance, Prisma } from "@prisma/client";
 
@@ -49,10 +50,11 @@ type RegisterEntranceInput = {
  * Register Ingresso for a Cliente: pick justifying Acquisto in one $transaction
  * (RepeatableRead + FOR UPDATE on the client's purchases), then insert by purchaseId only.
  */
-export async function registerEntrance({
-	clientId,
-	date,
-}: RegisterEntranceInput): Promise<EntranceRow> {
+export async function registerEntrance(
+	input: RegisterEntranceInput
+): Promise<EntranceRow> {
+	assertAllowedMutation("ingressi", "create", input);
+	const { clientId, date } = input;
 	const at = date ?? new Date();
 
 	return await db.$transaction(
@@ -121,11 +123,9 @@ type EditEntranceInput = {
  * Update Ingresso by id. Recomputes justifying Acquisto for the (client, date)
  * with the same transaction + tie-break rules as registration.
  */
-export async function editEntrance({
-	id,
-	date,
-	clientId,
-}: EditEntranceInput): Promise<EntranceRow> {
+export async function editEntrance(input: EditEntranceInput): Promise<EntranceRow> {
+	assertAllowedMutation("ingressi", "update", input);
+	const { id, date, clientId } = input;
 	return await db.$transaction(
 		async (tx) => {
 			const existing = await tx.entrance.findUnique({

@@ -1,9 +1,12 @@
 "use server";
 
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { Salary } from "@prisma/client";
 
-export async function createSalary({ paymentId, employeeId }: { paymentId: number; employeeId: number }) {
+export async function createSalary(input: { paymentId: number; employeeId: number }) {
+	assertAllowedMutation("stipendi", "create", input);
+	const { paymentId, employeeId } = input;
 	return await db.salary.create({
 		data: {
 			paymentId,
@@ -33,7 +36,9 @@ export async function getSalary(paymentId: number) {
 	});
 }
 
-export async function editSalary({ paymentId, employeeId }: Salary) {
+export async function editSalary(input: Salary) {
+	assertAllowedMutation("stipendi", "update", input);
+	const { paymentId, employeeId } = input;
 	return await db.salary.update({
 		where: {
 			paymentId,

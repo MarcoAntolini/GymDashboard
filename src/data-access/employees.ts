@@ -1,20 +1,9 @@
 "use server";
 
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 
-export async function createEmployee({
-	taxCode,
-	name,
-	surname,
-	birthDate,
-	street,
-	houseNumber,
-	city,
-	province,
-	phoneNumber,
-	email,
-	hiringDate
-}: {
+export async function createEmployee(input: {
 	taxCode: string;
 	name: string;
 	surname: string;
@@ -27,6 +16,20 @@ export async function createEmployee({
 	email?: string;
 	hiringDate?: Date;
 }) {
+	assertAllowedMutation("dipendenti", "create", input);
+	const {
+		taxCode,
+		name,
+		surname,
+		birthDate,
+		street,
+		houseNumber,
+		city,
+		province,
+		phoneNumber,
+		email,
+		hiringDate
+	} = input;
 	return await db.employee.create({
 		data: {
 			taxCode,
@@ -56,20 +59,7 @@ export async function getEmployee(id: number) {
 	});
 }
 
-export async function editEmployee({
-	id,
-	taxCode,
-	name,
-	surname,
-	birthDate,
-	street,
-	houseNumber,
-	city,
-	province,
-	phoneNumber,
-	email,
-	hiringDate
-}: {
+export async function editEmployee(input: {
 	id: number;
 	taxCode: string;
 	name: string;
@@ -83,6 +73,21 @@ export async function editEmployee({
 	email: string;
 	hiringDate: Date;
 }) {
+	assertAllowedMutation("dipendenti", "update", input);
+	const {
+		id,
+		taxCode,
+		name,
+		surname,
+		birthDate,
+		street,
+		houseNumber,
+		city,
+		province,
+		phoneNumber,
+		email,
+		hiringDate
+	} = input;
 	return await db.employee.update({
 		where: {
 			id

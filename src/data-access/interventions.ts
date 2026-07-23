@@ -1,21 +1,18 @@
 "use server";
 
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { Intervention } from "@prisma/client";
 
-export async function createIntervention({
-	paymentId,
-	description,
-	maker,
-	startingTime,
-	endingTime,
-}: {
+export async function createIntervention(input: {
 	paymentId: number;
 	description: string;
 	maker: string;
 	startingTime: Date;
 	endingTime: Date;
 }) {
+	assertAllowedMutation("interventi", "create", input);
+	const { paymentId, description, maker, startingTime, endingTime } = input;
 	return await db.intervention.create({
 		data: {
 			paymentId,
@@ -46,7 +43,9 @@ export async function getIntervention(paymentId: number) {
 	});
 }
 
-export async function editIntervention({ paymentId, description, maker, startingTime, endingTime }: Intervention) {
+export async function editIntervention(input: Intervention) {
+	assertAllowedMutation("interventi", "update", input);
+	const { paymentId, description, maker, startingTime, endingTime } = input;
 	return await db.intervention.update({
 		where: {
 			paymentId,

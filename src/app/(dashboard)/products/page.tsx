@@ -20,7 +20,10 @@ export default function ProductsPage() {
 			() => ({
 				getAll: getAllProducts,
 				deleteAction: deleteProduct,
-				editAction: editProduct
+				editAction: async (entity: Product) => {
+					await editProduct({ code: entity.code });
+					return entity;
+				},
 			}),
 			[]
 		),

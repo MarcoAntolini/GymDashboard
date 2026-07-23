@@ -46,9 +46,14 @@ export default function PurchasesPage() {
 					await deletePurchase({ id });
 					return { id } as unknown as PurchaseRow;
 				}) as (entity: Pick<PurchaseRow, "id">) => Promise<PurchaseRow>,
-				editAction: editPurchase as unknown as (
-					entity: PurchaseRow
-				) => Promise<PurchaseRow>,
+				editAction: async (entity: PurchaseRow) => {
+					await editPurchase({
+						id: entity.id,
+						clientId: entity.clientId,
+						date: entity.date,
+					});
+					return entity;
+				},
 			}),
 			[]
 		),
@@ -233,13 +238,7 @@ export default function PurchasesPage() {
 			actions={actions}
 			table={
 				<DataTable
-					columns={columns(
-						handleDelete,
-						handleEdit,
-						filteredProducts,
-						setSelectedKind,
-						selectedKind
-					)}
+					columns={columns(handleDelete, handleEdit)}
 					data={purchases}
 					filters={["clientId", "productCode"]}
 					facetedFilters={[]}

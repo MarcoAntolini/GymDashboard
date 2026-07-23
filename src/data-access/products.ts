@@ -1,5 +1,6 @@
 "use server";
 
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import {
 	PRODUCT_HAS_PURCHASES_MESSAGE,
 	rethrowRestrictDelete,
@@ -7,14 +8,14 @@ import {
 import { db } from "@/lib/db";
 import { Product } from "@prisma/client";
 
-export async function createProduct({
-  code,
-}: Omit<Product, "id">) {
-  return await db.product.create({
-    data: {
-      code,
-    },
-  });
+export async function createProduct(input: Omit<Product, "id">) {
+	assertAllowedMutation("prodotti", "create", input);
+	const { code } = input;
+	return await db.product.create({
+		data: {
+			code,
+		},
+	});
 }
 
 export async function getAllProducts() {
@@ -38,17 +39,17 @@ export async function getProduct(code: string) {
   });
 }
 
-export async function editProduct({
-  code,
-}: Product) {
-  return await db.product.update({
-    where: {
-      code,
-    },
-    data: {
-      code,
-    },
-  });
+export async function editProduct(input: Pick<Product, "code">) {
+	assertAllowedMutation("prodotti", "update", input);
+	const { code } = input;
+	return await db.product.update({
+		where: {
+			code,
+		},
+		data: {
+			code,
+		},
+	});
 }
 
 export async function deleteProduct({ code }: { code: string }) {

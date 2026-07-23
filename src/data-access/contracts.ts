@@ -10,6 +10,7 @@ import {
 	normalizeContractEndingDate,
 } from "@/lib/domain/contract-term";
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import { ContractType, Prisma } from "@prisma/client";
 
@@ -64,19 +65,15 @@ function withHourlyFeeString<
 	};
 }
 
-export async function createContract({
-	employeeId,
-	type,
-	hourlyFee,
-	startingDate,
-	endingDate,
-}: {
+export async function createContract(input: {
 	employeeId: number;
 	type: ContractType;
 	hourlyFee: string | number | Prisma.Decimal;
 	startingDate: Date;
 	endingDate?: Date | null;
 }): Promise<ContractRow> {
+	assertAllowedMutation("contratti", "create", input);
+	const { employeeId, type, hourlyFee, startingDate, endingDate } = input;
 	const normalizedEndingDate = normalizeContractEndingDate(type, endingDate);
 	assertContractEndingDate(type, startingDate, normalizedEndingDate);
 
@@ -122,19 +119,15 @@ export async function getContract(
 	return contract ? withHourlyFeeString(contract) : null;
 }
 
-export async function editContract({
-	employeeId,
-	startingDate,
-	type,
-	hourlyFee,
-	endingDate,
-}: {
+export async function editContract(input: {
 	employeeId: number;
 	startingDate: Date;
 	type: ContractType;
 	hourlyFee: string | number | Prisma.Decimal;
 	endingDate?: Date | null;
 }): Promise<ContractRow> {
+	assertAllowedMutation("contratti", "update", input);
+	const { employeeId, startingDate, type, hourlyFee, endingDate } = input;
 	const normalizedEndingDate = normalizeContractEndingDate(type, endingDate);
 	assertContractEndingDate(type, startingDate, normalizedEndingDate);
 
