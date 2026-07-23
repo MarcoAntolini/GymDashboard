@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
-import { DataTable } from "@/components/ui/data-table";
+import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
+import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -15,13 +16,19 @@ import {
 	createEntrance,
 	deleteEntrance,
 	editEntrance,
-	getAllEntrances,
 	getDailyEntrances,
 	getMonthlyEntrances,
 	getWeeklyEntrances,
+	listEntrances,
+	type EntranceListResult,
 	type EntranceRow,
 } from "@/data-access/entrances";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useServerListQuery } from "@/hooks/useServerListQuery";
+import {
+	ENTRANCE_LIST_DEFAULT_SORT,
+	ENTRANCE_LIST_FILTER_IDS,
+	ENTRANCE_LIST_SORT_COLUMNS,
+} from "@/lib/domain/entrance-list-query";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { BarChart as BarChartIcon, CalendarDays, CalendarIcon, Clock, PlusCircle } from "lucide-react";
@@ -29,6 +36,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { z } from "zod";
 import { ClientOption, columns, EditEntranceValues, formSchema } from "./columns";
+
+const ENTRANCE_FILTER_FIELDS: ServerListFilterField[] = [
+	{ id: "dateFrom", label: "Data da", placeholder: "Data da (YYYY-MM-DD)" },
+	{ id: "dateTo", label: "Data a", placeholder: "Data a (YYYY-MM-DD)" },
+	{ id: "clientSurname", label: "Cognome cliente", placeholder: "Cognome cliente" },
+	{ id: "clientName", label: "Nome cliente", placeholder: "Nome cliente" },
+	{ id: "productCode", label: "Codice prodotto", placeholder: "Codice prodotto" },
+	{ id: "purchaseId", label: "ID acquisto", placeholder: "ID acquisto" },
+];
+
+const EMPTY_FILTERS = Object.fromEntries(
+	ENTRANCE_LIST_FILTER_IDS.map((id) => [id, ""])
+) as Record<(typeof ENTRANCE_LIST_FILTER_IDS)[number], string>;
 
 const analyticsFormSchema = z.object({
 	date: z.object({
@@ -38,25 +58,14 @@ const analyticsFormSchema = z.object({
 });
 
 export default function EntrancesPage() {
-	const {
-		data: entrances,
-		setData: setEntrances,
-		isLoading,
-		handleDelete,
-	} = useEntityData<EntranceRow, "id">(
-		useMemo(
-			() => ({
-				getAll: getAllEntrances,
-				deleteAction: (async ({ id }: { id: number }) => {
-					await deleteEntrance({ id });
-					return { id } as unknown as EntranceRow;
-				}) as (entity: Pick<EntranceRow, "id">) => Promise<EntranceRow>,
-			}),
-			[]
-		),
-		["id"]
-	);
+	const listQuery = useServerListQuery({
+		allowedSortColumns: ENTRANCE_LIST_SORT_COLUMNS,
+		defaultSort: ENTRANCE_LIST_DEFAULT_SORT,
+		initialFilters: EMPTY_FILTERS,
+	});
 
+	const [result, setResult] = useState<EntranceListResult | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 	const [clients, setClients] = useState<ClientOption[]>([]);
 	const [isWeeklySheetOpen, setIsWeeklySheetOpen] = useState(false);
 	const [isDailySheetOpen, setIsDailySheetOpen] = useState(false);
@@ -70,6 +79,20 @@ export default function EntrancesPage() {
 	);
 	const [monthlyData, setMonthlyData] = useState<{ month: string; totalEntrances: number }[]>([]);
 
+	const fetchList = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const next = await listEntrances(listQuery.input);
+			setResult(next);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [listQuery.input]);
+
+	useEffect(() => {
+		void fetchList();
+	}, [fetchList]);
+
 	useEffect(() => {
 		void getAllClients().then((rows) =>
 			setClients(
@@ -82,20 +105,28 @@ export default function EntrancesPage() {
 		);
 	}, []);
 
+	const handleDelete = useCallback(
+		async (entrance: Pick<EntranceRow, "id">) => {
+			await deleteEntrance(entrance);
+			await fetchList();
+		},
+		[fetchList]
+	);
+
 	const handleCreateEntrance = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newEntrance = await createEntrance(values);
-			setEntrances((prev) => [...prev, newEntrance]);
+			await createEntrance(values);
+			await fetchList();
 		},
-		[setEntrances]
+		[fetchList]
 	);
 
 	const handleEditEntrance = useCallback(
 		async (values: EditEntranceValues) => {
-			const updated = await editEntrance(values);
-			setEntrances((prev) => prev.map((row) => (row.id === updated.id ? updated : row)));
+			await editEntrance(values);
+			await fetchList();
 		},
-		[setEntrances]
+		[fetchList]
 	);
 
 	const handleAnalytics = useCallback(
@@ -123,6 +154,11 @@ export default function EntrancesPage() {
 			}
 		},
 		[]
+	);
+
+	const tableColumns = useMemo(
+		() => columns(handleDelete, handleEditEntrance, clients),
+		[handleDelete, handleEditEntrance, clients]
 	);
 
 	const analyticsFormData: FormData<typeof analyticsFormSchema> = {
@@ -218,18 +254,35 @@ export default function EntrancesPage() {
 		},
 	];
 
-	return isLoading ? (
+	const showPlaceholder = isLoading && result === null;
+
+	return showPlaceholder ? (
 		<DashboardPlaceholder />
 	) : (
 		<>
 			<Dashboard
 				actions={actions}
 				table={
-					<DataTable
-						columns={columns(handleDelete, handleEditEntrance, clients)}
-						data={entrances}
-						filters={["date"]}
-						facetedFilters={["date"]}
+					<ServerDataTable
+						columns={tableColumns}
+						data={result?.rows ?? []}
+						total={result?.total ?? 0}
+						page={listQuery.page}
+						pageSize={listQuery.pageSize}
+						pageCount={result?.pageCount ?? 0}
+						sort={listQuery.sort}
+						onSortChange={listQuery.setSort}
+						onPageChange={listQuery.setPage}
+						onPageSizeChange={listQuery.setPageSize}
+						filterFields={ENTRANCE_FILTER_FIELDS}
+						draftFilters={listQuery.draftFilters}
+						onDraftFilterChange={listQuery.setDraftFilter}
+						onApplyFilters={listQuery.applyFilters}
+						onResetFilters={listQuery.resetFilters}
+						isFilterDirty={listQuery.isFilterDirty}
+						hasAppliedFilters={listQuery.hasAppliedFilters}
+						emptyKind={result?.emptyKind ?? null}
+						datasetEmptyMessage="Nessun ingresso registrato."
 					/>
 				}
 			/>

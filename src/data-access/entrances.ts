@@ -2,12 +2,26 @@
 
 import { requireRole } from "@/lib/auth";
 import {
+	ENTRANCE_LIST_DEFAULT_SORT,
+	ENTRANCE_LIST_SORT_COLUMNS,
+	buildEntranceListOrderBy,
+	buildEntranceListWhere,
+	entranceListHasActiveFilters,
+} from "@/lib/domain/entrance-list-query";
+import {
 	NO_JUSTIFYING_PURCHASE_ERROR,
 	selectJustifyingPurchaseId,
 	type PurchaseCandidate,
 } from "@/lib/domain/entrance-justification";
+import { listEmptyKind } from "@/lib/domain/list-query";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
+import {
+	runListQuery,
+	toPrismaSkipTake,
+	type ListQueryInput,
+	type ListQueryResult,
+} from "@/data-access/list-query";
 import { Entrance, Prisma } from "@prisma/client";
 
 /**
@@ -101,6 +115,68 @@ export async function createEntrance(input: RegisterEntranceInput) {
 	return registerEntrance(input);
 }
 
+export type EntranceListResult = ListQueryResult<EntranceRow> & {
+	/** Count with no filters — for empty-state kind (dataset vs filters). */
+	totalUnfiltered: number;
+	emptyKind: ReturnType<typeof listEmptyKind>;
+};
+
+/**
+ * Server-side Ingressi list (ticket 21): filters + ORDER BY + LIMIT/OFFSET.
+ * Call only on Filtra / sort / page change — not on every keystroke.
+ */
+export async function listEntrances(
+	input: ListQueryInput
+): Promise<EntranceListResult> {
+	await requireRole("Employee");
+
+	let totalUnfiltered = 0;
+
+	const result = await runListQuery(
+		input,
+		async (params) => {
+			const where = buildEntranceListWhere(
+				params.filters
+			) as Prisma.EntranceWhereInput;
+			const orderBy = buildEntranceListOrderBy(params.sort) as Prisma.EntranceOrderByWithRelationInput[];
+			const skipTake = toPrismaSkipTake(params);
+
+			const needsUnfiltered = entranceListHasActiveFilters(params.filters);
+
+			const [rows, total, unfiltered] = await Promise.all([
+				db.entrance.findMany({
+					where,
+					include: entranceInclude,
+					orderBy,
+					...skipTake,
+				}),
+				db.entrance.count({ where }),
+				needsUnfiltered
+					? db.entrance.count()
+					: Promise.resolve(null as number | null),
+			]);
+
+			totalUnfiltered = unfiltered ?? total;
+			return { rows, total };
+		},
+		{
+			allowedSortColumns: ENTRANCE_LIST_SORT_COLUMNS,
+			defaultSort: ENTRANCE_LIST_DEFAULT_SORT,
+		}
+	);
+
+	return {
+		...result,
+		totalUnfiltered,
+		emptyKind: listEmptyKind({
+			totalUnfiltered,
+			total: result.total,
+			rowCount: result.rows.length,
+		}),
+	};
+}
+
+/** Full table — prefer {@link listEntrances} for the Ingressi page list. */
 export async function getAllEntrances(): Promise<EntranceRow[]> {
 	await requireRole("Employee");
 	return await db.entrance.findMany({

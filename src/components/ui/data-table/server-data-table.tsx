@@ -41,12 +41,17 @@ export type ServerDataTableProps<TData, TValue> = {
 	isFilterDirty?: boolean;
 	hasAppliedFilters?: boolean;
 	emptyKind?: ListEmptyKind | null;
+	/** Empty copy when the unfiltered dataset has no rows. */
+	datasetEmptyMessage?: string;
 	className?: string;
 };
 
-function emptyMessage(kind: ListEmptyKind | null | undefined): string {
+function emptyMessage(
+	kind: ListEmptyKind | null | undefined,
+	datasetEmptyMessage: string
+): string {
 	if (kind === "filters") return "Nessun risultato per i filtri applicati.";
-	if (kind === "dataset") return "Nessun cliente in anagrafica.";
+	if (kind === "dataset") return datasetEmptyMessage;
 	return "Nessun risultato.";
 }
 
@@ -73,6 +78,7 @@ export function ServerDataTable<TData, TValue>({
 	isFilterDirty = false,
 	hasAppliedFilters = false,
 	emptyKind = null,
+	datasetEmptyMessage = "Nessun cliente in anagrafica.",
 	className,
 }: ServerDataTableProps<TData, TValue>) {
 	const sorting = React.useMemo(
@@ -164,7 +170,7 @@ export function ServerDataTable<TData, TValue>({
 									colSpan={columns.length}
 									className="h-24 text-center"
 								>
-									{emptyMessage(emptyKind)}
+									{emptyMessage(emptyKind, datasetEmptyMessage)}
 								</TableCell>
 							</TableRow>
 						)}
