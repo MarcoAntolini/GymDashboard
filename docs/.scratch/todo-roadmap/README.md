@@ -8,7 +8,11 @@ Le cartelle scratch precedenti restano come storico; **questa** è la fonte di l
 
 Prompt operativo (claim → implement → commit → stop/next): **[LOOP.md](./LOOP.md)**.
 
-Avvio consigliato (chat Agent nuova, un ticket per sessione):
+Skill di progetto (cloud + locale): `.agents/skills/` — `impeccable`, `shadcn`, `implement`, `tdd`, `code-review`.
+
+**Catena automatica:** branch `ticket-loop` + Cursor Automation su push (vedi Opzione D in `LOOP.md`).
+
+Avvio locale (chat Agent nuova, un ticket per sessione):
 
 ```text
 Esegui docs/.scratch/todo-roadmap/LOOP.md — un solo ticket, poi stop.
