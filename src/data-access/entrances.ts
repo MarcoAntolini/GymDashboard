@@ -1,61 +1,178 @@
 "use server";
 
+import {
+	NO_JUSTIFYING_PURCHASE_ERROR,
+	selectJustifyingPurchaseId,
+	type PurchaseCandidate,
+} from "@/lib/domain/entrance-justification";
 import { db } from "@/lib/db";
-import { Entrance } from "@prisma/client";
+import { Entrance, Prisma } from "@prisma/client";
 
-export async function createEntrance({ clientId, date }: Omit<Entrance, "id">) {
-	return await db.entrance.create({
-		data: {
-			clientId,
-			date
-		}
-	});
+export type EntranceRow = Entrance & {
+	purchase: {
+		id: number;
+		clientId: number;
+		date: Date;
+		productCode: string;
+		client: { id: number; name: string; surname: string };
+		prodotto: {
+			code: string;
+			membership: { duration: number } | null;
+			entranceSet: { entranceNumber: number } | null;
+		};
+	};
+};
+
+const entranceInclude = {
+	purchase: {
+		include: {
+			client: true,
+			prodotto: { include: { membership: true, entranceSet: true } },
+		},
+	},
+} satisfies Prisma.EntranceInclude;
+
+type RegisterEntranceInput = {
+	clientId: number;
+	date?: Date;
+};
+
+/**
+ * Register Ingresso for a Cliente: pick justifying Acquisto in one $transaction
+ * (RepeatableRead + FOR UPDATE on the client's purchases), then insert by purchaseId only.
+ */
+export async function registerEntrance({
+	clientId,
+	date,
+}: RegisterEntranceInput): Promise<EntranceRow> {
+	const at = date ?? new Date();
+
+	return await db.$transaction(
+		async (tx) => {
+			await tx.$queryRaw`
+				SELECT \`id\` FROM \`acquisti\` WHERE \`id_cliente\` = ${clientId} FOR UPDATE
+			`;
+
+			const purchases = await tx.purchase.findMany({
+				where: { clientId },
+				include: { _count: { select: { entrances: true } } },
+			});
+
+			const candidates: PurchaseCandidate[] = purchases.map((p) => ({
+				id: p.id,
+				date: p.date,
+				duration: p.duration,
+				entranceNumber: p.entranceNumber,
+				usedEntranceCount: p._count.entrances,
+			}));
+
+			const purchaseId = selectJustifyingPurchaseId(candidates, at);
+			if (purchaseId == null) {
+				throw new Error(NO_JUSTIFYING_PURCHASE_ERROR);
+			}
+
+			return await tx.entrance.create({
+				data: {
+					date: at,
+					purchaseId,
+				},
+				include: entranceInclude,
+			});
+		},
+		{ isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+	);
 }
 
-export async function getAllEntrances() {
+/** Alias used by the Ingressi form — same domain registration path. */
+export async function createEntrance(input: RegisterEntranceInput) {
+	return registerEntrance(input);
+}
+
+export async function getAllEntrances(): Promise<EntranceRow[]> {
 	return await db.entrance.findMany({
-		include: {
-			client: true
-		}
+		include: entranceInclude,
+		orderBy: [{ date: "desc" }, { id: "desc" }],
 	});
 }
 
-export async function getEntrance(clientId: number, date: Date) {
+export async function getEntrance(id: number): Promise<EntranceRow | null> {
 	return await db.entrance.findUnique({
-		where: {
-			clientId_date: {
-				clientId,
-				date
-			}
-		},
-		include: {
-			client: true
-		}
+		where: { id },
+		include: entranceInclude,
 	});
 }
 
-export async function editEntrance({ clientId, date }: Entrance) {
-	return await db.entrance.update({
-		where: {
-			clientId_date: {
-				clientId,
-				date
+type EditEntranceInput = {
+	id: number;
+	date: Date;
+	/** Optional: re-justify for another Cliente; defaults to current purchase's client. */
+	clientId?: number;
+};
+
+/**
+ * Update Ingresso by id. Recomputes justifying Acquisto for the (client, date)
+ * with the same transaction + tie-break rules as registration.
+ */
+export async function editEntrance({
+	id,
+	date,
+	clientId,
+}: EditEntranceInput): Promise<EntranceRow> {
+	return await db.$transaction(
+		async (tx) => {
+			const existing = await tx.entrance.findUnique({
+				where: { id },
+				include: { purchase: true },
+			});
+			if (!existing) {
+				throw new Error(`Ingresso non trovato: ${id}`);
 			}
+
+			const resolvedClientId = clientId ?? existing.purchase.clientId;
+
+			await tx.$queryRaw`
+				SELECT \`id\` FROM \`acquisti\` WHERE \`id_cliente\` = ${resolvedClientId} FOR UPDATE
+			`;
+
+			const purchases = await tx.purchase.findMany({
+				where: { clientId: resolvedClientId },
+				include: {
+					entrances: {
+						where: { id: { not: id } },
+						select: { id: true },
+					},
+				},
+			});
+
+			const candidates: PurchaseCandidate[] = purchases.map((p) => ({
+				id: p.id,
+				date: p.date,
+				duration: p.duration,
+				entranceNumber: p.entranceNumber,
+				usedEntranceCount: p.entrances.length,
+			}));
+
+			const purchaseId = selectJustifyingPurchaseId(candidates, date);
+			if (purchaseId == null) {
+				throw new Error(NO_JUSTIFYING_PURCHASE_ERROR);
+			}
+
+			return await tx.entrance.update({
+				where: { id },
+				data: {
+					date,
+					purchaseId,
+				},
+				include: entranceInclude,
+			});
 		},
-		data: {
-			date
-		}
-	});
+		{ isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+	);
 }
 
-export async function deleteEntrance({ clientId, date }: { clientId: number; date: Date }) {
+export async function deleteEntrance({ id }: { id: number }) {
 	return await db.entrance.delete({
-		where: {
-			clientId_date: {
-				clientId,
-				date
-			}
-		}
+		where: { id },
 	});
 }
 
@@ -76,14 +193,14 @@ export async function getDailyEntrances(startDate: Date, endDate: Date): Promise
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {
-			date: true
+			date: true,
 		},
 		where: {
 			date: {
 				gte: startDate,
-				lte: endDate
-			}
-		}
+				lte: endDate,
+			},
+		},
 	});
 	const totalEntrances = new Array(24).fill(0);
 	for (const entrance of entrances) {
@@ -92,7 +209,7 @@ export async function getDailyEntrances(startDate: Date, endDate: Date): Promise
 	}
 	return Array.from({ length: 24 }, (_, hour) => ({
 		hourOfDay: `${hour.toString().padStart(2, "0")}:00`,
-		totalEntrances: totalEntrances[hour]
+		totalEntrances: totalEntrances[hour],
 	}));
 }
 
@@ -100,14 +217,14 @@ export async function getWeeklyEntrances(startDate: Date, endDate: Date): Promis
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {
-			date: true
+			date: true,
 		},
 		where: {
 			date: {
 				gte: startDate,
-				lte: endDate
-			}
-		}
+				lte: endDate,
+			},
+		},
 	});
 	const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 	const weekdayCounts = new Array(7).fill(0);
@@ -117,22 +234,25 @@ export async function getWeeklyEntrances(startDate: Date, endDate: Date): Promis
 	}
 	return weekdays.map((day, index) => ({
 		dayOfWeek: day,
-		totalEntrances: weekdayCounts[index]
+		totalEntrances: weekdayCounts[index],
 	}));
 }
 
-export async function getMonthlyEntrances(startDate: Date, endDate: Date): Promise<MonthlyEntrances[]> {
+export async function getMonthlyEntrances(
+	startDate: Date,
+	endDate: Date
+): Promise<MonthlyEntrances[]> {
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {
-			date: true
+			date: true,
 		},
 		where: {
 			date: {
 				gte: startDate,
-				lte: endDate
-			}
-		}
+				lte: endDate,
+			},
+		},
 	});
 	const months = [
 		"January",
@@ -146,7 +266,7 @@ export async function getMonthlyEntrances(startDate: Date, endDate: Date): Promi
 		"September",
 		"October",
 		"November",
-		"December"
+		"December",
 	];
 	const monthCounts = new Array(12).fill(0);
 	for (const entrance of entrances) {
@@ -155,6 +275,6 @@ export async function getMonthlyEntrances(startDate: Date, endDate: Date): Promi
 	}
 	return months.map((month, index) => ({
 		month: month,
-		totalEntrances: monthCounts[index]
+		totalEntrances: monthCounts[index],
 	}));
 }

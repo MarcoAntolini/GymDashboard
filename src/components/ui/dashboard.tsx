@@ -8,6 +8,7 @@ import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ComponentType, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Form } from "./form";
 
@@ -58,11 +59,18 @@ const DialogAction = ({ action }: { action: Action }) => {
 	});
 
 	function onSubmit(values: z.infer<typeof action.formData.formSchema>) {
-		action.formData.submitAction(values).then(() => {
-			form.reset();
-			setIsDialogOpen(false);
-			router.refresh();
-		});
+		action.formData
+			.submitAction(values)
+			.then(() => {
+				form.reset();
+				setIsDialogOpen(false);
+				router.refresh();
+			})
+			.catch((err: unknown) => {
+				const message =
+					err instanceof Error ? err.message : "Operazione non riuscita.";
+				toast.error(message);
+			});
 	}
 
 	useEffect(() => {

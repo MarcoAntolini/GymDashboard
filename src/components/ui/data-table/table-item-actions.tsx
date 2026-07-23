@@ -60,10 +60,16 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	});
 
 	function onEditSubmit(values: z.infer<TFormSchema>) {
-		editAction({ values }).then(() => {
-			setIsEditDialogOpen(false);
-			router.refresh();
-		});
+		editAction({ values })
+			.then(() => {
+				setIsEditDialogOpen(false);
+				router.refresh();
+			})
+			.catch((err: unknown) => {
+				const message =
+					err instanceof Error ? err.message : "Modifica non riuscita.";
+				toast.error(message);
+			});
 	}
 
 	function onDeleteSubmit() {
