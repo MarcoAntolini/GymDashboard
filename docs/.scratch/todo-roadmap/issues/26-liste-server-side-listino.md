@@ -4,7 +4,11 @@
 
 **Blocked by:** 19 — Fondamenta liste server-side (filtri Conferma, sort, paginazione)
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+## Comments
+
+- 2026-07-23T23:28:29Z — claimed by implement loop (cloud)
 
 - [ ] List Listino non filtra più l’intero dataset solo in frontend
 - [ ] Conferma/Filtra esegue la query; keystroke nei filtri non martellano il backend
