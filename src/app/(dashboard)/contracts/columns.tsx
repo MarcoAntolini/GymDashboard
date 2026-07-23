@@ -5,17 +5,45 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	CONTRACT_ENDING_DATE_BEFORE_START_ERROR,
+	CONTRACT_ENDING_DATE_REQUIRED_ERROR,
+	formatContractEndingDateDisplay,
+	isFixedTermContract,
+} from "@/lib/domain/contract-term";
 import { Contract, ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
+import { ContractEndingDateField } from "./contract-ending-date-field";
 
-export const formSchema = z.object({
-	employeeId: z.number().int().positive("Must select an employee"),
-	type: z.nativeEnum(ContractType),
-	hourlyFee: z.number().positive(),
-	startingDate: z.date(),
-	endingDate: z.date().optional()
-});
+export const formSchema = z
+	.object({
+		employeeId: z.number().int().positive("Must select an employee"),
+		type: z.nativeEnum(ContractType),
+		hourlyFee: z.number().positive(),
+		startingDate: z.date(),
+		endingDate: z.date().optional(),
+	})
+	.superRefine((data, ctx) => {
+		if (!isFixedTermContract(data.type)) {
+			return;
+		}
+		if (!data.endingDate) {
+			ctx.addIssue({
+				code: "custom",
+				message: CONTRACT_ENDING_DATE_REQUIRED_ERROR,
+				path: ["endingDate"],
+			});
+			return;
+		}
+		if (data.endingDate.getTime() < data.startingDate.getTime()) {
+			ctx.addIssue({
+				code: "custom",
+				message: CONTRACT_ENDING_DATE_BEFORE_START_ERROR,
+				path: ["endingDate"],
+			});
+		}
+	});
 
 export const columns = (
 	handleDelete: (contract: Pick<Contract, "employeeId" | "startingDate">) => Promise<void>,
@@ -66,8 +94,11 @@ export const columns = (
 		accessorKey: "endingDate",
 		header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
 		cell: ({ row }) => {
-			const date = row.getValue("endingDate");
-			return date ? <div className="font-medium">{new Date(date as Date).toLocaleDateString()}</div> : <div>-</div>;
+			const label = formatContractEndingDateDisplay(
+				row.original.type,
+				row.original.endingDate
+			);
+			return <div className="font-medium">{label}</div>;
 		}
 	},
 	{
@@ -100,7 +131,7 @@ export const columns = (
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Contract Type</FormLabel>
-									<Select onValueChange={field.onChange} defaultValue={field.value}>
+									<Select onValueChange={field.onChange} value={field.value}>
 										<FormControl>
 											<SelectTrigger>
 												<SelectValue placeholder="Select a contract type" />
@@ -144,29 +175,17 @@ export const columns = (
 								</FormItem>
 							)}
 						/>
-						<FormField
-							name="endingDate"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Ending Date</FormLabel>
-									<FormControl>
-										<Input
-											type="date"
-											{...field}
-											onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						<ContractEndingDateField mode="input" />
 					</>
 				}
 				editAction={async ({ values }) => {
 					const updatedContract = {
 						...row.original,
-						...values
-					};
+						...values,
+						endingDate: isFixedTermContract(values.type)
+							? (values.endingDate ?? null)
+							: null,
+					} as Contract;
 					await handleEdit(updatedContract);
 				}}
 				deleteAction={() =>

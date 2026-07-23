@@ -28,6 +28,7 @@ import { format } from "date-fns";
 import { Calculator, Calendar as CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
+import { ContractEndingDateField } from "./contract-ending-date-field";
 import { columns, formSchema } from "./columns";
 
 const earningsFormSchema = z.object({
@@ -163,7 +164,7 @@ export default function Contracts() {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Contract Type</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select onValueChange={field.onChange} value={field.value}>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue placeholder="Select a contract type" />
@@ -231,42 +232,7 @@ export default function Contracts() {
 									</FormItem>
 								)}
 							/>
-							<FormField
-								name="endingDate"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Ending Date</FormLabel>
-										<FormControl>
-											<Popover>
-												<PopoverTrigger asChild>
-													<FormControl>
-														<Button
-															variant={"outline"}
-															className={cn(
-																"w-full pl-3 text-left font-normal",
-																!field.value && "text-muted-foreground"
-															)}
-														>
-															{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-															<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-														</Button>
-													</FormControl>
-												</PopoverTrigger>
-												<PopoverContent className="w-auto p-0" align="start">
-													<Calendar
-														mode="single"
-														selected={field.value}
-														onSelect={field.onChange}
-														disabled={(date) => date < new Date("1900-01-01")}
-														defaultMonth={field.value || new Date()}
-													/>
-												</PopoverContent>
-											</Popover>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+							<ContractEndingDateField mode="calendar" />
 						</>
 					)}
 				</>

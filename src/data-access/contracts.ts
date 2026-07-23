@@ -5,6 +5,10 @@ import {
 	contractIntervalsOverlap,
 	type ContractInterval,
 } from "@/lib/domain/contract-intervals";
+import {
+	assertContractEndingDate,
+	normalizeContractEndingDate,
+} from "@/lib/domain/contract-term";
 import { db } from "@/lib/db";
 import { Contract, ContractType } from "@prisma/client";
 
@@ -52,12 +56,15 @@ export async function createContract({
 	type: ContractType;
 	hourlyFee: number;
 	startingDate: Date;
-	endingDate?: Date;
+	endingDate?: Date | null;
 }) {
+	const normalizedEndingDate = normalizeContractEndingDate(type, endingDate);
+	assertContractEndingDate(type, startingDate, normalizedEndingDate);
+
 	await assertNoOverlappingContract({
 		employeeId,
 		startingDate,
-		endingDate: endingDate ?? null,
+		endingDate: normalizedEndingDate,
 	});
 
 	return await db.contract.create({
@@ -66,7 +73,7 @@ export async function createContract({
 			type,
 			hourlyFee,
 			startingDate,
-			endingDate
+			endingDate: normalizedEndingDate
 		}
 	});
 }
@@ -87,11 +94,14 @@ export async function getContract(employeeId: number, startingDate: Date) {
 }
 
 export async function editContract({ employeeId, startingDate, type, hourlyFee, endingDate }: Contract) {
+	const normalizedEndingDate = normalizeContractEndingDate(type, endingDate);
+	assertContractEndingDate(type, startingDate, normalizedEndingDate);
+
 	await assertNoOverlappingContract(
 		{
 			employeeId,
 			startingDate,
-			endingDate: endingDate ?? null,
+			endingDate: normalizedEndingDate,
 		},
 		{ employeeId, startingDate }
 	);
@@ -106,7 +116,7 @@ export async function editContract({ employeeId, startingDate, type, hourlyFee, 
 		data: {
 			type,
 			hourlyFee,
-			endingDate
+			endingDate: normalizedEndingDate
 		}
 	});
 }
