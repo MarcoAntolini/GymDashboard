@@ -1,10 +1,24 @@
 "use server";
 
 import { requireRole } from "@/lib/auth";
+import {
+	CATALOG_LIST_DEFAULT_SORT,
+	CATALOG_LIST_SORT_COLUMNS,
+	buildCatalogListWhere,
+	catalogListHasActiveFilters,
+} from "@/lib/domain/catalog-list-query";
 import { formatCatalogPrice } from "@/lib/domain/catalog-price";
+import { listEmptyKind } from "@/lib/domain/list-query";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { deriveProductKind, type ProductKind } from "@/lib/domain/product-kind";
 import { db } from "@/lib/db";
+import {
+	prismaOrderBy,
+	runListQuery,
+	toPrismaSkipTake,
+	type ListQueryInput,
+	type ListQueryResult,
+} from "@/data-access/list-query";
 import { Catalog, Prisma } from "@prisma/client";
 
 /**
@@ -76,6 +90,70 @@ export async function createCatalog(input: CatalogWriteInput): Promise<CatalogRo
 	return toCatalogRow(created);
 }
 
+export type CatalogListResult = ListQueryResult<CatalogRow> & {
+	/** Count with no filters — for empty-state kind (dataset vs filters). */
+	totalUnfiltered: number;
+	emptyKind: ReturnType<typeof listEmptyKind>;
+};
+
+/**
+ * Server-side Listino list (ticket 26): filters + ORDER BY + LIMIT/OFFSET.
+ * Call only on Filtra / sort / page change — not on every keystroke.
+ */
+export async function listCatalogs(
+	input: ListQueryInput
+): Promise<CatalogListResult> {
+	await requireRole("Employee");
+
+	let totalUnfiltered = 0;
+
+	const result = await runListQuery(
+		input,
+		async (params) => {
+			const where = buildCatalogListWhere(
+				params.filters
+			) as Prisma.CatalogWhereInput;
+			const orderBy =
+				prismaOrderBy(params.sort, CATALOG_LIST_DEFAULT_SORT) ??
+				prismaOrderBy(CATALOG_LIST_DEFAULT_SORT);
+			const skipTake = toPrismaSkipTake(params);
+
+			const needsUnfiltered = catalogListHasActiveFilters(params.filters);
+
+			const [rows, total, unfiltered] = await Promise.all([
+				db.catalog.findMany({
+					where,
+					include: catalogInclude,
+					orderBy,
+					...skipTake,
+				}),
+				db.catalog.count({ where }),
+				needsUnfiltered
+					? db.catalog.count()
+					: Promise.resolve(null as number | null),
+			]);
+
+			totalUnfiltered = unfiltered ?? total;
+			return { rows: rows.map(toCatalogRow), total };
+		},
+		{
+			allowedSortColumns: CATALOG_LIST_SORT_COLUMNS,
+			defaultSort: CATALOG_LIST_DEFAULT_SORT,
+		}
+	);
+
+	return {
+		...result,
+		totalUnfiltered,
+		emptyKind: listEmptyKind({
+			totalUnfiltered,
+			total: result.total,
+			rowCount: result.rows.length,
+		}),
+	};
+}
+
+/** Full table — prefer {@link listCatalogs} for the Listino page list. */
 export async function getAllCatalogs(): Promise<CatalogRow[]> {
 	await requireRole("Employee");
 	const catalogs = await db.catalog.findMany({

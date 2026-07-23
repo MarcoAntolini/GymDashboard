@@ -2,7 +2,8 @@
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
-import { DataTable } from "@/components/ui/data-table";
+import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
+import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,10 +12,16 @@ import {
 	createCatalog,
 	deleteCatalog,
 	editCatalog,
-	getAllCatalogs,
+	listCatalogs,
+	type CatalogListResult,
 } from "@/data-access/catalogs";
 import { getAllProducts } from "@/data-access/products";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useServerListQuery } from "@/hooks/useServerListQuery";
+import {
+	CATALOG_LIST_DEFAULT_SORT,
+	CATALOG_LIST_FILTER_IDS,
+	CATALOG_LIST_SORT_COLUMNS,
+} from "@/lib/domain/catalog-list-query";
 import {
 	PRODUCT_KIND_LABELS,
 	PRODUCT_KINDS,
@@ -26,44 +33,42 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { CatalogProductOption, columns, formSchema } from "./columns";
 
-export default function CatalogsPage() {
-	const {
-		data: catalogs,
-		setData: setCatalogs,
-		isLoading,
-		handleDelete,
-		handleEdit,
-	} = useEntityData<CatalogRow, "year" | "productCode">(
-		useMemo(
-			() => ({
-				getAll: getAllCatalogs,
-				deleteAction: (async ({
-					year,
-					productCode,
-				}: Pick<CatalogRow, "year" | "productCode">) => {
-					await deleteCatalog({ year, productCode });
-					return { year, productCode } as CatalogRow;
-				}) as (
-					entity: Pick<CatalogRow, "year" | "productCode">
-				) => Promise<CatalogRow>,
-				editAction: async (entity: CatalogRow) => {
-					await editCatalog({
-						year: entity.year,
-						productCode: entity.productCode,
-						price: entity.price,
-					});
-					return entity;
-				},
-			}),
-			[]
-		),
-		["year", "productCode"]
-	);
+const CATALOG_FILTER_FIELDS: ServerListFilterField[] = [
+	{ id: "year", label: "Anno", placeholder: "Anno" },
+	{ id: "productCode", label: "Codice prodotto", placeholder: "Codice prodotto" },
+];
 
+const EMPTY_FILTERS = Object.fromEntries(
+	CATALOG_LIST_FILTER_IDS.map((id) => [id, ""])
+) as Record<(typeof CATALOG_LIST_FILTER_IDS)[number], string>;
+
+export default function CatalogsPage() {
+	const listQuery = useServerListQuery({
+		allowedSortColumns: CATALOG_LIST_SORT_COLUMNS,
+		defaultSort: CATALOG_LIST_DEFAULT_SORT,
+		initialFilters: EMPTY_FILTERS,
+	});
+
+	const [result, setResult] = useState<CatalogListResult | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 	const [products, setProducts] = useState<CatalogProductOption[]>([]);
 	/** Local UI filter only — never written on Listino. */
 	const [selectedKind, setSelectedKind] = useState<ProductKind>("Membership");
 	const [filteredProducts, setFilteredProducts] = useState<CatalogProductOption[]>([]);
+
+	const fetchList = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const next = await listCatalogs(listQuery.input);
+			setResult(next);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [listQuery.input]);
+
+	useEffect(() => {
+		void fetchList();
+	}, [fetchList]);
 
 	useEffect(() => {
 		const loadProducts = async () => {
@@ -79,12 +84,37 @@ export default function CatalogsPage() {
 		);
 	}, [selectedKind, products]);
 
+	const handleDelete = useCallback(
+		async (catalog: Pick<CatalogRow, "year" | "productCode">) => {
+			await deleteCatalog(catalog);
+			await fetchList();
+		},
+		[fetchList]
+	);
+
+	const handleEdit = useCallback(
+		async (catalog: CatalogRow) => {
+			await editCatalog({
+				year: catalog.year,
+				productCode: catalog.productCode,
+				price: catalog.price,
+			});
+			await fetchList();
+		},
+		[fetchList]
+	);
+
 	const handleCreateCatalog = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newCatalog = await createCatalog(values);
-			setCatalogs((prevCatalogs) => [...prevCatalogs, newCatalog]);
+			await createCatalog(values);
+			await fetchList();
 		},
-		[setCatalogs]
+		[fetchList]
+	);
+
+	const tableColumns = useMemo(
+		() => columns(handleDelete, handleEdit),
+		[handleDelete, handleEdit]
 	);
 
 	const actions: Action[] = [
@@ -195,17 +225,34 @@ export default function CatalogsPage() {
 		},
 	];
 
-	return isLoading ? (
+	const showPlaceholder = isLoading && result === null;
+
+	return showPlaceholder ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={actions}
 			table={
-				<DataTable
-					columns={columns(handleDelete, handleEdit)}
-					data={catalogs}
-					filters={["year", "productCode"]}
-					facetedFilters={["year", "productKind"]}
+				<ServerDataTable
+					columns={tableColumns}
+					data={result?.rows ?? []}
+					total={result?.total ?? 0}
+					page={listQuery.page}
+					pageSize={listQuery.pageSize}
+					pageCount={result?.pageCount ?? 0}
+					sort={listQuery.sort}
+					onSortChange={listQuery.setSort}
+					onPageChange={listQuery.setPage}
+					onPageSizeChange={listQuery.setPageSize}
+					filterFields={CATALOG_FILTER_FIELDS}
+					draftFilters={listQuery.draftFilters}
+					onDraftFilterChange={listQuery.setDraftFilter}
+					onApplyFilters={listQuery.applyFilters}
+					onResetFilters={listQuery.resetFilters}
+					isFilterDirty={listQuery.isFilterDirty}
+					hasAppliedFilters={listQuery.hasAppliedFilters}
+					emptyKind={result?.emptyKind ?? null}
+					datasetEmptyMessage="Nessuna voce di listino registrata."
 				/>
 			}
 		/>
