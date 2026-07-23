@@ -1,0 +1,31 @@
+{
+  "name": "GymDashboard ticket frontier chain",
+  "description": "After each push to ticket-loop, implement one unblocked roadmap ticket and push again. Stop with no push when the frontier is empty.",
+  "workflow": {
+    "triggers": [
+      {
+        "git": {
+          "push": {
+            "repos": ["MarcoAntolini/GymDashboard"],
+            "branches": ["ticket-loop"]
+          }
+        }
+      }
+    ],
+    "actions": [],
+    "prompts": [
+      {
+        "prompt": "You are the GymDashboard ticket-loop cloud worker.\n\nFollow docs/.scratch/todo-roadmap/LOOP.md in **cloud mode on branch ticket-loop** — implement **exactly one** ticket, then stop.\n\nHard rules:\n1. Checkout/work only on branch `ticket-loop`. Do NOT push to `main`. Do NOT create a new `cursor/*` branch for this work; stay on `ticket-loop`.\n2. Scan docs/.scratch/todo-roadmap/issues/. Pick the lowest-number ticket that is Status ready-for-agent (or reclaimable claimed) and whose Blocked by tickets are all Status resolved (or has no blockers).\n3. Set Status to claimed BEFORE coding.\n4. Implement only that ticket's acceptance criteria. Use project skills under .agents/skills/ when relevant (impeccable, shadcn, implement, tdd, code-review). Use CONTEXT.md, PRODUCT.md, DESIGN.md for domain/UI.\n5. Mark AC done, set Status resolved, append ## Done with a short summary.\n6. Commit with a clear message referencing the ticket number.\n7. git push origin ticket-loop (no force-push).\n\nIf the frontier is empty OR you hit a HARD STOP (unresolvable conflict, product decision missing, destructive DB work not authorized by the ticket): make **no commit** and **no push**, explain why, and exit.\n\nNever implement a second ticket in the same run."
+      }
+    ],
+    "model": "",
+    "agentOptions": {
+      "skipInstall": false
+    },
+    "memoryEnabled": true,
+    "gitConfig": {
+      "repo": "MarcoAntolini/GymDashboard",
+      "branch": "ticket-loop"
+    }
+  }
+}
