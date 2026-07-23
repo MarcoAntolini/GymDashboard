@@ -4,7 +4,7 @@
 
 **Blocked by:** 12 — Capture product context with Impeccable init; 14 — Ruolo Owner + gerarchia
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Etichette nav dal glossario di dominio (CONTEXT.md)
 - [ ] Voci raggruppate in sezioni con senso operativo
