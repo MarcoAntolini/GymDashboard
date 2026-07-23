@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 — CRUD actions and form feedback
 
-**Status:** done
+**Status:** ready-for-agent
 
 ## Agent workflow (Impeccable) — obbligatorio
 
@@ -16,12 +16,12 @@
 
 ## Acceptance criteria
 
-- [x] Registrazione Ingresso espone/rispetta la giustificazione via Acquisto (priorità abbonamento/pacchetto come da requisiti); fallimenti di giustificazione sono comprensibili
-- [x] Nessuna UI presenta “ingressi rimanenti” come campo persistito del Cliente; il residuo pacchetto è per Acquisto (derivato)
-- [x] Lista/dettaglio Pagamenti mostra o rende ispezionabili i campi della specializzazione, non solo tipo generico
-- [x] Listino/Acquisto: anno listino e snapshot importo sono comprensibili in UI
-- [x] Tentativo di delete vietato da Restrict spiega perché non si può eliminare
-- [x] Critique Impeccable eseguito; P0/P1 di fedeltà dominio-in-UI risolti o deferred con motivo
+- [ ] Registrazione Ingresso espone/rispetta la giustificazione via Acquisto (priorità abbonamento/pacchetto come da requisiti); fallimenti di giustificazione sono comprensibili
+- [ ] Nessuna UI presenta “ingressi rimanenti” come campo persistito del Cliente; il residuo pacchetto è per Acquisto (derivato)
+- [ ] Lista/dettaglio Pagamenti mostra o rende ispezionabili i campi della specializzazione, non solo tipo generico
+- [ ] Listino/Acquisto: anno listino e snapshot importo sono comprensibili in UI
+- [ ] Tentativo di delete vietato da Restrict spiega perché non si può eliminare
+- [ ] Critique Impeccable eseguito; P0/P1 di fedeltà dominio-in-UI risolti o deferred con motivo
 
 ## Glossary
 

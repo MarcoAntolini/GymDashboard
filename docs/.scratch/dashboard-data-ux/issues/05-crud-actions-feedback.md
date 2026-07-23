@@ -4,7 +4,7 @@
 
 **Blocked by:** 04 — Core entity tables: columns, filters, formatting
 
-**Status:** done
+**Status:** ready-for-agent
 
 ## Agent workflow (Impeccable) — obbligatorio
 
@@ -16,12 +16,12 @@
 
 ## Acceptance criteria
 
-- [x] Feedback errore create/edit/delete è coerente (niente mix alert/toast/silenzio sulla stessa shell)
-- [x] Submit disabilita / mostra loading mentre la mutazione è in corso; dialog non chiude su fallimento
-- [x] Se alcune tabelle non espongono create locale, l’UI spiega dove creare (es. specializzazioni Pagamento)
-- [x] Edit di Pagamento non lascia i dettagli di specializzazione inconsistenti rispetto a data/importo/tipo
-- [x] Copy dialog/confirm usa termini di dominio e spiega conseguenze (soprattutto delete con Restrict)
-- [x] Critique Impeccable eseguito; P0/P1 su azioni risolti o deferred con motivo
+- [ ] Feedback errore create/edit/delete è coerente (niente mix alert/toast/silenzio sulla stessa shell)
+- [ ] Submit disabilita / mostra loading mentre la mutazione è in corso; dialog non chiude su fallimento
+- [ ] Se alcune tabelle non espongono create locale, l’UI spiega dove creare (es. specializzazioni Pagamento)
+- [ ] Edit di Pagamento non lascia i dettagli di specializzazione inconsistenti rispetto a data/importo/tipo
+- [ ] Copy dialog/confirm usa termini di dominio e spiega conseguenze (soprattutto delete con Restrict)
+- [ ] Critique Impeccable eseguito; P0/P1 su azioni risolti o deferred con motivo
 
 ## Glossary
 

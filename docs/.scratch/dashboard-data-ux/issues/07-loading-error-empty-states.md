@@ -4,7 +4,7 @@
 
 **Blocked by:** 04 — Core entity tables: columns, filters, formatting; 05 — CRUD actions and form feedback
 
-**Status:** done
+**Status:** ready-for-agent
 
 ## Agent workflow (Impeccable) — obbligatorio
 
@@ -16,11 +16,11 @@
 
 ## Acceptance criteria
 
-- [x] Se il caricamento lista fallisce, lo spinner non resta indefinito: compare stato errore con possibilità di riprovare o messaggio actionable
-- [x] Loading state è coerente sulla shell condivisa (stesso pattern tra entità toccate)
-- [x] Empty state (zero record, non solo filtri) spiega cosa fare dopo (es. crea Cliente / registra Ingresso) senza jargon tecnico
-- [x] Empty da filtri resta distinto da empty dataset, se entrambi esistono
-- [x] Critique/audit Impeccable eseguito; P0/P1 su stati risolti o deferred con motivo
+- [ ] Se il caricamento lista fallisce, lo spinner non resta indefinito: compare stato errore con possibilità di riprovare o messaggio actionable
+- [ ] Loading state è coerente sulla shell condivisa (stesso pattern tra entità toccate)
+- [ ] Empty state (zero record, non solo filtri) spiega cosa fare dopo (es. crea Cliente / registra Ingresso) senza jargon tecnico
+- [ ] Empty da filtri resta distinto da empty dataset, se entrambi esistono
+- [ ] Critique/audit Impeccable eseguito; P0/P1 su stati risolti o deferred con motivo
 
 ## Glossary
 

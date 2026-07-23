@@ -3,17 +3,18 @@
 **What to build:** L’operatore registra un Ingresso scegliendo solo il Cliente (e data opzionale). Il sistema, in una singola transazione DB, collega l’Ingresso all’Acquisto giusto: preferenza Abbonamento valido più recente; altrimenti Pacchetto con residuo > 0 in FIFO; se nessuno, errore di dominio. La UI non manda `clientId` a Prisma create; tabella e CRUD usano `id` e mostrano Acquisto/Prodotto (Cliente via Acquisto).
 
 **Blocked by:**
+
 - 01 — Migrate + reset DB al nuovo schema Prisma
 - 04 — Acquisti: PK surrogata, snapshot importo, niente tipo
 
-**Status:** done
+**Status:** ready-for-agent
 
-- [x] `registerEntrance(clientId, date?)` (o equivalente) implementa l’algoritmo di `03-schema-logico.md` in `$transaction` — nessuna invenzione di regole nuove
-- [x] Tie-break: Abbonamento con `date ∈ [acquisto.date, acquisto.date + duration)` → max `(date, id)`; altrimenti Pacchetto con `residuo = entranceNumber − COUNT(ingressi)` > 0 → min `(date, id)`
-- [x] Nessun candidato → errore di dominio chiaro in UI
-- [x] Get/edit/delete Ingresso per `id`; list include purchase → client + prodotto
-- [x] Form Ingressi: pick Cliente; non richiede `purchaseId` (niente override admin in questo ticket)
-- [x] Almeno casi sequenziali verificabili: membership preferred, FIFO pacchetto, reject a residuo 0 (TDD consigliato)
+- [ ] `registerEntrance(clientId, date?)` (o equivalente) implementa l’algoritmo di `03-schema-logico.md` in `$transaction` — nessuna invenzione di regole nuove
+- [ ] Tie-break: Abbonamento con `date ∈ [acquisto.date, acquisto.date + duration)` → max `(date, id)`; altrimenti Pacchetto con `residuo = entranceNumber − COUNT(ingressi)` > 0 → min `(date, id)`
+- [ ] Nessun candidato → errore di dominio chiaro in UI
+- [ ] Get/edit/delete Ingresso per `id`; list include purchase → client + prodotto
+- [ ] Form Ingressi: pick Cliente; non richiede `purchaseId` (niente override admin in questo ticket)
+- [ ] Almeno casi sequenziali verificabili: membership preferred, FIFO pacchetto, reject a residuo 0 (TDD consigliato)
 
 ## Notes (agent)
 

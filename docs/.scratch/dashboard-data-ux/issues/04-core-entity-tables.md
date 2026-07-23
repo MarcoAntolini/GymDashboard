@@ -4,7 +4,7 @@
 
 **Blocked by:** 02 — Role enforcement and role-aware landing; 03 — Navigation IA and domain glossary labels
 
-**Status:** done
+**Status:** ready-for-agent
 
 ## Agent workflow (Impeccable) — obbligatorio
 
@@ -16,12 +16,12 @@
 
 ## Acceptance criteria
 
-- [x] Colonne delle entità core espongono campi usati nelle operazioni frequenti, non solo identificatori opachi
-- [x] Filtri/faceted preferiscono campi leggibili (nome Cliente, tipo, periodo) rispetto a soli id/FK dove ha senso
-- [x] Date e importi formattati in modo coerente col dominio (niente locale/valuta fuorvianti tipo USD di default se il contesto è IT)
-- [x] Empty state della tabella non è solo “No results.” generico: indica assenza dati o filtri e la prossima azione plausibile
-- [x] Pattern tabella condiviso resta coerente tra le entità toccate
-- [x] Critique Impeccable eseguito; P0/P1 su densità/hierarchy/filtri risolti o deferred con motivo
+- [ ] Colonne delle entità core espongono campi usati nelle operazioni frequenti, non solo identificatori opachi
+- [ ] Filtri/faceted preferiscono campi leggibili (nome Cliente, tipo, periodo) rispetto a soli id/FK dove ha senso
+- [ ] Date e importi formattati in modo coerente col dominio (niente locale/valuta fuorvianti tipo USD di default se il contesto è IT)
+- [ ] Empty state della tabella non è solo “No results.” generico: indica assenza dati o filtri e la prossima azione plausibile
+- [ ] Pattern tabella condiviso resta coerente tra le entità toccate
+- [ ] Critique Impeccable eseguito; P0/P1 su densità/hierarchy/filtri risolti o deferred con motivo
 
 ## Glossary
 

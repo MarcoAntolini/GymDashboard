@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Capture product context with Impeccable init
 
-**Status:** done
+**Status:** ready-for-agent
 
 ## Agent workflow (Impeccable) — obbligatorio
 
@@ -16,11 +16,11 @@
 
 ## Acceptance criteria
 
-- [x] Un Account con ruolo Dipendente che apre una URL Admin viene bloccato (redirect o errore chiaro), non vede i dati Admin
-- [x] Le server action / mutazioni Admin non sono eseguibili da un Dipendente
-- [x] Post-login (e redirect da route auth) atterraggio role-aware: non sempre la stessa destinazione Admin-only
-- [x] Amministratore continua a raggiungere tutte le aree previste
-- [x] Critique Impeccable eseguito e findings P0/P1 di auth/controllo indirizzati o esplicitamente deferred con motivo
+- [ ] Un Account con ruolo Dipendente che apre una URL Admin viene bloccato (redirect o errore chiaro), non vede i dati Admin
+- [ ] Le server action / mutazioni Admin non sono eseguibili da un Dipendente
+- [ ] Post-login (e redirect da route auth) atterraggio role-aware: non sempre la stessa destinazione Admin-only
+- [ ] Amministratore continua a raggiungere tutte le aree previste
+- [ ] Critique Impeccable eseguito e findings P0/P1 di auth/controllo indirizzati o esplicitamente deferred con motivo
 
 ## Glossary
 

@@ -4,12 +4,12 @@
 
 **Blocked by:** 01 — Migrate + reset DB al nuovo schema Prisma
 
-**Status:** done
+**Status:** ready-for-agent
 
-- [x] Create/edit/list Cliente non espongono né persistono `remainingEntrances`
-- [x] Mock e form/Zod allineati: nessun campo residuo sul Cliente
-- [x] (Opzionale) UI può mostrare residuo derivato da query, mai da colonna Cliente
-- [x] Delete Cliente con Acquisti dipendenti → errore utente-facing, nessun delete a cascata
+- [ ] Create/edit/list Cliente non espongono né persistono `remainingEntrances`
+- [ ] Mock e form/Zod allineati: nessun campo residuo sul Cliente
+- [ ] (Opzionale) UI può mostrare residuo derivato da query, mai da colonna Cliente
+- [ ] Delete Cliente con Acquisti dipendenti → errore utente-facing, nessun delete a cascata
 
 ## Notes (agent)
 

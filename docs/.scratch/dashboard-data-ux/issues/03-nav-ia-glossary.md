@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Capture product context with Impeccable init
 
-**Status:** done
+**Status:** ready-for-agent
 
 ## Agent workflow (Impeccable) — obbligatorio
 
@@ -16,11 +16,11 @@
 
 ## Acceptance criteria
 
-- [x] Etichette nav usano il glossario di dominio (es. Abbonamento / Pacchetto ingressi / Listino / Dipendente / Timbratura / Stipendio dove applicabile); niente mismatch grossolani tipo Memberships/Entrance Sets/Catalogs se il glossario impone altro
-- [x] Le voci sono raggruppate in sezioni con senso di dominio (non lista piatta senza gerarchia)
-- [x] Stato attivo della route corrente è chiaro; collapse resta usabile (label accessibili / tooltip)
-- [x] Rumore non operativo in header (es. generazione mock) non compete col brand/task principale, o è relegato in modo esplicito
-- [x] Critique Impeccable eseguito; P0/P1 di IA/copy nav risolti o deferred con motivo
+- [ ] Etichette nav usano il glossario di dominio (es. Abbonamento / Pacchetto ingressi / Listino / Dipendente / Timbratura / Stipendio dove applicabile); niente mismatch grossolani tipo Memberships/Entrance Sets/Catalogs se il glossario impone altro
+- [ ] Le voci sono raggruppate in sezioni con senso di dominio (non lista piatta senza gerarchia)
+- [ ] Stato attivo della route corrente è chiaro; collapse resta usabile (label accessibili / tooltip)
+- [ ] Rumore non operativo in header (es. generazione mock) non compete col brand/task principale, o è relegato in modo esplicito
+- [ ] Critique Impeccable eseguito; P0/P1 di IA/copy nav risolti o deferred con motivo
 
 ## Glossary
 

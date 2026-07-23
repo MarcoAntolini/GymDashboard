@@ -4,12 +4,12 @@
 
 **Blocked by:** 01 — Migrate + reset DB al nuovo schema Prisma
 
-**Status:** done
+**Status:** ready-for-agent
 
-- [x] Create Contratto con overlap sullo stesso Dipendente → reject
-- [x] Update Contratto che introdurrebbe overlap → reject
-- [x] Intervallo aperto (`endingDate` null) trattato come +∞ secondo la regola in `02-schema-er.md` §7
-- [x] Contratti non sovrapposti (adiacenti ok se la regola di half-open lo consente) vengono salvati
+- [ ] Create Contratto con overlap sullo stesso Dipendente → reject
+- [ ] Update Contratto che introdurrebbe overlap → reject
+- [ ] Intervallo aperto (`endingDate` null) trattato come +∞ secondo la regola in `02-schema-er.md` §7
+- [ ] Contratti non sovrapposti (adiacenti ok se la regola di half-open lo consente) vengono salvati
 
 ## Notes (agent)
 

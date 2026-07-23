@@ -4,7 +4,7 @@
 
 **Blocked by:** 06 — Domain fidelity visible in the UI; 07 — Loading, error, and empty states on entity shell
 
-**Status:** done
+**Status:** ready-for-agent
 
 ## Agent workflow (Impeccable) — obbligatorio
 
@@ -17,11 +17,11 @@
 
 ## Acceptance criteria
 
-- [x] Esiste una route home/overview raggiungibile dopo login (role-aware se necessario)
-- [x] Mostra aggregate entrate (Acquisti) e uscite (Pagamenti) su periodo, più eventuali misure davvero utili (es. Ingressi) — non vanity metrics
-- [x] Allineata ai requisiti “statistiche”; riusa pattern chart/sheet già presenti solo se coerenti
-- [x] Stati loading/empty/error della overview sono usabili
-- [x] Critique Impeccable post-implementazione eseguito; P0/P1 risolti o deferred con motivo
+- [ ] Esiste una route home/overview raggiungibile dopo login (role-aware se necessario)
+- [ ] Mostra aggregate entrate (Acquisti) e uscite (Pagamenti) su periodo, più eventuali misure davvero utili (es. Ingressi) — non vanity metrics
+- [ ] Allineata ai requisiti “statistiche”; riusa pattern chart/sheet già presenti solo se coerenti
+- [ ] Stati loading/empty/error della overview sono usabili
+- [ ] Critique Impeccable post-implementazione eseguito; P0/P1 risolti o deferred con motivo
 
 ## Glossary
 

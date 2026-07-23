@@ -4,12 +4,12 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** done
+**Status:** ready-for-agent
 
-- [x] Migration generata dallo schema target applicata (o reset equivalente) senza errori
-- [x] `prisma generate` lascia un client coerente con lo schema
-- [x] Verificato che le colonne/relazioni obsolete non esistano più nel DB (es. `clienti.ingressi_rimanenti`, `acquisti.tipo`, `listini.tipo`, PK composite vecchie su ingressi)
-- [x] Nessun redesign ER: solo allineamento DDL allo schema già deciso
+- [ ] Migration generata dallo schema target applicata (o reset equivalente) senza errori
+- [ ] `prisma generate` lascia un client coerente con lo schema
+- [ ] Verificato che le colonne/relazioni obsolete non esistano più nel DB (es. `clienti.ingressi_rimanenti`, `acquisti.tipo`, `listini.tipo`, PK composite vecchie su ingressi)
+- [ ] Nessun redesign ER: solo allineamento DDL allo schema già deciso
 
 ## Notes (agent)
 

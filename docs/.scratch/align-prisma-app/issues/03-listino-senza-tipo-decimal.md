@@ -4,12 +4,12 @@
 
 **Blocked by:** 01 — Migrate + reset DB al nuovo schema Prisma
 
-**Status:** done
+**Status:** ready-for-agent
 
-- [x] CRUD Listino usa solo la chiave composta `(year, productCode)` — niente `tipo` in payload/schema Zod/mock
-- [x] Il selettore tipo in UI filtra i Prodotti (membership XOR entranceSet) ma non scrive un campo tipo sul Listino
-- [x] Prezzi gestiti come Decimal (o stringa a 2 decimali) in create/edit e mock
-- [x] List/edit/delete per chiave composta funzionano dopo la migrate
+- [ ] CRUD Listino usa solo la chiave composta `(year, productCode)` — niente `tipo` in payload/schema Zod/mock
+- [ ] Il selettore tipo in UI filtra i Prodotti (membership XOR entranceSet) ma non scrive un campo tipo sul Listino
+- [ ] Prezzi gestiti come Decimal (o stringa a 2 decimali) in create/edit e mock
+- [ ] List/edit/delete per chiave composta funzionano dopo la migrate
 
 ## Notes (agent)
 

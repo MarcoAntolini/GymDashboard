@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** done
+**Status:** ready-for-agent
 
 ## Agent workflow (Impeccable) — obbligatorio
 
@@ -15,10 +15,10 @@
 
 ## Acceptance criteria
 
-- [x] Esiste contesto prodotto persistito leggibile dai comandi Impeccable successivi (es. PRODUCT.md / Design Context)
-- [x] Il contesto riflette dominio palestra OLTP: Amministratore vs Dipendente, operazioni quotidiane (Ingressi, Acquisti, Pagamenti), non marketing landing
-- [x] Register impostato come product/dashboard (design serves the task)
-- [x] Nessun redesign UI in questo ticket
+- [ ] Esiste contesto prodotto persistito leggibile dai comandi Impeccable successivi (es. PRODUCT.md / Design Context)
+- [ ] Il contesto riflette dominio palestra OLTP: Amministratore vs Dipendente, operazioni quotidiane (Ingressi, Acquisti, Pagamenti), non marketing landing
+- [ ] Register impostato come product/dashboard (design serves the task)
+- [ ] Nessun redesign UI in questo ticket
 
 ## Glossary
 

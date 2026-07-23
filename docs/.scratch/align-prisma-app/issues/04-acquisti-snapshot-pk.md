@@ -3,16 +3,17 @@
 **What to build:** L’operatore crea/modifica Acquisti senza campo `tipo` persistito. L’importo di default è lo snapshot dal Listino dell’anno della data di Acquisto (override esplicito per sconto ammesso). Lookup e delete usano l’id surrogato. Cancellare un Acquisto che ha Ingressi fallisce in modo chiaro (Restrict). Il filtro UI per tipo continua a filtrare Prodotti via join Abbonamento/Pacchetto, senza scrivere `tipo` sull’Acquisto.
 
 **Blocked by:**
+
 - 01 — Migrate + reset DB al nuovo schema Prisma
 - 03 — Listino senza tipo, chiave composta, Decimal
 
-**Status:** done
+**Status:** ready-for-agent
 
-- [x] Create/edit Acquisto non accettano né salvano `tipo`; mock senza `tipo`
-- [x] In create, `amount` default = prezzo Listino `(YEAR(date), productCode)` se esiste; override sconto consentito
-- [x] Get/update/delete Acquisto per `id` (niente PK composite legacy)
-- [x] Delete Acquisto con Ingressi → errore utente-facing (Restrict)
-- [x] Filtro tipo in UI filtra Prodotti per specializzazione, non persiste enum come colonna
+- [ ] Create/edit Acquisto non accettano né salvano `tipo`; mock senza `tipo`
+- [ ] In create, `amount` default = prezzo Listino `(YEAR(date), productCode)` se esiste; override sconto consentito
+- [ ] Get/update/delete Acquisto per `id` (niente PK composite legacy)
+- [ ] Delete Acquisto con Ingressi → errore utente-facing (Restrict)
+- [ ] Filtro tipo in UI filtra Prodotti per specializzazione, non persiste enum come colonna
 
 ## Notes (agent)
 
