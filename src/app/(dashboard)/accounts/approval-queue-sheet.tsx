@@ -118,8 +118,8 @@ export function ApprovalQueueToolbarButton({
 				onOpenChange={setOpen}
 			>
 				<SheetContent
-					side="bottom"
-					className="h-[min(520px,85vh)]"
+					side="right"
+					className="flex w-full flex-col sm:max-w-md"
 				>
 					<SheetHeader className="mb-4">
 						<SheetTitle>Coda approvazione Account</SheetTitle>
@@ -129,16 +129,16 @@ export function ApprovalQueueToolbarButton({
 						</SheetDescription>
 					</SheetHeader>
 					{loading ? (
-						<div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+						<div className="flex flex-1 items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
 							<Loader2 className="h-4 w-4 animate-spin" />
 							Caricamento…
 						</div>
 					) : pending.length === 0 ? (
-						<div className="py-12 text-center text-sm text-muted-foreground">
+						<div className="flex flex-1 items-center justify-center py-12 text-center text-sm text-muted-foreground">
 							Nessun account in attesa di approvazione.
 						</div>
 					) : (
-						<ul className="max-h-[calc(min(520px,85vh)-8rem)] space-y-2 overflow-y-auto pr-1">
+						<ul className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
 							{pending.map((account) => {
 								const busy = busyId === account.employeeId && isPending;
 								const employeeLabel = account.employee
@@ -147,7 +147,7 @@ export function ApprovalQueueToolbarButton({
 								return (
 									<li
 										key={account.employeeId}
-										className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 py-3 last:border-b-0"
+										className="flex flex-col gap-3 border-b border-border/60 py-3 last:border-b-0"
 									>
 										<div className="min-w-0">
 											<p className="truncate font-medium">{account.username}</p>
@@ -155,10 +155,11 @@ export function ApprovalQueueToolbarButton({
 												{employeeLabel} · {roleLabelIt(account.role as AppRole)}
 											</p>
 										</div>
-										<div className="flex shrink-0 gap-2">
+										<div className="flex gap-2">
 											<Button
 												type="button"
 												size="sm"
+												className="flex-1"
 												disabled={busy}
 												onClick={() => handleApprove(account.employeeId)}
 											>
@@ -173,6 +174,7 @@ export function ApprovalQueueToolbarButton({
 												type="button"
 												size="sm"
 												variant="destructive"
+												className="flex-1"
 												disabled={busy}
 												onClick={() => handleReject(account.employeeId)}
 											>
