@@ -6,6 +6,20 @@ import {
 	selectJustifyingPurchaseId,
 	type JustifyingPurchaseCandidate,
 } from "@/lib/entrance-justification";
+import {
+	buildListResult,
+	normalizeListQuery,
+	toPrismaPage,
+	type ListFilters,
+	type ListQueryInput,
+	type ListResult,
+	type ListSort,
+} from "@/lib/list";
+import {
+	ENTRANCE_DEFAULT_SORT,
+	ENTRANCE_FILTER_ALLOWLIST,
+	ENTRANCE_SORT_ALLOWLIST,
+} from "@/lib/list/entrances";
 import { Prisma } from "@prisma/client";
 
 const entranceInclude = {
@@ -20,6 +34,110 @@ const entranceInclude = {
 } as const;
 
 export type EntranceRow = Prisma.EntranceGetPayload<{ include: typeof entranceInclude }>;
+
+function buildEntranceWhere(filters: ListFilters): Prisma.EntranceWhereInput {
+	const where: Prisma.EntranceWhereInput = {};
+	const and: Prisma.EntranceWhereInput[] = [];
+
+	const purchaseIdRaw = filters.purchaseId;
+	if (typeof purchaseIdRaw === "number" && Number.isFinite(purchaseIdRaw)) {
+		where.purchaseId = Math.trunc(purchaseIdRaw);
+	} else if (typeof purchaseIdRaw === "string") {
+		const n = Number.parseInt(purchaseIdRaw.trim(), 10);
+		if (Number.isFinite(n)) where.purchaseId = n;
+	}
+
+	const client = filters.client;
+	if (typeof client === "string") {
+		const value = client.trim();
+		if (value) {
+			and.push({
+				purchase: {
+					client: {
+						OR: [
+							{ surname: { contains: value } },
+							{ name: { contains: value } },
+						],
+					},
+				},
+			});
+		}
+	}
+
+	const product = filters.product;
+	if (typeof product === "string") {
+		const value = product.trim();
+		if (value) {
+			and.push({
+				purchase: { productCode: { contains: value } },
+			});
+		}
+	}
+
+	if (and.length) where.AND = and;
+	return where;
+}
+
+function buildEntranceOrderBy(
+	sort: ListSort[]
+): Prisma.EntranceOrderByWithRelationInput[] {
+	const orderBy: Prisma.EntranceOrderByWithRelationInput[] = [];
+	for (const entry of sort) {
+		const dir = entry.desc ? ("desc" as const) : ("asc" as const);
+		switch (entry.id) {
+			case "id":
+				orderBy.push({ id: dir });
+				break;
+			case "date":
+				orderBy.push({ date: dir });
+				break;
+			case "purchaseId":
+				orderBy.push({ purchaseId: dir });
+				break;
+			case "client":
+				orderBy.push({ purchase: { client: { surname: dir } } });
+				orderBy.push({ purchase: { client: { name: dir } } });
+				break;
+			case "product":
+				orderBy.push({ purchase: { productCode: dir } });
+				break;
+			default:
+				break;
+		}
+	}
+	// Tie-break stabile su id (evita overlap OFFSET con sort non unico).
+	if (!orderBy.some((o) => "id" in o)) {
+		orderBy.push({ id: "asc" });
+	}
+	return orderBy;
+}
+
+/**
+ * Lista Ingressi server-side: filtri su Conferma, sort + paginazione via DB.
+ */
+export async function listEntrances(
+	input: ListQueryInput = {}
+): Promise<ListResult<EntranceRow>> {
+	const query = normalizeListQuery(input, {
+		sortAllowlist: ENTRANCE_SORT_ALLOWLIST,
+		filterAllowlist: ENTRANCE_FILTER_ALLOWLIST,
+		defaultSort: [...ENTRANCE_DEFAULT_SORT],
+	});
+	const where = buildEntranceWhere(query.filters);
+	const { skip, take } = toPrismaPage(query);
+	const orderBy = buildEntranceOrderBy(query.sort);
+	const [total, items] = await Promise.all([
+		db.entrance.count({ where }),
+		db.entrance.findMany({
+			where,
+			skip,
+			take,
+			orderBy,
+			include: entranceInclude,
+		}),
+	]);
+	return buildListResult(items, total, query);
+}
 
 /**
  * Registra un Ingresso per il Cliente: in una sola transazione sceglie l'Acquisto

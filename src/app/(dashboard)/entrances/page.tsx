@@ -14,18 +14,23 @@ import { getAllClients } from "@/data-access/clients";
 import {
 	deleteEntrance,
 	editEntrance,
-	getAllEntrances,
 	getDailyEntrances,
 	getMonthlyEntrances,
 	getWeeklyEntrances,
+	listEntrances,
 	registerEntrance,
 	type EntranceRow,
 } from "@/data-access/entrances";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useServerList } from "@/hooks/useServerList";
+import {
+	ENTRANCE_DEFAULT_SORT,
+	ENTRANCE_FILTER_ALLOWLIST,
+	ENTRANCE_SORT_ALLOWLIST,
+} from "@/lib/list/entrances";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { BarChart as BarChartIcon, CalendarDays, CalendarIcon, Clock, PlusCircle } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -39,29 +44,33 @@ const analyticsFormSchema = z.object({
 });
 
 export default function EntrancesPage() {
-	const {
-		data: entrances,
-		setData: setEntrances,
-		isLoading,
-		handleDelete,
-		handleEdit,
-	} = useEntityData<EntranceRow, "id">(
-		useMemo(
-			() => ({
-				getAll: getAllEntrances,
-				deleteAction: async (key) => {
-					await deleteEntrance(key);
-					return key as EntranceRow;
-				},
-				editAction: async (entrance) =>
-					editEntrance({
-						id: entrance.id,
-						date: entrance.date,
-					}),
-			}),
-			[]
-		),
-		["id"]
+	const list = useServerList<EntranceRow>({
+		list: listEntrances,
+		sortAllowlist: ENTRANCE_SORT_ALLOWLIST,
+		filterAllowlist: ENTRANCE_FILTER_ALLOWLIST,
+		defaultSort: [...ENTRANCE_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
+
+	const handleDelete = useCallback(
+		async (entrance: Pick<EntranceRow, "id">) => {
+			await deleteEntrance(entrance);
+			refetch();
+		},
+		[refetch]
+	);
+
+	const handleEdit = useCallback(
+		async (entrance: EntranceRow) => {
+			const updated = await editEntrance({
+				id: entrance.id,
+				date: entrance.date,
+			});
+			setItems((prev) =>
+				prev.map((item) => (item.id === updated.id ? updated : item))
+			);
+		},
+		[setItems]
 	);
 
 	const [clients, setClients] = useState<ClientOption[]>([]);
@@ -82,8 +91,8 @@ export default function EntrancesPage() {
 	const handleCreateEntrance = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
 			try {
-				const newEntrance = await registerEntrance(values.clientId, values.date);
-				setEntrances((prevEntrances) => [newEntrance, ...prevEntrances]);
+				await registerEntrance(values.clientId, values.date);
+				refetch();
 			} catch (error) {
 				const message =
 					error instanceof Error && error.message
@@ -93,7 +102,7 @@ export default function EntrancesPage() {
 				throw error;
 			}
 		},
-		[setEntrances]
+		[refetch]
 	);
 
 	const handleAnalytics = useCallback(
@@ -225,7 +234,7 @@ export default function EntrancesPage() {
 		},
 	];
 
-	return isLoading ? (
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<>
@@ -234,9 +243,22 @@ export default function EntrancesPage() {
 				table={
 					<DataTable
 						columns={columns(handleDelete, handleEdit)}
-						data={entrances}
-						filters={["date", "purchaseId"]}
-						facetedFilters={["date"]}
+						data={list.items}
+						filters={["purchaseId", "client", "product"]}
+						serverList={{
+							manual: true,
+							pageCount: list.pageCount,
+							rowCount: list.total,
+							sorting: list.sorting,
+							onSortingChange: list.onSortingChange,
+							pagination: list.pagination,
+							onPaginationChange: list.onPaginationChange,
+							draftFilters: list.draftFilters,
+							onDraftFilterChange: list.setDraftFilter,
+							onApplyFilters: list.applyFilters,
+							onResetFilters: list.resetFilters,
+							filtersDirty: list.filtersDirty,
+						}}
 					/>
 				}
 			/>
