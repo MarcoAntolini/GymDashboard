@@ -74,10 +74,23 @@ export const columns = (
 		id: "purchase",
 		meta: columnMeta("nativa"),
 		accessorFn: (row) => row.purchaseId,
-		header: ({ column }) => <TableSortableHeader column={column} title="Acquisto" />,
-		cell: ({ row }) => (
-			<div className="font-medium">#{row.original.purchaseId}</div>
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Acquisto giustificante" />
 		),
+		cell: ({ row }) => {
+			const purchase = row.original.purchase;
+			const kind = deriveProductKind(purchase.prodotto);
+			return (
+				<div className="font-medium">
+					<span>#{row.original.purchaseId}</span>
+					<span className="text-muted-foreground text-xs font-normal">
+						{" "}
+						· {purchase.productCode}
+						{kind ? ` · ${PRODUCT_KIND_LABELS[kind]}` : ""}
+					</span>
+				</div>
+			);
+		},
 	},
 	{
 		id: "product",
@@ -148,7 +161,7 @@ export const columns = (
 								name="date"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Date</FormLabel>
+										<FormLabel>Data</FormLabel>
 										<DateTimePicker
 											field={field}
 											onChange={(date) => field.onChange(date)}
@@ -157,6 +170,20 @@ export const columns = (
 									</FormItem>
 								)}
 							/>
+							<div className="rounded-md border border-border p-3 space-y-1">
+								<p className="text-sm font-medium">Acquisto giustificante</p>
+								<p className="text-sm text-muted-foreground">
+									#{row.original.purchaseId} · {row.original.purchase.productCode}
+									{(() => {
+										const kind = deriveProductKind(row.original.purchase.prodotto);
+										return kind ? ` · ${PRODUCT_KIND_LABELS[kind]}` : "";
+									})()}
+								</p>
+								<p className="text-xs text-muted-foreground">
+									Salvando, il sistema ricalcola l&apos;Acquisto (Abbonamento valido più
+									recente, altrimenti Pacchetto con residuo FIFO). Non si sceglie a mano.
+								</p>
+							</div>
 						</>
 					}
 					editAction={async ({ values }) => {

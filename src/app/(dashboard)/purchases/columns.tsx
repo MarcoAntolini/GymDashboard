@@ -31,9 +31,9 @@ export const formSchema = z.object({
 	date: z.date(),
 	amount: z
 		.string()
-		.min(1, "Amount is required")
+		.min(1, "Importo obbligatorio")
 		.refine(isValidCatalogPriceString, {
-			message: "Amount must be a positive value with at most 2 decimal places",
+			message: "Importo positivo con al massimo 2 decimali",
 		}),
 	productCode: z.string().min(1),
 });
@@ -126,7 +126,11 @@ export const columns = (
 		header: () => <div>Residuo</div>,
 		cell: ({ row }) => {
 			const remaining = row.original.remainingEntrances;
-			return <div className="font-medium">{remaining == null ? "—" : remaining}</div>;
+			return (
+				<div className="font-medium" title="Derivato da N snapshot − Ingressi su questo Acquisto">
+					{remaining == null ? "—" : remaining}
+				</div>
+			);
 		},
 	},
 	{
@@ -143,7 +147,7 @@ export const columns = (
 							name="clientId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Client ID</FormLabel>
+									<FormLabel>ID Cliente</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -160,7 +164,7 @@ export const columns = (
 							name="date"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Date</FormLabel>
+									<FormLabel>Data</FormLabel>
 									<Popover>
 										<PopoverTrigger asChild>
 											<FormControl>
@@ -171,7 +175,7 @@ export const columns = (
 														!field.value && "text-muted-foreground"
 													)}
 												>
-													{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+													{field.value ? format(field.value, "PPP") : <span>Scegli una data</span>}
 													<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 												</Button>
 											</FormControl>
@@ -191,36 +195,43 @@ export const columns = (
 							)}
 						/>
 						{/* Snapshot / product identity: read-only — not in editFormSchema */}
-						<FormItem>
-							<FormLabel>Product (immutable after sale)</FormLabel>
-							<FormControl>
-								<Input value={row.original.productCode} disabled readOnly />
-							</FormControl>
-						</FormItem>
-						<FormItem>
-							<FormLabel>Amount (sale snapshot)</FormLabel>
-							<FormControl>
-								<Input value={row.original.amount} disabled readOnly />
-							</FormControl>
-						</FormItem>
-						<FormItem>
-							<FormLabel>Duration (sale snapshot)</FormLabel>
-							<FormControl>
-								<Input value={row.original.duration ?? "—"} disabled readOnly />
-							</FormControl>
-						</FormItem>
-						<FormItem>
-							<FormLabel>Entrances (sale snapshot)</FormLabel>
-							<FormControl>
-								<Input value={row.original.entranceNumber ?? "—"} disabled readOnly />
-							</FormControl>
-						</FormItem>
-						<FormItem>
-							<FormLabel>Remaining (derived from snapshot)</FormLabel>
-							<FormControl>
-								<Input value={row.original.remainingEntrances ?? "—"} disabled readOnly />
-							</FormControl>
-						</FormItem>
+						<div className="space-y-3 rounded-md border border-border p-3">
+							<p className="text-sm font-medium">Snapshot di vendita</p>
+							<p className="text-xs text-muted-foreground">
+								Importo, durata e N sono fissati alla vendita (dal Listino dell&apos;anno o
+								override). Il residuo pacchetto è derivato sull&apos;Acquisto, non sul Cliente.
+							</p>
+							<FormItem>
+								<FormLabel>Prodotto (immutabile)</FormLabel>
+								<FormControl>
+									<Input value={row.original.productCode} disabled readOnly />
+								</FormControl>
+							</FormItem>
+							<FormItem>
+								<FormLabel>Importo (snapshot)</FormLabel>
+								<FormControl>
+									<Input value={row.original.amount} disabled readOnly />
+								</FormControl>
+							</FormItem>
+							<FormItem>
+								<FormLabel>Durata gg (snapshot)</FormLabel>
+								<FormControl>
+									<Input value={row.original.duration ?? "—"} disabled readOnly />
+								</FormControl>
+							</FormItem>
+							<FormItem>
+								<FormLabel>Ingressi N (snapshot)</FormLabel>
+								<FormControl>
+									<Input value={row.original.entranceNumber ?? "—"} disabled readOnly />
+								</FormControl>
+							</FormItem>
+							<FormItem>
+								<FormLabel>Residuo (derivato)</FormLabel>
+								<FormControl>
+									<Input value={row.original.remainingEntrances ?? "—"} disabled readOnly />
+								</FormControl>
+							</FormItem>
+						</div>
 					</>
 				}
 				editAction={async ({ values }) => {

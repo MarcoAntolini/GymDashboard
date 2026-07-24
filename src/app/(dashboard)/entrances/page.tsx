@@ -175,10 +175,15 @@ export default function EntrancesPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Entrance",
+			title: "Registra Ingresso",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
+					<p className="text-sm text-muted-foreground -mt-2 mb-1">
+						L&apos;Acquisto giustificante si sceglie in automatico: Abbonamento valido più
+						recente, altrimenti Pacchetto con residuo (FIFO). Se nessuno giustifica,
+						vedrai un errore chiaro.
+					</p>
 					<FormField
 						name="clientId"
 						render={({ field }) => (
@@ -209,7 +214,7 @@ export default function EntrancesPage() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
+								<FormLabel>Data</FormLabel>
 								<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 								<FormMessage />
 							</FormItem>
@@ -227,7 +232,7 @@ export default function EntrancesPage() {
 			},
 		},
 		{
-			title: "Daily Analysis",
+			title: "Analisi giornaliera",
 			icon: Clock,
 			dialogContent: <DateRangePickerField />,
 			formData: {
@@ -236,7 +241,7 @@ export default function EntrancesPage() {
 			},
 		},
 		{
-			title: "Weekly Analysis",
+			title: "Analisi settimanale",
 			icon: CalendarDays,
 			dialogContent: <DateRangePickerField />,
 			formData: {
@@ -245,7 +250,7 @@ export default function EntrancesPage() {
 			},
 		},
 		{
-			title: "Monthly Analysis",
+			title: "Analisi mensile",
 			icon: BarChartIcon,
 			dialogContent: <DateRangePickerField />,
 			formData: {
@@ -290,10 +295,10 @@ export default function EntrancesPage() {
 			<Sheet open={isDailySheetOpen} onOpenChange={setIsDailySheetOpen}>
 				<SheetContent side="bottom" className="h-[450px]">
 					<SheetHeader>
-						<SheetTitle>Daily Entrances Analysis</SheetTitle>
+						<SheetTitle>Analisi ingressi giornaliera</SheetTitle>
 						<SheetDescription>
 							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
+								`Periodo: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="h-[350px] mt-4">
@@ -312,10 +317,10 @@ export default function EntrancesPage() {
 			<Sheet open={isWeeklySheetOpen} onOpenChange={setIsWeeklySheetOpen}>
 				<SheetContent side="bottom" className="h-[450px]">
 					<SheetHeader>
-						<SheetTitle>Weekly Entrances Analysis</SheetTitle>
+						<SheetTitle>Analisi ingressi settimanale</SheetTitle>
 						<SheetDescription>
 							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
+								`Periodo: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="h-[350px] mt-4">
@@ -334,10 +339,10 @@ export default function EntrancesPage() {
 			<Sheet open={isMonthlySheetOpen} onOpenChange={setIsMonthlySheetOpen}>
 				<SheetContent side="bottom" className="h-[450px]">
 					<SheetHeader>
-						<SheetTitle>Monthly Entrances Analysis</SheetTitle>
+						<SheetTitle>Analisi ingressi mensile</SheetTitle>
 						<SheetDescription>
 							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
+								`Periodo: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="h-[350px] mt-4">
@@ -363,7 +368,7 @@ function DateRangePickerField() {
 			name="date"
 			render={({ field }) => (
 				<FormItem className="w-full flex flex-col gap-2">
-					<FormLabel>Select Period</FormLabel>
+					<FormLabel>Seleziona periodo</FormLabel>
 					<Popover>
 						<PopoverTrigger asChild>
 							<FormControl>
@@ -385,7 +390,7 @@ function DateRangePickerField() {
 											format(field.value.from, "LLL dd, y")
 										)
 									) : (
-										<span>Pick a date range</span>
+										<span>Scegli un intervallo</span>
 									)}
 								</Button>
 							</FormControl>

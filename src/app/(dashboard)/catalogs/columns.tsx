@@ -17,13 +17,13 @@ import { z } from "zod";
 
 /** Create/edit payload: composite key only — no tipo; price as ≤2-decimal string. */
 export const formSchema = z.object({
-	year: z.number().int().positive("Year must be a positive integer"),
-	productCode: z.string().min(1, "Product code is required"),
+	year: z.number().int().positive("L'anno deve essere un intero positivo"),
+	productCode: z.string().min(1, "Codice prodotto obbligatorio"),
 	price: z
 		.string()
-		.min(1, "Price is required")
+		.min(1, "Prezzo obbligatorio")
 		.refine(isValidCatalogPriceString, {
-			message: "Price must be a positive amount with at most 2 decimal places",
+			message: "Prezzo positivo con al massimo 2 decimali",
 		}),
 });
 
@@ -80,13 +80,18 @@ export const columns = (
 				row={row}
 				formSchema={formSchema}
 				entityLabel="Listino"
+				deleteConsequence="Il prezzo Listino non ha FK Restrict verso Acquisto: gli importi già venduti restano come snapshot sull'Acquisto."
 				editFormContent={
 					<>
+						<p className="text-sm text-muted-foreground">
+							Il prezzo Listino di un anno propone l&apos;importo alla vendita; sull&apos;Acquisto
+							resta uno snapshot indipendente.
+						</p>
 						<FormField
 							name="year"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Year</FormLabel>
+									<FormLabel>Anno</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -103,7 +108,7 @@ export const columns = (
 							name="productCode"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Product Code</FormLabel>
+									<FormLabel>Codice prodotto</FormLabel>
 									<FormControl>
 										<Input {...field} disabled />
 									</FormControl>
@@ -115,7 +120,7 @@ export const columns = (
 							name="price"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Price</FormLabel>
+									<FormLabel>Prezzo</FormLabel>
 									<FormControl>
 										<Input
 											type="text"

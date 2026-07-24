@@ -256,6 +256,13 @@ export const VIEW_COLUMN_MATRIX: Record<ViewEntity, readonly ViewColumnSpec[]> =
 		{ key: "id", class: "nativa", source: "pagamenti.id" },
 		{ key: "date", class: "nativa", source: "pagamenti.data" },
 		{ key: "amount", class: "nativa", source: "pagamenti.importo" },
+		{ key: "type", class: "nativa", source: "pagamenti.tipo" },
+		{
+			key: "specialty",
+			class: "join",
+			source: "stipendi|bollette|attrezzatura|interventi via paymentId",
+			notes: "List/edit inspect specialty (ticket 38); not editable on Pagamento sheet",
+		},
 	],
 } as const;
 
@@ -267,7 +274,7 @@ export const VIEW_COLUMN_AUDIT_NOTES = [
 	"remainingEntrances is DTO derivata on PurchaseWithSnapshot only.",
 	"Ingressi productKind badge uses live Product ISA (derivata); justification uses Acquisto snapshots.",
 	"Account.password is nativa; list UI masks with per-row reveal; mutations stay write-only create (ticket 15).",
-	"Stipendi/Bollette/Attrezzatura/Interventi: payment/employee joins in DA not shown in list — ticket 36.",
+	"Pagamenti list/edit show specialty summary from stipendio/bolletta/attrezzatura/intervento (ticket 38).",
 ] as const;
 
 export function viewColumns(entity: ViewEntity): readonly ViewColumnSpec[] {

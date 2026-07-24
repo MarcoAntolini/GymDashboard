@@ -37,9 +37,9 @@ import { columns } from "./columns";
 
 const moneyAmount = z
 	.string()
-	.min(1, "Amount is required")
+	.min(1, "Importo obbligatorio")
 	.refine(isValidCatalogPriceString, {
-		message: "Amount must be a positive value with at most 2 decimal places",
+		message: "Importo positivo con al massimo 2 decimali",
 	});
 
 const paymentSchema = z.discriminatedUnion("type", [
@@ -162,7 +162,7 @@ export default function PaymentsPage() {
 												variant={"outline"}
 												className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
 											>
-												{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+												{field.value ? format(field.value, "PPP") : <span>Scegli una data</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 											</Button>
 										</FormControl>
@@ -210,6 +210,10 @@ export default function PaymentsPage() {
 										<SelectItem value={PaymentType.Intervention}>Intervento</SelectItem>
 									</SelectContent>
 								</Select>
+								<p className="text-sm text-muted-foreground">
+									La specializzazione (Dipendente, fornitore, intervento, …) è obbligatoria
+									in creazione e resta ispezionabile in lista.
+								</p>
 								<FormMessage />
 							</FormItem>
 						)}
@@ -225,7 +229,7 @@ export default function PaymentsPage() {
 											name="employeeId"
 											render={({ field }) => (
 												<FormItem>
-													<FormLabel>Employee ID</FormLabel>
+													<FormLabel>ID Dipendente</FormLabel>
 													<FormControl>
 														<Input
 															type="number"
@@ -246,7 +250,7 @@ export default function PaymentsPage() {
 												name="description"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Description</FormLabel>
+														<FormLabel>Descrizione</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -258,7 +262,7 @@ export default function PaymentsPage() {
 												name="provider"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Provider</FormLabel>
+														<FormLabel>Fornitore</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -275,7 +279,7 @@ export default function PaymentsPage() {
 												name="description"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Description</FormLabel>
+														<FormLabel>Descrizione</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -287,7 +291,7 @@ export default function PaymentsPage() {
 												name="maker"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Maker</FormLabel>
+														<FormLabel>Esecutore</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -299,7 +303,7 @@ export default function PaymentsPage() {
 												name="startingTime"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Starting Time</FormLabel>
+														<FormLabel>Inizio</FormLabel>
 														<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 														<FormMessage />
 													</FormItem>
@@ -309,7 +313,7 @@ export default function PaymentsPage() {
 												name="endingTime"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Ending Time</FormLabel>
+														<FormLabel>Fine</FormLabel>
 														<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 														<FormMessage />
 													</FormItem>

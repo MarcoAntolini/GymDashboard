@@ -120,15 +120,19 @@ export default function CatalogsPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add to Catalog",
+			title: "Aggiungi al Listino",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
+					<p className="text-sm text-muted-foreground -mt-2 mb-1">
+						Il prezzo per anno e prodotto propone l&apos;importo degli Acquisti venduti in
+						quell&apos;anno; dopo la vendita l&apos;importo resta snapshot sull&apos;Acquisto.
+					</p>
 					<FormField
 						name="year"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Year</FormLabel>
+								<FormLabel>Anno</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -142,13 +146,13 @@ export default function CatalogsPage() {
 					/>
 					{/* Tipo: UI-only product filter — not a FormField / not in formSchema */}
 					<div className="space-y-2">
-						<label className="text-sm font-medium leading-none">Type</label>
+						<label className="text-sm font-medium leading-none">Filtro tipo</label>
 						<Select
 							value={selectedKind}
 							onValueChange={(value) => setSelectedKind(value as ProductKind)}
 						>
 							<SelectTrigger>
-								<SelectValue placeholder="Select a type" />
+								<SelectValue placeholder="Seleziona un tipo" />
 							</SelectTrigger>
 							<SelectContent>
 								{PRODUCT_KINDS.map((kind) => (
@@ -163,7 +167,7 @@ export default function CatalogsPage() {
 						name="productCode"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Product</FormLabel>
+								<FormLabel>Prodotto</FormLabel>
 								<Select
 									onValueChange={field.onChange}
 									value={field.value}
@@ -174,8 +178,8 @@ export default function CatalogsPage() {
 											<SelectValue
 												placeholder={
 													filteredProducts.length === 0
-														? `No ${PRODUCT_KIND_LABELS[selectedKind].toLowerCase()} products available`
-														: "Select a product"
+														? `Nessun prodotto ${PRODUCT_KIND_LABELS[selectedKind].toLowerCase()} disponibile`
+														: "Seleziona un prodotto"
 												}
 											/>
 										</SelectTrigger>
@@ -185,8 +189,8 @@ export default function CatalogsPage() {
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}{" "}
 												{selectedKind === "Membership"
-													? `(${product.membership?.duration} days)`
-													: `(${product.entranceSet?.entranceNumber} entrances)`}
+													? `(${product.membership?.duration} gg)`
+													: `(${product.entranceSet?.entranceNumber} ingressi)`}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -199,7 +203,7 @@ export default function CatalogsPage() {
 						name="price"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Price</FormLabel>
+								<FormLabel>Prezzo</FormLabel>
 								<FormControl>
 									<Input
 										type="text"

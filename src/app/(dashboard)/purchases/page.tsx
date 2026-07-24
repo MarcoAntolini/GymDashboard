@@ -128,16 +128,20 @@ export default function PurchasesPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Purchase",
+			title: "Nuovo Acquisto",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
+					<p className="text-sm text-muted-foreground -mt-2 mb-1">
+						L&apos;importo di default viene dal Listino dell&apos;anno della data di vendita;
+						puoi modificarlo (sconto). Durata e N si congelano come snapshot alla vendita.
+					</p>
 					<CatalogAmountDefault />
 					<FormField
 						name="clientId"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Client ID</FormLabel>
+								<FormLabel>ID Cliente</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -153,7 +157,7 @@ export default function PurchasesPage() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
+								<FormLabel>Data</FormLabel>
 								<Popover>
 									<PopoverTrigger asChild>
 										<FormControl>
@@ -164,7 +168,7 @@ export default function PurchasesPage() {
 													!field.value && "text-muted-foreground"
 												)}
 											>
-												{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+												{field.value ? format(field.value, "PPP") : <span>Scegli una data</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 											</Button>
 										</FormControl>
@@ -185,13 +189,13 @@ export default function PurchasesPage() {
 					/>
 					{/* Tipo: UI-only product filter — not a FormField / not in formSchema */}
 					<div className="space-y-2">
-						<label className="text-sm font-medium leading-none">Product type filter</label>
+						<label className="text-sm font-medium leading-none">Filtro tipo prodotto</label>
 						<Select
 							value={selectedKind}
 							onValueChange={(value) => setSelectedKind(value as ProductKind)}
 						>
 							<SelectTrigger>
-								<SelectValue placeholder="Filter products by type" />
+								<SelectValue placeholder="Filtra per Abbonamento o Pacchetto" />
 							</SelectTrigger>
 							<SelectContent>
 								{PRODUCT_KINDS.map((kind) => (
@@ -206,7 +210,7 @@ export default function PurchasesPage() {
 						name="productCode"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Product</FormLabel>
+								<FormLabel>Prodotto</FormLabel>
 								<Select
 									onValueChange={field.onChange}
 									value={field.value}
@@ -217,8 +221,8 @@ export default function PurchasesPage() {
 											<SelectValue
 												placeholder={
 													filteredProducts.length === 0
-														? `No ${PRODUCT_KIND_LABELS[selectedKind].toLowerCase()} products available`
-														: "Select a product"
+														? `Nessun prodotto ${PRODUCT_KIND_LABELS[selectedKind].toLowerCase()} disponibile`
+														: "Seleziona un prodotto"
 												}
 											/>
 										</SelectTrigger>
@@ -228,8 +232,8 @@ export default function PurchasesPage() {
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}
 												{selectedKind === "Membership"
-													? ` (${product.membership?.duration} days)`
-													: ` (${product.entranceSet?.entranceNumber} entrances)`}
+													? ` (${product.membership?.duration} gg)`
+													: ` (${product.entranceSet?.entranceNumber} ingressi)`}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -242,7 +246,7 @@ export default function PurchasesPage() {
 						name="amount"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Amount</FormLabel>
+								<FormLabel>Importo (snapshot)</FormLabel>
 								<FormControl>
 									<Input
 										type="text"
