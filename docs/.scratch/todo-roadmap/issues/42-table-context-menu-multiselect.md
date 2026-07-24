@@ -4,9 +4,13 @@
 
 **Blocked by:** 37 — CRUD: Dialog create / Sheet edit + feedback; 16 — Coda Approvazione Account
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Context menu shadcn sulle righe tabella per le azioni principali
 - [ ] Multi-select con selezione multipla usabile
 - [ ] Bulk delete su ogni tabella lista (con confirm e Restrict feedback)
 - [ ] Bulk Approvazione (o equivalenti) dove l’azione è comune e ammessa dal ruolo
+
+## Comments
+
+- 2026-07-24 — claimed by implement loop (cloud)
