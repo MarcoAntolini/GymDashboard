@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
 	ProductKind,
@@ -58,12 +59,25 @@ export const columns = (
 	products: ProductWithSpec[]
 ): ColumnDef<PurchaseRow>[] => [
 	{
-		accessorKey: "clientId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Client ID" />,
+		id: "client",
+		accessorFn: (row) =>
+			`${row.client.surname} ${row.client.name} (#${row.clientId})`,
+		header: ({ column }) => <TableSortableHeader column={column} title="Cliente" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => {
+			const client = row.original.client;
+			return (
+				<div className="font-medium">
+					{client.surname} {client.name}{" "}
+					<span className="text-muted-foreground">#{client.id}</span>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "date",
 		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
+		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
 			return <div className="font-medium">{date.toLocaleDateString("it-IT")}</div>;
@@ -71,7 +85,10 @@ export const columns = (
 	},
 	{
 		accessorKey: "amount",
-		header: ({ column }) => <TableSortableHeader column={column} title="Amount" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Importo (snapshot)" />
+		),
+		meta: columnMeta(ColumnClass.Snapshot),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatAmount(row.original.amount)}</div>
 		),
@@ -80,6 +97,7 @@ export const columns = (
 		id: "type",
 		accessorFn: (row) => productKindFromSnapshot(row),
 		header: ({ column }) => <TableSortableHeader column={column} title="Type" />,
+		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
 			const kind = productKindFromSnapshot(row.original);
 			return <div>{PRODUCT_KIND_LABEL[kind]}</div>;
@@ -92,12 +110,14 @@ export const columns = (
 	{
 		accessorKey: "productCode",
 		header: ({ column }) => <TableSortableHeader column={column} title="Product Code" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "duration",
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Durata (snapshot)" />
 		),
+		meta: columnMeta(ColumnClass.Snapshot),
 		cell: ({ row }) => {
 			const duration = row.getValue("duration") as number | null;
 			return (
@@ -112,6 +132,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="N ingressi (snapshot)" />
 		),
+		meta: columnMeta(ColumnClass.Snapshot),
 		cell: ({ row }) => {
 			const n = row.getValue("entranceNumber") as number | null;
 			return <div className="text-muted-foreground">{n != null ? n : "—"}</div>;

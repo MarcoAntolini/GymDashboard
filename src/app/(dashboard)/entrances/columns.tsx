@@ -5,6 +5,7 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import type { EntranceRow } from "@/data-access/entrances";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -32,10 +33,12 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "date",
 		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
+		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
 			return <div className="font-medium">{date.toLocaleString("it-IT")}</div>;
@@ -46,6 +49,7 @@ export const columns = (
 		accessorFn: (row) =>
 			`${row.purchase.client.surname} ${row.purchase.client.name} (#${row.purchase.clientId})`,
 		header: ({ column }) => <TableSortableHeader column={column} title="Cliente" />,
+		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => {
 			const client = row.original.purchase.client;
 			return (
@@ -60,6 +64,7 @@ export const columns = (
 		id: "product",
 		accessorFn: (row) => row.purchase.productCode,
 		header: ({ column }) => <TableSortableHeader column={column} title="Prodotto" />,
+		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="font-medium">{row.original.purchase.productCode}</div>
 		),
@@ -67,6 +72,7 @@ export const columns = (
 	{
 		accessorKey: "purchaseId",
 		header: ({ column }) => <TableSortableHeader column={column} title="Acquisto" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		id: "actions",

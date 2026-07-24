@@ -4,6 +4,7 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
 	productKindFromProduct,
@@ -46,6 +47,7 @@ export const columns = (
 	{
 		accessorKey: "year",
 		header: ({ column }) => <TableSortableHeader column={column} title="Year" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		id: "kind",
@@ -54,14 +56,17 @@ export const columns = (
 			return kind ? PRODUCT_KIND_LABEL[kind] : "—";
 		},
 		header: ({ column }) => <TableSortableHeader column={column} title="Type" />,
+		meta: columnMeta(ColumnClass.Derived),
 	},
 	{
 		accessorKey: "productCode",
 		header: ({ column }) => <TableSortableHeader column={column} title="Product Code" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "price",
 		header: ({ column }) => <TableSortableHeader column={column} title="Price" />,
+		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <div className="font-medium">{formatPrice(row.original.price)}</div>,
 	},
 	{

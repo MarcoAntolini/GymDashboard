@@ -4,6 +4,7 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { Client } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -40,6 +41,7 @@ export const columns = (
         title="ID"
       />
     ),
+    meta: columnMeta(ColumnClass.Native),
   },
   {
     accessorKey: "taxCode",
@@ -49,6 +51,7 @@ export const columns = (
         title="Tax Code"
       />
     ),
+    meta: columnMeta(ColumnClass.Native),
   },
   {
     accessorKey: "name",
@@ -58,6 +61,7 @@ export const columns = (
         title="Name"
       />
     ),
+    meta: columnMeta(ColumnClass.Native),
   },
   {
     accessorKey: "surname",
@@ -67,6 +71,7 @@ export const columns = (
         title="Surname"
       />
     ),
+    meta: columnMeta(ColumnClass.Native),
   },
   {
     accessorKey: "birthDate",
@@ -76,6 +81,7 @@ export const columns = (
         title="Birth Date"
       />
     ),
+    meta: columnMeta(ColumnClass.Native),
     cell: ({ row }) => {
       const date = new Date(row.getValue("birthDate"));
       return <div className="font-medium">{date.toLocaleDateString()}</div>;
@@ -89,6 +95,7 @@ export const columns = (
         title="City"
       />
     ),
+    meta: columnMeta(ColumnClass.Native),
   },
   {
     accessorKey: "province",
@@ -98,6 +105,7 @@ export const columns = (
         title="Province"
       />
     ),
+    meta: columnMeta(ColumnClass.Native),
   },
   {
     accessorKey: "enrollmentDate",
@@ -107,6 +115,7 @@ export const columns = (
         title="Enrollment Date"
       />
     ),
+    meta: columnMeta(ColumnClass.Native),
     cell: ({ row }) => {
       const date = new Date(row.getValue("enrollmentDate"));
       return <div className="font-medium">{date.toLocaleDateString()}</div>;

@@ -5,22 +5,27 @@ import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { deleteProduct, editProduct, getAllProducts } from "@/data-access/products";
 import { useEntityData } from "@/hooks/useEntityData";
-import { Product } from "@prisma/client";
 import { useMemo } from "react";
-import { columns } from "./columns";
+import { columns, type ProductRow } from "./columns";
 
 export default function ProductsPage() {
 	const {
 		data: products,
 		isLoading,
 		handleDelete,
-		handleEdit
-	} = useEntityData<Product, "code">(
+		handleEdit,
+	} = useEntityData<ProductRow, "code">(
 		useMemo(
 			() => ({
 				getAll: getAllProducts,
-				deleteAction: deleteProduct,
-				editAction: editProduct
+				deleteAction: async (key) => {
+					await deleteProduct(key);
+					return key as ProductRow;
+				},
+				editAction: async (product) => {
+					const updated = await editProduct({ code: product.code });
+					return { ...product, code: updated.code };
+				},
 			}),
 			[]
 		),
@@ -32,7 +37,13 @@ export default function ProductsPage() {
 	) : (
 		<Dashboard
 			actions={[]}
-			table={<DataTable columns={columns(handleDelete, handleEdit)} data={products} filters={["code"]} />}
+			table={
+				<DataTable
+					columns={columns(handleDelete, handleEdit)}
+					data={products}
+					filters={["code"]}
+				/>
+			}
 		/>
 	);
 }

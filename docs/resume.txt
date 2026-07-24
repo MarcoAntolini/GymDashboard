@@ -135,8 +135,8 @@ Explanation: Removes a specific salary record from the database.
 6. Clients
 
 Create Client:
-MySQL: INSERT INTO clienti (taxCode, name, surname, birthDate, street, houseNumber, city, province, phoneNumber, email, enrollmentDate, remainingEntrances) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-Explanation: Inserts a new client record with personal and membership information.
+MySQL: INSERT INTO clienti (taxCode, name, surname, birthDate, street, houseNumber, city, province, phoneNumber, email, enrollmentDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+Explanation: Inserts a new client record with personal and membership information. Ingressi rimanenti are derived per Acquisto (package residual), not stored on Client.
 
 Get All Clients:
 MySQL: SELECT * FROM clienti;
@@ -147,8 +147,8 @@ MySQL: SELECT * FROM clienti WHERE id = ?;
 Explanation: Retrieves a specific client record by their ID.
 
 Edit Client:
-MySQL: UPDATE clienti SET taxCode = ?, name = ?, surname = ?, birthDate = ?, street = ?, houseNumber = ?, city = ?, province = ?, phoneNumber = ?, email = ?, enrollmentDate = ?, remainingEntrances = ? WHERE id = ?;
-Explanation: Updates a client's information for a specific client ID.
+MySQL: UPDATE clienti SET taxCode = ?, name = ?, surname = ?, birthDate = ?, street = ?, houseNumber = ?, city = ?, province = ?, phoneNumber = ?, email = ?, enrollmentDate = ? WHERE id = ?;
+Explanation: Updates a client's information for a specific client ID. Does not persist residual entrances on Client.
 
 7. Purchases
 

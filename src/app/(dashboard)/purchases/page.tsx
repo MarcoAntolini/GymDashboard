@@ -240,7 +240,7 @@ export default function PurchasesPage() {
 				<DataTable
 					columns={columns(handleDelete, handleEdit, products)}
 					data={purchases}
-					filters={["clientId", "productCode"]}
+					filters={["client", "productCode"]}
 					facetedFilters={[]}
 				/>
 			}
