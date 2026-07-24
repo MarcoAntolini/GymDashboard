@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
-import { DataTable } from "@/components/ui/data-table";
+import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
+import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -14,16 +15,22 @@ import {
 	createPayment,
 	deletePayment,
 	editPayment,
-	getAllPayments,
+	listPayments,
+	type PaymentListResult,
 	type PaymentRow,
 } from "@/data-access/payments";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useServerListQuery } from "@/hooks/useServerListQuery";
 import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
+import {
+	PAYMENT_LIST_DEFAULT_SORT,
+	PAYMENT_LIST_FILTER_IDS,
+	PAYMENT_LIST_SORT_COLUMNS,
+} from "@/lib/domain/payment-list-query";
 import { cn } from "@/lib/utils";
 import { PaymentType } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { columns } from "./columns";
 
@@ -66,39 +73,74 @@ const paymentSchema = z.discriminatedUnion("type", [
 	}),
 ]);
 
+const PAYMENT_FILTER_FIELDS: ServerListFilterField[] = [
+	{
+		id: "type",
+		label: "Tipo",
+		placeholder: "Tipo (Stipendio/Bolletta/…)",
+	},
+];
+
+const EMPTY_FILTERS = Object.fromEntries(
+	PAYMENT_LIST_FILTER_IDS.map((id) => [id, ""])
+) as Record<(typeof PAYMENT_LIST_FILTER_IDS)[number], string>;
+
 export default function PaymentsPage() {
-	const {
-		data: payments,
-		setData: setPayments,
-		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<PaymentRow, "id">(
-		useMemo(
-			() => ({
-				getAll: getAllPayments,
-				deleteAction: deletePayment,
-				editAction: async (entity: PaymentRow) => {
-					await editPayment({
-						id: entity.id,
-						date: entity.date,
-						amount: entity.amount,
-						type: entity.type,
-					});
-					return entity;
-				},
-			}),
-			[]
-		),
-		["id"]
+	const listQuery = useServerListQuery({
+		allowedSortColumns: PAYMENT_LIST_SORT_COLUMNS,
+		defaultSort: PAYMENT_LIST_DEFAULT_SORT,
+		initialFilters: EMPTY_FILTERS,
+	});
+
+	const [result, setResult] = useState<PaymentListResult | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	const fetchList = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const next = await listPayments(listQuery.input);
+			setResult(next);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [listQuery.input]);
+
+	useEffect(() => {
+		void fetchList();
+	}, [fetchList]);
+
+	const handleDelete = useCallback(
+		async (payment: Pick<PaymentRow, "id">) => {
+			await deletePayment(payment);
+			await fetchList();
+		},
+		[fetchList]
+	);
+
+	const handleEdit = useCallback(
+		async (payment: PaymentRow) => {
+			await editPayment({
+				id: payment.id,
+				date: payment.date,
+				amount: payment.amount,
+				type: payment.type,
+			});
+			await fetchList();
+		},
+		[fetchList]
 	);
 
 	const handleCreatePayment = useCallback(
 		async (values: z.infer<typeof paymentSchema>) => {
-			const newPayment = await createPayment(values);
-			setPayments((prevPayments) => [...prevPayments, newPayment]);
+			await createPayment(values);
+			await fetchList();
 		},
-		[setPayments]
+		[fetchList]
+	);
+
+	const tableColumns = useMemo(
+		() => columns(handleDelete, handleEdit),
+		[handleDelete, handleEdit]
 	);
 
 	const actions: Action[] = [
@@ -303,17 +345,34 @@ export default function PaymentsPage() {
 		},
 	];
 
-	return isLoading ? (
+	const showPlaceholder = isLoading && result === null;
+
+	return showPlaceholder ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={actions}
 			table={
-				<DataTable
-					columns={columns(handleDelete, handleEdit)}
-					data={payments}
-					filters={["type"]}
-					facetedFilters={["type"]}
+				<ServerDataTable
+					columns={tableColumns}
+					data={result?.rows ?? []}
+					total={result?.total ?? 0}
+					page={listQuery.page}
+					pageSize={listQuery.pageSize}
+					pageCount={result?.pageCount ?? 0}
+					sort={listQuery.sort}
+					onSortChange={listQuery.setSort}
+					onPageChange={listQuery.setPage}
+					onPageSizeChange={listQuery.setPageSize}
+					filterFields={PAYMENT_FILTER_FIELDS}
+					draftFilters={listQuery.draftFilters}
+					onDraftFilterChange={listQuery.setDraftFilter}
+					onApplyFilters={listQuery.applyFilters}
+					onResetFilters={listQuery.resetFilters}
+					isFilterDirty={listQuery.isFilterDirty}
+					hasAppliedFilters={listQuery.hasAppliedFilters}
+					emptyKind={result?.emptyKind ?? null}
+					datasetEmptyMessage="Nessun pagamento registrato."
 				/>
 			}
 		/>
