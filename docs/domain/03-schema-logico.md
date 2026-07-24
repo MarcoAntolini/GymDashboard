@@ -41,7 +41,7 @@ Contratto e Timbratura restano deboli con PK esterna composta (stabile e suffici
 | Candidato | Decisione | Motivazione |
 |---|---|---|
 | `Cliente.ingressi_rimanenti` | **Eliminato** | Derivabile; contatore globale senza allocazione per-acquisto → anomalie di aggiornamento; non in 3NF rispetto alle FD di consumo |
-| Contatore residuo su Acquisto pacchetto | **Non introdotto** (decisione stabile) | Residuo = `numero_ingressi − COUNT(ingressi.id_acquisto)`; denormalizzare solo se tavola volumi reale lo impone (`06`) |
+| Contatore residuo su Acquisto pacchetto | **Non introdotto** (decisione stabile) | Residuo = `Acquisto.numero_ingressi − COUNT(ingressi.id_acquisto)`; denormalizzare solo se tavola volumi reale lo impone (`06`) |
 | Entità `fornitori` | **Non introdotta** | `fornitore` resta stringa su bollette/attrezzature; report per nome ok; identità canonica fuori scope |
 | `PERSONA` come superclasse | **Non nello schema** | Variante didattica in relazione; vedi `02-schema-er.md` |
 | `clientId` su Ingresso | **Non introdotto** | FD `id_acquisto → id_cliente`; tenere entrambi sarebbe ridondanza di associazione (ciclo Cliente–Acquisto–Ingresso) |
@@ -49,7 +49,7 @@ Contratto e Timbratura restano deboli con PK esterna composta (stabile e suffici
 
 ### Residuo pacchetto (definizione formale)
 
-Per un Acquisto `A` il cui Prodotto è in `pacchetti_ingressi` con `numero_ingressi = N`:
+Per un Acquisto `A` di Pacchetto con snapshot `A.numero_ingressi = N` (fissato alla vendita; **non** il valore corrente in `pacchetti_ingressi`):
 
 ```
 residuo(A) = N − |{ I ∈ ingressi | I.id_acquisto = A.id }|
@@ -59,7 +59,7 @@ Un ingresso su pacchetto è ammesso solo se `residuo(A) > 0` prima dell’insert
 
 ### Validità abbonamento e tie-break (definizione formale)
 
-Per un Acquisto `A` di Abbonamento con `durata = D` giorni e `A.data = t0`, la finestra di validità è `[t0, t0 + D giorni)`.  
+Per un Acquisto `A` di Abbonamento con snapshot `A.durata = D` giorni (fissato alla vendita; **non** il valore corrente in `abbonamenti`) e `A.data = t0`, la finestra di validità è `[t0, t0 + D giorni)`.  
 Un Ingresso con `data = t` può essere giustificato da `A` se `t ∈ [t0, t0 + D)`.
 
 Algoritmo di scelta (regola 9 in `02-schema-er.md`), deterministico:
@@ -80,6 +80,13 @@ Due contratti `C1`, `C2` dello stesso `id_dipendente` sono illegali se gli inter
 - l’acquisto fissa l’importo **al momento della vendita** (requisito di storicizzazione, `03-modello-er.md` — tempo e snapshot).
 
 All’inserimento l’applicazione propone di default il prezzo di `listini` per `(YEAR(data), codice_prodotto)`; scostamenti solo per sconto/deroga. Nessuna FK Acquisto→Listino (il listino dell’anno può mancare o essere aggiornato dopo).
+
+### Durata / N ingressi su Acquisto (snapshot)
+
+`acquisti.durata` e `acquisti.numero_ingressi` sono lo **snapshot** dei parametri di accesso alla vendita (uno dei due valorizzato secondo la specializzazione del Prodotto):
+
+- giustificazione Ingressi e residuo pacchetto leggono **solo** questi campi sull’Acquisto;
+- aggiornare `abbonamenti.durata` / `pacchetti_ingressi.numero_ingressi` non altera titoli già venduti.
 
 ## Tavola volumi (ordine di grandezza)
 
@@ -113,7 +120,7 @@ Notazione: PK sottolineata; FK indicate.
 | `abbonamenti` | **codice_prodotto** → prodotti, durata | |
 | `pacchetti_ingressi` | **codice_prodotto** → prodotti, numero_ingressi | |
 | `listini` | **anno**, **codice_prodotto** → prodotti, prezzo | PK senza tipo |
-| `acquisti` | **id**, id_cliente → clienti, data, importo, codice_prodotto → prodotti | onDelete Client/Product: **Restrict** |
+| `acquisti` | **id**, id_cliente → clienti, data, importo, codice_prodotto → prodotti, durata?, numero_ingressi? | snapshot durata/N alla vendita; onDelete Client/Product: **Restrict** |
 | `ingressi` | **id**, data, id_acquisto → acquisti | onDelete Purchase: **Restrict** |
 
 Soldi (`importo`, `prezzo`, `costo_orario`): tipo **Decimal** (non Float) — evita errori di rappresentazione su moneta.

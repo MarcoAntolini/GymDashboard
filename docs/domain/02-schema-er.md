@@ -209,6 +209,8 @@ Solo `Codice` (PK). Specializzazioni sotto. Il tipo (Abbonamento vs Pacchetto) �
 | Id | Identificatore surrogato (evento economico) |
 | Data | datetime dell’evento |
 | Importo | snapshot monetario alla vendita (vedi regola 12); non sostituito da join al Listino |
+| Durata | snapshot giorni se Abbonamento alla vendita; altrimenti assente |
+| NumeroIngressi | snapshot N se Pacchetto alla vendita; altrimenti assente |
 
 Pattern visite/reificazione (`03-modello-er.md`): Acquisto è entità evento, non sola associazione N:M Cliente–Prodotto.
 
@@ -314,9 +316,9 @@ Lettura compatta:
 	- **non sovrapposizione:** per lo stesso Dipendente, gli intervalli `[DataInizio, DataFine)` (con `DataFine` assente trattata come +∞) sono a due a due disgiunti (app/CHECK; non esprimibile solo con la PK).
 8. Ogni Ingresso **deve** riferirsi a un Acquisto dello stesso Cliente (via `Acquisto.Cliente`) che giustifica l’accesso all’istante `Ingresso.Data`.
 9. Scelta dell’Acquisto giustificatore (**una transazione**, vedi `03-schema-logico.md`):
-	- candidati Abbonamento: Acquisti di Abbonamento del Cliente con `Ingresso.Data ∈ [DataAcquisto, DataAcquisto + Durata)`;
+	- candidati Abbonamento: Acquisti di Abbonamento del Cliente con `Ingresso.Data ∈ [DataAcquisto, DataAcquisto + DurataSnapshot)`;
 	- se ce n’è almeno uno → scegliere quello con `DataAcquisto` **più recente**; in parità, `Id` maggiore (nessun consumo pacchetto);
-	- altrimenti candidati Pacchetto: Acquisti di Pacchetto con `residuo > 0`; scegliere quello con `DataAcquisto` **meno recente** (FIFO); in parità, `Id` minore;
+	- altrimenti candidati Pacchetto: Acquisti di Pacchetto con `residuo = NumeroIngressiSnapshot − COUNT > 0`; scegliere quello con `DataAcquisto` **meno recente** (FIFO); in parità, `Id` minore;
 	- se nessun candidato → rifiutare l’ingresso.
 10. Integrità ISA (t,e): per ogni Pagamento esiste esattamente una riga figlia coerente con `Tipo`; per ogni Prodotto esiste esattamente una tra Abbonamento e Pacchetto ingressi.
 11. Attrezzatura è **spesa**, non giacenza di magazzino.

@@ -12,13 +12,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getAllProducts } from "@/data-access/products";
 import { createPurchase, deletePurchase, editPurchase, getAllPurchases } from "@/data-access/purchases";
 import { useEntityData } from "@/hooks/useEntityData";
+import {
+	PRODUCT_KIND_LABEL,
+	ProductKind,
+} from "@/lib/domain/product-kind";
 import { cn } from "@/lib/utils";
-import { Purchase, PurchaseType } from "@prisma/client";
+import { Purchase } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { columns, formSchema } from "./columns";
+import { columns, formSchema, ProductWithSpec } from "./columns";
 
 export default function PurchasesPage() {
 	const {
@@ -26,29 +30,29 @@ export default function PurchasesPage() {
 		setData: setPurchases,
 		isLoading,
 		handleDelete,
-		handleEdit
-	} = useEntityData<Purchase, "clientId" | "date">(
+		handleEdit,
+	} = useEntityData<Purchase, "id">(
 		useMemo(
 			() => ({
 				getAll: getAllPurchases,
 				deleteAction: deletePurchase,
-				editAction: editPurchase
+				editAction: editPurchase,
 			}),
 			[]
 		),
-		["clientId", "date"]
+		["id"]
 	);
 
-	const [products, setProducts] = useState<Product[]>([]);
-	const [selectedType, setSelectedType] = useState<PurchaseType>(PurchaseType.Membership);
-	const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+	const [products, setProducts] = useState<ProductWithSpec[]>([]);
+	const [selectedType, setSelectedType] = useState<ProductKind>(ProductKind.Membership);
+	const [filteredProducts, setFilteredProducts] = useState<ProductWithSpec[]>([]);
 
 	useEffect(() => {
 		const loadProducts = async () => {
-			const allProducts = await getAllProducts();
+			const allProducts = (await getAllProducts()) as ProductWithSpec[];
 			setProducts(allProducts);
 			const filtered = allProducts.filter((product) =>
-				selectedType === PurchaseType.Membership ? product.membership : product.entranceSet
+				selectedType === ProductKind.Membership ? product.membership : product.entranceSet
 			);
 			setFilteredProducts(filtered);
 		};
@@ -57,14 +61,15 @@ export default function PurchasesPage() {
 
 	useEffect(() => {
 		const filtered = products.filter((product) =>
-			selectedType === PurchaseType.Membership ? product.membership : product.entranceSet
+			selectedType === ProductKind.Membership ? product.membership : product.entranceSet
 		);
 		setFilteredProducts(filtered);
 	}, [selectedType, products]);
 
 	const handleCreatePurchase = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newPurchase = await createPurchase(values);
+			const { type: _uiType, ...sale } = values;
+			const newPurchase = await createPurchase(sale);
 			setPurchases((prevPurchases) => [...prevPurchases, newPurchase]);
 		},
 		[setPurchases]
@@ -82,7 +87,11 @@ export default function PurchasesPage() {
 							<FormItem>
 								<FormLabel>Client ID</FormLabel>
 								<FormControl>
-									<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
+									<Input
+										type="number"
+										{...field}
+										onChange={(e) => field.onChange(parseInt(e.target.value))}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -98,7 +107,10 @@ export default function PurchasesPage() {
 										<FormControl>
 											<Button
 												variant={"outline"}
-												className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+												className={cn(
+													"w-full pl-3 text-left font-normal",
+													!field.value && "text-muted-foreground"
+												)}
 											>
 												{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -144,7 +156,7 @@ export default function PurchasesPage() {
 								<Select
 									onValueChange={(value) => {
 										field.onChange(value);
-										setSelectedType(value as PurchaseType);
+										setSelectedType(value as ProductKind);
 									}}
 									defaultValue={field.value}
 								>
@@ -154,9 +166,9 @@ export default function PurchasesPage() {
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										{Object.values(PurchaseType).map((type) => (
-											<SelectItem key={type} value={type}>
-												{type}
+										{Object.values(ProductKind).map((kind) => (
+											<SelectItem key={kind} value={kind}>
+												{PRODUCT_KIND_LABEL[kind]}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -170,13 +182,17 @@ export default function PurchasesPage() {
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Product</FormLabel>
-								<Select onValueChange={field.onChange} value={field.value} disabled={filteredProducts.length === 0}>
+								<Select
+									onValueChange={field.onChange}
+									value={field.value}
+									disabled={filteredProducts.length === 0}
+								>
 									<FormControl>
 										<SelectTrigger>
 											<SelectValue
 												placeholder={
 													filteredProducts.length === 0
-														? `No ${selectedType.toLowerCase()} products available`
+														? `No ${PRODUCT_KIND_LABEL[selectedType].toLowerCase()} products available`
 														: "Select a product"
 												}
 											/>
@@ -186,7 +202,7 @@ export default function PurchasesPage() {
 										{filteredProducts.map((product) => (
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}
-												{selectedType === PurchaseType.Membership
+												{selectedType === ProductKind.Membership
 													? ` (${product.membership?.duration} days)`
 													: ` (${product.entranceSet?.entranceNumber} entrances)`}
 											</SelectItem>
@@ -205,12 +221,12 @@ export default function PurchasesPage() {
 					clientId: 0,
 					date: new Date(),
 					amount: 0,
-					type: PurchaseType.Membership,
-					productCode: ""
+					type: ProductKind.Membership,
+					productCode: "",
 				},
-				submitAction: handleCreatePurchase
-			} as FormData<typeof formSchema>
-		}
+				submitAction: handleCreatePurchase,
+			} as FormData<typeof formSchema>,
+		},
 	];
 
 	return isLoading ? (
@@ -222,8 +238,8 @@ export default function PurchasesPage() {
 				<DataTable
 					columns={columns(handleDelete, handleEdit, filteredProducts, setSelectedType)}
 					data={purchases}
-					filters={["clientId", "type", "productCode"]}
-					facetedFilters={["type"]}
+					filters={["clientId", "productCode"]}
+					facetedFilters={[]}
 				/>
 			}
 		/>

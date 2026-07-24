@@ -55,7 +55,7 @@ Prezzo di un Prodotto per un dato anno.
 _Avoid_: Catalogo prezzi (sinonimo); Catalog (nome tecnico codice)
 
 **Acquisto**:
-Evento in cui un Cliente compra un Prodotto in una data; l’importo registrato è lo snapshot alla vendita (di norma allineato al Listino dell’anno) ed è il titolo che giustifica gli Ingressi collegati.
+Evento in cui un Cliente compra un Prodotto in una data; importo, durata (se Abbonamento) e numero ingressi (se Pacchetto) sono snapshot alla vendita e costituiscono il titolo che giustifica gli Ingressi collegati. Modifiche successive al Prodotto non alterano i titoli già venduti.
 _Avoid_: Ordine, vendita (nel modello: Acquisto lato cliente); TitoloAccesso (non introdotto: coinciderebbe 1:1 con Acquisto)
 
 ### Accesso in palestra
@@ -65,7 +65,7 @@ Evento di entrata in palestra in un istante, giustificato da un Acquisto; può r
 _Avoid_: Check-in, entrata cliente (sinonimi; preferire Ingresso)
 
 **Ingressi rimanenti**:
-Residuo di un Acquisto di Pacchetto: numero ingressi del prodotto meno gli Ingressi già collegati a quell’Acquisto; non è un attributo del Cliente.
+Residuo di un Acquisto di Pacchetto: `Acquisto.numero_ingressi` (snapshot alla vendita) meno gli Ingressi già collegati a quell’Acquisto; non è un attributo del Cliente né il valore corrente del Prodotto.
 _Avoid_: Credito ingressi, saldo (ambigui con cassa); contatore globale su Cliente
 
 ### Movimenti economici in uscita
