@@ -4,7 +4,7 @@
 
 **Blocked by:** 37 — CRUD: Dialog create / Sheet edit + feedback; 02 — Snapshot durata e N ingressi su Acquisto; 05 — Acquisti: PK surrogata, snapshot importo, niente tipo; 06 — Registrazione Ingresso
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Registrazione Ingresso rispetta giustificazione via Acquisto; fallimenti chiari
 - [ ] Nessuna UI con ingressi rimanenti persistiti sul Cliente
@@ -13,3 +13,7 @@
 - [ ] Delete Restrict spiega il blocco
 
 **Source:** `docs/.scratch/dashboard-data-ux/issues/06-domain-fidelity-ui.md`
+
+## Comments
+
+- 2026-07-24 — claimed by implement loop (cloud)
