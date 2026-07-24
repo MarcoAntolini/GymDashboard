@@ -3,13 +3,10 @@
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import {
-	NO_JUSTIFYING_PURCHASE_ERROR,
 	selectJustifyingPurchaseId,
 	type JustifyingPurchaseCandidate,
 } from "@/lib/entrance-justification";
 import { Prisma } from "@prisma/client";
-
-export { NO_JUSTIFYING_PURCHASE_ERROR };
 
 const entranceInclude = {
 	purchase: {
