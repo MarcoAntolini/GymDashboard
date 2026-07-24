@@ -6,15 +6,17 @@ import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-	CLIENT_DEFAULT_SORT,
-	CLIENT_FILTER_ALLOWLIST,
-	CLIENT_SORT_ALLOWLIST,
 	createClient,
 	deleteClient,
 	editClient,
 	listClients,
 } from "@/data-access/clients";
 import { useServerList } from "@/hooks/useServerList";
+import {
+	CLIENT_DEFAULT_SORT,
+	CLIENT_FILTER_ALLOWLIST,
+	CLIENT_SORT_ALLOWLIST,
+} from "@/lib/list/clients";
 import { Client } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
 import { useCallback } from "react";

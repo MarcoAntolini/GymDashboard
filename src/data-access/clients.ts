@@ -10,36 +10,15 @@ import {
 	type ListQueryInput,
 	type ListResult,
 } from "@/lib/list";
+import {
+	CLIENT_DEFAULT_SORT,
+	CLIENT_FILTER_ALLOWLIST,
+	CLIENT_SORT_ALLOWLIST,
+} from "@/lib/list/clients";
 import { Client, Prisma } from "@prisma/client";
 
 const CLIENT_HAS_PURCHASES_MESSAGE =
 	"Impossibile eliminare il cliente: esistono acquisti collegati.";
-
-/** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
-export const CLIENT_SORT_ALLOWLIST = [
-	"id",
-	"taxCode",
-	"name",
-	"surname",
-	"birthDate",
-	"city",
-	"province",
-	"enrollmentDate",
-] as const;
-
-/** Chiavi filtro ammesse (Conferma/Filtra). */
-export const CLIENT_FILTER_ALLOWLIST = [
-	"taxCode",
-	"name",
-	"surname",
-	"city",
-	"province",
-] as const;
-
-export const CLIENT_DEFAULT_SORT = [
-	{ id: "surname", desc: false },
-	{ id: "name", desc: false },
-] as const;
 
 function buildClientWhere(filters: ListFilters): Prisma.ClientWhereInput {
 	const where: Prisma.ClientWhereInput = {};

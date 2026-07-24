@@ -2,12 +2,12 @@
  * Smoke: lista Clienti server-side (ticket 20) — richiede DB.
  * Run: npx tsx scripts/smoke-list-clients.ts
  */
+import { listClients } from "../src/data-access/clients";
 import {
 	CLIENT_DEFAULT_SORT,
 	CLIENT_FILTER_ALLOWLIST,
 	CLIENT_SORT_ALLOWLIST,
-	listClients,
-} from "../src/data-access/clients";
+} from "../src/lib/list/clients";
 
 function assert(cond: unknown, msg: string): asserts cond {
 	if (!cond) throw new Error(msg);
