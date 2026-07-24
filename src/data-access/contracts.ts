@@ -7,7 +7,9 @@ import {
 } from "@/lib/contract-intervals";
 import { resolveContractEndingDate } from "@/lib/contract-term";
 import { db } from "@/lib/db";
-import { Contract, ContractType } from "@prisma/client";
+import { Contract, ContractType, Prisma } from "@prisma/client";
+
+type MoneyInput = Prisma.Decimal | number | string;
 
 async function assertNoOverlappingContract({
 	employeeId,
@@ -48,7 +50,7 @@ export async function createContract({
 }: {
 	employeeId: number;
 	type: ContractType;
-	hourlyFee: number;
+	hourlyFee: MoneyInput;
 	startingDate: Date;
 	endingDate?: Date;
 }) {
@@ -68,7 +70,7 @@ export async function createContract({
 		data: {
 			employeeId,
 			type,
-			hourlyFee,
+			hourlyFee: new Prisma.Decimal(hourlyFee),
 			startingDate,
 			endingDate: resolvedEndingDate
 		}
@@ -90,7 +92,13 @@ export async function getContract(employeeId: number, startingDate: Date) {
 	});
 }
 
-export async function editContract({ employeeId, startingDate, type, hourlyFee, endingDate }: Contract) {
+export async function editContract({
+	employeeId,
+	startingDate,
+	type,
+	hourlyFee,
+	endingDate
+}: Omit<Contract, "hourlyFee"> & { hourlyFee: MoneyInput }) {
 	const resolvedEndingDate = resolveContractEndingDate({
 		type,
 		startingDate,
@@ -113,7 +121,7 @@ export async function editContract({ employeeId, startingDate, type, hourlyFee, 
 		},
 		data: {
 			type,
-			hourlyFee,
+			hourlyFee: new Prisma.Decimal(hourlyFee),
 			endingDate: resolvedEndingDate
 		}
 	});
@@ -208,12 +216,13 @@ export async function getEmployeesEarningsInPeriod({
 						}
 					}
 				}
+				const hourlyFee = Number(contract.hourlyFee);
 				return {
 					employeeId: contract.employeeId,
 					startingDate: contract.startingDate,
 					endingDate: contract.endingDate,
-					hourlyFee: contract.hourlyFee,
-					totalEarnings: contract.hourlyFee * totalHours
+					hourlyFee,
+					totalEarnings: hourlyFee * totalHours
 				};
 			});
 		})) as EmployeesEarningsInPeriod[];

@@ -1,11 +1,13 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { Payment, PaymentType } from "@prisma/client";
+import { Payment, PaymentType, Prisma } from "@prisma/client";
+
+type MoneyInput = Prisma.Decimal | number | string;
 
 type PaymentData = {
 	date: Date;
-	amount: number;
+	amount: MoneyInput;
 	type: PaymentType;
 } & (
 	| { type: "Salary"; employeeId: number }
@@ -25,7 +27,7 @@ export async function createPayment(data: PaymentData) {
 	const payment = await db.payment.create({
 		data: {
 			date,
-			amount,
+			amount: new Prisma.Decimal(amount),
 			type
 		}
 	});
@@ -97,14 +99,19 @@ export async function getPayment(id: number) {
 	});
 }
 
-export async function editPayment({ id, date, amount, type }: Payment) {
+export async function editPayment({
+	id,
+	date,
+	amount,
+	type
+}: Omit<Payment, "amount"> & { amount: MoneyInput }) {
 	return await db.payment.update({
 		where: {
 			id
 		},
 		data: {
 			date,
-			amount,
+			amount: new Prisma.Decimal(amount),
 			type
 		},
 		include: {

@@ -24,12 +24,13 @@ export async function mockAllData() {
 
 	await clearAllData();
 
+	// Prodotti/specializzazioni/Listino → Clienti → Acquisti → Ingressi (purchaseId reali).
 	const mockFunctions = [
-		mockClients,
 		mockProducts,
 		mockMemberships,
 		mockEntranceSets,
 		mockCatalogs,
+		mockClients,
 		mockPurchases,
 		mockEntrances,
 		mockEmployees,

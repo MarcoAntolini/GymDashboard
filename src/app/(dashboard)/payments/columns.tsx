@@ -50,7 +50,7 @@ export const columns = (
       />
     ),
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
+      const amount = Number(row.original.amount);
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
@@ -71,7 +71,13 @@ export const columns = (
     id: "actions",
     cell: ({ row }) => (
       <ItemActions
-        row={row}
+        row={{
+          ...row,
+          original: {
+            ...row.original,
+            amount: Number(row.original.amount),
+          },
+        }}
         formSchema={formSchema}
         editFormContent={
           <>

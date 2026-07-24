@@ -391,7 +391,7 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		accessorKey: "hourlyFee",
 		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("hourlyFee"));
+			const amount = Number(row.original.hourlyFee);
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
 				currency: "USD"
@@ -405,7 +405,7 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		accessorKey: "totalEarnings",
 		header: ({ column }) => <TableSortableHeader column={column} title="Total Earnings" />,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("totalEarnings"));
+			const amount = Number(row.original.totalEarnings);
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
 				currency: "USD"

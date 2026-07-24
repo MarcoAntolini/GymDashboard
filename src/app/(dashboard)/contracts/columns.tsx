@@ -72,7 +72,7 @@ export const columns = (
 		accessorKey: "hourlyFee",
 		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("hourlyFee"));
+			const amount = Number(row.original.hourlyFee);
 			const formatted = new Intl.NumberFormat("en-US", {
 				style: "currency",
 				currency: "USD"
@@ -105,7 +105,13 @@ export const columns = (
 		id: "actions",
 		cell: ({ row }) => (
 			<ItemActions
-				row={row}
+				row={{
+					...row,
+					original: {
+						...row.original,
+						hourlyFee: Number(row.original.hourlyFee)
+					}
+				}}
 				formSchema={formSchema}
 				editFormContent={
 					<>
@@ -185,8 +191,8 @@ export const columns = (
 						hourlyFee: values.hourlyFee,
 						endingDate:
 							values.type === ContractType.OpenEnded ? null : (values.endingDate ?? null)
-					} as Contract;
-					await handleEdit(updatedContract);
+					};
+					await handleEdit(updatedContract as unknown as Contract);
 				}}
 				deleteAction={() =>
 					handleDelete({ employeeId: row.original.employeeId, startingDate: row.original.startingDate })
