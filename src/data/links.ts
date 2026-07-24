@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { NAV_ROUTES, type AppRole } from "@/data/nav-routes";
 import {
 	AlarmSmoke,
 	BellElectric,
@@ -9,7 +9,7 @@ import {
 	HandCoins,
 	Handshake,
 	Lightbulb,
-	LucideIcon,
+	type LucideIcon,
 	Package,
 	ReceiptText,
 	ShoppingBasket,
@@ -19,128 +19,71 @@ import {
 	UserRoundCog,
 } from "lucide-react";
 
-export const links: {
-	group: {
-		title: string;
-		href: string;
-		requiredRole: Role;
-		icon: LucideIcon;
-	}[];
-}[] = [
+const ICONS: Record<string, LucideIcon> = {
+	"/accounts": UserRoundCog,
+	"/employees": BriefcaseBusiness,
+	"/contracts": ReceiptText,
+	"/clockings": BellElectric,
+	"/salaries": HandCoins,
+	"/equipment": Dumbbell,
+	"/bills": Lightbulb,
+	"/interventions": AlarmSmoke,
+	"/clients": UserRound,
+	"/entrances": DoorOpen,
+	"/products": ShoppingBasket,
+	"/memberships": Handshake,
+	"/entrance-sets": Package,
+	"/catalogs": FolderKanban,
+	"/payments": TrendingDown,
+	"/purchases": TrendingUp,
+};
+
+const ADMIN_HREFS = new Set(["/accounts", "/employees", "/contracts", "/clockings", "/salaries"]);
+
+type LinkItem = {
+	title: string;
+	href: string;
+	requiredRole: AppRole;
+	icon: LucideIcon;
+};
+
+function toLink(route: (typeof NAV_ROUTES)[number]): LinkItem {
+	const icon = ICONS[route.href];
+	if (!icon) {
+		throw new Error(`Missing icon for nav route ${route.href}`);
+	}
+	return { ...route, icon };
+}
+
+/** Same visual groups as before; roles come from `nav-routes.ts`. */
+export const links: { group: LinkItem[] }[] = [
 	{
-		group: [
-			{
-				title: "Accounts",
-				href: "/accounts",
-				requiredRole: "Admin",
-				icon: UserRoundCog,
-			},
-			{
-				title: "Employees",
-				href: "/employees",
-				requiredRole: "Admin",
-				icon: BriefcaseBusiness,
-			},
-			{
-				title: "Contracts",
-				href: "/contracts",
-				requiredRole: "Admin",
-				icon: ReceiptText,
-			},
-			{
-				title: "Clockings",
-				href: "/clockings",
-				requiredRole: "Admin",
-				icon: BellElectric,
-			},
-		],
+		group: NAV_ROUTES.filter((r) =>
+			["/accounts", "/employees", "/contracts", "/clockings"].includes(r.href)
+		).map(toLink),
 	},
 	{
-		group: [
-			{
-				title: "Salaries",
-				href: "/salaries",
-				requiredRole: "Admin",
-				icon: HandCoins,
-			},
-			{
-				title: "Equipment",
-				href: "/equipment",
-				requiredRole: "Employee",
-				icon: Dumbbell,
-			},
-			{
-				title: "Bills",
-				href: "/bills",
-				requiredRole: "Employee",
-				icon: Lightbulb,
-			},
-			{
-				title: "Interventions",
-				href: "/interventions",
-				requiredRole: "Employee",
-				icon: AlarmSmoke,
-			},
-		],
+		group: NAV_ROUTES.filter((r) =>
+			["/salaries", "/equipment", "/bills", "/interventions"].includes(r.href)
+		).map(toLink),
 	},
 	{
-		group: [
-			{
-				title: "Clients",
-				href: "/clients",
-				requiredRole: "Employee",
-				icon: UserRound,
-			},
-			{
-				title: "Entrances",
-				href: "/entrances",
-				requiredRole: "Employee",
-				icon: DoorOpen,
-			},
-			{
-				title: "Products",
-				href: "/products",
-				requiredRole: "Employee",
-				icon: ShoppingBasket,
-			},
-		],
+		group: NAV_ROUTES.filter((r) =>
+			["/clients", "/entrances", "/products"].includes(r.href)
+		).map(toLink),
 	},
 	{
-		group: [
-			{
-				title: "Memberships",
-				href: "/memberships",
-				requiredRole: "Employee",
-				icon: Handshake,
-			},
-			{
-				title: "Entrance Sets",
-				href: "/entrance-sets",
-				requiredRole: "Employee",
-				icon: Package,
-			},
-			{
-				title: "Catalogs",
-				href: "/catalogs",
-				requiredRole: "Employee",
-				icon: FolderKanban,
-			},
-		],
+		group: NAV_ROUTES.filter((r) =>
+			["/memberships", "/entrance-sets", "/catalogs"].includes(r.href)
+		).map(toLink),
 	},
 	{
-		group: [
-			{
-				title: "Payments",
-				href: "/payments",
-				requiredRole: "Employee",
-				icon: TrendingDown,
-			},
-			{
-				title: "Purchases",
-				href: "/purchases",
-				requiredRole: "Employee",
-				icon: TrendingUp,
-			},
-		],
+		group: NAV_ROUTES.filter((r) => ["/payments", "/purchases"].includes(r.href)).map(toLink),
 	},
 ];
+
+export { roleAllows } from "@/data/nav-routes";
+export type { AppRole };
+
+/** @deprecated Prefer NAV_ROUTES; kept for call sites that only need Admin set. */
+export const adminOnlyHrefs = ADMIN_HREFS;

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { isAppRole, landingPathForRole } from "@/data/nav-routes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,7 +22,7 @@ const formSchema = z.object({
 		.regex(
 			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
 			"Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"
-		)
+		),
 });
 
 export function LoginForm() {
@@ -31,8 +32,8 @@ export function LoginForm() {
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			username: "",
-			password: ""
-		}
+			password: "",
+		},
 	});
 
 	const [isLoading, setIsLoading] = useState(false);
@@ -47,15 +48,16 @@ export function LoginForm() {
 		await fetch("/api/auth/login", {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json"
+				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(values)
+			body: JSON.stringify(values),
 		})
 			.then((res) => res.json())
 			.then(async (data) => {
-				const { success, message } = data;
+				const { success, message, role } = data;
 				if (success) {
-					router.push("/accounts");
+					const landing = isAppRole(role) ? landingPathForRole(role) : "/entrances";
+					router.push(landing);
 				} else {
 					toast.error(message);
 				}

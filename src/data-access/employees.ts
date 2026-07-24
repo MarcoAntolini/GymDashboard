@@ -1,6 +1,7 @@
 "use server";
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { getOptionalSession, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function createEmployee(input: {
@@ -16,6 +17,7 @@ export async function createEmployee(input: {
 	email?: string;
 	hiringDate?: Date;
 }) {
+	await requireRole("Admin");
 	assertMutationPayload("employee", "create", input);
 	const {
 		taxCode,
@@ -48,10 +50,16 @@ export async function createEmployee(input: {
 }
 
 export async function getAllEmployees() {
+	await requireRole("Admin");
 	return await db.employee.findMany();
 }
 
+/** Register may call without session; authenticated callers need Admin. */
 export async function getEmployee(id: number) {
+	const session = await getOptionalSession();
+	if (session) {
+		await requireRole("Admin");
+	}
 	return await db.employee.findUnique({
 		where: {
 			id
@@ -73,6 +81,7 @@ export async function editEmployee(input: {
 	email: string;
 	hiringDate: Date;
 }) {
+	await requireRole("Admin");
 	assertMutationPayload("employee", "update", input);
 	const {
 		id,
@@ -109,6 +118,7 @@ export async function editEmployee(input: {
 }
 
 export async function deleteEmployee({ id }: { id: number }) {
+	await requireRole("Admin");
 	return await db.employee.delete({
 		where: {
 			id
@@ -117,6 +127,7 @@ export async function deleteEmployee({ id }: { id: number }) {
 }
 
 export async function getEmployeesWithoutAccount() {
+	await requireRole("Admin");
 	return await db.employee.findMany({
 		where: {
 			account: {
@@ -127,6 +138,7 @@ export async function getEmployeesWithoutAccount() {
 }
 
 export async function getEmployeesWithoutContract() {
+	await requireRole("Admin");
 	return await db.employee.findMany({
 		where: {
 			contracts: {

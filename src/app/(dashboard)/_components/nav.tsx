@@ -3,7 +3,7 @@
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { links } from "@/data/links";
+import { links, roleAllows } from "@/data/links";
 import { cn } from "@/lib/utils";
 import { Role } from "@prisma/client";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import { BeatLoader } from "react-spinners";
 
 export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 	const router = useRouter();
-	let pathname = usePathname();
+	const pathname = usePathname();
 	const [userRole, setUserRole] = useState<Role>();
 	const [selectedLink, setSelectedLink] = useState("/" + pathname.split("/").pop());
 	const [isLoading, setIsLoading] = useState(true);
@@ -57,26 +57,17 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 			className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2 overflow-auto"
 		>
 			<nav>
-				{links.map((l, _) => (
+				{links.map((l, groupIndex) => (
 					<div
-						key={_}
+						key={groupIndex}
 						className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
 					>
 						{l.group
-							.filter((link) => {
-								if (userRole === "Admin") {
-									return true;
-								} else {
-									return link.requiredRole === userRole;
-								}
-							})
+							.filter((link) => userRole != null && roleAllows(userRole, link.requiredRole))
 							.map((link, index) => {
 								const variant = link.href === selectedLink ? "default" : "ghost";
 								return isCollapsed ? (
-									<Tooltip
-										key={index}
-										delayDuration={0}
-									>
+									<Tooltip key={index} delayDuration={0}>
 										<TooltipTrigger asChild>
 											<Link
 												href={link.href}
@@ -92,10 +83,7 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 												<span className="sr-only">{link.title}</span>
 											</Link>
 										</TooltipTrigger>
-										<TooltipContent
-											side="right"
-											className="flex items-center gap-4"
-										>
+										<TooltipContent side="right" className="flex items-center gap-4">
 											{link.title}
 										</TooltipContent>
 									</Tooltip>
@@ -106,7 +94,8 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 										className={cn(
 											buttonVariants({ variant: variant, size: "sm" }),
 											"justify-start",
-											variant === "default" && "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white"
+											variant === "default" &&
+												"dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white"
 										)}
 										onClick={() => setSelectedLink(link.href)}
 									>
@@ -115,12 +104,7 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 									</Link>
 								);
 							})}
-						{_ !== links.length - 1 && (
-							<Separator
-								key={_}
-								className="mb-1"
-							/>
-						)}
+						{groupIndex !== links.length - 1 && <Separator className="mb-1" />}
 					</div>
 				))}
 			</nav>
