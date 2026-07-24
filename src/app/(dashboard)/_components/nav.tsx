@@ -54,7 +54,7 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 
 	if (isLoading) {
 		return (
-			<div className="flex flex-col justify-center items-center h-full">
+			<div className="flex min-h-0 flex-1 flex-col items-center justify-center">
 				<BeatLoader color="hsla(20.5 90.2% 48.2%)" />
 			</div>
 		);
@@ -70,7 +70,7 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 	return (
 		<div
 			data-collapsed={isCollapsed}
-			className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2 overflow-auto"
+			className="group flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain py-2 data-[collapsed=true]:py-2"
 		>
 			<nav aria-label="Navigazione principale">
 				{visibleSections.map((section, sectionIndex) => (

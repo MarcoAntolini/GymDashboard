@@ -23,10 +23,10 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="it" suppressHydrationWarning>
-			<body className={cn("min-h-screen max-h-screen bg-background font-sans antialiased", fontSans.variable)}>
+			<body className={cn("flex h-dvh max-h-dvh flex-col overflow-hidden bg-background font-sans antialiased", fontSans.variable)}>
 				<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
 					<Header />
-					<main className="min-h-[calc(100vh-56px-56px)]">
+					<main className="min-h-0 flex-1 overflow-hidden">
 						<DesktopOnly>
 							{children}
 						</DesktopOnly>

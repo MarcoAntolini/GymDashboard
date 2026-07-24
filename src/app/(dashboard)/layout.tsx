@@ -97,19 +97,19 @@ export default function DashboardLayout({
 	}
 
 	return (
-		<div className="p-4 min-h-[calc(100vh-56px-56px)] h-[calc(100vh-56px-56px)]">
+		<div className="box-border flex h-full min-h-0 flex-col p-4">
 			<TooltipProvider delayDuration={0}>
-				<Card className="flex flex-row h-full">
-					<div className="h-full items-stretch border-r">
+				<Card className="flex min-h-0 flex-1 flex-row overflow-hidden">
+					<div className="flex min-h-0 shrink-0 flex-col items-stretch border-r">
 						<div
 							className={cn(
-								"flex flex-col transition-[width] duration-200 ease-out h-full",
+								"flex h-full min-h-0 flex-col overflow-hidden transition-[width] duration-200 ease-out",
 								isCollapsed ? "w-[50px]" : "w-[220px]"
 							)}
 						>
 							<div
 								className={cn(
-									"flex min-h-[52px] h-[52px] items-center justify-center overflow-auto",
+									"flex h-[52px] min-h-[52px] shrink-0 items-center justify-center",
 									!isCollapsed && "px-2"
 								)}
 							>
@@ -172,10 +172,10 @@ export default function DashboardLayout({
 									</AlertDialogContent>
 								</AlertDialog>
 							</div>
-							<Separator />
-							<div className="flex flex-col justify-between h-full">
+							<Separator className="shrink-0" />
+							<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
 								<Nav isCollapsed={isCollapsed} />
-								<div className="flex flex-col">
+								<div className="flex shrink-0 flex-col">
 									<Separator />
 									<Button
 										className="hover:!rounded-t-none hover:!rounded-br-none"
@@ -193,7 +193,7 @@ export default function DashboardLayout({
 							</div>
 						</div>
 					</div>
-					<div className="w-full overflow-x-auto overflow-y-hidden">{children}</div>
+					<div className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</div>
 				</Card>
 			</TooltipProvider>
 		</div>
