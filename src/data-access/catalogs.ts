@@ -1,81 +1,80 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { Catalog, PurchaseType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-export async function createCatalog({
-  year,
-  type,
-  productCode,
-  price,
-}: Omit<Catalog, "id">) {
-  return await db.catalog.create({
-    data: {
-      year,
-      type,
-      productCode,
-      price,
-    },
-    include: {
-      product: true,
-    },
-  });
+const catalogInclude = {
+	product: {
+		include: {
+			membership: true,
+			entranceSet: true,
+		},
+	},
+} as const;
+
+type CatalogWriteInput = {
+	year: number;
+	productCode: string;
+	price: Prisma.Decimal | number | string;
+};
+
+export async function createCatalog({ year, productCode, price }: CatalogWriteInput) {
+	return await db.catalog.create({
+		data: {
+			year,
+			productCode,
+			price: new Prisma.Decimal(price),
+		},
+		include: catalogInclude,
+	});
 }
 
 export async function getAllCatalogs() {
-  return await db.catalog.findMany({
-    include: {
-      product: true,
-    },
-  });
+	return await db.catalog.findMany({
+		include: catalogInclude,
+	});
 }
 
-export async function getCatalog(year: number, type: PurchaseType, productCode: string) {
-  return await db.catalog.findUnique({
-    where: {
-      year_type_productCode: {
-        year,
-        type,
-        productCode,
-      },
-    },
-    include: {
-      product: true,
-    },
-  });
+export async function getCatalog(year: number, productCode: string) {
+	return await db.catalog.findUnique({
+		where: {
+			year_productCode: {
+				year,
+				productCode,
+			},
+		},
+		include: catalogInclude,
+	});
 }
 
-export async function editCatalog({
-  year,
-  type,
-  productCode,
-  price,
-}: Catalog) {
-  return await db.catalog.update({
-    where: {
-      year_type_productCode: {
-        year,
-        type,
-        productCode,
-      },
-    },
-    data: {
-      price,
-    },
-    include: {
-      product: true,
-    },
-  });
+export async function editCatalog({ year, productCode, price }: CatalogWriteInput) {
+	return await db.catalog.update({
+		where: {
+			year_productCode: {
+				year,
+				productCode,
+			},
+		},
+		data: {
+			price: new Prisma.Decimal(price),
+		},
+		include: catalogInclude,
+	});
 }
 
-export async function deleteCatalog({ year, type, productCode }: { year: number; type: PurchaseType; productCode: string }) {
-  return await db.catalog.delete({
-    where: {
-      year_type_productCode: {
-        year,
-        type,
-        productCode,
-      },
-    },
-  });
+export async function deleteCatalog({
+	year,
+	productCode,
+}: {
+	year: number;
+	productCode: string;
+}) {
+	return await db.catalog.delete({
+		where: {
+			year_productCode: {
+				year,
+				productCode,
+			},
+		},
+	});
 }

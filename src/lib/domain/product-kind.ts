@@ -17,3 +17,13 @@ export function productKindFromSnapshot(purchase: {
 }): ProductKind {
 	return purchase.duration != null ? ProductKind.Membership : ProductKind.EntranceSet;
 }
+
+/** Tipo derivato dalla specializzazione Prodotto (membership XOR entranceSet). */
+export function productKindFromProduct(product: {
+	membership: unknown | null;
+	entranceSet: unknown | null;
+}): ProductKind | null {
+	if (product.membership) return ProductKind.Membership;
+	if (product.entranceSet) return ProductKind.EntranceSet;
+	return null;
+}
