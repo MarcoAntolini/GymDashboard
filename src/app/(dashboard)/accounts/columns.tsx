@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
@@ -9,8 +10,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { assignableRoles, canManageRole, isAppRole, type AppRole } from "@/data/nav-routes";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
+
+const PASSWORD_MASK = "••••••••";
+
+function MaskedPasswordCell({ password }: { password: string }) {
+	const [revealed, setRevealed] = useState(false);
+
+	return (
+		<div className="flex items-center gap-1.5">
+			<span className="font-mono text-sm tracking-wider tabular-nums">
+				{revealed ? password : PASSWORD_MASK}
+			</span>
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon"
+				className="h-7 w-7 shrink-0 text-muted-foreground"
+				aria-label={revealed ? "Hide password" : "Show password"}
+				aria-pressed={revealed}
+				onClick={() => setRevealed((open) => !open)}
+			>
+				{revealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+			</Button>
+		</div>
+	);
+}
 
 function roleFormSchema(actorRole: AppRole) {
 	const roles = assignableRoles(actorRole);
@@ -57,6 +84,7 @@ export const columns = (
 			accessorKey: "password",
 			header: ({ column }) => <TableSortableHeader column={column} title="Password" />,
 			enableSorting: false,
+			cell: ({ row }) => <MaskedPasswordCell password={row.original.password} />,
 		},
 		{
 			accessorKey: "role",
