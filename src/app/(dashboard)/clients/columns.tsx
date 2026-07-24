@@ -26,7 +26,6 @@ export const formSchema = z.object({
   phoneNumber: z.string().min(1, "Phone Number is required"),
   email: z.string().email("Invalid email address"),
   enrollmentDate: z.date(),
-  remainingEntrances: z.number().int().nonnegative(),
 });
 
 export const columns = (
@@ -112,15 +111,6 @@ export const columns = (
       const date = new Date(row.getValue("enrollmentDate"));
       return <div className="font-medium">{date.toLocaleDateString()}</div>;
     },
-  },
-  {
-    accessorKey: "remainingEntrances",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Remaining Entrances"
-      />
-    ),
   },
   {
     id: "actions",
@@ -323,22 +313,6 @@ export const columns = (
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="remainingEntrances"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Remaining Entrances</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

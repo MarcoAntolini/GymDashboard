@@ -249,22 +249,6 @@ export default function ClientsPage() {
                 </FormItem>
               )}
             />
-            <FormField
-              name="remainingEntrances"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Remaining Entrances</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
         </>
       ),
@@ -282,7 +266,6 @@ export default function ClientsPage() {
           phoneNumber: "",
           email: "",
           enrollmentDate: new Date(),
-          remainingEntrances: 0,
         },
         submitAction: handleCreateClient,
       } as FormData<typeof formSchema>,

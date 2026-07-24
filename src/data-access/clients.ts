@@ -15,7 +15,6 @@ export async function createClient({
   phoneNumber,
   email,
   enrollmentDate,
-  remainingEntrances,
 }: Omit<Client, "id">) {
   return await db.client.create({
     data: {
@@ -30,7 +29,6 @@ export async function createClient({
       phoneNumber,
       email,
       enrollmentDate,
-      remainingEntrances,
     },
   });
 }
@@ -60,7 +58,6 @@ export async function editClient({
   phoneNumber,
   email,
   enrollmentDate,
-  remainingEntrances,
 }: Client) {
   return await db.client.update({
     where: {
@@ -78,7 +75,6 @@ export async function editClient({
       phoneNumber,
       email,
       enrollmentDate,
-      remainingEntrances,
     },
   });
 }

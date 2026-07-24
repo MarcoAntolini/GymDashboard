@@ -3,7 +3,9 @@ import { faker } from "@faker-js/faker";
 
 export async function mockMemberships(db: PrismaClient) {
   console.log("Mocking memberships...");
-  const products = await db.product.findMany();
+  const products = await db.product.findMany({
+    where: { membership: null, entranceSet: null },
+  });
 
   for (const product of products.slice(0, 10)) {
     await db.membership.create({

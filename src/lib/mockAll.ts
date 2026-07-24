@@ -22,7 +22,7 @@ export async function mockAllData() {
 	}
 	console.log("Starting to mock all data...");
 
-	// await clearAllData();
+	await clearAllData();
 
 	const mockFunctions = [
 		mockClients,
@@ -77,15 +77,14 @@ async function clearAllData() {
 		"dipendenti",
 	];
 
-	for (const tableName of tableOrder) {
-		try {
-			await db.$executeRawUnsafe(`SET foreign_key_checks = 0;`);
-			await db.$executeRawUnsafe(`DELETE FROM "${tableName}";`);
-			await db.$executeRawUnsafe(`SET foreign_key_checks = 1;`);
+	try {
+		await db.$executeRawUnsafe(`SET foreign_key_checks = 0;`);
+		for (const tableName of tableOrder) {
+			await db.$executeRawUnsafe(`DELETE FROM \`${tableName}\`;`);
 			console.log(`Cleared table ${tableName}`);
-		} catch (error) {
-			console.log(`Error clearing table ${tableName}:`, error);
 		}
+	} finally {
+		await db.$executeRawUnsafe(`SET foreign_key_checks = 1;`);
 	}
 
 	console.log("Finished clearing all existing data.");
