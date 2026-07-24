@@ -1,17 +1,17 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { requireAdminActor } from "@/lib/auth/require-admin";
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 
-export async function createAccount({
-	username,
-	password,
-	employeeId
-}: {
+export async function createAccount(input: {
 	username: string;
 	password: string;
 	employeeId: number;
 }) {
+	assertMutationPayload("account", "create", input);
+	const { username, password, employeeId } = input;
 	return await db.account.create({
 		data: {
 			username,
@@ -54,15 +54,14 @@ export async function getAccountSafe(username: string) {
 	});
 }
 
-export async function editAccount({
-	employeeId,
-	role,
-	approved
-}: {
+export async function editAccount(input: {
 	employeeId: number;
 	role: Role;
 	approved: boolean;
 }) {
+	assertMutationPayload("account", "update", input);
+	await requireAdminActor();
+	const { employeeId, role, approved } = input;
 	return await db.account.update({
 		where: {
 			employeeId

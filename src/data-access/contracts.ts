@@ -1,5 +1,6 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import {
 	contractIntervalsOverlap,
 	OVERLAPPING_CONTRACT_ERROR,
@@ -41,19 +42,15 @@ async function assertNoOverlappingContract({
 	}
 }
 
-export async function createContract({
-	employeeId,
-	type,
-	hourlyFee,
-	startingDate,
-	endingDate
-}: {
+export async function createContract(input: {
 	employeeId: number;
 	type: ContractType;
 	hourlyFee: MoneyInput;
 	startingDate: Date;
 	endingDate?: Date;
 }) {
+	assertMutationPayload("contract", "create", input);
+	const { employeeId, type, hourlyFee, startingDate, endingDate } = input;
 	const resolvedEndingDate = resolveContractEndingDate({
 		type,
 		startingDate,
@@ -92,13 +89,9 @@ export async function getContract(employeeId: number, startingDate: Date) {
 	});
 }
 
-export async function editContract({
-	employeeId,
-	startingDate,
-	type,
-	hourlyFee,
-	endingDate
-}: Omit<Contract, "hourlyFee"> & { hourlyFee: MoneyInput }) {
+export async function editContract(input: Omit<Contract, "hourlyFee"> & { hourlyFee: MoneyInput }) {
+	assertMutationPayload("contract", "update", input);
+	const { employeeId, startingDate, type, hourlyFee, endingDate } = input;
 	const resolvedEndingDate = resolveContractEndingDate({
 		type,
 		startingDate,

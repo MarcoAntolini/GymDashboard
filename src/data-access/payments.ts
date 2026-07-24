@@ -1,5 +1,6 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import { Payment, PaymentType, Prisma } from "@prisma/client";
 
@@ -23,6 +24,7 @@ type PaymentData = {
 );
 
 export async function createPayment(data: PaymentData) {
+	assertMutationPayload("payment", "create", data);
 	const { date, amount, type, ...specificData } = data;
 	const payment = await db.payment.create({
 		data: {
@@ -99,12 +101,9 @@ export async function getPayment(id: number) {
 	});
 }
 
-export async function editPayment({
-	id,
-	date,
-	amount,
-	type
-}: Omit<Payment, "amount"> & { amount: MoneyInput }) {
+export async function editPayment(input: Omit<Payment, "amount"> & { amount: MoneyInput }) {
+	assertMutationPayload("payment", "update", input);
+	const { id, date, amount, type } = input;
 	return await db.payment.update({
 		where: {
 			id

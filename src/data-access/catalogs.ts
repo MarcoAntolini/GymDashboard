@@ -1,5 +1,6 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
@@ -18,7 +19,9 @@ type CatalogWriteInput = {
 	price: Prisma.Decimal | number | string;
 };
 
-export async function createCatalog({ year, productCode, price }: CatalogWriteInput) {
+export async function createCatalog(input: CatalogWriteInput) {
+	assertMutationPayload("catalog", "create", input);
+	const { year, productCode, price } = input;
 	return await db.catalog.create({
 		data: {
 			year,
@@ -47,7 +50,9 @@ export async function getCatalog(year: number, productCode: string) {
 	});
 }
 
-export async function editCatalog({ year, productCode, price }: CatalogWriteInput) {
+export async function editCatalog(input: CatalogWriteInput) {
+	assertMutationPayload("catalog", "update", input);
+	const { year, productCode, price } = input;
 	return await db.catalog.update({
 		where: {
 			year_productCode: {

@@ -1,14 +1,15 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import { Prisma, Product } from "@prisma/client";
 
 const PRODUCT_HAS_DEPENDENTS_MESSAGE =
 	"Impossibile eliminare il prodotto: esistono acquisti collegati.";
 
-export async function createProduct({
-  code,
-}: Omit<Product, "id">) {
+export async function createProduct(input: Omit<Product, "id">) {
+  assertMutationPayload("product", "create", input);
+  const { code } = input;
   return await db.product.create({
     data: {
       code,
@@ -37,9 +38,9 @@ export async function getProduct(code: string) {
   });
 }
 
-export async function editProduct({
-  code,
-}: Product) {
+export async function editProduct(input: Product) {
+  assertMutationPayload("product", "update", input);
+  const { code } = input;
   return await db.product.update({
     where: {
       code,

@@ -33,7 +33,12 @@ export default function Accounts() {
 			() => ({
 				getAll: getAllAccounts,
 				deleteAction: deleteAccount,
-				editAction: editAccount,
+				editAction: async (account) =>
+					editAccount({
+						employeeId: account.employeeId,
+						role: account.role,
+						approved: account.approved,
+					}),
 			}),
 			[]
 		),

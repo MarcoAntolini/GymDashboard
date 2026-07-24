@@ -1,17 +1,16 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import { Clocking } from "@prisma/client";
 
-export async function createClocking({
-	employeeId,
-	entranceTime,
-	exitTime,
-}: {
+export async function createClocking(input: {
 	employeeId: number;
 	entranceTime: Date;
 	exitTime?: Date;
 }) {
+	assertMutationPayload("clocking", "create", input);
+	const { employeeId, entranceTime, exitTime } = input;
 	return await db.clocking.create({
 		data: {
 			employeeId,
@@ -36,7 +35,9 @@ export async function getClocking(employeeId: number, entranceTime: Date) {
 	});
 }
 
-export async function editClocking({ employeeId, entranceTime, exitTime }: Clocking) {
+export async function editClocking(input: Clocking) {
+	assertMutationPayload("clocking", "update", input);
+	const { employeeId, entranceTime, exitTime } = input;
 	return await db.clocking.update({
 		where: {
 			employeeId_entranceTime: {

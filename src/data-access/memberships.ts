@@ -1,12 +1,12 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import { Membership } from "@prisma/client";
 
-export async function createMembership({
-  productCode,
-  duration,
-}: Omit<Membership, "id">) {
+export async function createMembership(input: Omit<Membership, "id">) {
+  assertMutationPayload("membership", "create", input);
+  const { productCode, duration } = input;
   await await db.product.create({
 		data: {
 			code: productCode
@@ -42,10 +42,9 @@ export async function getMembership(productCode: string) {
   });
 }
 
-export async function editMembership({
-  productCode,
-  duration,
-}: Membership) {
+export async function editMembership(input: Membership) {
+  assertMutationPayload("membership", "update", input);
+  const { productCode, duration } = input;
   return await db.membership.update({
     where: {
       productCode,

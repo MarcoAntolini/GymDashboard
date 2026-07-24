@@ -1,5 +1,6 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import {
 	NO_JUSTIFYING_PURCHASE_ERROR,
@@ -28,6 +29,11 @@ export type EntranceRow = Prisma.EntranceGetPayload<{ include: typeof entranceIn
  * giustificatore (tie-break dominio) e inserisce con purchaseId.
  */
 export async function registerEntrance(clientId: number, date?: Date) {
+	assertMutationPayload(
+		"entrance",
+		"create",
+		date === undefined ? { clientId } : { clientId, date }
+	);
 	const at = date ?? new Date();
 
 	return await db.$transaction(
@@ -91,7 +97,9 @@ export async function getEntrance(id: number) {
 	});
 }
 
-export async function editEntrance({ id, date }: { id: number; date: Date }) {
+export async function editEntrance(input: { id: number; date: Date }) {
+	assertMutationPayload("entrance", "update", input);
+	const { id, date } = input;
 	return await db.entrance.update({
 		where: { id },
 		data: { date },

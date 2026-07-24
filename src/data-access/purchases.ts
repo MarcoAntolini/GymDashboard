@@ -1,5 +1,6 @@
 "use server";
 
+import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { getCatalog } from "@/data-access/catalogs";
 import { db } from "@/lib/db";
 import { snapshotFromProduct } from "@/lib/domain/purchase-access";
@@ -56,12 +57,9 @@ async function resolveAmount(
 	return new Prisma.Decimal(catalog.price);
 }
 
-export async function createPurchase({
-	clientId,
-	date,
-	amount,
-	productCode,
-}: PurchaseWriteInput) {
+export async function createPurchase(input: PurchaseWriteInput) {
+	assertMutationPayload("purchase", "create", input);
+	const { clientId, date, amount, productCode } = input;
 	const snapshot = await resolveSnapshot(productCode);
 	const resolvedAmount = await resolveAmount(date, productCode, amount);
 	return await db.purchase.create({
@@ -90,13 +88,9 @@ export async function getPurchase(id: number) {
 	});
 }
 
-export async function editPurchase({
-	id,
-	clientId,
-	date,
-	amount,
-	productCode,
-}: PurchaseWriteInput & { id: number }) {
+export async function editPurchase(input: PurchaseWriteInput & { id: number }) {
+	assertMutationPayload("purchase", "update", input);
+	const { id, clientId, date, amount, productCode } = input;
 	const snapshot = await resolveSnapshot(productCode);
 	return await db.purchase.update({
 		where: { id },
