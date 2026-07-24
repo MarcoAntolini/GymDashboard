@@ -343,6 +343,15 @@ export default function ClientsPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.clienti}
+					getRowId={(row) => String(row.id)}
+					bulk={{
+						entityLabel: "Cliente",
+						deleteConsequence: "Impossibile eliminare il Cliente se esistono Acquisti collegati (vincolo Restrict).",
+						deleteRow: async (row) => {
+							await deleteClient({ id: row.id });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

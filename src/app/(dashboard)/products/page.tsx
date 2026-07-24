@@ -98,6 +98,15 @@ export default function ProductsPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.prodotti}
+					getRowId={(row) => row.code}
+					bulk={{
+						entityLabel: "Prodotto",
+						deleteConsequence: "Impossibile eliminare il Prodotto se esistono Acquisti collegati (vincolo Restrict).",
+						deleteRow: async (row) => {
+							await deleteProduct({ code: row.code });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

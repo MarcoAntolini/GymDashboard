@@ -101,6 +101,14 @@ export default function Salaries() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={`Nessuno Stipendio registrato. ${CREATE_GUIDANCE.stipendi}`}
+					getRowId={(row) => String(row.paymentId)}
+					bulk={{
+						entityLabel: "Stipendio",
+						deleteRow: async (row) => {
+							await deleteSalary({ paymentId: row.paymentId });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

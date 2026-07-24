@@ -27,11 +27,12 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { useRegisterRowActions } from "@/components/ui/data-table/row-actions-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Row } from "@tanstack/react-table";
 import { Loader2, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -81,6 +82,16 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when sheet opens / row changes
 	}, [isEditOpen, row.original]);
+
+	const openEdit = useCallback(() => setIsEditOpen(true), []);
+	const openDelete = useCallback(() => setIsDeleteOpen(true), []);
+
+	useRegisterRowActions({
+		canEdit: !editUnavailabe,
+		canDelete: !deleteUnavailabe,
+		openEdit: editUnavailabe ? undefined : openEdit,
+		openDelete: deleteUnavailabe ? undefined : openDelete,
+	});
 
 	async function onEditSubmit(values: z.infer<TFormSchema>) {
 		setIsSaving(true);

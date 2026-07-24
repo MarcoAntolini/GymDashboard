@@ -102,6 +102,14 @@ export default function EquipmentPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={`Nessuna Attrezzatura registrata. ${CREATE_GUIDANCE.attrezzatura}`}
+					getRowId={(row) => String(row.paymentId)}
+					bulk={{
+						entityLabel: "Attrezzatura",
+						deleteRow: async (row) => {
+							await deleteEquipment({ paymentId: row.paymentId });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

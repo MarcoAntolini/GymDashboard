@@ -381,10 +381,18 @@ export default function Contracts() {
 						isFilterDirty={listQuery.isFilterDirty}
 						hasAppliedFilters={listQuery.hasAppliedFilters}
 						listStatus={listStatus}
-					listError={listError}
-					onRetry={retryList}
-					emptyKind={result?.emptyKind ?? null}
+						listError={listError}
+						onRetry={retryList}
+						emptyKind={result?.emptyKind ?? null}
 						datasetEmptyMessage={DATASET_EMPTY_MESSAGES.contratti}
+						getRowId={(row) => `${row.employeeId}:${new Date(row.startingDate).toISOString()}`}
+						bulk={{
+							entityLabel: "Contratto",
+							deleteRow: async (row) => {
+								await deleteContract({ employeeId: row.employeeId, startingDate: row.startingDate });
+							},
+							onDeleted: fetchList,
+						}}
 					/>
 				}
 			/>

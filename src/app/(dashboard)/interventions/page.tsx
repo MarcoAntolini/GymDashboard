@@ -104,6 +104,14 @@ export default function InterventionsPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={`Nessun Intervento registrato. ${CREATE_GUIDANCE.interventi}`}
+					getRowId={(row) => String(row.paymentId)}
+					bulk={{
+						entityLabel: "Intervento",
+						deleteRow: async (row) => {
+							await deleteIntervention({ paymentId: row.paymentId });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

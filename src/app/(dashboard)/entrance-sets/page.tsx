@@ -176,6 +176,14 @@ export default function EntranceSetsPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.pacchetti}
+					getRowId={(row) => row.productCode}
+					bulk={{
+						entityLabel: "Pacchetto ingressi",
+						deleteRow: async (row) => {
+							await deleteEntranceSet({ productCode: row.productCode });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

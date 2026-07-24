@@ -384,6 +384,14 @@ export default function PaymentsPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.pagamenti}
+					getRowId={(row) => String(row.id)}
+					bulk={{
+						entityLabel: "Pagamento",
+						deleteRow: async (row) => {
+							await deletePayment({ id: row.id });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

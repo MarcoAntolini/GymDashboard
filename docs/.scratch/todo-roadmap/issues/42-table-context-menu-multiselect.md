@@ -4,13 +4,20 @@
 
 **Blocked by:** 37 — CRUD: Dialog create / Sheet edit + feedback; 16 — Coda Approvazione Account
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] Context menu shadcn sulle righe tabella per le azioni principali
-- [ ] Multi-select con selezione multipla usabile
-- [ ] Bulk delete su ogni tabella lista (con confirm e Restrict feedback)
-- [ ] Bulk Approvazione (o equivalenti) dove l’azione è comune e ammessa dal ruolo
+- [x] Context menu shadcn sulle righe tabella per le azioni principali
+- [x] Multi-select con selezione multipla usabile
+- [x] Bulk delete su ogni tabella lista (con confirm e Restrict feedback)
+- [x] Bulk Approvazione (o equivalenti) dove l’azione è comune e ammessa dal ruolo
 
 ## Comments
 
 - 2026-07-24 — claimed by implement loop (cloud)
+
+## Done
+
+- Context menu shadcn su ogni riga di `ServerDataTable`: Modifica/Elimina allineati a `ItemActions` via registry per-riga.
+- Checkbox column + selezione pagina; barra bulk con conteggio, Annulla selezione, Elimina (AlertDialog).
+- Bulk delete su tutte le 16 liste entity: `runBulkDeletes` continua dopo errori Restrict e toast per-riga.
+- Account: bulk **Approva** per selezionati pending ammessi dalla gerarchia (`filterApprovableAccounts`).

@@ -1,6 +1,7 @@
 "use client";
 
 import { ApprovalQueueSheet } from "@/app/(dashboard)/accounts/approval-queue-sheet";
+import { BulkApproveAccountsButton } from "@/app/(dashboard)/accounts/bulk-approve-button";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
@@ -346,6 +347,29 @@ export default function Accounts() {
 						onRetry={retryList}
 						emptyKind={result?.emptyKind ?? null}
 						datasetEmptyMessage={DATASET_EMPTY_MESSAGES.account}
+						getRowId={(row) => String(row.employeeId)}
+						bulk={{
+							entityLabel: "Account",
+							deleteRow: async (row) => {
+								await deleteAccount({ employeeId: row.employeeId });
+							},
+							onDeleted: async () => {
+								await fetchList();
+								await refreshPending();
+							},
+						}}
+						bulkExtraActions={({ selectedRows, clearSelection }) => (
+							<BulkApproveAccountsButton
+								actorRole={actorRole}
+								selectedRows={selectedRows}
+								onApprove={handleApprovePending}
+								onDone={async () => {
+									clearSelection();
+									await fetchList();
+									await refreshPending();
+								}}
+							/>
+						)}
 					/>
 				}
 			/>

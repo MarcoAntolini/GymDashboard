@@ -298,6 +298,15 @@ export default function PurchasesPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.acquisti}
+					getRowId={(row) => String(row.id)}
+					bulk={{
+						entityLabel: "Acquisto",
+						deleteConsequence: "Impossibile eliminare l'Acquisto se esistono Ingressi collegati (vincolo Restrict).",
+						deleteRow: async (row) => {
+							await deletePurchase({ id: row.id });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

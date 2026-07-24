@@ -298,6 +298,14 @@ export default function Employees() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.dipendenti}
+					getRowId={(row) => String(row.id)}
+					bulk={{
+						entityLabel: "Dipendente",
+						deleteRow: async (row) => {
+							await deleteEmployee({ id: row.id });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

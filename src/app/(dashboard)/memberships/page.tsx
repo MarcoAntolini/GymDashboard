@@ -172,6 +172,14 @@ export default function MembershipsPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.abbonamenti}
+					getRowId={(row) => row.productCode}
+					bulk={{
+						entityLabel: "Abbonamento",
+						deleteRow: async (row) => {
+							await deleteMembership({ productCode: row.productCode });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

@@ -280,10 +280,18 @@ export default function EntrancesPage() {
 						isFilterDirty={listQuery.isFilterDirty}
 						hasAppliedFilters={listQuery.hasAppliedFilters}
 						listStatus={listStatus}
-					listError={listError}
-					onRetry={retryList}
-					emptyKind={result?.emptyKind ?? null}
+						listError={listError}
+						onRetry={retryList}
+						emptyKind={result?.emptyKind ?? null}
 						datasetEmptyMessage={DATASET_EMPTY_MESSAGES.ingressi}
+						getRowId={(row) => String(row.id)}
+						bulk={{
+							entityLabel: "Ingresso",
+							deleteRow: async (row) => {
+								await deleteEntrance({ id: row.id });
+							},
+							onDeleted: fetchList,
+						}}
 					/>
 				}
 			/>

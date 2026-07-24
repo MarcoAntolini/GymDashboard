@@ -174,6 +174,14 @@ export default function Clockings() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.timbrature}
+					getRowId={(row) => `${row.employeeId}:${new Date(row.entranceTime).toISOString()}`}
+					bulk={{
+						entityLabel: "Timbratura",
+						deleteRow: async (row) => {
+							await deleteClocking({ employeeId: row.employeeId, entranceTime: row.entranceTime });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

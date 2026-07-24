@@ -253,6 +253,15 @@ export default function CatalogsPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.listino}
+					getRowId={(row) => `${row.year}:${row.productCode}`}
+					bulk={{
+						entityLabel: "Listino",
+						deleteConsequence: "Il prezzo Listino non ha FK Restrict verso Acquisto: gli importi già venduti restano come snapshot sull'Acquisto.",
+						deleteRow: async (row) => {
+							await deleteCatalog({ year: row.year, productCode: row.productCode });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>

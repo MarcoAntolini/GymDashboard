@@ -2,12 +2,26 @@
 
 import { Button } from "@/components/ui/button";
 import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuLabel,
+	ContextMenuSeparator,
+	ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
 	ListShellError,
 	ListShellLoading,
 } from "@/components/ui/data-table/list-shell-status";
+import {
+	RowActionsProvider,
+	type RowActionHandlers,
+} from "@/components/ui/data-table/row-actions-context";
 import { ServerListPagination } from "@/components/ui/data-table/server-list-pagination";
 import { ServerListToolbar } from "@/components/ui/data-table/server-list-toolbar";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
+import { TableBulkBar } from "@/components/ui/data-table/table-bulk-bar";
+import { createSelectColumn } from "@/components/ui/data-table/table-select-column";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { EntityListStatus } from "@/hooks/useEntityListFetch";
 import {
@@ -23,6 +37,8 @@ import {
 } from "@/lib/format/table-empty";
 import {
 	ColumnDef,
+	Row,
+	RowSelectionState,
 	SortingState,
 	VisibilityState,
 	flexRender,
@@ -31,6 +47,14 @@ import {
 	type OnChangeFn,
 } from "@tanstack/react-table";
 import * as React from "react";
+
+export type ServerDataTableBulkConfig<TData> = {
+	entityLabel: string;
+	deleteConsequence?: string;
+	/** Delete a single selected row (no list refresh — table calls onDeleted once). */
+	deleteRow: (row: TData) => Promise<void>;
+	onDeleted?: () => void | Promise<void>;
+};
 
 export type ServerDataTableProps<TData, TValue> = {
 	columns: ColumnDef<TData, TValue>[];
@@ -58,12 +82,68 @@ export type ServerDataTableProps<TData, TValue> = {
 	listError?: string | null;
 	onRetry?: () => void;
 	className?: string;
+	/** Stable row id for selection (required for multi-select). */
+	getRowId?: (originalRow: TData, index: number) => string;
+	/** Enables checkbox column + bulk Elimina bar. */
+	bulk?: ServerDataTableBulkConfig<TData>;
+	/**
+	 * Extra bulk actions (e.g. Approva) when rows are selected.
+	 * Rendered inside the bulk bar beside Elimina.
+	 */
+	bulkExtraActions?: (ctx: {
+		selectedRows: TData[];
+		clearSelection: () => void;
+	}) => React.ReactNode;
 };
+
+function DataTableContextMenuRow<TData>({
+	row,
+	children,
+}: {
+	row: Row<TData>;
+	children: React.ReactNode;
+}) {
+	const [handlers, setHandlers] = React.useState<RowActionHandlers | null>(
+		null
+	);
+	const hasActions =
+		Boolean(handlers?.canEdit && handlers.openEdit) ||
+		Boolean(handlers?.canDelete && handlers.openDelete);
+
+	return (
+		<RowActionsProvider onHandlersChange={setHandlers}>
+			<ContextMenu>
+				<ContextMenuTrigger asChild>
+					<TableRow data-state={row.getIsSelected() && "selected"}>
+						{children}
+					</TableRow>
+				</ContextMenuTrigger>
+				{hasActions ? (
+					<ContextMenuContent>
+						<ContextMenuLabel>Azioni</ContextMenuLabel>
+						<ContextMenuSeparator />
+						{handlers?.canEdit && handlers.openEdit ? (
+							<ContextMenuItem onSelect={() => handlers.openEdit?.()}>
+								Modifica
+							</ContextMenuItem>
+						) : null}
+						{handlers?.canDelete && handlers.openDelete ? (
+							<ContextMenuItem onSelect={() => handlers.openDelete?.()}>
+								Elimina
+							</ContextMenuItem>
+						) : null}
+					</ContextMenuContent>
+				) : null}
+			</ContextMenu>
+		</RowActionsProvider>
+	);
+}
 
 /**
  * Entity table driven by server-side list query (ticket 20+).
  * Manual filter/sort/pagination — no client row models for those concerns.
  * Loading / error / empty states live in this shared shell (ticket 39).
+ * Context menu + multi-select bulk (ticket 42).
  */
 export function ServerDataTable<TData, TValue>({
 	columns,
@@ -89,6 +169,9 @@ export function ServerDataTable<TData, TValue>({
 	listError = null,
 	onRetry,
 	className,
+	getRowId,
+	bulk,
+	bulkExtraActions,
 }: ServerDataTableProps<TData, TValue>) {
 	const sorting = React.useMemo(
 		() => tanstackSortingFromListSort(sort) as SortingState,
@@ -96,6 +179,11 @@ export function ServerDataTable<TData, TValue>({
 	);
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
+	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
+		{}
+	);
+
+	const enableSelection = Boolean(bulk);
 
 	const onSortingChange: OnChangeFn<SortingState> = React.useCallback(
 		(updater) => {
@@ -106,23 +194,49 @@ export function ServerDataTable<TData, TValue>({
 		[onSortChange, sorting]
 	);
 
+	React.useEffect(() => {
+		setRowSelection({});
+	}, [page, pageSize, sort]);
+
+	const tableColumns = React.useMemo(() => {
+		if (!enableSelection) return columns;
+		return [createSelectColumn<TData>(), ...columns] as ColumnDef<
+			TData,
+			TValue
+		>[];
+	}, [columns, enableSelection]);
+
 	const table = useReactTable({
 		data,
-		columns,
+		columns: tableColumns,
 		...SERVER_TABLE_MANUAL_FLAGS,
 		rowCount: total,
 		getCoreRowModel: getCoreRowModel(),
 		onSortingChange,
 		onColumnVisibilityChange: setColumnVisibility,
+		onRowSelectionChange: setRowSelection,
+		enableRowSelection: enableSelection,
+		getRowId: getRowId
+			? (originalRow, index) => getRowId(originalRow, index)
+			: undefined,
 		state: {
 			sorting,
 			columnVisibility,
+			rowSelection,
 			pagination: {
 				pageIndex: Math.max(0, page - 1),
 				pageSize,
 			},
 		},
 	});
+
+	const selectedRows = table
+		.getSelectedRowModel()
+		.rows.map((r) => r.original);
+
+	const clearSelection = React.useCallback(() => {
+		setRowSelection({});
+	}, []);
 
 	const showInitialLoading = listStatus === "loading" && data.length === 0;
 	const showError = listStatus === "error" && data.length === 0;
@@ -152,6 +266,20 @@ export function ServerDataTable<TData, TValue>({
 						Riprova
 					</Button>
 				</div>
+			) : null}
+			{bulk ? (
+				<TableBulkBar
+					selectedRows={selectedRows}
+					entityLabel={bulk.entityLabel}
+					deleteConsequence={bulk.deleteConsequence}
+					deleteRow={bulk.deleteRow}
+					onDeleted={bulk.onDeleted}
+					onClearSelection={clearSelection}
+					extraActions={bulkExtraActions?.({
+						selectedRows,
+						clearSelection,
+					})}
+				/>
 			) : null}
 			<div
 				className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border"
@@ -191,10 +319,7 @@ export function ServerDataTable<TData, TValue>({
 						<TableBody>
 							{table.getRowModel().rows?.length ? (
 								table.getRowModel().rows.map((row) => (
-									<TableRow
-										key={row.id}
-										data-state={row.getIsSelected() && "selected"}
-									>
+									<DataTableContextMenuRow key={row.id} row={row}>
 										{row.getVisibleCells().map((cell) => (
 											<TableCell key={cell.id}>
 												{flexRender(
@@ -203,12 +328,12 @@ export function ServerDataTable<TData, TValue>({
 												)}
 											</TableCell>
 										))}
-									</TableRow>
+									</DataTableContextMenuRow>
 								))
 							) : (
 								<TableRow>
 									<TableCell
-										colSpan={columns.length}
+										colSpan={tableColumns.length}
 										className="h-24 text-center"
 									>
 										<span className="text-muted-foreground">

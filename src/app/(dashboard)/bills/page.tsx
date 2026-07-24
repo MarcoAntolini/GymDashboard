@@ -102,6 +102,14 @@ export default function BillsPage() {
 					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={`Nessuna Bolletta registrata. ${CREATE_GUIDANCE.bollette}`}
+					getRowId={(row) => String(row.paymentId)}
+					bulk={{
+						entityLabel: "Bolletta",
+						deleteRow: async (row) => {
+							await deleteBill({ paymentId: row.paymentId });
+						},
+						onDeleted: fetchList,
+					}}
 				/>
 			}
 		/>
