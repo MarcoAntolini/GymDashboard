@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { formatDateIt } from "@/lib/format/locale";
 import { cn } from "@/lib/utils";
 
 // All list columns are nativa (VIEW_COLUMN_MATRIX.clienti). Residuo ingressi is
@@ -49,16 +50,7 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Tax Code"
-      />
-    ),
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <TableSortableHeader
-        column={column}
-        title="Name"
+        title="Codice fiscale"
       />
     ),
   },
@@ -67,7 +59,16 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Surname"
+        title="Cognome"
+      />
+    ),
+  },
+  {
+    accessorKey: "name",
+    header: ({ column }) => (
+      <TableSortableHeader
+        column={column}
+        title="Nome"
       />
     ),
   },
@@ -76,12 +77,12 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Birth Date"
+        title="Data di nascita"
       />
     ),
     cell: ({ row }) => {
       const date = new Date(row.getValue("birthDate"));
-      return <div className="font-medium">{date.toLocaleDateString()}</div>;
+      return <div className="font-medium">{formatDateIt(date)}</div>;
     },
   },
   {
@@ -89,7 +90,7 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="City"
+        title="Città"
       />
     ),
   },
@@ -98,7 +99,25 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Province"
+        title="Provincia"
+      />
+    ),
+  },
+  {
+    accessorKey: "phoneNumber",
+    header: ({ column }) => (
+      <TableSortableHeader
+        column={column}
+        title="Telefono"
+      />
+    ),
+  },
+  {
+    accessorKey: "email",
+    header: ({ column }) => (
+      <TableSortableHeader
+        column={column}
+        title="Email"
       />
     ),
   },
@@ -107,12 +126,12 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Enrollment Date"
+        title="Iscrizione"
       />
     ),
     cell: ({ row }) => {
       const date = new Date(row.getValue("enrollmentDate"));
-      return <div className="font-medium">{date.toLocaleDateString()}</div>;
+      return <div className="font-medium">{formatDateIt(date)}</div>;
     },
   },
   {

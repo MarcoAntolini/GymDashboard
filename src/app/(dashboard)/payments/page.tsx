@@ -26,6 +26,7 @@ import {
 	PAYMENT_LIST_FILTER_IDS,
 	PAYMENT_LIST_SORT_COLUMNS,
 } from "@/lib/domain/payment-list-query";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { cn } from "@/lib/utils";
 import { PaymentType } from "@prisma/client";
 import { format } from "date-fns";
@@ -372,7 +373,7 @@ export default function PaymentsPage() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessun pagamento registrato."
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.pagamenti}
 				/>
 			}
 		/>

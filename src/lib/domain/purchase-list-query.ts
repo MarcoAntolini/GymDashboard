@@ -25,11 +25,10 @@ export const PURCHASE_LIST_DEFAULT_SORT: ListSort = {
 	direction: "desc",
 };
 
-/** Search filters shown in ServerListToolbar. */
+/** Search filters shown in ServerListToolbar — human Cliente fields preferred (ticket 36). */
 export const PURCHASE_LIST_FILTER_IDS = [
 	"dateFrom",
 	"dateTo",
-	"clientId",
 	"clientSurname",
 	"clientName",
 	"productCode",
@@ -80,7 +79,7 @@ function endOfUtcDay(date: Date): Date {
 
 /**
  * Prisma `where` for Acquisti list filters.
- * Join filters target Cliente; date* are day bounds; clientId is exact.
+ * Join filters target Cliente; date* are day bounds.
  */
 export function buildPurchaseListWhere(
 	filters: ListFilters
@@ -110,13 +109,6 @@ export function buildPurchaseListWhere(
 					productCode: { contains: value },
 				});
 				break;
-			case "clientId": {
-				const id = Number.parseInt(value, 10);
-				if (Number.isFinite(id) && String(id) === value) {
-					clauses.push({ clientId: id });
-				}
-				break;
-			}
 			case "dateFrom": {
 				const from = parseIsoDateOnly(value);
 				if (from) dateGte = from;

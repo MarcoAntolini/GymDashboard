@@ -11,6 +11,7 @@ import {
 } from "@/lib/domain/product-kind";
 import type { CatalogRow } from "@/data-access/catalogs";
 import { columnMeta } from "@/lib/domain/view-columns";
+import { formatCurrencyEur } from "@/lib/format/locale";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -39,13 +40,13 @@ export const columns = (
 	{
 		accessorKey: "year",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Year" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Anno" />,
 	},
 	{
 		accessorKey: "productKind",
 		meta: columnMeta("derivata"),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Type (derived)" />
+			<TableSortableHeader column={column} title="Tipo" />
 		),
 		cell: ({ row }) => {
 			const kind = row.original.productKind;
@@ -60,20 +61,16 @@ export const columns = (
 		accessorKey: "productCode",
 		meta: columnMeta("nativa"),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Product Code" />
+			<TableSortableHeader column={column} title="Prodotto" />
 		),
 	},
 	{
 		accessorKey: "price",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Price" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Prezzo" />,
 		cell: ({ row }) => {
-			const price = parseFloat(row.getValue("price"));
-			const formatted = new Intl.NumberFormat("it-IT", {
-				style: "currency",
-				currency: "EUR",
-			}).format(price);
-			return <div className="font-medium">{formatted}</div>;
+			const price = row.getValue("price") as string;
+			return <div className="font-medium">{formatCurrencyEur(price)}</div>;
 		},
 	},
 	{

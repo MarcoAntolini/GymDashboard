@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { ContractType } from "@prisma/client";
+import { formatDateIt } from "@/lib/format/locale";
 import {
 	CONTRACT_ENDING_DATE_BEFORE_START_ERROR,
 	CONTRACT_ENDING_DATE_FORBIDDEN_ERROR,
@@ -97,8 +98,8 @@ describe("contract-term", () => {
 			CONTRACT_IN_PROGRESS_LABEL
 		);
 		assert.equal(
-			formatContractEndingDateDisplay(ContractType.FixedTerm, d("2026-12-01"), "en-US"),
-			d("2026-12-01").toLocaleDateString("en-US")
+			formatContractEndingDateDisplay(ContractType.FixedTerm, d("2026-12-01")),
+			formatDateIt(d("2026-12-01"))
 		);
 	});
 });

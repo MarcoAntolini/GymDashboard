@@ -19,7 +19,6 @@ describe("buildPurchaseListWhere", () => {
 				productCode: undefined,
 				dateFrom: null,
 				dateTo: "",
-				clientId: "  ",
 			}),
 			{}
 		);
@@ -40,13 +39,6 @@ describe("buildPurchaseListWhere", () => {
 				],
 			}
 		);
-	});
-
-	it("parses clientId as exact integer match", () => {
-		assert.deepEqual(buildPurchaseListWhere({ clientId: "42" }), {
-			AND: [{ clientId: 42 }],
-		});
-		assert.deepEqual(buildPurchaseListWhere({ clientId: "nope" }), {});
 	});
 
 	it("parses dateFrom/dateTo as day-bounded DateTime range", () => {
@@ -83,7 +75,7 @@ describe("buildPurchaseListWhere", () => {
 		assert.equal(purchaseListHasActiveFilters({}), false);
 		assert.equal(purchaseListHasActiveFilters({ productCode: "   " }), false);
 		assert.equal(purchaseListHasActiveFilters({ productCode: "ABB" }), true);
-		assert.equal(purchaseListHasActiveFilters({ clientId: "7" }), true);
+		assert.equal(purchaseListHasActiveFilters({ clientSurname: "Rossi" }), true);
 	});
 });
 
@@ -152,7 +144,6 @@ describe("purchase list sort contract", () => {
 		assert.deepEqual([...PURCHASE_LIST_FILTER_IDS], [
 			"dateFrom",
 			"dateTo",
-			"clientId",
 			"clientSurname",
 			"clientName",
 			"productCode",

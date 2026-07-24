@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import {
 	CONTRACT_LIST_DEFAULT_SORT,
 	CONTRACT_LIST_SORT_COLUMNS,
+	buildContractListOrderBy,
 	buildContractListWhere,
 	contractListHasActiveFilters,
 } from "@/lib/domain/contract-list-query";
@@ -21,7 +22,6 @@ import { listEmptyKind } from "@/lib/domain/list-query";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
 import { db } from "@/lib/db";
 import {
-	prismaOrderBy,
 	runListQuery,
 	toPrismaSkipTake,
 	type ListQueryInput,
@@ -41,7 +41,17 @@ export type ContractRow = {
 	hourlyFee: string;
 	startingDate: Date;
 	endingDate: Date | null;
+	/** Join label for list readability (ticket 36). */
+	employee?: {
+		id: number;
+		name: string;
+		surname: string;
+	} | null;
 };
+
+const contractListInclude = {
+	employee: { select: { id: true, name: true, surname: true } },
+} as const;
 
 /**
  * Reject if [startingDate, endingDate) overlaps another Contratto of the same Dipendente.
@@ -139,8 +149,8 @@ export async function listContracts(
 				params.filters
 			) as Prisma.ContractWhereInput;
 			const orderBy =
-				prismaOrderBy(params.sort, CONTRACT_LIST_DEFAULT_SORT) ??
-				prismaOrderBy(CONTRACT_LIST_DEFAULT_SORT);
+				buildContractListOrderBy(params.sort) ??
+				buildContractListOrderBy(CONTRACT_LIST_DEFAULT_SORT);
 			const skipTake = toPrismaSkipTake(params);
 
 			const needsUnfiltered = contractListHasActiveFilters(params.filters);
@@ -148,6 +158,7 @@ export async function listContracts(
 			const [rows, total, unfiltered] = await Promise.all([
 				db.contract.findMany({
 					where,
+					include: contractListInclude,
 					orderBy,
 					...skipTake,
 				}),

@@ -16,12 +16,13 @@ import {
 	PRODUCT_LIST_FILTER_IDS,
 	PRODUCT_LIST_SORT_COLUMNS,
 } from "@/lib/domain/product-list-query";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { Product } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { columns } from "./columns";
 
 const PRODUCT_FILTER_FIELDS: ServerListFilterField[] = [
-	{ id: "code", label: "Codice prodotto", placeholder: "Codice prodotto" },
+	{ id: "code", label: "Codice", placeholder: "Codice prodotto" },
 ];
 
 const EMPTY_FILTERS = Object.fromEntries(
@@ -100,7 +101,7 @@ export default function ProductsPage() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessun prodotto registrato."
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.prodotti}
 				/>
 			}
 		/>

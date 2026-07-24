@@ -29,6 +29,7 @@ import {
 	ENTRANCE_LIST_FILTER_IDS,
 	ENTRANCE_LIST_SORT_COLUMNS,
 } from "@/lib/domain/entrance-list-query";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { BarChart as BarChartIcon, CalendarDays, CalendarIcon, Clock, PlusCircle } from "lucide-react";
@@ -38,8 +39,8 @@ import { z } from "zod";
 import { ClientOption, columns, EditEntranceValues, formSchema } from "./columns";
 
 const ENTRANCE_FILTER_FIELDS: ServerListFilterField[] = [
-	{ id: "dateFrom", label: "Data da", placeholder: "Data da (YYYY-MM-DD)" },
-	{ id: "dateTo", label: "Data a", placeholder: "Data a (YYYY-MM-DD)" },
+	{ id: "dateFrom", label: "Data da", placeholder: "AAAA-MM-GG" },
+	{ id: "dateTo", label: "Data a", placeholder: "AAAA-MM-GG" },
 	{ id: "clientSurname", label: "Cognome cliente", placeholder: "Cognome cliente" },
 	{ id: "clientName", label: "Nome cliente", placeholder: "Nome cliente" },
 	{ id: "productCode", label: "Codice prodotto", placeholder: "Codice prodotto" },
@@ -282,7 +283,7 @@ export default function EntrancesPage() {
 						isFilterDirty={listQuery.isFilterDirty}
 						hasAppliedFilters={listQuery.hasAppliedFilters}
 						emptyKind={result?.emptyKind ?? null}
-						datasetEmptyMessage="Nessun ingresso registrato."
+						datasetEmptyMessage={DATASET_EMPTY_MESSAGES.ingressi}
 					/>
 				}
 			/>

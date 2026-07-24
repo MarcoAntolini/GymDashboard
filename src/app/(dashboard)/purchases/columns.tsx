@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { PurchaseWithSnapshot } from "@/data-access/purchases";
 import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
 import { columnMeta } from "@/lib/domain/view-columns";
+import { formatCurrencyEur, formatDateIt } from "@/lib/format/locale";
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -76,46 +77,42 @@ export const columns = (
 	{
 		accessorKey: "date",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
-			return <div className="font-medium">{date.toLocaleDateString()}</div>;
+			return <div className="font-medium">{formatDateIt(date)}</div>;
 		},
 	},
 	{
 		accessorKey: "amount",
 		meta: columnMeta("snapshot"),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Amount (snapshot)" />
+			<TableSortableHeader column={column} title="Importo" />
 		),
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("amount"));
-			const formatted = new Intl.NumberFormat("it-IT", {
-				style: "currency",
-				currency: "EUR",
-			}).format(amount);
-			return <div className="font-medium">{formatted}</div>;
+			const amount = row.getValue("amount") as string;
+			return <div className="font-medium">{formatCurrencyEur(amount)}</div>;
 		},
 	},
 	{
 		accessorKey: "productCode",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Product Code" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Prodotto" />,
 	},
 	{
 		accessorKey: "duration",
 		meta: columnMeta("snapshot"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Duration (snapshot)" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Durata (gg)" />,
 		cell: ({ row }) => {
 			const duration = row.original.duration;
-			return <div className="font-medium">{duration == null ? "—" : `${duration} days`}</div>;
+			return <div className="font-medium">{duration == null ? "—" : `${duration} gg`}</div>;
 		},
 	},
 	{
 		accessorKey: "entranceNumber",
 		meta: columnMeta("snapshot"),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Entrances (snapshot)" />
+			<TableSortableHeader column={column} title="Ingressi (N)" />
 		),
 		cell: ({ row }) => {
 			const n = row.original.entranceNumber;
@@ -126,7 +123,7 @@ export const columns = (
 		accessorKey: "remainingEntrances",
 		meta: columnMeta("derivata"),
 		enableSorting: false,
-		header: () => <div>Remaining (derived)</div>,
+		header: () => <div>Residuo</div>,
 		cell: ({ row }) => {
 			const remaining = row.original.remainingEntrances;
 			return <div className="font-medium">{remaining == null ? "—" : remaining}</div>;

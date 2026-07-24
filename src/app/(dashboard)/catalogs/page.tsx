@@ -28,6 +28,7 @@ import {
 	productMatchesKind,
 	type ProductKind,
 } from "@/lib/domain/product-kind";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
@@ -252,7 +253,7 @@ export default function CatalogsPage() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessuna voce di listino registrata."
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.listino}
 				/>
 			}
 		/>

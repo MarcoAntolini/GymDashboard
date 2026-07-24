@@ -31,6 +31,8 @@ import {
 	CONTRACT_LIST_FILTER_IDS,
 	CONTRACT_LIST_SORT_COLUMNS,
 } from "@/lib/domain/contract-list-query";
+import { formatCurrencyEur } from "@/lib/format/locale";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { cn } from "@/lib/utils";
 import { ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -49,11 +51,12 @@ const earningsFormSchema = z.object({
 });
 
 const CONTRACT_FILTER_FIELDS: ServerListFilterField[] = [
-	{ id: "employeeId", label: "ID dipendente", placeholder: "ID dipendente" },
+	{ id: "employeeSurname", label: "Cognome dipendente", placeholder: "Cognome dipendente" },
+	{ id: "employeeName", label: "Nome dipendente", placeholder: "Nome dipendente" },
 	{
 		id: "type",
 		label: "Tipo contratto",
-		placeholder: "FixedTerm / Tempo determinato",
+		placeholder: "Tempo determinato / indeterminato",
 	},
 ];
 
@@ -381,7 +384,7 @@ export default function Contracts() {
 						isFilterDirty={listQuery.isFilterDirty}
 						hasAppliedFilters={listQuery.hasAppliedFilters}
 						emptyKind={result?.emptyKind ?? null}
-						datasetEmptyMessage="Nessun contratto registrato."
+						datasetEmptyMessage={DATASET_EMPTY_MESSAGES.contratti}
 					/>
 				}
 			/>
@@ -413,37 +416,25 @@ export default function Contracts() {
 const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="ID dipendente" />,
 		cell: ({ row }) => {
 			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
 		},
 	},
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Costo orario" />,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("hourlyFee"));
-			const formatted = new Intl.NumberFormat("en-US", {
-				style: "currency",
-				currency: "USD",
-			})
-				.format(amount)
-				.replace("$", "$ ");
-			return <div className="font-medium">{formatted}</div>;
+			const amount = row.getValue("hourlyFee") as string | number;
+			return <div className="font-medium">{formatCurrencyEur(amount)}</div>;
 		},
 	},
 	{
 		accessorKey: "totalEarnings",
-		header: ({ column }) => <TableSortableHeader column={column} title="Total Earnings" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Guadagno totale" />,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("totalEarnings"));
-			const formatted = new Intl.NumberFormat("en-US", {
-				style: "currency",
-				currency: "USD",
-			})
-				.format(amount)
-				.replace("$", "$ ");
-			return <div className="font-medium">{formatted}</div>;
+			const amount = row.getValue("totalEarnings") as string | number;
+			return <div className="font-medium">{formatCurrencyEur(amount)}</div>;
 		},
 	},
 	{

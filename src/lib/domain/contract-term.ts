@@ -5,6 +5,7 @@
  */
 
 import { ContractType } from "@prisma/client";
+import { formatDateIt } from "@/lib/format/locale";
 
 export const CONTRACT_ENDING_DATE_REQUIRED_ERROR =
 	"Il Contratto a tempo determinato richiede una data di fine.";
@@ -64,15 +65,14 @@ export function assertContractEndingDate(
 }
 
 /**
- * List/detail label for endingDate: OpenEnded (or null) → "In corso"; FixedTerm → locale date.
+ * List/detail label for endingDate: OpenEnded (or null) → "In corso"; FixedTerm → IT date.
  */
 export function formatContractEndingDateDisplay(
 	type: ContractType,
-	endingDate: Date | null | undefined,
-	locale = "it-IT"
+	endingDate: Date | null | undefined
 ): string {
 	if (isOpenEndedContract(type) || endingDate == null) {
 		return CONTRACT_IN_PROGRESS_LABEL;
 	}
-	return new Date(endingDate).toLocaleDateString(locale);
+	return formatDateIt(endingDate);
 }

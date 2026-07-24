@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { PaymentRow } from "@/data-access/payments";
 import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
+import { formatCurrencyEur, formatDateIt } from "@/lib/format/locale";
 import { PaymentType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -40,12 +41,12 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}
-				title="Date"
+				title="Data"
 			/>
 		),
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
-			return <div className="font-medium">{date.toLocaleDateString()}</div>;
+			return <div className="font-medium">{formatDateIt(date)}</div>;
 		},
 	},
 	{
@@ -53,16 +54,12 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}
-				title="Amount"
+				title="Importo"
 			/>
 		),
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("amount"));
-			const formatted = new Intl.NumberFormat("it-IT", {
-				style: "currency",
-				currency: "EUR",
-			}).format(amount);
-			return <div className="font-medium">{formatted}</div>;
+			const amount = row.getValue("amount") as string;
+			return <div className="font-medium">{formatCurrencyEur(amount)}</div>;
 		},
 	},
 	{
@@ -70,7 +67,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}
-				title="Type"
+				title="Tipo"
 			/>
 		),
 	},

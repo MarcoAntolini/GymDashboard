@@ -195,7 +195,7 @@ export const VIEW_COLUMN_MATRIX: Record<ViewEntity, readonly ViewColumnSpec[]> =
 			key: "employee",
 			class: "join",
 			source: "dipendenti.nome/cognome",
-			notes: "Optional label; not required in current list UI",
+			notes: "List label via Contract.employee include (ticket 36)",
 		},
 	],
 	timbrature: [

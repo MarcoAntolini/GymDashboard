@@ -24,6 +24,7 @@ import {
 	PURCHASE_LIST_FILTER_IDS,
 	PURCHASE_LIST_SORT_COLUMNS,
 } from "@/lib/domain/purchase-list-query";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import {
 	PRODUCT_KIND_LABELS,
 	PRODUCT_KINDS,
@@ -39,9 +40,8 @@ import { CatalogAmountDefault } from "./catalog-amount-default";
 import { columns, formSchema, PurchaseProductOption, PurchaseRow } from "./columns";
 
 const PURCHASE_FILTER_FIELDS: ServerListFilterField[] = [
-	{ id: "dateFrom", label: "Data da", placeholder: "Data da (YYYY-MM-DD)" },
-	{ id: "dateTo", label: "Data a", placeholder: "Data a (YYYY-MM-DD)" },
-	{ id: "clientId", label: "ID cliente", placeholder: "ID cliente" },
+	{ id: "dateFrom", label: "Data da", placeholder: "AAAA-MM-GG" },
+	{ id: "dateTo", label: "Data a", placeholder: "AAAA-MM-GG" },
 	{ id: "clientSurname", label: "Cognome cliente", placeholder: "Cognome cliente" },
 	{ id: "clientName", label: "Nome cliente", placeholder: "Nome cliente" },
 	{ id: "productCode", label: "Codice prodotto", placeholder: "Codice prodotto" },
@@ -297,7 +297,7 @@ export default function PurchasesPage() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessun acquisto registrato."
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.acquisti}
 				/>
 			}
 		/>

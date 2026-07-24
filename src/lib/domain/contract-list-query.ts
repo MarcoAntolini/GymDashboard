@@ -1,5 +1,5 @@
 /**
- * Contratti list-query helpers (ticket 29).
+ * Contratti list-query helpers (ticket 29 + 36 human filters).
  *
  * Pure WHERE / sort contract for server-side Contratti lists — used by
  * `listContracts` in data-access. Filter keystrokes stay draft until Filtra.
@@ -11,6 +11,7 @@ import { ContractType } from "@prisma/client";
 
 export const CONTRACT_LIST_SORT_COLUMNS = [
 	"employeeId",
+	"employee",
 	"type",
 	"hourlyFee",
 	"startingDate",
@@ -25,8 +26,14 @@ export const CONTRACT_LIST_DEFAULT_SORT: ListSort = {
 	direction: "asc",
 };
 
-/** Search filters shown in ServerListToolbar (former Contratti DataTable filters). */
-export const CONTRACT_LIST_FILTER_IDS = ["employeeId", "type"] as const;
+/**
+ * Search filters: prefer Dipendente name fields over opaque employeeId (ticket 36).
+ */
+export const CONTRACT_LIST_FILTER_IDS = [
+	"employeeSurname",
+	"employeeName",
+	"type",
+] as const;
 
 export type ContractListFilterId = (typeof CONTRACT_LIST_FILTER_IDS)[number];
 
@@ -48,25 +55,23 @@ function parseContractType(value: string): ContractType | null {
 	return TYPE_BY_LOWER.get(value.toLowerCase()) ?? null;
 }
 
-function parseEmployeeId(value: string): number | null {
-	if (!/^\d+$/.test(value)) return null;
-	const n = Number.parseInt(value, 10);
-	return Number.isFinite(n) ? n : null;
-}
-
 /**
  * Prisma `where` for Contratti list filters.
- * employeeId/type: exact when parseable.
+ * employeeSurname/employeeName: contains on join; type: exact when parseable.
  */
 export function buildContractListWhere(
 	filters: ListFilters
 ): Record<string, unknown> {
 	const clauses: Record<string, unknown>[] = [];
 
-	const employeeIdRaw = filterString(filters.employeeId);
-	if (employeeIdRaw !== null) {
-		const employeeId = parseEmployeeId(employeeIdRaw);
-		if (employeeId !== null) clauses.push({ employeeId });
+	const surnameRaw = filterString(filters.employeeSurname);
+	if (surnameRaw !== null) {
+		clauses.push({ employee: { surname: { contains: surnameRaw } } });
+	}
+
+	const nameRaw = filterString(filters.employeeName);
+	if (nameRaw !== null) {
+		clauses.push({ employee: { name: { contains: nameRaw } } });
 	}
 
 	const typeRaw = filterString(filters.type);
@@ -81,4 +86,37 @@ export function buildContractListWhere(
 
 export function contractListHasActiveFilters(filters: ListFilters): boolean {
 	return Object.keys(buildContractListWhere(filters)).length > 0;
+}
+
+type PrismaOrderBy = Record<string, unknown>;
+
+/**
+ * Prisma `orderBy` for Contratti — supports Dipendente join label sort.
+ */
+export function buildContractListOrderBy(
+	sort: ListSort | null
+): PrismaOrderBy | PrismaOrderBy[] {
+	const effective = sort ?? CONTRACT_LIST_DEFAULT_SORT;
+	const direction = effective.direction === "desc" ? "desc" : "asc";
+	const column = effective.column as ContractListSortColumn | string;
+
+	switch (column) {
+		case "employee":
+			return [
+				{ employee: { surname: direction } },
+				{ employee: { name: direction } },
+				{ startingDate: direction },
+			];
+		case "type":
+			return { type: direction };
+		case "hourlyFee":
+			return { hourlyFee: direction };
+		case "startingDate":
+			return { startingDate: direction };
+		case "endingDate":
+			return { endingDate: direction };
+		case "employeeId":
+		default:
+			return [{ employeeId: direction }, { startingDate: direction }];
+	}
 }

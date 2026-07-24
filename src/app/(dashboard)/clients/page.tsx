@@ -19,6 +19,7 @@ import {
 	CLIENT_LIST_SORT_COLUMNS,
 } from "@/lib/domain/client-list-query";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { Client } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -33,8 +34,8 @@ import { cn } from "@/lib/utils";
 
 const CLIENT_FILTER_FIELDS: ServerListFilterField[] = [
 	{ id: "taxCode", label: "Codice fiscale", placeholder: "Codice fiscale" },
-	{ id: "name", label: "Nome", placeholder: "Nome" },
 	{ id: "surname", label: "Cognome", placeholder: "Cognome" },
+	{ id: "name", label: "Nome", placeholder: "Nome" },
 	{ id: "city", label: "Città", placeholder: "Città" },
 	{ id: "province", label: "Provincia", placeholder: "Provincia" },
 ];
@@ -347,6 +348,7 @@ export default function ClientsPage() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.clienti}
 				/>
 			}
 		/>

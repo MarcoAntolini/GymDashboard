@@ -11,6 +11,7 @@ import {
 	deriveProductKind,
 } from "@/lib/domain/product-kind";
 import { columnMeta } from "@/lib/domain/view-columns";
+import { formatDateTimeIt } from "@/lib/format/locale";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -63,10 +64,10 @@ export const columns = (
 	{
 		accessorKey: "date",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
-			return <div className="font-medium">{date.toLocaleString()}</div>;
+			return <div className="font-medium">{formatDateTimeIt(date)}</div>;
 		},
 	},
 	{
@@ -92,7 +93,7 @@ export const columns = (
 		meta: columnMeta("derivata"),
 		accessorFn: (row) => deriveProductKind(row.purchase.prodotto) ?? "",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Type (derived · live)" />
+			<TableSortableHeader column={column} title="Tipo" />
 		),
 		cell: ({ row }) => {
 			const kind = deriveProductKind(row.original.purchase.prodotto);

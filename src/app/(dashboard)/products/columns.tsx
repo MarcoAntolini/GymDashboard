@@ -21,7 +21,7 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Product Code"
+        title="Codice"
       />
     ),
   },

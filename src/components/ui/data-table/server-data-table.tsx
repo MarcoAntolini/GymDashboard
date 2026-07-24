@@ -12,6 +12,10 @@ import {
 	type ListSort,
 } from "@/lib/domain/list-query";
 import {
+	DATASET_EMPTY_MESSAGES,
+	tableEmptyMessage,
+} from "@/lib/format/table-empty";
+import {
 	ColumnDef,
 	SortingState,
 	VisibilityState,
@@ -46,15 +50,6 @@ export type ServerDataTableProps<TData, TValue> = {
 	className?: string;
 };
 
-function emptyMessage(
-	kind: ListEmptyKind | null | undefined,
-	datasetEmptyMessage: string
-): string {
-	if (kind === "filters") return "Nessun risultato per i filtri applicati.";
-	if (kind === "dataset") return datasetEmptyMessage;
-	return "Nessun risultato.";
-}
-
 /**
  * Entity table driven by server-side list query (ticket 20+).
  * Manual filter/sort/pagination — no client row models for those concerns.
@@ -78,7 +73,7 @@ export function ServerDataTable<TData, TValue>({
 	isFilterDirty = false,
 	hasAppliedFilters = false,
 	emptyKind = null,
-	datasetEmptyMessage = "Nessun cliente in anagrafica.",
+	datasetEmptyMessage = DATASET_EMPTY_MESSAGES.clienti,
 	className,
 }: ServerDataTableProps<TData, TValue>) {
 	const sorting = React.useMemo(
@@ -170,7 +165,9 @@ export function ServerDataTable<TData, TValue>({
 									colSpan={columns.length}
 									className="h-24 text-center"
 								>
-									{emptyMessage(emptyKind, datasetEmptyMessage)}
+									<span className="text-muted-foreground">
+										{tableEmptyMessage(emptyKind, datasetEmptyMessage)}
+									</span>
 								</TableCell>
 							</TableRow>
 						)}

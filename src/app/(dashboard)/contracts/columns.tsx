@@ -13,6 +13,8 @@ import {
 	formatContractEndingDateDisplay,
 	isFixedTermContract,
 } from "@/lib/domain/contract-term";
+import { columnMeta } from "@/lib/domain/view-columns";
+import { formatCurrencyEur, formatDateIt } from "@/lib/format/locale";
 import { ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -58,53 +60,73 @@ export const columns = (
 	loggedEmployeeId: number
 ): ColumnDef<ContractRow>[] => [
 	{
-		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
+		id: "employee",
+		meta: columnMeta("join"),
+		accessorFn: (row) =>
+			row.employee
+				? `${row.employee.surname} ${row.employee.name}`
+				: String(row.employeeId),
+		header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
 		cell: ({ row }) => {
-			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
-		}
+			const employee = row.original.employee;
+			if (!employee) {
+				return (
+					<div className="font-medium">
+						#{row.original.employeeId.toString().padStart(4, "0")}
+					</div>
+				);
+			}
+			return (
+				<div className="font-medium">
+					{employee.surname} {employee.name}{" "}
+					<span className="text-muted-foreground text-xs">
+						#{employee.id.toString().padStart(4, "0")}
+					</span>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "type",
-		header: ({ column }) => <TableSortableHeader column={column} title="Contract Type" />,
+		meta: columnMeta("nativa"),
+		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
 		cell: ({ row }) => {
-			const type = row.getValue("type");
-			return <div className="font-medium">{type === ContractType.FixedTerm ? "Fixed Term" : "Open Ended"}</div>;
+			const type = row.getValue("type") as ContractType;
+			return <div className="font-medium">{type}</div>;
 		},
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
-		}
+		},
 	},
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
+		meta: columnMeta("nativa"),
+		header: ({ column }) => <TableSortableHeader column={column} title="Costo orario" />,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue("hourlyFee"));
-			const formatted = new Intl.NumberFormat("it-IT", {
-				style: "currency",
-				currency: "EUR",
-			}).format(amount);
-			return <div className="font-medium">{formatted}</div>;
+			const amount = row.getValue("hourlyFee") as string;
+			return <div className="font-medium">{formatCurrencyEur(amount)}</div>;
 		},
 	},
 	{
 		accessorKey: "startingDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Starting Date" />,
+		meta: columnMeta("nativa"),
+		header: ({ column }) => <TableSortableHeader column={column} title="Inizio" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("startingDate"));
-			return <div className="font-medium">{date.toLocaleDateString()}</div>;
-		}
+			return <div className="font-medium">{formatDateIt(date)}</div>;
+		},
 	},
 	{
 		accessorKey: "endingDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
+		meta: columnMeta("nativa"),
+		header: ({ column }) => <TableSortableHeader column={column} title="Fine" />,
 		cell: ({ row }) => {
 			const label = formatContractEndingDateDisplay(
 				row.original.type,
 				row.original.endingDate
 			);
 			return <div className="font-medium">{label}</div>;
-		}
+		},
 	},
 	{
 		id: "actions",
@@ -143,8 +165,12 @@ export const columns = (
 											</SelectTrigger>
 										</FormControl>
 										<SelectContent>
-											<SelectItem value={ContractType.FixedTerm}>Fixed Term</SelectItem>
-											<SelectItem value={ContractType.OpenEnded}>Open Ended</SelectItem>
+											<SelectItem value={ContractType.FixedTerm}>
+												{ContractType.FixedTerm}
+											</SelectItem>
+											<SelectItem value={ContractType.OpenEnded}>
+												{ContractType.OpenEnded}
+											</SelectItem>
 										</SelectContent>
 									</Select>
 									<FormMessage />
@@ -194,6 +220,6 @@ export const columns = (
 				editUnavailabe={row.original.employeeId === loggedEmployeeId}
 				deleteUnavailabe={row.original.employeeId === loggedEmployeeId}
 			/>
-		)
-	}
+		),
+	},
 ];
