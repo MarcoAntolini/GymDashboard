@@ -14,6 +14,7 @@ import { Account, Employee } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
+import { ApprovalQueueToolbarButton } from "./approval-queue-sheet";
 import { columns } from "./columns";
 
 const createAccountSchema = z.object({
@@ -195,10 +196,36 @@ export default function Accounts() {
 		},
 	];
 
+	const handleQueueApproved = useCallback(
+		(employeeId: number) => {
+			setAccounts((prev) =>
+				prev.map((account) =>
+					account.employeeId === employeeId ? { ...account, approved: true } : account
+				)
+			);
+		},
+		[setAccounts]
+	);
+
+	const handleQueueRejected = useCallback(
+		(employeeId: number) => {
+			setAccounts((prev) => prev.filter((account) => account.employeeId !== employeeId));
+			void getEmployeesWithoutAccount().then(setEmployeesWithoutAccount);
+		},
+		[setAccounts, setEmployeesWithoutAccount]
+	);
+
 	return isLoading || !actorRole ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
+			extraToolbar={
+				<ApprovalQueueToolbarButton
+					actorRole={actorRole}
+					onAccountApproved={handleQueueApproved}
+					onAccountRejected={handleQueueRejected}
+				/>
+			}
 			actions={actions}
 			table={
 				<DataTable
