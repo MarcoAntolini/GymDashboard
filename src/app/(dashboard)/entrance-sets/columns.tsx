@@ -6,6 +6,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { EntranceSet } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Package, Ticket } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -23,6 +24,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Product Code"
+        icon={Package}
       />
     ),
   },
@@ -32,7 +34,14 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Number of Entrances"
+        icon={Ticket}
+        align="right"
       />
+    ),
+    cell: ({ row }) => (
+      <div className="text-right font-medium tabular-nums">
+        {row.original.entranceNumber}
+      </div>
     ),
   },
   {
@@ -64,6 +73,7 @@ export const columns = (
                   <FormControl>
                     <Input
                       type="number"
+                      className="text-right tabular-nums"
                       {...field}
                       onChange={(e) => field.onChange(parseInt(e.target.value))}
                     />

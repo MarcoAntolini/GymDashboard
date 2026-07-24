@@ -10,8 +10,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { CalendarIcon, Hash, IdCard, Mail, MapPin, Phone, UserRound } from "lucide-react";
 import { formatDateIt } from "@/lib/format/locale";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +41,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="ID"
+        icon={Hash}
       />
     ),
   },
@@ -51,6 +51,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Codice fiscale"
+        icon={IdCard}
       />
     ),
   },
@@ -60,6 +61,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Cognome"
+        icon={UserRound}
       />
     ),
   },
@@ -69,6 +71,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Nome"
+        icon={UserRound}
       />
     ),
   },
@@ -78,6 +81,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Data di nascita"
+        icon={CalendarIcon}
       />
     ),
     cell: ({ row }) => {
@@ -91,6 +95,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Città"
+        icon={MapPin}
       />
     ),
   },
@@ -100,6 +105,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Provincia"
+        icon={MapPin}
       />
     ),
   },
@@ -109,6 +115,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Telefono"
+        icon={Phone}
       />
     ),
   },
@@ -118,6 +125,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Email"
+        icon={Mail}
       />
     ),
   },
@@ -127,6 +135,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Iscrizione"
+        icon={CalendarIcon}
       />
     ),
     cell: ({ row }) => {
@@ -199,7 +208,7 @@ export const columns = (
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              formatDateIt(field.value)
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -318,7 +327,7 @@ export const columns = (
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            formatDateIt(field.value)
                           ) : (
                             <span>Pick a date</span>
                           )}

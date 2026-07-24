@@ -31,8 +31,8 @@ import {
 	productMatchesKind,
 	type ProductKind,
 } from "@/lib/domain/product-kind";
+import { formatDateIt } from "@/lib/format/locale";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
@@ -164,7 +164,7 @@ export default function PurchasesPage() {
 													!field.value && "text-muted-foreground"
 												)}
 											>
-												{field.value ? format(field.value, "PPP") : <span>Scegli una data</span>}
+												{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 											</Button>
 										</FormControl>
@@ -248,6 +248,7 @@ export default function PurchasesPage() {
 										type="text"
 										inputMode="decimal"
 										placeholder="0.00"
+										className="text-right tabular-nums"
 										{...field}
 									/>
 								</FormControl>

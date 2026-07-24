@@ -1,18 +1,18 @@
 "use client";
 
+import { DotBadge } from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { MoneyTone } from "@/components/ui/money-tone";
 import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
-import {
-	PRODUCT_KIND_LABELS,
-	type ProductKind,
-} from "@/lib/domain/product-kind";
+import type { ProductKind } from "@/lib/domain/product-kind";
 import type { CatalogRow } from "@/data-access/catalogs";
 import { columnMeta } from "@/lib/domain/view-columns";
-import { formatCurrencyEur } from "@/lib/format/locale";
+import { productKindChip } from "@/lib/format/domain-visuals";
 import { ColumnDef } from "@tanstack/react-table";
+import { CalendarDays, Coins, Package, Tag } from "lucide-react";
 import { z } from "zod";
 
 /** Create/edit payload: composite key only — no tipo; price as ≤2-decimal string. */
@@ -40,37 +40,43 @@ export const columns = (
 	{
 		accessorKey: "year",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Anno" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Anno" icon={CalendarDays} />
+		),
 	},
 	{
 		accessorKey: "productKind",
 		meta: columnMeta("derivata"),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Tipo" />
+			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
 		),
 		cell: ({ row }) => {
-			const kind = row.original.productKind;
-			return (
-				<div className="font-medium">
-					{kind ? PRODUCT_KIND_LABELS[kind as ProductKind] : "—"}
-				</div>
-			);
+			const chip = productKindChip(row.original.productKind as ProductKind | null);
+			if (!chip) return <span className="text-muted-foreground">—</span>;
+			return <DotBadge label={chip.label} tone={chip.tone} />;
 		},
 	},
 	{
 		accessorKey: "productCode",
 		meta: columnMeta("nativa"),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Prodotto" />
+			<TableSortableHeader column={column} title="Prodotto" icon={Package} />
 		),
 	},
 	{
 		accessorKey: "price",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Prezzo" />,
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Prezzo"
+				icon={Coins}
+				align="right"
+			/>
+		),
 		cell: ({ row }) => {
 			const price = row.getValue("price") as string;
-			return <div className="font-medium">{formatCurrencyEur(price)}</div>;
+			return <MoneyTone amount={price} direction="neutral" />;
 		},
 	},
 	{
@@ -126,6 +132,7 @@ export const columns = (
 											type="text"
 											inputMode="decimal"
 											placeholder="0.00"
+											className="text-right tabular-nums"
 											{...field}
 										/>
 									</FormControl>

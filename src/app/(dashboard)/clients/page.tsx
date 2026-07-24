@@ -20,6 +20,7 @@ import {
 import { useServerListQuery } from "@/hooks/useServerListQuery";
 import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
+import { formatDateIt } from "@/lib/format/locale";
 import { Client } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
@@ -29,7 +30,6 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const CLIENT_FILTER_FIELDS: ServerListFilterField[] = [
@@ -153,7 +153,7 @@ export default function ClientsPage() {
 													)}
 												>
 													{field.value ? (
-														format(field.value, "PPP")
+														formatDateIt(field.value)
 													) : (
 														<span>Pick a date</span>
 													)}
@@ -272,7 +272,7 @@ export default function ClientsPage() {
 												)}
 											>
 												{field.value ? (
-													format(field.value, "PPP")
+													formatDateIt(field.value)
 												) : (
 													<span>Pick a date</span>
 												)}

@@ -6,6 +6,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Product } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Package } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -22,6 +23,7 @@ export const columns = (
       <TableSortableHeader
         column={column}
         title="Codice"
+        icon={Package}
       />
     ),
   },

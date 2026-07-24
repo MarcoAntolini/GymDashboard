@@ -1,5 +1,6 @@
 "use client";
 
+import { DotBadge } from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -7,12 +8,13 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { EntranceRow } from "@/data-access/entrances";
 import {
-	PRODUCT_KIND_LABELS,
 	deriveProductKind,
 } from "@/lib/domain/product-kind";
 import { columnMeta } from "@/lib/domain/view-columns";
+import { productKindChip } from "@/lib/format/domain-visuals";
 import { formatDateTimeIt } from "@/lib/format/locale";
 import { ColumnDef } from "@tanstack/react-table";
+import { CalendarDays, Hash, Package, ShoppingBag, Tag, UserRound } from "lucide-react";
 import { z } from "zod";
 
 export type ClientOption = {
@@ -43,14 +45,18 @@ export const columns = (
 	{
 		accessorKey: "id",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID" icon={Hash} />
+		),
 	},
 	{
 		id: "client",
 		meta: columnMeta("join"),
 		accessorFn: (row) =>
 			`${row.purchase.client.surname} ${row.purchase.client.name}`,
-		header: ({ column }) => <TableSortableHeader column={column} title="Cliente" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Cliente" icon={UserRound} />
+		),
 		cell: ({ row }) => {
 			const { name, surname, id } = row.original.purchase.client;
 			return (
@@ -64,7 +70,9 @@ export const columns = (
 	{
 		accessorKey: "date",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data" icon={CalendarDays} />
+		),
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
 			return <div className="font-medium">{formatDateTimeIt(date)}</div>;
@@ -75,19 +83,23 @@ export const columns = (
 		meta: columnMeta("nativa"),
 		accessorFn: (row) => row.purchaseId,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Acquisto giustificante" />
+			<TableSortableHeader
+				column={column}
+				title="Acquisto giustificante"
+				icon={ShoppingBag}
+			/>
 		),
 		cell: ({ row }) => {
 			const purchase = row.original.purchase;
 			const kind = deriveProductKind(purchase.prodotto);
+			const chip = productKindChip(kind);
 			return (
-				<div className="font-medium">
+				<div className="flex flex-wrap items-center gap-2 font-medium">
 					<span>#{row.original.purchaseId}</span>
-					<span className="text-muted-foreground text-xs font-normal">
-						{" "}
-						· {purchase.productCode}
-						{kind ? ` · ${PRODUCT_KIND_LABELS[kind]}` : ""}
+					<span className="text-xs font-normal text-muted-foreground">
+						{purchase.productCode}
 					</span>
+					{chip ? <DotBadge label={chip.label} tone={chip.tone} /> : null}
 				</div>
 			);
 		},
@@ -96,7 +108,9 @@ export const columns = (
 		id: "product",
 		meta: columnMeta("join"),
 		accessorFn: (row) => row.purchase.productCode,
-		header: ({ column }) => <TableSortableHeader column={column} title="Prodotto" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Prodotto" icon={Package} />
+		),
 		cell: ({ row }) => (
 			<div className="font-medium">{row.original.purchase.productCode}</div>
 		),
@@ -106,15 +120,13 @@ export const columns = (
 		meta: columnMeta("derivata"),
 		accessorFn: (row) => deriveProductKind(row.purchase.prodotto) ?? "",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Tipo" />
+			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
 		),
 		cell: ({ row }) => {
 			const kind = deriveProductKind(row.original.purchase.prodotto);
-			return (
-				<div className="font-medium text-muted-foreground">
-					{kind ? PRODUCT_KIND_LABELS[kind] : "—"}
-				</div>
-			);
+			const chip = productKindChip(kind);
+			if (!chip) return <span className="text-muted-foreground">—</span>;
+			return <DotBadge label={chip.label} tone={chip.tone} />;
 		},
 	},
 	{
@@ -170,15 +182,21 @@ export const columns = (
 									</FormItem>
 								)}
 							/>
-							<div className="rounded-md border border-border p-3 space-y-1">
+							<div className="flex flex-col gap-2 rounded-md border border-border p-3">
 								<p className="text-sm font-medium">Acquisto giustificante</p>
-								<p className="text-sm text-muted-foreground">
-									#{row.original.purchaseId} · {row.original.purchase.productCode}
+								<div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+									<span>
+										#{row.original.purchaseId} · {row.original.purchase.productCode}
+									</span>
 									{(() => {
-										const kind = deriveProductKind(row.original.purchase.prodotto);
-										return kind ? ` · ${PRODUCT_KIND_LABELS[kind]}` : "";
+										const chip = productKindChip(
+											deriveProductKind(row.original.purchase.prodotto)
+										);
+										return chip ? (
+											<DotBadge label={chip.label} tone={chip.tone} />
+										) : null;
 									})()}
-								</p>
+								</div>
 								<p className="text-xs text-muted-foreground">
 									Salvando, il sistema ricalcola l&apos;Acquisto (Abbonamento valido più
 									recente, altrimenti Pacchetto con residuo FIFO). Non si sceglie a mano.

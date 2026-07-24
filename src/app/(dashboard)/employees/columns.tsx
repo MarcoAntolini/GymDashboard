@@ -10,8 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { formatDateIt } from "@/lib/format/locale";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -83,7 +83,7 @@ export const columns = (
 			/>
 		),
 		cell: ({ row }) => {
-			const formatted = new Date(row.original.birthDate).toLocaleDateString();
+			const formatted = formatDateIt(row.original.birthDate);
 			return <div className="font-medium">{formatted}</div>;
 		},
 	},
@@ -154,7 +154,7 @@ export const columns = (
 			/>
 		),
 		cell: ({ row }) => {
-			const formatted = new Date(row.original.hiringDate).toLocaleDateString();
+			const formatted = formatDateIt(row.original.hiringDate);
 			return <div className="font-medium">{formatted}</div>;
 		},
 	},
@@ -218,7 +218,7 @@ export const columns = (
 														variant={"outline"}
 														className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
 													>
-														{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+														{field.value ? formatDateIt(field.value) : <span>Pick a date</span>}
 														<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 													</Button>
 												</FormControl>

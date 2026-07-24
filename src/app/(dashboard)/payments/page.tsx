@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { DotBadge } from "@/components/ui/domain-badge";
 import Dashboard, { Action } from "@/components/ui/dashboard";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
@@ -26,10 +27,11 @@ import {
 	PAYMENT_LIST_FILTER_IDS,
 	PAYMENT_LIST_SORT_COLUMNS,
 } from "@/lib/domain/payment-list-query";
+import { paymentTypeChip } from "@/lib/format/domain-visuals";
+import { formatDateIt } from "@/lib/format/locale";
 import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { cn } from "@/lib/utils";
 import { PaymentType } from "@prisma/client";
-import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
@@ -157,7 +159,7 @@ export default function PaymentsPage() {
 												variant={"outline"}
 												className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
 											>
-												{field.value ? format(field.value, "PPP") : <span>Scegli una data</span>}
+												{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 											</Button>
 										</FormControl>
@@ -181,7 +183,12 @@ export default function PaymentsPage() {
 							<FormItem>
 								<FormLabel>Importo</FormLabel>
 								<FormControl>
-									<Input type="text" inputMode="decimal" {...field} />
+									<Input
+										type="text"
+										inputMode="decimal"
+										className="text-right tabular-nums"
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -205,6 +212,11 @@ export default function PaymentsPage() {
 										<SelectItem value={PaymentType.Intervention}>Intervento</SelectItem>
 									</SelectContent>
 								</Select>
+								{field.value ? (
+									<div className="pt-1">
+										<DotBadge {...paymentTypeChip(field.value as PaymentType)} />
+									</div>
+								) : null}
 								<p className="text-sm text-muted-foreground">
 									La specializzazione (Dipendente, fornitore, intervento, …) è obbligatoria
 									in creazione e resta ispezionabile in lista.

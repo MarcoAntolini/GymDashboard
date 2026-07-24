@@ -1,9 +1,11 @@
 "use client";
 
+import { DotBadge } from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { MoneyTone } from "@/components/ui/money-tone";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ContractRow } from "@/data-access/contracts";
 import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
@@ -14,9 +16,14 @@ import {
 	isFixedTermContract,
 } from "@/lib/domain/contract-term";
 import { columnMeta } from "@/lib/domain/view-columns";
-import { formatCurrencyEur, formatDateIt } from "@/lib/format/locale";
+import {
+	CONTRACT_TYPE_LABELS,
+	contractTypeChip,
+} from "@/lib/format/domain-visuals";
+import { formatDateIt } from "@/lib/format/locale";
 import { ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { CalendarDays, Coins, Tag, UserRound } from "lucide-react";
 import { z } from "zod";
 import { ContractEndingDateField } from "./contract-ending-date-field";
 
@@ -66,7 +73,9 @@ export const columns = (
 			row.employee
 				? `${row.employee.surname} ${row.employee.name}`
 				: String(row.employeeId),
-		header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dipendente" icon={UserRound} />
+		),
 		cell: ({ row }) => {
 			const employee = row.original.employee;
 			if (!employee) {
@@ -89,10 +98,13 @@ export const columns = (
 	{
 		accessorKey: "type",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+		),
 		cell: ({ row }) => {
 			const type = row.getValue("type") as ContractType;
-			return <div className="font-medium">{type}</div>;
+			const chip = contractTypeChip(type);
+			return <DotBadge label={chip.label} tone={chip.tone} />;
 		},
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
@@ -101,16 +113,25 @@ export const columns = (
 	{
 		accessorKey: "hourlyFee",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Costo orario" />,
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Costo orario"
+				icon={Coins}
+				align="right"
+			/>
+		),
 		cell: ({ row }) => {
 			const amount = row.getValue("hourlyFee") as string;
-			return <div className="font-medium">{formatCurrencyEur(amount)}</div>;
+			return <MoneyTone amount={amount} direction="expense" />;
 		},
 	},
 	{
 		accessorKey: "startingDate",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Inizio" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Inizio" icon={CalendarDays} />
+		),
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("startingDate"));
 			return <div className="font-medium">{formatDateIt(date)}</div>;
@@ -119,7 +140,9 @@ export const columns = (
 	{
 		accessorKey: "endingDate",
 		meta: columnMeta("nativa"),
-		header: ({ column }) => <TableSortableHeader column={column} title="Fine" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Fine" icon={CalendarDays} />
+		),
 		cell: ({ row }) => {
 			const label = formatContractEndingDateDisplay(
 				row.original.type,
@@ -158,22 +181,29 @@ export const columns = (
 							name="type"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Contract Type</FormLabel>
+									<FormLabel>Tipo contratto</FormLabel>
 									<Select onValueChange={field.onChange} value={field.value}>
 										<FormControl>
 											<SelectTrigger>
-												<SelectValue placeholder="Select a contract type" />
+												<SelectValue placeholder="Seleziona tipo" />
 											</SelectTrigger>
 										</FormControl>
 										<SelectContent>
 											<SelectItem value={ContractType.FixedTerm}>
-												{ContractType.FixedTerm}
+												{CONTRACT_TYPE_LABELS[ContractType.FixedTerm]}
 											</SelectItem>
 											<SelectItem value={ContractType.OpenEnded}>
-												{ContractType.OpenEnded}
+												{CONTRACT_TYPE_LABELS[ContractType.OpenEnded]}
 											</SelectItem>
 										</SelectContent>
 									</Select>
+									{field.value ? (
+										<div className="pt-1">
+											<DotBadge
+												{...contractTypeChip(field.value as ContractType)}
+											/>
+										</div>
+									) : null}
 									<FormMessage />
 								</FormItem>
 							)}
@@ -182,9 +212,14 @@ export const columns = (
 							name="hourlyFee"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Hourly Fee</FormLabel>
+									<FormLabel>Costo orario</FormLabel>
 									<FormControl>
-										<Input type="text" inputMode="decimal" {...field} />
+										<Input
+											type="text"
+											inputMode="decimal"
+											className="text-right tabular-nums"
+											{...field}
+										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -194,10 +229,20 @@ export const columns = (
 							name="startingDate"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Starting Date</FormLabel>
+									<FormLabel>Data inizio</FormLabel>
 									<FormControl>
-										<Input type="date" {...field} onChange={(e) => field.onChange(new Date(e.target.value))} disabled />
+										<Input
+											type="date"
+											{...field}
+											onChange={(e) => field.onChange(new Date(e.target.value))}
+											disabled
+										/>
 									</FormControl>
+									{field.value ? (
+										<p className="text-xs text-muted-foreground">
+											{formatDateIt(field.value)}
+										</p>
+									) : null}
 									<FormMessage />
 								</FormItem>
 							)}

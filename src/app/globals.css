@@ -20,6 +20,13 @@
 		--accent-foreground: 24 9.8% 10%;
 		--destructive: 0 84.2% 60.2%;
 		--destructive-foreground: 60 9.1% 97.8%;
+		/* Semantic ops tones (DESIGN.md): entrate / uscite / warning / info */
+		--success: 142 71% 35%;
+		--success-foreground: 60 9.1% 97.8%;
+		--warning: 32 95% 39%;
+		--warning-foreground: 60 9.1% 97.8%;
+		--info: 197 90% 39%;
+		--info-foreground: 60 9.1% 97.8%;
 		--border: 20 5.9% 90%;
 		--input: 20 5.9% 90%;
 		--ring: 24.6 95% 53.1%;
@@ -43,6 +50,12 @@
 		--accent-foreground: 60 9.1% 97.8%;
 		--destructive: 0 72.2% 50.6%;
 		--destructive-foreground: 60 9.1% 97.8%;
+		--success: 142 60% 45%;
+		--success-foreground: 60 9.1% 97.8%;
+		--warning: 38 92% 50%;
+		--warning-foreground: 20 14.3% 4.1%;
+		--info: 199 93% 60%;
+		--info-foreground: 20 14.3% 4.1%;
 		--border: 12 6.5% 15.1%;
 		--input: 12 6.5% 15.1%;
 		--ring: 20.5 90.2% 48.2%;

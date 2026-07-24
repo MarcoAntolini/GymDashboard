@@ -25,7 +25,7 @@ import {
 } from "@/lib/domain/employee-list-query";
 import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
-import { format } from "date-fns";
+import { formatDateIt } from "@/lib/format/locale";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
@@ -148,7 +148,7 @@ export default function Employees() {
 													variant={"outline"}
 													className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
 												>
-													{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+													{field.value ? formatDateIt(field.value) : <span>Pick a date</span>}
 													<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 												</Button>
 											</FormControl>

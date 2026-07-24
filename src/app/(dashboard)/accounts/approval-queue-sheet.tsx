@@ -1,5 +1,6 @@
 "use client";
 
+import { DotBadge } from "@/components/ui/domain-badge";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { filterApprovableAccounts } from "@/lib/domain/account-role-hierarchy";
 import type { AppRole } from "@/data/nav-routes";
+import { roleChip } from "@/lib/format/domain-visuals";
 import { Account } from "@prisma/client";
 import { Check, X } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -101,10 +103,13 @@ export function ApprovalQueueSheet({
 										className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 py-3 last:border-0"
 									>
 										<div className="min-w-0">
-											<p className="font-medium truncate">{account.username}</p>
-											<p className="text-sm text-muted-foreground">
-												Dipendente #{String(account.employeeId).padStart(4, "0")} · {account.role}
-											</p>
+											<p className="truncate font-medium">{account.username}</p>
+											<div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+												<span>
+													Dipendente #{String(account.employeeId).padStart(4, "0")}
+												</span>
+												<DotBadge {...roleChip(account.role)} />
+											</div>
 										</div>
 										<div className="flex gap-2 shrink-0">
 											<Button

@@ -31,7 +31,8 @@ import {
 	CONTRACT_LIST_FILTER_IDS,
 	CONTRACT_LIST_SORT_COLUMNS,
 } from "@/lib/domain/contract-list-query";
-import { formatCurrencyEur } from "@/lib/format/locale";
+import { MoneyTone } from "@/components/ui/money-tone";
+import { formatDateIt } from "@/lib/format/locale";
 import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { cn } from "@/lib/utils";
 import { ContractType, Employee } from "@prisma/client";
@@ -245,7 +246,12 @@ export default function Contracts() {
 									<FormItem>
 										<FormLabel>Hourly Fee</FormLabel>
 										<FormControl>
-											<Input type="text" inputMode="decimal" {...field} />
+											<Input
+												type="text"
+												inputMode="decimal"
+												className="text-right tabular-nums"
+												{...field}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -266,7 +272,7 @@ export default function Contracts() {
 															!field.value && "text-muted-foreground"
 														)}
 													>
-														{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+														{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 														<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 													</Button>
 												</FormControl>
@@ -410,25 +416,35 @@ export default function Contracts() {
 const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="ID dipendente" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID dipendente" />
+		),
 		cell: ({ row }) => {
 			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
 		},
 	},
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => <TableSortableHeader column={column} title="Costo orario" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Costo orario" align="right" />
+		),
 		cell: ({ row }) => {
 			const amount = row.getValue("hourlyFee") as string | number;
-			return <div className="font-medium">{formatCurrencyEur(amount)}</div>;
+			return <MoneyTone amount={amount} direction="expense" />;
 		},
 	},
 	{
 		accessorKey: "totalEarnings",
-		header: ({ column }) => <TableSortableHeader column={column} title="Guadagno totale" />,
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Guadagno totale"
+				align="right"
+			/>
+		),
 		cell: ({ row }) => {
 			const amount = row.getValue("totalEarnings") as string | number;
-			return <div className="font-medium">{formatCurrencyEur(amount)}</div>;
+			return <MoneyTone amount={amount} direction="income" />;
 		},
 	},
 	{
