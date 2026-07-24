@@ -27,6 +27,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Calculator, Calendar as CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
 
@@ -68,13 +69,38 @@ export default function Contracts() {
 
 	const handleCreateContract = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newContract = await createContract(values);
-			setContracts((prevContracts) => [...prevContracts, newContract]);
-			setEmployeesWithoutContract((prevEmployees) =>
-				prevEmployees.filter((employee) => employee.id !== values.employeeId)
-			);
+			try {
+				const newContract = await createContract(values);
+				setContracts((prevContracts) => [...prevContracts, newContract]);
+				setEmployeesWithoutContract((prevEmployees) =>
+					prevEmployees.filter((employee) => employee.id !== values.employeeId)
+				);
+			} catch (error) {
+				const message =
+					error instanceof Error && error.message
+						? error.message
+						: "Impossibile creare il contratto.";
+				toast.error(message);
+				throw error;
+			}
 		},
 		[setContracts, setEmployeesWithoutContract]
+	);
+
+	const handleEditContract = useCallback(
+		async (contract: Contract) => {
+			try {
+				await handleEdit(contract);
+			} catch (error) {
+				const message =
+					error instanceof Error && error.message
+						? error.message
+						: "Impossibile aggiornare il contratto.";
+				toast.error(message);
+				throw error;
+			}
+		},
+		[handleEdit]
 	);
 	const createContractFormData: FormData<typeof formSchema> = {
 		formSchema,
@@ -339,7 +365,7 @@ export default function Contracts() {
 				actions={actions}
 				table={
 					<DataTable
-						columns={columns(handleDelete, handleEdit, employeeId)}
+						columns={columns(handleDelete, handleEditContract, employeeId)}
 						data={contracts}
 						filters={["employeeId"]}
 						facetedFilters={["type"]}

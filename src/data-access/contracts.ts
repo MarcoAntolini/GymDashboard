@@ -1,7 +1,42 @@
 "use server";
 
+import {
+	contractIntervalsOverlap,
+	OVERLAPPING_CONTRACT_ERROR,
+	type ContractInterval
+} from "@/lib/contract-intervals";
 import { db } from "@/lib/db";
 import { Contract, ContractType } from "@prisma/client";
+
+async function assertNoOverlappingContract({
+	employeeId,
+	startingDate,
+	endingDate,
+	excludeStartingDate
+}: {
+	employeeId: number;
+	startingDate: Date;
+	endingDate: Date | null;
+	/** Su update: esclude la riga stessa (PK employeeId + startingDate). */
+	excludeStartingDate?: Date;
+}) {
+	const others = await db.contract.findMany({
+		where: {
+			employeeId,
+			...(excludeStartingDate
+				? { startingDate: { not: excludeStartingDate } }
+				: {})
+		},
+		select: { startingDate: true, endingDate: true }
+	});
+
+	const proposed: ContractInterval = { startingDate, endingDate };
+	for (const other of others) {
+		if (contractIntervalsOverlap(proposed, other)) {
+			throw new Error(OVERLAPPING_CONTRACT_ERROR);
+		}
+	}
+}
 
 export async function createContract({
 	employeeId,
@@ -16,6 +51,12 @@ export async function createContract({
 	startingDate: Date;
 	endingDate?: Date;
 }) {
+	await assertNoOverlappingContract({
+		employeeId,
+		startingDate,
+		endingDate: endingDate ?? null
+	});
+
 	return await db.contract.create({
 		data: {
 			employeeId,
@@ -43,6 +84,13 @@ export async function getContract(employeeId: number, startingDate: Date) {
 }
 
 export async function editContract({ employeeId, startingDate, type, hourlyFee, endingDate }: Contract) {
+	await assertNoOverlappingContract({
+		employeeId,
+		startingDate,
+		endingDate: endingDate ?? null,
+		excludeStartingDate: startingDate
+	});
+
 	return await db.contract.update({
 		where: {
 			employeeId_startingDate: {
