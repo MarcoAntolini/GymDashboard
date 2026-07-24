@@ -4,7 +4,7 @@
 
 **Blocked by:** 36 — Core entity tables: colonne, filtri, formatting
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Create entity apre Dialog; edit apre Sheet (shadcn/ui)
 - [ ] Feedback errore create/edit/delete coerente
