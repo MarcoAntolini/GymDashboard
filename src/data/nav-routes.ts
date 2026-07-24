@@ -1,6 +1,6 @@
 /**
  * Edge-safe source of truth: path → minimum role + role hierarchy.
- * `links.ts` adds icons only; middleware and role helpers import from here.
+ * Labels follow CONTEXT.md glossary (Italian). `links.ts` adds icons + sections.
  */
 
 export type AppRole = "Owner" | "Admin" | "Employee";
@@ -18,22 +18,22 @@ const ROLE_RANK: Record<AppRole, number> = {
 };
 
 export const NAV_ROUTES: NavRoute[] = [
-	{ title: "Accounts", href: "/accounts", requiredRole: "Admin" },
-	{ title: "Employees", href: "/employees", requiredRole: "Admin" },
-	{ title: "Contracts", href: "/contracts", requiredRole: "Admin" },
-	{ title: "Clockings", href: "/clockings", requiredRole: "Admin" },
-	{ title: "Salaries", href: "/salaries", requiredRole: "Admin" },
-	{ title: "Equipment", href: "/equipment", requiredRole: "Employee" },
-	{ title: "Bills", href: "/bills", requiredRole: "Employee" },
-	{ title: "Interventions", href: "/interventions", requiredRole: "Employee" },
-	{ title: "Clients", href: "/clients", requiredRole: "Employee" },
-	{ title: "Entrances", href: "/entrances", requiredRole: "Employee" },
-	{ title: "Products", href: "/products", requiredRole: "Employee" },
-	{ title: "Memberships", href: "/memberships", requiredRole: "Employee" },
-	{ title: "Entrance Sets", href: "/entrance-sets", requiredRole: "Employee" },
-	{ title: "Catalogs", href: "/catalogs", requiredRole: "Employee" },
-	{ title: "Payments", href: "/payments", requiredRole: "Employee" },
-	{ title: "Purchases", href: "/purchases", requiredRole: "Employee" },
+	{ title: "Account", href: "/accounts", requiredRole: "Admin" },
+	{ title: "Dipendenti", href: "/employees", requiredRole: "Admin" },
+	{ title: "Contratti", href: "/contracts", requiredRole: "Admin" },
+	{ title: "Timbrature", href: "/clockings", requiredRole: "Admin" },
+	{ title: "Stipendi", href: "/salaries", requiredRole: "Admin" },
+	{ title: "Attrezzatura", href: "/equipment", requiredRole: "Employee" },
+	{ title: "Bollette", href: "/bills", requiredRole: "Employee" },
+	{ title: "Interventi", href: "/interventions", requiredRole: "Employee" },
+	{ title: "Clienti", href: "/clients", requiredRole: "Employee" },
+	{ title: "Ingressi", href: "/entrances", requiredRole: "Employee" },
+	{ title: "Prodotti", href: "/products", requiredRole: "Employee" },
+	{ title: "Abbonamenti", href: "/memberships", requiredRole: "Employee" },
+	{ title: "Pacchetti ingressi", href: "/entrance-sets", requiredRole: "Employee" },
+	{ title: "Listino annuale", href: "/catalogs", requiredRole: "Employee" },
+	{ title: "Pagamenti", href: "/payments", requiredRole: "Employee" },
+	{ title: "Acquisti", href: "/purchases", requiredRole: "Employee" },
 ];
 
 /** Admin/Owner operational default until Panoramica `/` (later ticket). */

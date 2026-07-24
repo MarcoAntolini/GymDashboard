@@ -12,11 +12,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BeatLoader } from "react-spinners";
 
+function routeMatches(pathname: string, href: string): boolean {
+	const normalized = pathname.endsWith("/") && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
+	return normalized === href || normalized.startsWith(`${href}/`);
+}
+
 export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const [userRole, setUserRole] = useState<Role>();
-	const [selectedLink, setSelectedLink] = useState("/" + pathname.split("/").pop());
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
@@ -48,73 +52,83 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 		};
 	}, [router, pathname]);
 
-	useEffect(() => {
-		setSelectedLink("/" + pathname.split("/").pop());
-	}, [pathname]);
+	if (isLoading) {
+		return (
+			<div className="flex flex-col justify-center items-center h-full">
+				<BeatLoader color="hsla(20.5 90.2% 48.2%)" />
+			</div>
+		);
+	}
 
-	return isLoading ? (
-		<div className="flex flex-col justify-center items-center h-full">
-			<BeatLoader color="hsla(20.5 90.2% 48.2%)" />
-		</div>
-	) : (
+	const visibleSections = links
+		.map((section) => ({
+			section: section.section,
+			group: section.group.filter((link) => userRole != null && roleAllows(userRole, link.requiredRole)),
+		}))
+		.filter((section) => section.group.length > 0);
+
+	return (
 		<div
 			data-collapsed={isCollapsed}
 			className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2 overflow-auto"
 		>
-			<nav>
-				{links
-					.map((l) =>
-						l.group.filter((link) => userRole != null && roleAllows(userRole, link.requiredRole))
-					)
-					.filter((group) => group.length > 0)
-					.map((group, groupIndex, visibleGroups) => (
-						<div
-							key={groupIndex}
-							className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
-						>
-							{group.map((link, index) => {
-								const variant = link.href === selectedLink ? "default" : "ghost";
-								return isCollapsed ? (
-									<Tooltip key={index} delayDuration={0}>
-										<TooltipTrigger asChild>
-											<Link
-												href={link.href}
-												className={cn(
-													buttonVariants({ variant: variant, size: "icon" }),
-													"h-9 w-9",
-													variant === "default" &&
-														"dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
-												)}
-												onClick={() => setSelectedLink(link.href)}
-											>
-												<link.icon className="h-4 w-4" />
-												<span className="sr-only">{link.title}</span>
-											</Link>
-										</TooltipTrigger>
-										<TooltipContent side="right" className="flex items-center gap-4">
-											{link.title}
-										</TooltipContent>
-									</Tooltip>
-								) : (
-									<Link
-										key={index}
-										href={link.href}
-										className={cn(
-											buttonVariants({ variant: variant, size: "sm" }),
-											"justify-start",
-											variant === "default" &&
-												"dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white"
-										)}
-										onClick={() => setSelectedLink(link.href)}
-									>
-										<link.icon className="mr-2 h-4 w-4" />
+			<nav aria-label="Navigazione principale">
+				{visibleSections.map((section, sectionIndex) => (
+					<div
+						key={section.section}
+						className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
+					>
+						{isCollapsed ? (
+							<span className="sr-only">{section.section}</span>
+						) : (
+							<p className="px-3 pb-1 pt-1 text-xs font-medium tracking-wide text-muted-foreground">
+								{section.section}
+							</p>
+						)}
+						{section.group.map((link) => {
+							const isActive = routeMatches(pathname, link.href);
+							const variant = isActive ? "default" : "ghost";
+							return isCollapsed ? (
+								<Tooltip key={link.href} delayDuration={0}>
+									<TooltipTrigger asChild>
+										<Link
+											href={link.href}
+											aria-current={isActive ? "page" : undefined}
+											className={cn(
+												buttonVariants({ variant, size: "icon" }),
+												"size-9",
+												variant === "default" &&
+													"dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
+											)}
+										>
+											<link.icon className="size-4" />
+											<span className="sr-only">{link.title}</span>
+										</Link>
+									</TooltipTrigger>
+									<TooltipContent side="right" className="flex items-center gap-4">
 										{link.title}
-									</Link>
-								);
-							})}
-							{groupIndex !== visibleGroups.length - 1 && <Separator className="mb-1" />}
-						</div>
-					))}
+									</TooltipContent>
+								</Tooltip>
+							) : (
+								<Link
+									key={link.href}
+									href={link.href}
+									aria-current={isActive ? "page" : undefined}
+									className={cn(
+										buttonVariants({ variant, size: "sm" }),
+										"justify-start",
+										variant === "default" &&
+											"dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white"
+									)}
+								>
+									<link.icon className="mr-2 size-4" />
+									{link.title}
+								</Link>
+							);
+						})}
+						{sectionIndex !== visibleSections.length - 1 && <Separator className="mb-1" />}
+					</div>
+				))}
 			</nav>
 		</div>
 	);

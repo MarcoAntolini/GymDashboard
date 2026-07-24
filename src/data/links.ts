@@ -47,6 +47,12 @@ type LinkItem = {
 	icon: LucideIcon;
 };
 
+export type NavSection = {
+	/** Visible section heading (CONTEXT / IA). */
+	section: string;
+	group: LinkItem[];
+};
+
 function toLink(route: (typeof NAV_ROUTES)[number]): LinkItem {
 	const icon = ICONS[route.href];
 	if (!icon) {
@@ -55,30 +61,40 @@ function toLink(route: (typeof NAV_ROUTES)[number]): LinkItem {
 	return { ...route, icon };
 }
 
-/** Same visual groups as before; roles come from `nav-routes.ts`. */
-export const links: { group: LinkItem[] }[] = [
+function linksFor(hrefs: string[]): LinkItem[] {
+	return hrefs.map((href) => {
+		const route = NAV_ROUTES.find((r) => r.href === href);
+		if (!route) {
+			throw new Error(`Unknown nav route ${href}`);
+		}
+		return toLink(route);
+	});
+}
+
+/**
+ * Operational IA groups. Employee loses Personale (Admin+); remaining order
+ * still starts with Operazioni.
+ */
+export const links: NavSection[] = [
 	{
-		group: NAV_ROUTES.filter((r) =>
-			["/accounts", "/employees", "/contracts", "/clockings"].includes(r.href)
-		).map(toLink),
+		section: "Personale",
+		group: linksFor(["/accounts", "/employees", "/contracts", "/clockings"]),
 	},
 	{
-		group: NAV_ROUTES.filter((r) =>
-			["/salaries", "/equipment", "/bills", "/interventions"].includes(r.href)
-		).map(toLink),
+		section: "Operazioni",
+		group: linksFor(["/clients", "/entrances"]),
 	},
 	{
-		group: NAV_ROUTES.filter((r) =>
-			["/clients", "/entrances", "/products"].includes(r.href)
-		).map(toLink),
+		section: "Listino",
+		group: linksFor(["/products", "/memberships", "/entrance-sets", "/catalogs"]),
 	},
 	{
-		group: NAV_ROUTES.filter((r) =>
-			["/memberships", "/entrance-sets", "/catalogs"].includes(r.href)
-		).map(toLink),
+		section: "Movimenti",
+		group: linksFor(["/purchases", "/payments"]),
 	},
 	{
-		group: NAV_ROUTES.filter((r) => ["/payments", "/purchases"].includes(r.href)).map(toLink),
+		section: "Uscite",
+		group: linksFor(["/salaries", "/bills", "/equipment", "/interventions"]),
 	},
 ];
 
