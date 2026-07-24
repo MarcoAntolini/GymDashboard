@@ -97,8 +97,8 @@ export default function DashboardLayout({
 	return (
 		<div className="p-4 min-h-[calc(100vh-56px-56px)] h-[calc(100vh-56px-56px)]">
 			<TooltipProvider delayDuration={0}>
-				<Card className="flex flex-row h-full">
-					<div className="h-full items-stretch border-r">
+				<Card className="flex min-h-0 min-w-0 flex-row h-full">
+					<div className="h-full shrink-0 items-stretch border-r">
 						<div
 							className={cn(
 								"flex flex-col transition-all duration-300 ease-in-out h-full",
@@ -107,7 +107,7 @@ export default function DashboardLayout({
 						>
 							<div
 								className={cn(
-									"flex min-h-[52px] h-[52px] items-center justify-center overflow-auto",
+									"flex h-14 shrink-0 items-center justify-center",
 									!isCollapsed && "px-2"
 								)}
 							>
@@ -183,7 +183,7 @@ export default function DashboardLayout({
 							</div>
 						</div>
 					</div>
-					<div className="w-full overflow-x-auto overflow-y-hidden">{children}</div>
+					<div className="min-h-0 min-w-0 flex-1 overflow-hidden">{children}</div>
 				</Card>
 			</TooltipProvider>
 		</div>

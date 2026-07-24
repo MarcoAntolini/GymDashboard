@@ -130,7 +130,7 @@ export function ServerDataTable<TData, TValue>({
 	const showErrorBanner = listStatus === "error" && data.length > 0;
 
 	return (
-		<div className="flex h-full flex-col">
+		<div className="flex h-full min-h-0 min-w-0 flex-col">
 			<ServerListToolbar
 				fields={filterFields}
 				draftValues={draftFilters}
@@ -154,7 +154,7 @@ export function ServerDataTable<TData, TValue>({
 				</div>
 			) : null}
 			<div
-				className="flex-1 overflow-auto rounded-md border"
+				className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border"
 				aria-busy={listStatus === "loading" || undefined}
 			>
 				{showError && onRetry ? (

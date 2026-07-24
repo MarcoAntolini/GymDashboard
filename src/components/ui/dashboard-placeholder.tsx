@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 export default function DashboardPlaceholder() {
 	return (
 		<>
-			<div className="h-[52px] flex gap-2 items-center px-4" />
+			<div className="flex h-14 shrink-0 items-center gap-2 px-4 py-2" />
 			<Separator />
 			<div className="flex h-full flex-col items-center justify-center p-4">
 				<ListShellLoading />

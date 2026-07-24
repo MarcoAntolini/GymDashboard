@@ -4,13 +4,20 @@
 
 **Blocked by:** 18 — Nav IA + glossary IT + layout navbar standard
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] Separator sidebar user-block e toolbar pagina allineati (niente scalino)
-- [ ] Padding verticale coerente intorno ai Button default (h-10)
-- [ ] Pane principale dashboard senza overflow-x-auto che scrolla tutta la pagina
-- [ ] Catena flex con min-w-0; wrapper tabella con overflow-auto contain-paint
+- [x] Separator sidebar user-block e toolbar pagina allineati (niente scalino)
+- [x] Padding verticale coerente intorno ai Button default (h-10)
+- [x] Pane principale dashboard senza overflow-x-auto che scrolla tutta la pagina
+- [x] Catena flex con min-w-0; wrapper tabella con overflow-auto contain-paint
 
 ## Comments
 
 - 2026-07-24 — claimed by implement loop (cloud)
+
+## Done
+
+- Sidebar user-block, Dashboard toolbar e DashboardPlaceholder usano tutti `h-14` + `py-2` (allineati a Button default `h-10`); niente scalino sui Separator.
+- Pane principale: rimosso `overflow-x-auto`; sostituito con `min-w-0 flex-1 overflow-hidden`.
+- Catena flex: `min-w-0` / `min-h-0` su Card, main pane, Dashboard e DataTable roots.
+- Wrapper tabella (`DataTable` + `ServerDataTable`): `overflow-auto contain-paint` + `min-w-0` così lo scroll resta sul bordo tabella.
