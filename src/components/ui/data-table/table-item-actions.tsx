@@ -27,6 +27,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
@@ -65,11 +66,19 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 		});
 	}
 
-	function onDeleteSubmit() {
-		deleteAction().then(() => {
+	async function onDeleteSubmit(event: React.MouseEvent) {
+		event.preventDefault();
+		try {
+			await deleteAction();
 			setIsDeleteDialogOpen(false);
 			router.refresh();
-		});
+		} catch (error) {
+			const message =
+				error instanceof Error && error.message
+					? error.message
+					: "Impossibile eliminare il record.";
+			toast.error(message);
+		}
 	}
 
 	return (

@@ -1,7 +1,10 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { Client } from "@prisma/client";
+import { Client, Prisma } from "@prisma/client";
+
+const CLIENT_HAS_PURCHASES_MESSAGE =
+	"Impossibile eliminare il cliente: esistono acquisti collegati.";
 
 export async function createClient({
   taxCode,
@@ -80,9 +83,19 @@ export async function editClient({
 }
 
 export async function deleteClient({ id }: { id: number }) {
-  return await db.client.delete({
-    where: {
-      id,
-    },
-  });
+	try {
+		return await db.client.delete({
+			where: {
+				id,
+			},
+		});
+	} catch (error) {
+		if (
+			error instanceof Prisma.PrismaClientKnownRequestError &&
+			(error.code === "P2003" || error.code === "P2014")
+		) {
+			throw new Error(CLIENT_HAS_PURCHASES_MESSAGE);
+		}
+		throw error;
+	}
 }
