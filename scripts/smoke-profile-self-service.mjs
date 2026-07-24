@@ -19,6 +19,15 @@ assert.match(profileDa, /La password attuale e' obbligatoria per cambiare la pas
 assert.match(profileDa, /input\.username != null && input\.username !== actor\.username/);
 assert.match(profileDa, /bcrypt\.compare\(input\.currentPassword/);
 assert.match(profileDa, /requireSession/);
+assert.match(profileDa, /canEditIdentity/);
+assert.match(profileDa, /Solo Amministratore o Proprietario possono modificare nome/);
+assert.match(profileDa, /roleAllows\(account\.role,\s*"Admin"\)/);
+
+const employeesDa = fs.readFileSync(path.join(root, "src/data-access/employees.ts"), "utf8");
+assert.match(employeesDa, /export async function editEmployee/);
+assert.match(employeesDa, /requireAdminActor/);
+assert.match(employeesDa, /assertRoleHierarchy/);
+assert.match(employeesDa, /editingSelf/);
 
 const photoApi = fs.readFileSync(
 	path.join(root, "src/app/api/profile/photo/route.ts"),
@@ -43,6 +52,8 @@ assert.match(sheet, /Profilo/);
 assert.match(sheet, /updateOwnEmployeeProfile/);
 assert.match(sheet, /updateOwnCredentials/);
 assert.match(sheet, /\/api\/profile\/photo/);
+assert.match(sheet, /canEditIdentity/);
+assert.match(sheet, /Salva recapiti/);
 
 const layout = fs.readFileSync(
 	path.join(root, "src/app/(dashboard)/layout.tsx"),

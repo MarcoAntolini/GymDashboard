@@ -1,7 +1,13 @@
 "use server";
 
+import { isAppRole } from "@/data/nav-routes";
+import {
+	assertRoleHierarchy,
+	getOptionalSession,
+	requireAdminActor,
+	requireRole,
+} from "@/lib/auth";
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
-import { getOptionalSession, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function createEmployee(input: {
@@ -67,6 +73,12 @@ export async function getEmployee(id: number) {
 	});
 }
 
+/**
+ * Modifica anagrafica completa di un Dipendente (Admin+).
+ * Gerarchia: Owner → tutti; Admin → solo Dipendenti (ruolo Employee).
+ * Dipendente senza Account: modificabile da Admin+.
+ * Self-edit della propria riga: consentito ad Admin/Owner (identità anche da Profilo).
+ */
 export async function editEmployee(input: {
 	id: number;
 	taxCode: string;
@@ -81,7 +93,7 @@ export async function editEmployee(input: {
 	email: string;
 	hiringDate: Date;
 }) {
-	await requireRole("Admin");
+	const actor = await requireAdminActor();
 	assertMutationPayload("employee", "update", input);
 	const {
 		id,
@@ -97,6 +109,30 @@ export async function editEmployee(input: {
 		email,
 		hiringDate,
 	} = input;
+
+	const target = await db.employee.findUnique({
+		where: { id },
+		include: {
+			account: { select: { role: true, username: true } },
+		},
+	});
+	if (!target) {
+		throw new Error("Dipendente non trovato");
+	}
+
+	const actorAccount = await db.account.findUnique({
+		where: { username: actor.username },
+		select: { employeeId: true },
+	});
+	const editingSelf = actorAccount?.employeeId === id;
+
+	if (!editingSelf && target.account) {
+		if (!isAppRole(target.account.role)) {
+			throw new Error("Account non valido");
+		}
+		assertRoleHierarchy(actor.role, target.account.role);
+	}
+
 	return await db.employee.update({
 		where: {
 			id

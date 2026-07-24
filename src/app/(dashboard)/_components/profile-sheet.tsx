@@ -100,19 +100,34 @@ export function ProfileSheet({
 	const saveAnagrafica = () => {
 		startTransition(async () => {
 			try {
-				await updateOwnEmployeeProfile({
-					taxCode,
-					name,
-					surname,
-					birthDate: new Date(birthDate),
-					street,
-					houseNumber,
-					city,
-					province,
-					phoneNumber,
-					email,
-				});
-				toast.success("Anagrafica aggiornata");
+				if (profile?.canEditIdentity) {
+					await updateOwnEmployeeProfile({
+						taxCode,
+						name,
+						surname,
+						birthDate: new Date(birthDate),
+						street,
+						houseNumber,
+						city,
+						province,
+						phoneNumber,
+						email,
+					});
+				} else {
+					await updateOwnEmployeeProfile({
+						street,
+						houseNumber,
+						city,
+						province,
+						phoneNumber,
+						email,
+					});
+				}
+				toast.success(
+					profile?.canEditIdentity
+						? "Anagrafica aggiornata"
+						: "Recapiti aggiornati"
+				);
 				await load();
 			} catch (error) {
 				const message =
@@ -245,6 +260,13 @@ export function ProfileSheet({
 
 						<section className="flex flex-col gap-3">
 							<h3 className="text-sm font-medium">Anagrafica</h3>
+							{!profile.canEditIdentity ? (
+								<p className="text-xs text-muted-foreground">
+									Nome, cognome, codice fiscale e data di nascita sono
+									modificabili solo da Amministratore o Proprietario (anche
+									tramite modifica Dipendenti). Qui puoi aggiornare i recapiti.
+								</p>
+							) : null}
 							<div className="grid grid-cols-2 gap-3">
 								<div className="col-span-2 space-y-1.5 sm:col-span-1">
 									<Label htmlFor="profile-name">Nome</Label>
@@ -252,6 +274,8 @@ export function ProfileSheet({
 										id="profile-name"
 										value={name}
 										onChange={(e) => setName(e.target.value)}
+										disabled={!profile.canEditIdentity}
+										readOnly={!profile.canEditIdentity}
 									/>
 								</div>
 								<div className="col-span-2 space-y-1.5 sm:col-span-1">
@@ -260,6 +284,8 @@ export function ProfileSheet({
 										id="profile-surname"
 										value={surname}
 										onChange={(e) => setSurname(e.target.value)}
+										disabled={!profile.canEditIdentity}
+										readOnly={!profile.canEditIdentity}
 									/>
 								</div>
 								<div className="col-span-2 space-y-1.5">
@@ -269,6 +295,8 @@ export function ProfileSheet({
 										value={taxCode}
 										onChange={(e) => setTaxCode(e.target.value)}
 										maxLength={16}
+										disabled={!profile.canEditIdentity}
+										readOnly={!profile.canEditIdentity}
 									/>
 								</div>
 								<div className="col-span-2 space-y-1.5 sm:col-span-1">
@@ -278,6 +306,8 @@ export function ProfileSheet({
 										type="date"
 										value={birthDate}
 										onChange={(e) => setBirthDate(e.target.value)}
+										disabled={!profile.canEditIdentity}
+										readOnly={!profile.canEditIdentity}
 									/>
 								</div>
 								<div className="col-span-2 space-y-1.5 sm:col-span-1">
@@ -338,7 +368,9 @@ export function ProfileSheet({
 								{isPending ? (
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 								) : null}
-								Salva anagrafica
+								{profile.canEditIdentity
+									? "Salva anagrafica"
+									: "Salva recapiti"}
 							</Button>
 						</section>
 

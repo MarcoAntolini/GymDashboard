@@ -1,7 +1,11 @@
 "use server";
 
-import { isAppRole } from "@/data/nav-routes";
-import { UNAUTHENTICATED_MESSAGE, requireSession } from "@/lib/auth";
+import { isAppRole, roleAllows } from "@/data/nav-routes";
+import {
+	FORBIDDEN_MESSAGE,
+	UNAUTHENTICATED_MESSAGE,
+	requireSession,
+} from "@/lib/auth";
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import { resolveProfilePhotoUrl } from "@/lib/profile-photo";
@@ -21,6 +25,8 @@ const CREDENTIALS_OTHER_ACCOUNT_MESSAGE =
 const CURRENT_PASSWORD_REQUIRED_MESSAGE =
 	"La password attuale e' obbligatoria per cambiare la password";
 const CURRENT_PASSWORD_INVALID_MESSAGE = "Password attuale non corretta";
+const IDENTITY_SELF_EDIT_MESSAGE =
+	"Solo Amministratore o Proprietario possono modificare nome, cognome, codice fiscale e data di nascita";
 
 async function loadOwnApprovedAccount(username: string) {
 	const account = await db.account.findUnique({
@@ -38,9 +44,11 @@ export async function getOwnProfile() {
 	const actor = await requireSession();
 	const account = await loadOwnApprovedAccount(actor.username);
 	const employee = account.employee!;
+	const canEditIdentity = roleAllows(account.role, "Admin");
 	return {
 		username: account.username,
 		role: account.role,
+		canEditIdentity,
 		employee: {
 			id: employee.id,
 			taxCode: employee.taxCode,
@@ -58,12 +66,16 @@ export async function getOwnProfile() {
 	};
 }
 
-/** Aggiorna anagrafica del solo Dipendente collegato all'Account corrente. */
+/**
+ * Aggiorna il solo Dipendente collegato all'Account corrente.
+ * - Dipendente: solo recapiti (indirizzo, telefono, email).
+ * - Admin/Owner: anche identità (nome, cognome, CF, data di nascita).
+ */
 export async function updateOwnEmployeeProfile(input: {
-	taxCode: string;
-	name: string;
-	surname: string;
-	birthDate: Date;
+	taxCode?: string;
+	name?: string;
+	surname?: string;
+	birthDate?: Date;
 	street: string;
 	houseNumber: string;
 	city: string;
@@ -74,9 +86,65 @@ export async function updateOwnEmployeeProfile(input: {
 	const actor = await requireSession();
 	const account = await loadOwnApprovedAccount(actor.username);
 	const employeeId = account.employeeId;
-	const payload = {
+	const canEditIdentity = roleAllows(account.role, "Admin");
+
+	const contacts = {
 		id: employeeId,
-		...input,
+		street: input.street,
+		houseNumber: input.houseNumber,
+		city: input.city,
+		province: input.province,
+		phoneNumber: input.phoneNumber,
+		email: input.email,
+	};
+
+	if (!canEditIdentity) {
+		const identityTouched =
+			input.taxCode != null ||
+			input.name != null ||
+			input.surname != null ||
+			input.birthDate != null;
+		if (identityTouched) {
+			const current = account.employee!;
+			const changed =
+				(input.taxCode != null && input.taxCode !== current.taxCode) ||
+				(input.name != null && input.name !== current.name) ||
+				(input.surname != null && input.surname !== current.surname) ||
+				(input.birthDate != null &&
+					input.birthDate.getTime() !== current.birthDate.getTime());
+			if (changed) {
+				throw new Error(IDENTITY_SELF_EDIT_MESSAGE);
+			}
+		}
+		assertMutationPayload("employee", "update", contacts);
+		return await db.employee.update({
+			where: { id: employeeId },
+			data: {
+				street: input.street,
+				houseNumber: input.houseNumber,
+				city: input.city,
+				province: input.province,
+				phoneNumber: input.phoneNumber,
+				email: input.email,
+			},
+		});
+	}
+
+	if (
+		input.taxCode == null ||
+		input.name == null ||
+		input.surname == null ||
+		input.birthDate == null
+	) {
+		throw new Error(FORBIDDEN_MESSAGE);
+	}
+
+	const payload = {
+		...contacts,
+		taxCode: input.taxCode,
+		name: input.name,
+		surname: input.surname,
+		birthDate: input.birthDate,
 	};
 	assertMutationPayload("employee", "update", payload);
 	return await db.employee.update({

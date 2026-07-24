@@ -101,6 +101,15 @@ assert.match(middlewareSrc, /requiredRoleForPath/);
 assert.match(middlewareSrc, /\/forbidden/);
 assert.match(middlewareSrc, /landingPathForRole/);
 
+const meSrc = fs.readFileSync(path.join(root, "src/app/api/auth/me/route.ts"), "utf8");
+assert.match(meSrc, /payload\.r === account\.role/);
+assert.match(meSrc, /createSessionValue/);
+assert.match(meSrc, /signSessionValue/);
+
+const navSrc = fs.readFileSync(path.join(root, "src/app/(dashboard)/_components/nav.tsx"), "utf8");
+assert.match(navSrc, /requiredRoleForPath/);
+assert.match(navSrc, /\/forbidden\?from=/);
+
 const sessionSrc = fs.readFileSync(path.join(root, "src/lib/session.ts"), "utf8");
 assert.match(sessionSrc, /r: SessionRole/);
 

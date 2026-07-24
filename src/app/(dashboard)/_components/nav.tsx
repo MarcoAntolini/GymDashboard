@@ -4,6 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { links, roleAllows } from "@/data/links";
+import { requiredRoleForPath, type AppRole } from "@/data/nav-routes";
 import { cn } from "@/lib/utils";
 import { Role } from "@prisma/client";
 import Link from "next/link";
@@ -21,7 +22,6 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 	useEffect(() => {
 		let cancelled = false;
 		(async () => {
-			setIsLoading(true);
 			try {
 				const res = await fetch("/api/auth/me");
 				const me = res.ok ? await res.json() : null;
@@ -30,7 +30,12 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 					router.push("/auth");
 					return;
 				}
-				setUserRole(me.role as Role);
+				const role = me.role as AppRole;
+				setUserRole(role as Role);
+				const needed = requiredRoleForPath(pathname);
+				if (needed && !roleAllows(role, needed)) {
+					router.replace(`/forbidden?from=${encodeURIComponent(pathname)}`);
+				}
 			} catch {
 				if (cancelled) return;
 				router.push("/auth");
@@ -41,7 +46,7 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 		return () => {
 			cancelled = true;
 		};
-	}, [router]);
+	}, [router, pathname]);
 
 	useEffect(() => {
 		setSelectedLink("/" + pathname.split("/").pop());
@@ -57,14 +62,17 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 			className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2 overflow-auto"
 		>
 			<nav>
-				{links.map((l, groupIndex) => (
-					<div
-						key={groupIndex}
-						className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
-					>
-						{l.group
-							.filter((link) => userRole != null && roleAllows(userRole, link.requiredRole))
-							.map((link, index) => {
+				{links
+					.map((l) =>
+						l.group.filter((link) => userRole != null && roleAllows(userRole, link.requiredRole))
+					)
+					.filter((group) => group.length > 0)
+					.map((group, groupIndex, visibleGroups) => (
+						<div
+							key={groupIndex}
+							className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
+						>
+							{group.map((link, index) => {
 								const variant = link.href === selectedLink ? "default" : "ghost";
 								return isCollapsed ? (
 									<Tooltip key={index} delayDuration={0}>
@@ -104,9 +112,9 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 									</Link>
 								);
 							})}
-						{groupIndex !== links.length - 1 && <Separator className="mb-1" />}
-					</div>
-				))}
+							{groupIndex !== visibleGroups.length - 1 && <Separator className="mb-1" />}
+						</div>
+					))}
 			</nav>
 		</div>
 	);
