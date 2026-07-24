@@ -4,7 +4,7 @@
 
 **Blocked by:** 13 — RBAC Admin/Employee + landing role-aware; 18 — Nav IA + glossary IT + layout navbar standard; 20 — Clienti; 21 — Ingressi; 22 — Acquisti; 23 — Prodotti; 24 — Abbonamenti; 25 — Pacchetti ingressi; 26 — Listino; 27 — Dipendenti; 28 — Account; 29 — Contratti; 30 — Timbrature; 31 — Stipendi; 32 — Bollette; 33 — Attrezzatura; 34 — Interventi; 35 — Pagamenti
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Colonne core espongono campi usati nelle operazioni frequenti
 - [ ] Filtri preferiscono campi leggibili rispetto a soli id/FK dove ha senso
