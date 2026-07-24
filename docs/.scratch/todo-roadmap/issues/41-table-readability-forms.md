@@ -4,7 +4,7 @@
 
 **Blocked by:** 36 — Core entity tables: colonne, filtri, formatting; 37 — CRUD: Dialog create / Sheet edit + feedback
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Header colonne: icona muted + stesso chrome (anche non-sortable)
 - [ ] Categorie = chip outline+dot; stati azionabili = badge soft+icona; etichetta sempre presente
