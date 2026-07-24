@@ -7,33 +7,35 @@ import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { getAllClients } from "@/data-access/clients";
 import {
-	createEntrance,
 	deleteEntrance,
 	editEntrance,
 	getAllEntrances,
 	getDailyEntrances,
 	getMonthlyEntrances,
-	getWeeklyEntrances
+	getWeeklyEntrances,
+	registerEntrance,
+	type EntranceRow,
 } from "@/data-access/entrances";
 import { useEntityData } from "@/hooks/useEntityData";
 import { cn } from "@/lib/utils";
-import { Entrance } from "@prisma/client";
 import { format } from "date-fns";
 import { BarChart as BarChartIcon, CalendarDays, CalendarIcon, Clock, PlusCircle } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
 import { z } from "zod";
-import { columns, formSchema } from "./columns";
+import { ClientOption, columns, formSchema } from "./columns";
 
 const analyticsFormSchema = z.object({
 	date: z.object({
 		from: z.date(),
-		to: z.date()
-	})
+		to: z.date(),
+	}),
 });
 
 export default function EntrancesPage() {
@@ -42,19 +44,27 @@ export default function EntrancesPage() {
 		setData: setEntrances,
 		isLoading,
 		handleDelete,
-		handleEdit
-	} = useEntityData<Entrance, "clientId" | "date">(
+		handleEdit,
+	} = useEntityData<EntranceRow, "id">(
 		useMemo(
 			() => ({
 				getAll: getAllEntrances,
-				deleteAction: deleteEntrance,
-				editAction: editEntrance
+				deleteAction: async (key) => {
+					await deleteEntrance(key);
+					return key as EntranceRow;
+				},
+				editAction: async (entrance) =>
+					editEntrance({
+						id: entrance.id,
+						date: entrance.date,
+					}),
 			}),
 			[]
 		),
-		["clientId", "date"]
+		["id"]
 	);
 
+	const [clients, setClients] = useState<ClientOption[]>([]);
 	const [isWeeklySheetOpen, setIsWeeklySheetOpen] = useState(false);
 	const [isDailySheetOpen, setIsDailySheetOpen] = useState(false);
 	const [isMonthlySheetOpen, setIsMonthlySheetOpen] = useState(false);
@@ -63,10 +73,25 @@ export default function EntrancesPage() {
 	const [weeklyData, setWeeklyData] = useState<{ dayOfWeek: string; totalEntrances: number }[]>([]);
 	const [monthlyData, setMonthlyData] = useState<{ month: string; totalEntrances: number }[]>([]);
 
+	useEffect(() => {
+		void getAllClients().then((rows) =>
+			setClients(rows.map((c) => ({ id: c.id, name: c.name, surname: c.surname })))
+		);
+	}, []);
+
 	const handleCreateEntrance = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newEntrance = await createEntrance(values);
-			setEntrances((prevEntrances) => [...prevEntrances, newEntrance]);
+			try {
+				const newEntrance = await registerEntrance(values.clientId, values.date);
+				setEntrances((prevEntrances) => [newEntrance, ...prevEntrances]);
+			} catch (error) {
+				const message =
+					error instanceof Error && error.message
+						? error.message
+						: "Impossibile registrare l'ingresso.";
+				toast.error(message);
+				throw error;
+			}
 		},
 		[setEntrances]
 	);
@@ -75,21 +100,24 @@ export default function EntrancesPage() {
 		async (values: z.infer<typeof analyticsFormSchema>, type: "weekly" | "daily" | "monthly") => {
 			setSelectedDateRange(values.date);
 			switch (type) {
-				case "weekly":
+				case "weekly": {
 					const weeklyStats = await getWeeklyEntrances(values.date.from, values.date.to);
 					setWeeklyData(weeklyStats);
 					setIsWeeklySheetOpen(true);
 					break;
-				case "daily":
+				}
+				case "daily": {
 					const dailyStats = await getDailyEntrances(values.date.from, values.date.to);
 					setDailyData(dailyStats);
 					setIsDailySheetOpen(true);
 					break;
-				case "monthly":
+				}
+				case "monthly": {
 					const monthlyStats = await getMonthlyEntrances(values.date.from, values.date.to);
 					setMonthlyData(monthlyStats);
 					setIsMonthlySheetOpen(true);
 					break;
+				}
 			}
 		},
 		[]
@@ -100,10 +128,10 @@ export default function EntrancesPage() {
 		defaultValues: {
 			date: {
 				from: new Date(),
-				to: new Date()
-			}
+				to: new Date(),
+			},
 		},
-		submitAction: (values) => handleAnalytics(values, "weekly")
+		submitAction: (values) => handleAnalytics(values, "weekly"),
 	};
 
 	const actions: Action[] = [
@@ -116,10 +144,24 @@ export default function EntrancesPage() {
 						name="clientId"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Client ID</FormLabel>
-								<FormControl>
-									<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
-								</FormControl>
+								<FormLabel>Cliente</FormLabel>
+								<Select
+									value={field.value ? String(field.value) : undefined}
+									onValueChange={(value) => field.onChange(parseInt(value, 10))}
+								>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue placeholder="Seleziona cliente" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										{clients.map((client) => (
+											<SelectItem key={client.id} value={String(client.id)}>
+												{client.surname} {client.name} (#{client.id})
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 								<FormMessage />
 							</FormItem>
 						)}
@@ -140,10 +182,10 @@ export default function EntrancesPage() {
 				formSchema,
 				defaultValues: {
 					clientId: 0,
-					date: new Date()
+					date: new Date(),
 				},
-				submitAction: handleCreateEntrance
-			}
+				submitAction: handleCreateEntrance,
+			},
 		},
 		{
 			title: "Daily Analysis",
@@ -153,8 +195,8 @@ export default function EntrancesPage() {
 			),
 			formData: {
 				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "daily")
-			}
+				submitAction: (values) => handleAnalytics(values, "daily"),
+			},
 		},
 		{
 			title: "Weekly Analysis",
@@ -164,20 +206,23 @@ export default function EntrancesPage() {
 			),
 			formData: {
 				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "weekly")
-			}
+				submitAction: (values) => handleAnalytics(values, "weekly"),
+			},
 		},
 		{
 			title: "Monthly Analysis",
 			icon: BarChartIcon,
 			dialogContent: (
-				<DateRangePickerField onSubmit={(values) => handleAnalytics(values, "monthly")} formData={analyticsFormData} />
+				<DateRangePickerField
+					onSubmit={(values) => handleAnalytics(values, "monthly")}
+					formData={analyticsFormData}
+				/>
 			),
 			formData: {
 				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "monthly")
-			}
-		}
+				submitAction: (values) => handleAnalytics(values, "monthly"),
+			},
+		},
 	];
 
 	return isLoading ? (
@@ -190,7 +235,7 @@ export default function EntrancesPage() {
 					<DataTable
 						columns={columns(handleDelete, handleEdit)}
 						data={entrances}
-						filters={["clientId", "date"]}
+						filters={["date", "purchaseId"]}
 						facetedFilters={["date"]}
 					/>
 				}
@@ -267,7 +312,7 @@ export default function EntrancesPage() {
 
 function DateRangePickerField({
 	onSubmit,
-	formData
+	formData,
 }: {
 	onSubmit: (values: z.infer<typeof analyticsFormSchema>) => void;
 	formData: FormData<typeof analyticsFormSchema>;

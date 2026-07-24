@@ -4,57 +4,78 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Entrance } from "@prisma/client";
+import type { EntranceRow } from "@/data-access/entrances";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
+/** Create: solo Cliente (+ data opzionale in form; default now lato server). Niente purchaseId. */
 export const formSchema = z.object({
 	clientId: z.number().int().positive(),
-	date: z.date()
+	date: z.date(),
 });
 
+/** Edit: solo data (Acquisto/Cliente restano quelli della giustificazione originale). */
+export const editFormSchema = z.object({
+	date: z.date(),
+});
+
+export type ClientOption = {
+	id: number;
+	name: string;
+	surname: string;
+};
+
 export const columns = (
-	handleDelete: (entrance: Pick<Entrance, "clientId" | "date">) => Promise<void>,
-	handleEdit: (entrance: Entrance) => Promise<void>
-): ColumnDef<Entrance>[] => [
+	handleDelete: (entrance: Pick<EntranceRow, "id">) => Promise<void>,
+	handleEdit: (entrance: EntranceRow) => Promise<void>
+): ColumnDef<EntranceRow>[] => [
 	{
-		accessorKey: "clientId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Client ID" />
+		accessorKey: "id",
+		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
 	},
 	{
 		accessorKey: "date",
 		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
 		cell: ({ row }) => {
 			const date = new Date(row.getValue("date"));
-			return <div className="font-medium">{date.toLocaleString()}</div>;
-		}
+			return <div className="font-medium">{date.toLocaleString("it-IT")}</div>;
+		},
+	},
+	{
+		id: "client",
+		accessorFn: (row) =>
+			`${row.purchase.client.surname} ${row.purchase.client.name} (#${row.purchase.clientId})`,
+		header: ({ column }) => <TableSortableHeader column={column} title="Cliente" />,
+		cell: ({ row }) => {
+			const client = row.original.purchase.client;
+			return (
+				<div className="font-medium">
+					{client.surname} {client.name}{" "}
+					<span className="text-muted-foreground">#{client.id}</span>
+				</div>
+			);
+		},
+	},
+	{
+		id: "product",
+		accessorFn: (row) => row.purchase.productCode,
+		header: ({ column }) => <TableSortableHeader column={column} title="Prodotto" />,
+		cell: ({ row }) => (
+			<div className="font-medium">{row.original.purchase.productCode}</div>
+		),
+	},
+	{
+		accessorKey: "purchaseId",
+		header: ({ column }) => <TableSortableHeader column={column} title="Acquisto" />,
 	},
 	{
 		id: "actions",
 		cell: ({ row }) => (
 			<ItemActions
 				row={row}
-				formSchema={formSchema}
+				formSchema={editFormSchema}
 				editFormContent={
 					<>
-						<FormField
-							name="clientId"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Client ID</FormLabel>
-									<FormControl>
-										<Input
-											type="number"
-											{...field}
-											onChange={(e) => field.onChange(parseInt(e.target.value))}
-											disabled
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
 						<FormField
 							name="date"
 							render={({ field }) => (
@@ -70,13 +91,12 @@ export const columns = (
 				editAction={async ({ values }) => {
 					const updatedEntrance = {
 						...row.original,
-						...values,
-						date: new Date(values.date)
+						date: new Date(values.date),
 					};
 					await handleEdit(updatedEntrance);
 				}}
-				deleteAction={() => handleDelete({ clientId: row.original.clientId, date: row.original.date })}
+				deleteAction={() => handleDelete({ id: row.original.id })}
 			/>
-		)
-	}
+		),
+	},
 ];

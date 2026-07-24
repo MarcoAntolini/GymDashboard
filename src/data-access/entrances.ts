@@ -1,61 +1,107 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { Entrance } from "@prisma/client";
+import {
+	NO_JUSTIFYING_PURCHASE_ERROR,
+	selectJustifyingPurchaseId,
+	type JustifyingPurchaseCandidate,
+} from "@/lib/entrance-justification";
+import { Prisma } from "@prisma/client";
 
-export async function createEntrance({ clientId, date }: Omit<Entrance, "id">) {
-	return await db.entrance.create({
-		data: {
-			clientId,
-			date
-		}
-	});
+export { NO_JUSTIFYING_PURCHASE_ERROR };
+
+const entranceInclude = {
+	purchase: {
+		include: {
+			client: true,
+			prodotto: {
+				include: { membership: true, entranceSet: true },
+			},
+		},
+	},
+} as const;
+
+export type EntranceRow = Prisma.EntranceGetPayload<{ include: typeof entranceInclude }>;
+
+/**
+ * Registra un Ingresso per il Cliente: in una sola transazione sceglie l'Acquisto
+ * giustificatore (tie-break dominio) e inserisce con purchaseId.
+ */
+export async function registerEntrance(clientId: number, date?: Date) {
+	const at = date ?? new Date();
+
+	return await db.$transaction(
+		async (tx) => {
+			// Lock sulle righe Acquisto del Cliente (mitiga race sul residuo pacchetto).
+			await tx.$queryRaw`
+				SELECT id FROM acquisti WHERE id_cliente = ${clientId} FOR UPDATE
+			`;
+
+			const purchases = await tx.purchase.findMany({
+				where: { clientId },
+				include: {
+					_count: { select: { entrance: true } },
+				},
+			});
+
+			const candidates: JustifyingPurchaseCandidate[] = purchases.map((p) => ({
+				id: p.id,
+				date: p.date,
+				duration: p.duration,
+				entranceNumber: p.entranceNumber,
+				entrancesLinked: p._count.entrance,
+			}));
+
+			const purchaseId = selectJustifyingPurchaseId(candidates, at);
+
+			return await tx.entrance.create({
+				data: {
+					purchaseId,
+					date: at,
+				},
+				include: entranceInclude,
+			});
+		},
+		{ isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+	);
 }
 
-export async function getAllEntrances() {
+/** @deprecated Usa registerEntrance — creato solo per compatibilità di naming. */
+export async function createEntrance({
+	clientId,
+	date,
+}: {
+	clientId: number;
+	date?: Date;
+}) {
+	return registerEntrance(clientId, date);
+}
+
+export async function getAllEntrances(): Promise<EntranceRow[]> {
 	return await db.entrance.findMany({
-		include: {
-			client: true
-		}
+		include: entranceInclude,
+		orderBy: { date: "desc" },
 	});
 }
 
-export async function getEntrance(clientId: number, date: Date) {
+export async function getEntrance(id: number) {
 	return await db.entrance.findUnique({
-		where: {
-			clientId_date: {
-				clientId,
-				date
-			}
-		},
-		include: {
-			client: true
-		}
+		where: { id },
+		include: entranceInclude,
 	});
 }
 
-export async function editEntrance({ clientId, date }: Entrance) {
+export async function editEntrance({ id, date }: { id: number; date: Date }) {
 	return await db.entrance.update({
-		where: {
-			clientId_date: {
-				clientId,
-				date
-			}
-		},
-		data: {
-			date
-		}
+		where: { id },
+		data: { date },
+		include: entranceInclude,
 	});
 }
 
-export async function deleteEntrance({ clientId, date }: { clientId: number; date: Date }) {
+export async function deleteEntrance({ id }: { id: number }) {
 	return await db.entrance.delete({
-		where: {
-			clientId_date: {
-				clientId,
-				date
-			}
-		}
+		where: { id },
 	});
 }
 
@@ -76,14 +122,14 @@ export async function getDailyEntrances(startDate: Date, endDate: Date): Promise
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {
-			date: true
+			date: true,
 		},
 		where: {
 			date: {
 				gte: startDate,
-				lte: endDate
-			}
-		}
+				lte: endDate,
+			},
+		},
 	});
 	const totalEntrances = new Array(24).fill(0);
 	for (const entrance of entrances) {
@@ -92,7 +138,7 @@ export async function getDailyEntrances(startDate: Date, endDate: Date): Promise
 	}
 	return Array.from({ length: 24 }, (_, hour) => ({
 		hourOfDay: `${hour.toString().padStart(2, "0")}:00`,
-		totalEntrances: totalEntrances[hour]
+		totalEntrances: totalEntrances[hour],
 	}));
 }
 
@@ -100,14 +146,14 @@ export async function getWeeklyEntrances(startDate: Date, endDate: Date): Promis
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {
-			date: true
+			date: true,
 		},
 		where: {
 			date: {
 				gte: startDate,
-				lte: endDate
-			}
-		}
+				lte: endDate,
+			},
+		},
 	});
 	const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 	const weekdayCounts = new Array(7).fill(0);
@@ -117,22 +163,25 @@ export async function getWeeklyEntrances(startDate: Date, endDate: Date): Promis
 	}
 	return weekdays.map((day, index) => ({
 		dayOfWeek: day,
-		totalEntrances: weekdayCounts[index]
+		totalEntrances: weekdayCounts[index],
 	}));
 }
 
-export async function getMonthlyEntrances(startDate: Date, endDate: Date): Promise<MonthlyEntrances[]> {
+export async function getMonthlyEntrances(
+	startDate: Date,
+	endDate: Date
+): Promise<MonthlyEntrances[]> {
 	const entrances = await db.entrance.groupBy({
 		by: ["date"],
 		_count: {
-			date: true
+			date: true,
 		},
 		where: {
 			date: {
 				gte: startDate,
-				lte: endDate
-			}
-		}
+				lte: endDate,
+			},
+		},
 	});
 	const months = [
 		"January",
@@ -146,7 +195,7 @@ export async function getMonthlyEntrances(startDate: Date, endDate: Date): Promi
 		"September",
 		"October",
 		"November",
-		"December"
+		"December",
 	];
 	const monthCounts = new Array(12).fill(0);
 	for (const entrance of entrances) {
@@ -155,6 +204,6 @@ export async function getMonthlyEntrances(startDate: Date, endDate: Date): Promi
 	}
 	return months.map((month, index) => ({
 		month: month,
-		totalEntrances: monthCounts[index]
+		totalEntrances: monthCounts[index],
 	}));
 }
