@@ -5,6 +5,7 @@ import {
 	OVERLAPPING_CONTRACT_ERROR,
 	type ContractInterval
 } from "@/lib/contract-intervals";
+import { resolveContractEndingDate } from "@/lib/contract-term";
 import { db } from "@/lib/db";
 import { Contract, ContractType } from "@prisma/client";
 
@@ -51,10 +52,16 @@ export async function createContract({
 	startingDate: Date;
 	endingDate?: Date;
 }) {
+	const resolvedEndingDate = resolveContractEndingDate({
+		type,
+		startingDate,
+		endingDate
+	});
+
 	await assertNoOverlappingContract({
 		employeeId,
 		startingDate,
-		endingDate: endingDate ?? null
+		endingDate: resolvedEndingDate
 	});
 
 	return await db.contract.create({
@@ -63,7 +70,7 @@ export async function createContract({
 			type,
 			hourlyFee,
 			startingDate,
-			endingDate
+			endingDate: resolvedEndingDate
 		}
 	});
 }
@@ -84,10 +91,16 @@ export async function getContract(employeeId: number, startingDate: Date) {
 }
 
 export async function editContract({ employeeId, startingDate, type, hourlyFee, endingDate }: Contract) {
+	const resolvedEndingDate = resolveContractEndingDate({
+		type,
+		startingDate,
+		endingDate
+	});
+
 	await assertNoOverlappingContract({
 		employeeId,
 		startingDate,
-		endingDate: endingDate ?? null,
+		endingDate: resolvedEndingDate,
 		excludeStartingDate: startingDate
 	});
 
@@ -101,7 +114,7 @@ export async function editContract({ employeeId, startingDate, type, hourlyFee, 
 		data: {
 			type,
 			hourlyFee,
-			endingDate
+			endingDate: resolvedEndingDate
 		}
 	});
 }

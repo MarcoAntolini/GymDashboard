@@ -4,9 +4,21 @@
 
 **Blocked by:** 07 — Contratti senza intervalli sovrapposti
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Contratto indeterminato: UI non mostra data fine (o la presenta come in corso); endingDate resta null/assente
-- [ ] Contratto determinato: UI mostra e richiede data inizio e data fine
-- [ ] Create/edit rispettano la stessa regola (niente data fine obbligatoria sull’indeterminato)
-- [ ] Lista/dettaglio non invertono i due casi
+- [x] Contratto indeterminato: UI non mostra data fine (o la presenta come in corso); endingDate resta null/assente
+- [x] Contratto determinato: UI mostra e richiede data inizio e data fine
+- [x] Create/edit rispettano la stessa regola (niente data fine obbligatoria sull’indeterminato)
+- [x] Lista/dettaglio non invertono i due casi
+
+## Comments
+
+- 2026-07-24 — claimed by implement loop
+
+## Done
+
+- Helper `src/lib/contract-term.ts`: `resolveContractEndingDate`, `contractRequiresEndingDate`, `formatContractEndingDateLabel` (regola §7 E/R).
+- Create/edit: `ContractEndingDateField` mostra data fine solo se FixedTerm; su OpenEnded azzera il campo.
+- Zod `superRefine` + enforce server-side in `createContract` / `editContract` (indeterminato → null; determinato → required e ≥ start).
+- Lista: indeterminato / senza fine → etichetta "In corso"; determinato → data.
+- Smoke: `npx tsx scripts/smoke-contract-term.ts`.
