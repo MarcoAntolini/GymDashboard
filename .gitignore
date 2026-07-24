@@ -28,6 +28,10 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# profile photo uploads (keep directory)
+/public/uploads/profiles/*
+!/public/uploads/profiles/.gitkeep
+
 # vercel
 .vercel
 

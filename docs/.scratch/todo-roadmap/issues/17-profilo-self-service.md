@@ -4,10 +4,22 @@
 
 **Blocked by:** 11 — Mutazioni: allowlist campi editabili; 13 — RBAC Admin/Employee + landing role-aware
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Voce Profilo nel dropdown utente in navbar apre la gestione profilo
-- [ ] Update anagrafica self sul Dipendente collegato all’Account corrente
-- [ ] Upload/sostituzione foto profilo con storage locale sotto il progetto
-- [ ] Cambio username/password self; cambio password richiede password corrente
-- [ ] Server rifiuta aggiornamento credenziali di un altro Account
+- [x] Voce Profilo nel dropdown utente in navbar apre la gestione profilo
+- [x] Update anagrafica self sul Dipendente collegato all'Account corrente
+- [x] Upload/sostituzione foto profilo con storage locale sotto il progetto
+- [x] Cambio username/password self; cambio password richiede password corrente
+- [x] Server rifiuta aggiornamento credenziali di un altro Account
+
+## Comments
+
+- 2026-07-24 21:52 — claimed by implement loop
+
+## Done
+
+- Voce **Profilo** nel dropdown navbar apre uno Sheet dedicato (`ProfileSheet` in layout dashboard).
+- Server actions `getOwnProfile` / `updateOwnEmployeeProfile` aggiornano solo il Dipendente legato all'Account in sessione (allowlist employee).
+- Upload foto via `POST /api/profile/photo` su `public/uploads/profiles/{employeeId}.{ext}` (gitignored, `.gitkeep` in repo).
+- `updateOwnCredentials`: cambio password richiede password attuale + bcrypt; username/password solo self; reject se `username` ≠ sessione; re-issue cookie se username cambia.
+- Smoke: `node scripts/smoke-profile-self-service.mjs`.

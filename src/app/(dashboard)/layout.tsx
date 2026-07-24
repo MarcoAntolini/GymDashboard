@@ -20,11 +20,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ArrowLeftFromLine, ArrowRightFromLine, User } from "lucide-react";
+import { ArrowLeftFromLine, ArrowRightFromLine, User, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Nav } from "./_components/nav";
+import { ProfileSheet } from "./_components/profile-sheet";
 
 export default function DashboardLayout({
 	children
@@ -35,6 +36,7 @@ export default function DashboardLayout({
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [username, setUsername] = useState("");
 	const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+	const [isProfileOpen, setIsProfileOpen] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -105,9 +107,13 @@ export default function DashboardLayout({
 										<span>{username}</span>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
-										{/* <DropdownMenuItem className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground cursor-pointer">
-											Settings
-										</DropdownMenuItem> */}
+										<DropdownMenuItem
+											onClick={() => setIsProfileOpen(true)}
+											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground cursor-pointer"
+										>
+											<UserRound className="h-4 w-4" />
+											Profilo
+										</DropdownMenuItem>
 										<DropdownMenuItem
 											onClick={() => setIsLogoutDialogOpen(true)}
 											className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground hover:!bg-destructive cursor-pointer"
@@ -116,6 +122,11 @@ export default function DashboardLayout({
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
+								<ProfileSheet
+									open={isProfileOpen}
+									onOpenChange={setIsProfileOpen}
+									onUsernameChanged={setUsername}
+								/>
 								<AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
 									<AlertDialogContent>
 										<AlertDialogHeader>
