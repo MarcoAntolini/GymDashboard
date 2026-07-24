@@ -6,55 +6,117 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import type { ListFilters } from "@/lib/list";
 import { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { TableFacetedFilter } from "./table-faceted-filter";
+
+export type TableToolbarServerListProps = {
+	draftFilters: ListFilters;
+	onDraftFilterChange: (key: string, value: string | undefined) => void;
+	onApplyFilters: () => void;
+	onResetFilters: () => void;
+	filtersDirty?: boolean;
+};
 
 interface TableToolbarProps<TData> {
 	table: Table<TData>;
 	filters: Array<Extract<keyof TData, string>>;
 	facetedFilters?: Array<Extract<keyof TData, string>>;
+	/** Se presente: draft + Conferma/Filtra (niente query a ogni keystroke). */
+	serverList?: TableToolbarServerListProps;
 }
 
-export default function TableToolbar<TData>({ table, filters, facetedFilters }: TableToolbarProps<TData>) {
-	const isFiltered = table.getState().columnFilters.length > 0;
+function filterPlaceholder(filter: string): string {
+	return filter
+		.replace(/([A-Z])/g, (match, p1, offset) =>
+			offset > 0 && filter.charAt(offset - 1) !== " " ? ` ${p1}` : p1
+		)
+		.replace(/\bId\b/g, "ID")
+		.trim()
+		.replace(/^./, (str) => str.toUpperCase());
+}
+
+export default function TableToolbar<TData>({
+	table,
+	filters,
+	facetedFilters,
+	serverList,
+}: TableToolbarProps<TData>) {
+	const isServer = !!serverList;
+	const isFiltered = isServer
+		? Object.keys(serverList.draftFilters).length > 0 ||
+			(serverList.filtersDirty ?? false)
+		: table.getState().columnFilters.length > 0;
 
 	return (
 		<div className="flex items-center justify-between pb-4">
-			<div className="flex items-center gap-4">
-				{filters.map((filter, _) => (
+			<div className="flex items-center gap-4 flex-wrap">
+				{filters.map((filter) => (
 					<Input
-						key={_}
-						placeholder={filter
-							.replace(/([A-Z])/g, (match, p1, offset) =>
-								offset > 0 && filter.charAt(offset - 1) !== " " ? ` ${p1}` : p1
-							)
-							.replace(/\bId\b/g, "ID")
-							.trim()
-							.replace(/^./, (str) => str.toUpperCase())}
-						value={(table.getColumn(filter)?.getFilterValue() as string) ?? ""}
-						onChange={(event) => table.getColumn(filter)?.setFilterValue(event.target.value)}
+						key={filter}
+						placeholder={filterPlaceholder(filter)}
+						value={
+							isServer
+								? String(serverList.draftFilters[filter] ?? "")
+								: ((table.getColumn(filter)?.getFilterValue() as string) ?? "")
+						}
+						onChange={(event) => {
+							const value = event.target.value;
+							if (isServer) {
+								serverList.onDraftFilterChange(filter, value || undefined);
+								return;
+							}
+							table.getColumn(filter)?.setFilterValue(value);
+						}}
+						onKeyDown={
+							isServer
+								? (event) => {
+										if (event.key === "Enter") {
+											event.preventDefault();
+											serverList.onApplyFilters();
+										}
+									}
+								: undefined
+						}
 						className="max-w-sm w-auto"
 					/>
 				))}
-				{facetedFilters &&
-					facetedFilters.map((filter, _) => (
+				{!isServer &&
+					facetedFilters &&
+					facetedFilters.map((filter) => (
 						<TableFacetedFilter
-							key={_}
+							key={filter}
 							column={table.getColumn(filter)}
 							title={filter.charAt(0).toUpperCase() + filter.slice(1)}
-							options={Array.from(new Set(table.getCoreRowModel().flatRows.map((row) => row.getValue(filter)))).map(
-								(value) => ({
-									value: value as string,
-									label: String(value),
-								})
-							)}
+							options={Array.from(
+								new Set(table.getCoreRowModel().flatRows.map((row) => row.getValue(filter)))
+							).map((value) => ({
+								value: value as string,
+								label: String(value),
+							}))}
 						/>
 					))}
+				{isServer && (
+					<Button
+						type="button"
+						variant="default"
+						onClick={() => serverList.onApplyFilters()}
+						className="h-10"
+					>
+						Filtra
+					</Button>
+				)}
 				{isFiltered && (
 					<Button
 						variant="ghost"
-						onClick={() => table.resetColumnFilters()}
+						onClick={() => {
+							if (isServer) {
+								serverList.onResetFilters();
+								return;
+							}
+							table.resetColumnFilters();
+						}}
 						className="h-10 px-2 lg:px-3"
 					>
 						Reset
@@ -64,10 +126,7 @@ export default function TableToolbar<TData>({ table, filters, facetedFilters }: 
 			</div>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button
-						variant="outline"
-						className="ml-auto"
-					>
+					<Button variant="outline" className="ml-auto">
 						Columns
 					</Button>
 				</DropdownMenuTrigger>

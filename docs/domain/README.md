@@ -9,5 +9,6 @@ Documentazione di analisi e progettazione concettuale/logica, allineata alle lin
 | [03-schema-logico.md](./03-schema-logico.md) | Schema logico: ristrutturazione, ridondanze, NF, mapping Prisma, breaking changes |
 | [04-viste-colonne.md](./04-viste-colonne.md) | Matrice viste CRUD: colonne `native` \| `join` \| `derived` \| `snapshot` |
 | [05-mutazioni-allowlist.md](./05-mutazioni-allowlist.md) | Allowlist create/update: `create` \| `update` \| `immutable` \| Admin-only \| write-only |
+| [06-liste-server-side.md](./06-liste-server-side.md) | Contratto liste: `ListQuery` / Filtra / sort / paginazione server-side (ticket 19) |
 
 Pipeline corso: requisiti → concettuale → logica (qui) → fisica/SQL / migrazione applicativa (`docs/db-guidelines/`).

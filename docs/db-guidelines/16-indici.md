@@ -47,3 +47,5 @@ Costo ricerca ≈ altezza dell’albero (nodi letti). Split/catenation mantengon
 - Ingresso/timbratura: `id_cliente` / `id_dipendente` + timestamp
 - Movimenti economici: data, tipo
 - Listino: tipo prodotto, anno (se richiesto dai filtri della proposta)
+
+Per le liste CRUD (`ListQuery` / `ORDER BY` / filtri su Conferma) vedi la tabella operativa in [`docs/domain/06-liste-server-side.md`](../domain/06-liste-server-side.md): allineare indici ai `sortAllowlist` / `filterAllowlist` entity, misurare con `EXPLAIN` prima di aggiunte.
