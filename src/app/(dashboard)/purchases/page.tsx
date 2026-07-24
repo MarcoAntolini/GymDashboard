@@ -7,6 +7,7 @@ import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllProducts } from "@/data-access/products";
@@ -17,12 +18,12 @@ import {
 	ProductKind,
 } from "@/lib/domain/product-kind";
 import { cn } from "@/lib/utils";
-import { Purchase } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { columns, formSchema, ProductWithSpec } from "./columns";
+import { CatalogAmountDefault } from "./catalog-amount-default";
+import { columns, formSchema, ProductWithSpec, PurchaseRow } from "./columns";
 
 export default function PurchasesPage() {
 	const {
@@ -31,12 +32,22 @@ export default function PurchasesPage() {
 		isLoading,
 		handleDelete,
 		handleEdit,
-	} = useEntityData<Purchase, "id">(
+	} = useEntityData<PurchaseRow, "id">(
 		useMemo(
 			() => ({
 				getAll: getAllPurchases,
-				deleteAction: deletePurchase,
-				editAction: editPurchase,
+				deleteAction: async (key) => {
+					await deletePurchase(key);
+					return key as PurchaseRow;
+				},
+				editAction: async (purchase) =>
+					editPurchase({
+						id: purchase.id,
+						clientId: purchase.clientId,
+						date: purchase.date,
+						amount: purchase.amount,
+						productCode: purchase.productCode,
+					}),
 			}),
 			[]
 		),
@@ -45,31 +56,26 @@ export default function PurchasesPage() {
 
 	const [products, setProducts] = useState<ProductWithSpec[]>([]);
 	const [selectedType, setSelectedType] = useState<ProductKind>(ProductKind.Membership);
-	const [filteredProducts, setFilteredProducts] = useState<ProductWithSpec[]>([]);
 
 	useEffect(() => {
 		const loadProducts = async () => {
 			const allProducts = (await getAllProducts()) as ProductWithSpec[];
 			setProducts(allProducts);
-			const filtered = allProducts.filter((product) =>
-				selectedType === ProductKind.Membership ? product.membership : product.entranceSet
-			);
-			setFilteredProducts(filtered);
 		};
 		loadProducts();
 	}, []);
 
-	useEffect(() => {
-		const filtered = products.filter((product) =>
-			selectedType === ProductKind.Membership ? product.membership : product.entranceSet
-		);
-		setFilteredProducts(filtered);
-	}, [selectedType, products]);
+	const filteredProducts = useMemo(
+		() =>
+			products.filter((product) =>
+				selectedType === ProductKind.Membership ? product.membership : product.entranceSet
+			),
+		[products, selectedType]
+	);
 
 	const handleCreatePurchase = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const { type: _uiType, ...sale } = values;
-			const newPurchase = await createPurchase(sale);
+			const newPurchase = await createPurchase(values);
 			setPurchases((prevPurchases) => [...prevPurchases, newPurchase]);
 		},
 		[setPurchases]
@@ -81,6 +87,7 @@ export default function PurchasesPage() {
 			icon: PlusCircle,
 			dialogContent: (
 				<>
+					<CatalogAmountDefault />
 					<FormField
 						name="clientId"
 						render={({ field }) => (
@@ -131,52 +138,25 @@ export default function PurchasesPage() {
 							</FormItem>
 						)}
 					/>
-					<FormField
-						name="amount"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Amount</FormLabel>
-								<FormControl>
-									<Input
-										type="number"
-										step="0.01"
-										{...field}
-										onChange={(e) => field.onChange(parseFloat(e.target.value))}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						name="type"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Type</FormLabel>
-								<Select
-									onValueChange={(value) => {
-										field.onChange(value);
-										setSelectedType(value as ProductKind);
-									}}
-									defaultValue={field.value}
-								>
-									<FormControl>
-										<SelectTrigger>
-											<SelectValue placeholder="Select a type" />
-										</SelectTrigger>
-									</FormControl>
-									<SelectContent>
-										{Object.values(ProductKind).map((kind) => (
-											<SelectItem key={kind} value={kind}>
-												{PRODUCT_KIND_LABEL[kind]}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					{/* Tipo: solo filtro UI locale — non è FormField / non va nel payload Acquisto */}
+					<div className="space-y-2">
+						<Label>Type</Label>
+						<Select
+							value={selectedType}
+							onValueChange={(value) => setSelectedType(value as ProductKind)}
+						>
+							<SelectTrigger>
+								<SelectValue placeholder="Select a type" />
+							</SelectTrigger>
+							<SelectContent>
+								{(Object.keys(PRODUCT_KIND_LABEL) as ProductKind[]).map((kind) => (
+									<SelectItem key={kind} value={kind}>
+										{PRODUCT_KIND_LABEL[kind]}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
 					<FormField
 						name="productCode"
 						render={({ field }) => (
@@ -213,6 +193,29 @@ export default function PurchasesPage() {
 							</FormItem>
 						)}
 					/>
+					<FormField
+						name="amount"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Amount</FormLabel>
+								<FormControl>
+									<Input
+										type="text"
+										inputMode="decimal"
+										placeholder="0.00"
+										{...field}
+										value={
+											typeof field.value === "string"
+												? field.value
+												: String(field.value ?? "")
+										}
+										onChange={(e) => field.onChange(e.target.value)}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 				</>
 			),
 			formData: {
@@ -220,8 +223,7 @@ export default function PurchasesPage() {
 				defaultValues: {
 					clientId: 0,
 					date: new Date(),
-					amount: 0,
-					type: ProductKind.Membership,
+					amount: "",
 					productCode: "",
 				},
 				submitAction: handleCreatePurchase,
@@ -236,7 +238,7 @@ export default function PurchasesPage() {
 			actions={actions}
 			table={
 				<DataTable
-					columns={columns(handleDelete, handleEdit, filteredProducts, setSelectedType)}
+					columns={columns(handleDelete, handleEdit, products)}
 					data={purchases}
 					filters={["clientId", "productCode"]}
 					facetedFilters={[]}

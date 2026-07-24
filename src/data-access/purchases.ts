@@ -1,8 +1,19 @@
 "use server";
 
+import { getCatalog } from "@/data-access/catalogs";
 import { db } from "@/lib/db";
 import { snapshotFromProduct } from "@/lib/domain/purchase-access";
 import { Prisma } from "@prisma/client";
+
+const PURCHASE_HAS_ENTRANCES_MESSAGE =
+	"Impossibile eliminare l'acquisto: esistono ingressi collegati.";
+
+const purchaseInclude = {
+	client: true,
+	prodotto: {
+		include: { membership: true, entranceSet: true },
+	},
+} as const;
 
 type PurchaseWriteInput = {
 	clientId: number;
@@ -22,6 +33,29 @@ async function resolveSnapshot(productCode: string) {
 	return snapshotFromProduct(product);
 }
 
+function isEmptyAmount(amount: PurchaseWriteInput["amount"] | null | undefined) {
+	if (amount == null) return true;
+	if (typeof amount === "string") return amount.trim() === "";
+	return false;
+}
+
+async function resolveAmount(
+	date: Date,
+	productCode: string,
+	amount: PurchaseWriteInput["amount"] | null | undefined
+): Promise<Prisma.Decimal> {
+	if (!isEmptyAmount(amount)) {
+		return new Prisma.Decimal(amount as string | number | Prisma.Decimal);
+	}
+	const catalog = await getCatalog(date.getFullYear(), productCode);
+	if (!catalog) {
+		throw new Error(
+			`Nessun prezzo listino per ${productCode} nell'anno ${date.getFullYear()}; indicare un importo.`
+		);
+	}
+	return new Prisma.Decimal(catalog.price);
+}
+
 export async function createPurchase({
 	clientId,
 	date,
@@ -29,45 +63,30 @@ export async function createPurchase({
 	productCode,
 }: PurchaseWriteInput) {
 	const snapshot = await resolveSnapshot(productCode);
+	const resolvedAmount = await resolveAmount(date, productCode, amount);
 	return await db.purchase.create({
 		data: {
 			clientId,
 			date,
-			amount,
+			amount: resolvedAmount,
 			productCode,
 			duration: snapshot.duration,
 			entranceNumber: snapshot.entranceNumber,
 		},
-		include: {
-			client: true,
-			prodotto: {
-				include: { membership: true, entranceSet: true },
-			},
-		},
+		include: purchaseInclude,
 	});
 }
 
 export async function getAllPurchases() {
 	return await db.purchase.findMany({
-		include: {
-			client: true,
-			prodotto: {
-				include: { membership: true, entranceSet: true },
-			},
-		},
+		include: purchaseInclude,
 	});
 }
 
-/** Lookup legacy (clientId+date) — ticket 05 passerà a id surrogato. */
-export async function getPurchase(clientId: number, date: Date) {
-	return await db.purchase.findFirst({
-		where: { clientId, date },
-		include: {
-			client: true,
-			prodotto: {
-				include: { membership: true, entranceSet: true },
-			},
-		},
+export async function getPurchase(id: number) {
+	return await db.purchase.findUnique({
+		where: { id },
+		include: purchaseInclude,
 	});
 }
 
@@ -84,33 +103,26 @@ export async function editPurchase({
 		data: {
 			clientId,
 			date,
-			amount,
+			amount: new Prisma.Decimal(amount),
 			productCode,
 			// Re-snapshot se cambia il prodotto; durata/N non sono campi editabili a mano.
 			duration: snapshot.duration,
 			entranceNumber: snapshot.entranceNumber,
 		},
-		include: {
-			client: true,
-			prodotto: {
-				include: { membership: true, entranceSet: true },
-			},
-		},
+		include: purchaseInclude,
 	});
 }
 
-/** Accetta id (preferito) o coppia legacy clientId+date (UI pre-ticket 05). */
-export async function deletePurchase(
-	key: { id: number } | { clientId: number; date: Date }
-) {
-	if ("id" in key) {
-		return await db.purchase.delete({ where: { id: key.id } });
+export async function deletePurchase({ id }: { id: number }) {
+	try {
+		return await db.purchase.delete({ where: { id } });
+	} catch (error) {
+		if (
+			error instanceof Prisma.PrismaClientKnownRequestError &&
+			(error.code === "P2003" || error.code === "P2014")
+		) {
+			throw new Error(PURCHASE_HAS_ENTRANCES_MESSAGE);
+		}
+		throw error;
 	}
-	const existing = await db.purchase.findFirst({
-		where: { clientId: key.clientId, date: key.date },
-	});
-	if (!existing) {
-		throw new Error("Acquisto non trovato");
-	}
-	return await db.purchase.delete({ where: { id: existing.id } });
 }

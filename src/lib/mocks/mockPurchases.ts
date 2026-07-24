@@ -16,15 +16,25 @@ export async function mockPurchases(db: PrismaClient) {
 		const client = faker.helpers.arrayElement(clients);
 		const product = shuffledProducts[i];
 		const snapshot = snapshotFromProduct(product);
+		const date = faker.date.past();
+		const catalog = await db.catalog.findUnique({
+			where: {
+				year_productCode: {
+					year: date.getFullYear(),
+					productCode: product.code,
+				},
+			},
+		});
+		const amount =
+			catalog?.price ??
+			new Prisma.Decimal(faker.number.float({ min: 10, max: 500, fractionDigits: 2 }));
 
 		try {
 			await db.purchase.create({
 				data: {
 					clientId: client.id,
-					date: faker.date.past(),
-					amount: new Prisma.Decimal(
-						faker.number.float({ min: 10, max: 500, fractionDigits: 2 })
-					),
+					date,
+					amount,
 					productCode: product.code,
 					duration: snapshot.duration,
 					entranceNumber: snapshot.entranceNumber,
