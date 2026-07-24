@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -17,6 +16,7 @@ import {
 } from "@/data-access/catalogs";
 import { getAllProducts } from "@/data-access/products";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import {
 	CATALOG_LIST_DEFAULT_SORT,
 	CATALOG_LIST_FILTER_IDS,
@@ -50,26 +50,22 @@ export default function CatalogsPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<CatalogListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
 	const [products, setProducts] = useState<CatalogProductOption[]>([]);
 	/** Local UI filter only — never written on Listino. */
 	const [selectedKind, setSelectedKind] = useState<ProductKind>("Membership");
 	const [filteredProducts, setFilteredProducts] = useState<CatalogProductOption[]>([]);
 
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listCatalogs(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listCatalogs(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<CatalogListResult>(loadList);
 
 	useEffect(() => {
 		const loadProducts = async () => {
@@ -230,11 +226,7 @@ export default function CatalogsPage() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
@@ -256,6 +248,9 @@ export default function CatalogsPage() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.listino}
 				/>

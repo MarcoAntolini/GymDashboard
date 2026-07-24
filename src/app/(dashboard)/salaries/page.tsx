@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import {
@@ -11,6 +10,7 @@ import {
 	type SalaryListResult,
 } from "@/data-access/salaries";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import {
 	SALARY_LIST_DEFAULT_SORT,
 	SALARY_LIST_FILTER_IDS,
@@ -18,7 +18,7 @@ import {
 } from "@/lib/domain/salary-list-query";
 import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Salary } from "@prisma/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { columns } from "./columns";
 
 const SALARY_FILTER_FIELDS: ServerListFilterField[] = [
@@ -37,22 +37,17 @@ export default function Salaries() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<SalaryListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listSalaries(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listSalaries(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<SalaryListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (salary: Pick<Salary, "paymentId">) => {
@@ -78,11 +73,7 @@ export default function Salaries() {
 		[handleDelete, handleEdit]
 	);
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={[]}
 			createHint={CREATE_GUIDANCE.stipendi}
@@ -105,6 +96,9 @@ export default function Salaries() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={`Nessuno Stipendio registrato. ${CREATE_GUIDANCE.stipendi}`}
 				/>

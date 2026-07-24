@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -17,6 +16,8 @@ import {
 	type EmployeeListResult,
 } from "@/data-access/employees";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import {
 	EMPLOYEE_LIST_DEFAULT_SORT,
 	EMPLOYEE_LIST_FILTER_IDS,
@@ -26,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
 
@@ -49,22 +50,17 @@ export default function Employees() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<EmployeeListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listEmployees(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listEmployees(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<EmployeeListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (employee: Pick<Employee, "id">) => {
@@ -275,11 +271,7 @@ export default function Employees() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
@@ -301,8 +293,11 @@ export default function Employees() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessun dipendente registrato."
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.dipendenti}
 				/>
 			}
 		/>

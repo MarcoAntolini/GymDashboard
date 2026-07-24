@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import {
@@ -20,6 +19,8 @@ import {
 	type EntranceSetListResult,
 } from "@/data-access/entranceSets";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import {
 	ENTRANCE_SET_LIST_DEFAULT_SORT,
 	ENTRANCE_SET_LIST_FILTER_IDS,
@@ -27,7 +28,7 @@ import {
 } from "@/lib/domain/entrance-set-list-query";
 import { EntranceSet } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
 
@@ -55,22 +56,17 @@ export default function EntranceSetsPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<EntranceSetListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listEntranceSets(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listEntranceSets(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<EntranceSetListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (entranceSet: Pick<EntranceSet, "productCode">) => {
@@ -153,11 +149,7 @@ export default function EntranceSetsPage() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
@@ -179,8 +171,11 @@ export default function EntranceSetsPage() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessun pacchetto ingressi registrato."
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.pacchetti}
 				/>
 			}
 		/>

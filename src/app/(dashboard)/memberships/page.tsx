@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import {
@@ -20,6 +19,8 @@ import {
 	type MembershipListResult,
 } from "@/data-access/memberships";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import {
 	MEMBERSHIP_LIST_DEFAULT_SORT,
 	MEMBERSHIP_LIST_FILTER_IDS,
@@ -27,7 +28,7 @@ import {
 } from "@/lib/domain/membership-list-query";
 import { Membership } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
 
@@ -51,22 +52,17 @@ export default function MembershipsPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<MembershipListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listMemberships(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listMemberships(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<MembershipListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (membership: Pick<Membership, "productCode">) => {
@@ -149,11 +145,7 @@ export default function MembershipsPage() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
@@ -175,8 +167,11 @@ export default function MembershipsPage() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessun abbonamento registrato."
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.abbonamenti}
 				/>
 			}
 		/>

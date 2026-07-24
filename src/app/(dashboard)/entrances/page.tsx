@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -24,6 +23,7 @@ import {
 	type EntranceRow,
 } from "@/data-access/entrances";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import {
 	ENTRANCE_LIST_DEFAULT_SORT,
 	ENTRANCE_LIST_FILTER_IDS,
@@ -65,8 +65,6 @@ export default function EntrancesPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<EntranceListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
 	const [clients, setClients] = useState<ClientOption[]>([]);
 	const [isWeeklySheetOpen, setIsWeeklySheetOpen] = useState(false);
 	const [isDailySheetOpen, setIsDailySheetOpen] = useState(false);
@@ -80,19 +78,17 @@ export default function EntrancesPage() {
 	);
 	const [monthlyData, setMonthlyData] = useState<{ month: string; totalEntrances: number }[]>([]);
 
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listEntrances(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listEntrances(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<EntranceListResult>(loadList);
 
 	useEffect(() => {
 		void getAllClients().then((rows) =>
@@ -260,11 +256,7 @@ export default function EntrancesPage() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<>
 			<Dashboard
 				actions={actions}
@@ -287,7 +279,10 @@ export default function EntrancesPage() {
 						onResetFilters={listQuery.resetFilters}
 						isFilterDirty={listQuery.isFilterDirty}
 						hasAppliedFilters={listQuery.hasAppliedFilters}
-						emptyKind={result?.emptyKind ?? null}
+						listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
+					emptyKind={result?.emptyKind ?? null}
 						datasetEmptyMessage={DATASET_EMPTY_MESSAGES.ingressi}
 					/>
 				}

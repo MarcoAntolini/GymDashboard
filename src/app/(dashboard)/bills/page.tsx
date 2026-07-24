@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import {
@@ -11,6 +10,7 @@ import {
 	type BillListResult,
 } from "@/data-access/bills";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import {
 	BILL_LIST_DEFAULT_SORT,
 	BILL_LIST_FILTER_IDS,
@@ -18,7 +18,7 @@ import {
 } from "@/lib/domain/bill-list-query";
 import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Bill } from "@prisma/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { columns } from "./columns";
 
 const BILL_FILTER_FIELDS: ServerListFilterField[] = [
@@ -37,22 +37,17 @@ export default function BillsPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<BillListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listBills(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listBills(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<BillListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (bill: Pick<Bill, "paymentId">) => {
@@ -79,11 +74,7 @@ export default function BillsPage() {
 		[handleDelete, handleEdit]
 	);
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={[]}
 			createHint={CREATE_GUIDANCE.bollette}
@@ -106,6 +97,9 @@ export default function BillsPage() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={`Nessuna Bolletta registrata. ${CREATE_GUIDANCE.bollette}`}
 				/>

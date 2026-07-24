@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -20,6 +19,7 @@ import {
 	type PaymentRow,
 } from "@/data-access/payments";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
 import {
 	PAYMENT_LIST_DEFAULT_SORT,
@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { PaymentType } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { z } from "zod";
 import { columns } from "./columns";
 
@@ -93,22 +93,17 @@ export default function PaymentsPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<PaymentListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listPayments(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listPayments(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<PaymentListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (payment: Pick<PaymentRow, "id">) => {
@@ -350,11 +345,7 @@ export default function PaymentsPage() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
@@ -376,6 +367,9 @@ export default function PaymentsPage() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.pagamenti}
 				/>

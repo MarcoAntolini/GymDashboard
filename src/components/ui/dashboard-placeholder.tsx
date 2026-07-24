@@ -1,13 +1,14 @@
+import { ListShellLoading } from "@/components/ui/data-table/list-shell-status";
 import { Separator } from "@/components/ui/separator";
-import { BeatLoader } from "react-spinners";
 
+/** Fallback shell chrome while the entity list mounts (ticket 39). Prefer in-table loading via ServerDataTable. */
 export default function DashboardPlaceholder() {
 	return (
 		<>
-			<div className="h-[52px] flex gap-2 items-center px-4"></div>
+			<div className="h-[52px] flex gap-2 items-center px-4" />
 			<Separator />
-			<div className="flex flex-col justify-center items-center h-full">
-				<BeatLoader color="hsla(20.5 90.2% 48.2%)" />
+			<div className="flex h-full flex-col items-center justify-center p-4">
+				<ListShellLoading />
 			</div>
 		</>
 	);

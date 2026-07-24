@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -19,6 +18,7 @@ import {
 	type PurchaseListResult,
 } from "@/data-access/purchases";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import {
 	PURCHASE_LIST_DEFAULT_SORT,
 	PURCHASE_LIST_FILTER_IDS,
@@ -58,26 +58,22 @@ export default function PurchasesPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<PurchaseListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
 	const [products, setProducts] = useState<PurchaseProductOption[]>([]);
 	/** Local UI filter only — never written on Acquisto. */
 	const [selectedKind, setSelectedKind] = useState<ProductKind>("Membership");
 	const [filteredProducts, setFilteredProducts] = useState<PurchaseProductOption[]>([]);
 
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listPurchases(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listPurchases(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<PurchaseListResult>(loadList);
 
 	useEffect(() => {
 		const loadProducts = async () => {
@@ -274,11 +270,7 @@ export default function PurchasesPage() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
@@ -300,6 +292,9 @@ export default function PurchasesPage() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.acquisti}
 				/>

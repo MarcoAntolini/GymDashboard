@@ -24,6 +24,8 @@ import {
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import {
 	ACCOUNT_LIST_DEFAULT_SORT,
 	ACCOUNT_LIST_FILTER_IDS,
@@ -59,8 +61,6 @@ export default function Accounts() {
 	const [pendingLoading, setPendingLoading] = useState(false);
 	const [newUsername, setNewUsername] = useState<string>("");
 	const [isPending, setIsPending] = useState(false);
-	const [result, setResult] = useState<AccountListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
 
 	const listQuery = useServerListQuery({
 		allowedSortColumns: ACCOUNT_LIST_SORT_COLUMNS,
@@ -83,19 +83,17 @@ export default function Accounts() {
 		};
 	}, []);
 
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listAccounts(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listAccounts(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<AccountListResult>(loadList);
 
 	const refreshPending = useCallback(async () => {
 		setPendingLoading(true);
@@ -302,7 +300,7 @@ export default function Accounts() {
 	];
 
 	const pendingCount = pendingAccounts.length;
-	const showPlaceholder = (isLoading && result === null) || !actorRole;
+	const showPlaceholder = !actorRole;
 
 	return showPlaceholder ? (
 		<DashboardPlaceholder />
@@ -343,8 +341,11 @@ export default function Accounts() {
 						onResetFilters={listQuery.resetFilters}
 						isFilterDirty={listQuery.isFilterDirty}
 						hasAppliedFilters={listQuery.hasAppliedFilters}
+						listStatus={listStatus}
+						listError={listError}
+						onRetry={retryList}
 						emptyKind={result?.emptyKind ?? null}
-						datasetEmptyMessage="Nessun Account registrato."
+						datasetEmptyMessage={DATASET_EMPTY_MESSAGES.account}
 					/>
 				}
 			/>

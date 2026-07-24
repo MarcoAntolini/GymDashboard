@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import {
@@ -11,6 +10,7 @@ import {
 	type ProductListResult,
 } from "@/data-access/products";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import {
 	PRODUCT_LIST_DEFAULT_SORT,
 	PRODUCT_LIST_FILTER_IDS,
@@ -19,7 +19,7 @@ import {
 import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Product } from "@prisma/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { columns } from "./columns";
 
 const PRODUCT_FILTER_FIELDS: ServerListFilterField[] = [
@@ -37,22 +37,17 @@ export default function ProductsPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<ProductListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listProducts(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listProducts(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<ProductListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (product: Pick<Product, "code">) => {
@@ -75,11 +70,7 @@ export default function ProductsPage() {
 		[handleDelete, handleEdit]
 	);
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={[]}
 			createHint={CREATE_GUIDANCE.prodotti}
@@ -102,6 +93,9 @@ export default function ProductsPage() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.prodotti}
 				/>

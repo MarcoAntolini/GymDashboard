@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
@@ -26,6 +25,7 @@ import {
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import {
 	CONTRACT_LIST_DEFAULT_SORT,
 	CONTRACT_LIST_FILTER_IDS,
@@ -71,22 +71,17 @@ export default function Contracts() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<ContractListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listContracts(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listContracts(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<ContractListResult>(loadList);
 
 	const { data: employeesWithoutContract, setData: setEmployeesWithoutContract } =
 		useEntityData<Employee, "id">(
@@ -356,11 +351,7 @@ export default function Contracts() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<>
 			<Dashboard
 				actions={actions}
@@ -383,7 +374,10 @@ export default function Contracts() {
 						onResetFilters={listQuery.resetFilters}
 						isFilterDirty={listQuery.isFilterDirty}
 						hasAppliedFilters={listQuery.hasAppliedFilters}
-						emptyKind={result?.emptyKind ?? null}
+						listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
+					emptyKind={result?.emptyKind ?? null}
 						datasetEmptyMessage={DATASET_EMPTY_MESSAGES.contratti}
 					/>
 				}

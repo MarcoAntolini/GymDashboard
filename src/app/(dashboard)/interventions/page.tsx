@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import {
@@ -11,6 +10,7 @@ import {
 	type InterventionListResult,
 } from "@/data-access/interventions";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
 import {
 	INTERVENTION_LIST_DEFAULT_SORT,
 	INTERVENTION_LIST_FILTER_IDS,
@@ -18,7 +18,7 @@ import {
 } from "@/lib/domain/intervention-list-query";
 import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Intervention } from "@prisma/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { columns } from "./columns";
 
 const INTERVENTION_FILTER_FIELDS: ServerListFilterField[] = [
@@ -37,22 +37,17 @@ export default function InterventionsPage() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<InterventionListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listInterventions(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listInterventions(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<InterventionListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (intervention: Pick<Intervention, "paymentId">) => {
@@ -81,11 +76,7 @@ export default function InterventionsPage() {
 		[handleDelete, handleEdit]
 	);
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={[]}
 			createHint={CREATE_GUIDANCE.interventi}
@@ -108,6 +99,9 @@ export default function InterventionsPage() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
 					datasetEmptyMessage={`Nessun Intervento registrato. ${CREATE_GUIDANCE.interventi}`}
 				/>

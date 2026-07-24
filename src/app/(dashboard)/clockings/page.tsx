@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { ServerDataTable } from "@/components/ui/data-table/server-data-table";
 import type { ServerListFilterField } from "@/components/ui/data-table/server-list-toolbar";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -16,6 +15,8 @@ import {
 } from "@/data-access/clockings";
 import { getEmployee } from "@/data-access/employees";
 import { useServerListQuery } from "@/hooks/useServerListQuery";
+import { useEntityListFetch } from "@/hooks/useEntityListFetch";
+import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
 import {
 	CLOCKING_LIST_DEFAULT_SORT,
 	CLOCKING_LIST_FILTER_IDS,
@@ -23,7 +24,7 @@ import {
 } from "@/lib/domain/clocking-list-query";
 import { Clocking } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
@@ -43,22 +44,17 @@ export default function Clockings() {
 		initialFilters: EMPTY_FILTERS,
 	});
 
-	const [result, setResult] = useState<ClockingListResult | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const fetchList = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const next = await listClockings(listQuery.input);
-			setResult(next);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [listQuery.input]);
-
-	useEffect(() => {
-		void fetchList();
-	}, [fetchList]);
+	const loadList = useCallback(
+		() => listClockings(listQuery.input),
+		[listQuery.input]
+	);
+	const {
+		result,
+		status: listStatus,
+		error: listError,
+		retry: retryList,
+		refresh: fetchList,
+	} = useEntityListFetch<ClockingListResult>(loadList);
 
 	const handleDelete = useCallback(
 		async (clocking: Pick<Clocking, "employeeId" | "entranceTime">) => {
@@ -151,11 +147,7 @@ export default function Clockings() {
 		},
 	];
 
-	const showPlaceholder = isLoading && result === null;
-
-	return showPlaceholder ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
@@ -177,8 +169,11 @@ export default function Clockings() {
 					onResetFilters={listQuery.resetFilters}
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
+					listStatus={listStatus}
+					listError={listError}
+					onRetry={retryList}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessuna timbratura registrata."
+					datasetEmptyMessage={DATASET_EMPTY_MESSAGES.timbrature}
 				/>
 			}
 		/>
