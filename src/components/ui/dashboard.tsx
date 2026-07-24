@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ComponentType, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -30,22 +30,29 @@ export default function Dashboard({
 	actions,
 	table,
 	toolbarExtra,
+	createHint,
 }: {
 	actions: Action[];
 	table: React.ReactNode;
 	toolbarExtra?: React.ReactNode;
+	/** Shown when create is not local to this page (e.g. specializzazioni Pagamento). */
+	createHint?: string;
 }) {
+	const showHint = Boolean(createHint) && actions.length === 0;
+
 	return (
 		<div className="flex flex-col h-full">
-			<div className="h-[52px] flex gap-2 items-center px-4">
-				{actions &&
-					actions.map((action, _) => (
-						<DialogAction
-							key={_}
-							action={action}
-						/>
-					))}
+			<div className="min-h-[52px] flex flex-wrap gap-2 items-center px-4 py-2">
+				{actions.map((action, index) => (
+					<DialogAction
+						key={`${action.title}-${index}`}
+						action={action}
+					/>
+				))}
 				{toolbarExtra}
+				{showHint ? (
+					<p className="text-sm text-muted-foreground max-w-3xl">{createHint}</p>
+				) : null}
 			</div>
 			<Separator />
 			<div className="flex-1 overflow-hidden">
@@ -61,32 +68,45 @@ const DialogAction = ({ action }: { action: Action }) => {
 	const router = useRouter();
 
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const form = useForm({
 		resolver: zodResolver(action.formData.formSchema),
 		defaultValues: action.formData.defaultValues,
 	});
 
-	function onSubmit(values: z.infer<typeof action.formData.formSchema>) {
-		action.formData
-			.submitAction(values)
-			.then(() => {
-				form.reset();
-				setIsDialogOpen(false);
-				router.refresh();
-			})
-			.catch((err: unknown) => {
-				const message =
-					err instanceof Error ? err.message : "Operazione non riuscita.";
-				toast.error(message);
-			});
+	async function onSubmit(values: z.infer<typeof action.formData.formSchema>) {
+		setIsSubmitting(true);
+		try {
+			await action.formData.submitAction(values);
+			form.reset();
+			setIsDialogOpen(false);
+			toast.success("Salvato.");
+			router.refresh();
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : "Operazione non riuscita.";
+			toast.error(message);
+		} finally {
+			setIsSubmitting(false);
+		}
 	}
 
 	useEffect(() => {
 		if (!isDialogOpen) {
 			form.reset();
+			setIsSubmitting(false);
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when dialog closes
 	}, [isDialogOpen]);
+
+	function handleOpenChange(open: boolean) {
+		if (!open && isSubmitting) return;
+		setIsDialogOpen(open);
+		if (!open) {
+			action.onDialogClose?.();
+		}
+	}
 
 	return (
 		<>
@@ -99,7 +119,7 @@ const DialogAction = ({ action }: { action: Action }) => {
 			</Button>
 			<Dialog
 				open={isDialogOpen}
-				onOpenChange={setIsDialogOpen}
+				onOpenChange={handleOpenChange}
 			>
 				<DialogContent>
 					<DialogHeader className="mb-5">
@@ -108,12 +128,19 @@ const DialogAction = ({ action }: { action: Action }) => {
 					<Form {...form}>
 						<form
 							onSubmit={form.handleSubmit(onSubmit)}
-							className="space-y-8"
+							className="flex flex-col gap-8"
 						>
 							{action.dialogContent}
 							<DialogFooter>
-								<Button type="submit">
-									<Check />
+								<Button type="submit" disabled={isSubmitting}>
+									{isSubmitting ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										<>
+											<Check className="mr-2 h-4 w-4" />
+											Salva
+										</>
+									)}
 								</Button>
 							</DialogFooter>
 						</form>

@@ -19,13 +19,13 @@ export const DATASET_EMPTY_MESSAGES = {
 	acquisti:
 		"Nessun Acquisto registrato. Usa Nuovo per registrare un Acquisto.",
 	prodotti:
-		"Nessun Prodotto registrato. Usa Nuovo per aggiungere un Prodotto.",
+		"Nessun Prodotto registrato. Crea un Abbonamento o un Pacchetto ingressi per aggiungere un Prodotto.",
 	listino:
 		"Nessuna voce di Listino. Usa Nuovo per impostare un prezzo annuale.",
 	contratti:
 		"Nessun Contratto registrato. Usa Nuovo per creare un Contratto.",
 	pagamenti:
-		"Nessun Pagamento registrato. Usa Nuovo per registrare un'uscita.",
+		"Nessun Pagamento registrato. Usa Nuovo per registrare un'uscita tipizzata.",
 } as const;
 
 export type DatasetEmptyEntity = keyof typeof DATASET_EMPTY_MESSAGES;

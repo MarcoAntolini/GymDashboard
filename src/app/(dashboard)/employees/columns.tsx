@@ -164,6 +164,7 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Dipendente"
 				editFormContent={
 					<>
 						<div className="grid grid-cols-2 gap-4">

@@ -135,6 +135,8 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={editFormSchema}
+				entityLabel="Acquisto"
+				deleteConsequence="Impossibile eliminare l'Acquisto se esistono Ingressi collegati (vincolo Restrict)."
 				editFormContent={
 					<>
 						<FormField

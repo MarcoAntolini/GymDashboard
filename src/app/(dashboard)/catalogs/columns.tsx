@@ -79,6 +79,7 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Listino"
 				editFormContent={
 					<>
 						<FormField

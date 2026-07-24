@@ -134,6 +134,7 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Contratto"
 				editFormContent={
 					<>
 						<FormField

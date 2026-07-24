@@ -16,6 +16,7 @@ import {
 	INTERVENTION_LIST_FILTER_IDS,
 	INTERVENTION_LIST_SORT_COLUMNS,
 } from "@/lib/domain/intervention-list-query";
+import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Intervention } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { columns } from "./columns";
@@ -87,6 +88,7 @@ export default function InterventionsPage() {
 	) : (
 		<Dashboard
 			actions={[]}
+			createHint={CREATE_GUIDANCE.interventi}
 			table={
 				<ServerDataTable
 					columns={tableColumns}
@@ -107,7 +109,7 @@ export default function InterventionsPage() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessun intervento registrato."
+					datasetEmptyMessage={`Nessun Intervento registrato. ${CREATE_GUIDANCE.interventi}`}
 				/>
 			}
 		/>

@@ -17,6 +17,7 @@ import {
 	PRODUCT_LIST_SORT_COLUMNS,
 } from "@/lib/domain/product-list-query";
 import { DATASET_EMPTY_MESSAGES } from "@/lib/format/table-empty";
+import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Product } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { columns } from "./columns";
@@ -81,6 +82,7 @@ export default function ProductsPage() {
 	) : (
 		<Dashboard
 			actions={[]}
+			createHint={CREATE_GUIDANCE.prodotti}
 			table={
 				<ServerDataTable
 					columns={tableColumns}

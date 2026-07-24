@@ -81,6 +81,7 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Bolletta"
 				editFormContent={
 					<>
 						<FormField

@@ -16,6 +16,7 @@ import {
 	BILL_LIST_FILTER_IDS,
 	BILL_LIST_SORT_COLUMNS,
 } from "@/lib/domain/bill-list-query";
+import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Bill } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { columns } from "./columns";
@@ -85,6 +86,7 @@ export default function BillsPage() {
 	) : (
 		<Dashboard
 			actions={[]}
+			createHint={CREATE_GUIDANCE.bollette}
 			table={
 				<ServerDataTable
 					columns={tableColumns}
@@ -105,7 +107,7 @@ export default function BillsPage() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessuna bolletta registrata."
+					datasetEmptyMessage={`Nessuna Bolletta registrata. ${CREATE_GUIDANCE.bollette}`}
 				/>
 			}
 		/>

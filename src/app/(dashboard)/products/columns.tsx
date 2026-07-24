@@ -31,6 +31,8 @@ export const columns = (
       <ItemActions
         row={row}
         formSchema={formSchema}
+        entityLabel="Prodotto"
+        deleteConsequence="Impossibile eliminare il Prodotto se esistono Acquisti collegati (vincolo Restrict)."
         editFormContent={
           <>
             <FormField

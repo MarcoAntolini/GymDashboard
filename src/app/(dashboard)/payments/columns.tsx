@@ -4,7 +4,6 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { PaymentRow } from "@/data-access/payments";
 import { isValidCatalogPriceString } from "@/lib/domain/catalog-price";
 import { formatCurrencyEur, formatDateIt } from "@/lib/format/locale";
@@ -16,9 +15,9 @@ export const formSchema = z.object({
 	date: z.date(),
 	amount: z
 		.string()
-		.min(1, "Amount is required")
+		.min(1, "Importo obbligatorio")
 		.refine(isValidCatalogPriceString, {
-			message: "Amount must be a positive value with at most 2 decimal places",
+			message: "Importo positivo con al massimo 2 decimali",
 		}),
 	type: z.nativeEnum(PaymentType),
 });
@@ -77,13 +76,14 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Pagamento"
 				editFormContent={
 					<>
 						<FormField
 							name="date"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Date</FormLabel>
+									<FormLabel>Data</FormLabel>
 									<FormControl>
 										<Input
 											type="date"
@@ -100,7 +100,7 @@ export const columns = (
 							name="amount"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Amount</FormLabel>
+									<FormLabel>Importo</FormLabel>
 									<FormControl>
 										<Input type="text" inputMode="decimal" {...field} />
 									</FormControl>
@@ -112,21 +112,19 @@ export const columns = (
 							name="type"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Type</FormLabel>
-									<Select onValueChange={field.onChange} defaultValue={field.value}>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue placeholder="Select a type" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-											{Object.values(PaymentType).map((type) => (
-												<SelectItem key={type} value={type}>
-													{type}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
+									<FormLabel>Tipo</FormLabel>
+									<FormControl>
+										<Input
+											disabled
+											readOnly
+											value={field.value}
+											aria-readonly="true"
+										/>
+									</FormControl>
+									<p className="text-sm text-muted-foreground">
+										Il tipo non è modificabile: la specializzazione nasce solo in creazione.
+										Per un tipo diverso registra un nuovo Pagamento.
+									</p>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -137,6 +135,7 @@ export const columns = (
 					const updatedPayment = {
 						...row.original,
 						...values,
+						type: row.original.type,
 					};
 					await handleEdit(updatedPayment);
 				}}

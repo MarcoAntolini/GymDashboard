@@ -2,30 +2,36 @@
 
 import {
 	AlertDialog,
-	AlertDialogAction,
 	AlertDialogCancel,
 	AlertDialogContent,
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
+	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Form } from "@/components/ui/form";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Row } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
+import { Loader2, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -36,101 +42,172 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	editFormContent,
 	editAction,
 	deleteAction,
+	entityLabel,
+	deleteConsequence,
 	editUnavailabe,
-	deleteUnavailabe
+	deleteUnavailabe,
 }: {
 	row: Row<any>;
 	formSchema: TFormSchema;
 	editFormContent: React.ReactNode;
 	editAction: (params: { values: z.infer<TFormSchema> }) => Promise<any>;
 	deleteAction: () => Promise<void>;
+	/** Domain entity name (Cliente, Pagamento, …). */
+	entityLabel: string;
+	/** Optional Restrict / consequence note shown in the delete confirm. */
+	deleteConsequence?: string;
 	editUnavailabe?: boolean;
 	deleteUnavailabe?: boolean;
 }) {
-	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+	const [isEditOpen, setIsEditOpen] = useState(false);
+	const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const router = useRouter();
 
 	const form = useForm<z.infer<TFormSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			...row.original
-		}
+			...row.original,
+		},
 	});
 
-	function onEditSubmit(values: z.infer<TFormSchema>) {
-		editAction({ values })
-			.then(() => {
-				setIsEditDialogOpen(false);
-				router.refresh();
-			})
-			.catch((err: unknown) => {
-				const message =
-					err instanceof Error ? err.message : "Modifica non riuscita.";
-				toast.error(message);
-			});
+	useEffect(() => {
+		if (isEditOpen) {
+			form.reset({ ...row.original });
+		} else {
+			setIsSaving(false);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when sheet opens / row changes
+	}, [isEditOpen, row.original]);
+
+	async function onEditSubmit(values: z.infer<TFormSchema>) {
+		setIsSaving(true);
+		try {
+			await editAction({ values });
+			setIsEditOpen(false);
+			toast.success(`${entityLabel} aggiornato.`);
+			router.refresh();
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : "Modifica non riuscita.";
+			toast.error(message);
+		} finally {
+			setIsSaving(false);
+		}
 	}
 
-	function onDeleteSubmit() {
-		deleteAction()
-			.then(() => {
-				setIsDeleteDialogOpen(false);
-				router.refresh();
-			})
-			.catch((err: unknown) => {
-				const message =
-					err instanceof Error ? err.message : "Eliminazione non riuscita.";
-				toast.error(message);
-			});
+	async function onDeleteSubmit() {
+		setIsDeleting(true);
+		try {
+			await deleteAction();
+			setIsDeleteOpen(false);
+			toast.success(`${entityLabel} eliminato.`);
+			router.refresh();
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : "Eliminazione non riuscita.";
+			toast.error(message);
+		} finally {
+			setIsDeleting(false);
+		}
 	}
+
+	function handleEditOpenChange(open: boolean) {
+		if (!open && isSaving) return;
+		setIsEditOpen(open);
+	}
+
+	function handleDeleteOpenChange(open: boolean) {
+		if (!open && isDeleting) return;
+		setIsDeleteOpen(open);
+	}
+
+	const defaultDeleteConsequence =
+		"L'eliminazione è permanente. Se esistono record collegati (vincolo Restrict), l'operazione verrà rifiutata.";
 
 	return (
 		<>
 			<DropdownMenu modal={false}>
 				<DropdownMenuTrigger asChild>
-					<Button variant="ghost" className="h-7 w-7 p-0" disabled={editUnavailabe && deleteUnavailabe}>
-						<span className="sr-only">Open menu</span>
+					<Button
+						variant="ghost"
+						className="h-7 w-7 p-0"
+						disabled={editUnavailabe && deleteUnavailabe}
+					>
+						<span className="sr-only">Apri menu azioni</span>
 						<MoreHorizontal className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					<DropdownMenuLabel>Actions</DropdownMenuLabel>
+					<DropdownMenuLabel>Azioni</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-					{!editUnavailabe && <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>Edit</DropdownMenuItem>}
-					{!deleteUnavailabe && <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>Delete</DropdownMenuItem>}
+					{!editUnavailabe && (
+						<DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+							Modifica
+						</DropdownMenuItem>
+					)}
+					{!deleteUnavailabe && (
+						<DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+							Elimina
+						</DropdownMenuItem>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-				<DialogContent>
-					<DialogHeader className="mb-5">
-						<DialogTitle>Edit row data</DialogTitle>
-					</DialogHeader>
+			<Sheet open={isEditOpen} onOpenChange={handleEditOpenChange}>
+				<SheetContent className="flex flex-col sm:max-w-md overflow-y-auto">
+					<SheetHeader className="mb-4">
+						<SheetTitle>Modifica {entityLabel}</SheetTitle>
+						<SheetDescription>
+							Aggiorna i campi consentiti, poi salva. La superficie resta aperta
+							se il salvataggio fallisce.
+						</SheetDescription>
+					</SheetHeader>
 					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-8">
-							{editFormContent}
-							<DialogFooter>
-								<Button type="submit">Save</Button>
-							</DialogFooter>
+						<form
+							onSubmit={form.handleSubmit(onEditSubmit)}
+							className="flex flex-1 flex-col gap-6"
+						>
+							<div className="flex flex-col gap-4">{editFormContent}</div>
+							<SheetFooter>
+								<Button type="submit" disabled={isSaving}>
+									{isSaving ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										"Salva"
+									)}
+								</Button>
+							</SheetFooter>
 						</form>
 					</Form>
-				</DialogContent>
-			</Dialog>
+				</SheetContent>
+			</Sheet>
 
-			<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+			<AlertDialog open={isDeleteOpen} onOpenChange={handleDeleteOpenChange}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+						<AlertDialogTitle>Eliminare questo {entityLabel}?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently delete this row from the database.
+							{deleteConsequence ?? defaultDeleteConsequence}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
-						<AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={onDeleteSubmit}>
-							Continue
-						</AlertDialogAction>
+						<AlertDialogCancel disabled={isDeleting}>Annulla</AlertDialogCancel>
+						<Button
+							variant="destructive"
+							disabled={isDeleting}
+							onClick={() => {
+								void onDeleteSubmit();
+							}}
+						>
+							{isDeleting ? (
+								<Loader2 className="h-4 w-4 animate-spin" />
+							) : (
+								"Elimina"
+							)}
+						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

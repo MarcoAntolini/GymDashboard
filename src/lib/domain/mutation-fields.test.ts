@@ -56,12 +56,13 @@ describe("MUTATION_FIELD_MATRIX", () => {
 		assert.ok(ending?.notes?.toLowerCase().includes("openended"));
 	});
 
-	it("documents the three required edge cases", () => {
+	it("documents required edge cases including Pagamento tipo immutabile", () => {
 		const ids = MUTATION_EDGE_CASES.map((c) => c.id).sort();
 		assert.deepEqual(ids, [
 			"account-password",
 			"acquisto-cambio-prodotto",
 			"contratto-data-fine",
+			"pagamento-tipo-immutabile",
 		]);
 	});
 });

@@ -10,6 +10,7 @@ import {
 } from "@/lib/domain/payment-list-query";
 import { listEmptyKind } from "@/lib/domain/list-query";
 import { assertAllowedMutation } from "@/lib/domain/mutation-fields";
+import { assertPaymentTypeUnchanged } from "@/lib/domain/payment-edit";
 import { db } from "@/lib/db";
 import {
 	prismaOrderBy,
@@ -212,6 +213,8 @@ export async function editPayment(input: {
 	await requireRole("Employee");
 	assertAllowedMutation("pagamenti", "update", input);
 	const { id, date, amount, type } = input;
+	const existing = await db.payment.findUniqueOrThrow({ where: { id } });
+	assertPaymentTypeUnchanged(existing.type, type);
 	const amountString = formatCatalogPrice(
 		typeof amount === "string" ? amount : String(amount)
 	);
@@ -220,7 +223,8 @@ export async function editPayment(input: {
 		data: {
 			date,
 			amount: new Prisma.Decimal(amountString),
-			type,
+			// type intentionally unchanged — specialty rows are create-only
+			type: existing.type,
 		},
 		include: paymentInclude,
 	});

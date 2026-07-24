@@ -16,6 +16,7 @@ import {
 	EQUIPMENT_LIST_FILTER_IDS,
 	EQUIPMENT_LIST_SORT_COLUMNS,
 } from "@/lib/domain/equipment-list-query";
+import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Equipment } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { columns } from "./columns";
@@ -85,6 +86,7 @@ export default function EquipmentPage() {
 	) : (
 		<Dashboard
 			actions={[]}
+			createHint={CREATE_GUIDANCE.attrezzatura}
 			table={
 				<ServerDataTable
 					columns={tableColumns}
@@ -105,7 +107,7 @@ export default function EquipmentPage() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessuna attrezzatura registrata."
+					datasetEmptyMessage={`Nessuna Attrezzatura registrata. ${CREATE_GUIDANCE.attrezzatura}`}
 				/>
 			}
 		/>

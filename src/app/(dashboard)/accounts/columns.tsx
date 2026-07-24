@@ -102,6 +102,7 @@ export const columns = (
 				<ItemActions
 					row={row}
 					formSchema={formSchema}
+					entityLabel="Account"
 					editUnavailabe={!canManage}
 					deleteUnavailabe={!canManage}
 					editFormContent={

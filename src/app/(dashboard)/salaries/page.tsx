@@ -16,6 +16,7 @@ import {
 	SALARY_LIST_FILTER_IDS,
 	SALARY_LIST_SORT_COLUMNS,
 } from "@/lib/domain/salary-list-query";
+import { CREATE_GUIDANCE } from "@/lib/format/create-guidance";
 import { Salary } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { columns } from "./columns";
@@ -84,6 +85,7 @@ export default function Salaries() {
 	) : (
 		<Dashboard
 			actions={[]}
+			createHint={CREATE_GUIDANCE.stipendi}
 			table={
 				<ServerDataTable
 					columns={tableColumns}
@@ -104,7 +106,7 @@ export default function Salaries() {
 					isFilterDirty={listQuery.isFilterDirty}
 					hasAppliedFilters={listQuery.hasAppliedFilters}
 					emptyKind={result?.emptyKind ?? null}
-					datasetEmptyMessage="Nessuno stipendio registrato."
+					datasetEmptyMessage={`Nessuno Stipendio registrato. ${CREATE_GUIDANCE.stipendi}`}
 				/>
 			}
 		/>

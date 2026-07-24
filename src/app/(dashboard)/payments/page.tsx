@@ -146,7 +146,7 @@ export default function PaymentsPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Payment",
+			title: "Nuovo Pagamento",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -154,7 +154,7 @@ export default function PaymentsPage() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
+								<FormLabel>Data</FormLabel>
 								<Popover>
 									<PopoverTrigger asChild>
 										<FormControl>
@@ -184,7 +184,7 @@ export default function PaymentsPage() {
 						name="amount"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Amount</FormLabel>
+								<FormLabel>Importo</FormLabel>
 								<FormControl>
 									<Input type="text" inputMode="decimal" {...field} />
 								</FormControl>
@@ -196,18 +196,18 @@ export default function PaymentsPage() {
 						name="type"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Type</FormLabel>
+								<FormLabel>Tipo</FormLabel>
 								<Select onValueChange={field.onChange} defaultValue={field.value}>
 									<FormControl>
 										<SelectTrigger>
-											<SelectValue placeholder="Select payment type" />
+											<SelectValue placeholder="Seleziona tipo Pagamento" />
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										<SelectItem value={PaymentType.Salary}>Salary</SelectItem>
-										<SelectItem value={PaymentType.Bill}>Bill</SelectItem>
-										<SelectItem value={PaymentType.Equipment}>Equipment</SelectItem>
-										<SelectItem value={PaymentType.Intervention}>Intervention</SelectItem>
+										<SelectItem value={PaymentType.Salary}>Stipendio</SelectItem>
+										<SelectItem value={PaymentType.Bill}>Bolletta</SelectItem>
+										<SelectItem value={PaymentType.Equipment}>Attrezzatura</SelectItem>
+										<SelectItem value={PaymentType.Intervention}>Intervento</SelectItem>
 									</SelectContent>
 								</Select>
 								<FormMessage />

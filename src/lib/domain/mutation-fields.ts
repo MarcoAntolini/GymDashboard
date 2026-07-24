@@ -231,7 +231,8 @@ export const MUTATION_FIELD_MATRIX: Record<MutationEntity, readonly MutationFiel
 		{
 			key: "type",
 			flags: ["create", "update"],
-			notes: "Discriminator; specialty rows created only on create",
+			notes:
+				"Discriminator; specialty rows create-only. Update must keep type unchanged (assertPaymentTypeUnchanged) — UI locks tipo on edit.",
 		},
 		{ key: "employeeId", flags: ["create"], notes: "Salary specialty on create only" },
 		{ key: "description", flags: ["create"], notes: "Bill/Equipment/Intervention specialty" },
@@ -262,6 +263,11 @@ export const MUTATION_EDGE_CASES = [
 		id: "account-password",
 		summary:
 			"Password Account: write-only in create; assente da Admin update. Lista mascherata con reveal per riga (ticket 15). Self-service (ticket 17): changeOwnPassword richiede password attuale e rifiuta targetUsername ≠ session; username self via changeOwnUsername. role/approved = admin-only (RBAC).",
+	},
+	{
+		id: "pagamento-tipo-immutabile",
+		summary:
+			"Tipo Pagamento: specializzazione (Stipendio/Bolletta/Attrezzatura/Intervento) solo in create. In update, type non può cambiare (assertPaymentTypeUnchanged); modificare data/importo sulla riga Pagamento, dettagli specialty sulle liste Uscite.",
 	},
 ] as const;
 

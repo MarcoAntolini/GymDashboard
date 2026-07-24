@@ -115,6 +115,7 @@ export const columns = (
 				<ItemActions
 					row={{ ...row, original: formDefaults }}
 					formSchema={editFormSchema}
+					entityLabel="Ingresso"
 					editFormContent={
 						<>
 							<FormField

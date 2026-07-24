@@ -41,6 +41,7 @@ export const columns = (
       <ItemActions
         row={row}
         formSchema={formSchema}
+        entityLabel="Pacchetto ingressi"
         editFormContent={
           <>
             <FormField
