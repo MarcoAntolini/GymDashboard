@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { landingPathForRole, type AppRole } from "@/data/nav-routes";
+import { landingPathForRole, roleLabelIt, type AppRole } from "@/data/nav-routes";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -26,7 +26,7 @@ function ForbiddenContent() {
 				}
 				const role = me.role as AppRole;
 				setLanding(landingPathForRole(role));
-				setRoleLabel(role === "Admin" ? "Amministratore" : "Dipendente");
+				setRoleLabel(roleLabelIt(role));
 			} catch {
 				if (!cancelled) router.replace("/auth");
 			}

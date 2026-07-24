@@ -239,6 +239,7 @@ enum PurchaseType {
 }
 
 enum Role {
+  Owner    @map("Proprietario")
   Admin    @map("Amministratore")
   Employee @map("Dipendente")
 }

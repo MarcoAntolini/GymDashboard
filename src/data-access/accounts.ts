@@ -1,7 +1,13 @@
 "use server";
 
+import { isAppRole } from "@/data/nav-routes";
+import {
+	assertRoleHierarchy,
+	getOptionalSession,
+	requireAdminActor,
+	requireRole,
+} from "@/lib/auth";
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
-import { getOptionalSession, requireAdminActor, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 
@@ -11,7 +17,7 @@ export async function createAccount(input: {
 	employeeId: number;
 }) {
 	assertMutationPayload("account", "create", input);
-	// Public register (no session) stays open; dashboard create requires Admin.
+	// Public register (no session) stays open; dashboard create requires Admin+.
 	const session = await getOptionalSession();
 	if (session) {
 		await requireRole("Admin");
@@ -67,8 +73,23 @@ export async function editAccount(input: {
 	approved: boolean;
 }) {
 	assertMutationPayload("account", "update", input);
-	await requireAdminActor();
+	const actor = await requireAdminActor();
 	const { employeeId, role, approved } = input;
+
+	if (!isAppRole(role)) {
+		throw new Error("Ruolo non valido");
+	}
+
+	const target = await db.account.findUnique({
+		where: { employeeId },
+		select: { role: true },
+	});
+	if (!target || !isAppRole(target.role)) {
+		throw new Error("Account non trovato");
+	}
+
+	assertRoleHierarchy(actor.role, target.role, role);
+
 	return await db.account.update({
 		where: {
 			employeeId,
@@ -81,7 +102,15 @@ export async function editAccount(input: {
 }
 
 export async function deleteAccount({ employeeId }: { employeeId: number }) {
-	await requireRole("Admin");
+	const actor = await requireAdminActor();
+	const target = await db.account.findUnique({
+		where: { employeeId },
+		select: { role: true },
+	});
+	if (!target || !isAppRole(target.role)) {
+		throw new Error("Account non trovato");
+	}
+	assertRoleHierarchy(actor.role, target.role);
 	return await db.account.delete({
 		where: {
 			employeeId,

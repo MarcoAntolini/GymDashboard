@@ -1,14 +1,20 @@
 /**
- * Edge-safe source of truth: path → minimum role.
+ * Edge-safe source of truth: path → minimum role + role hierarchy.
  * `links.ts` adds icons only; middleware and role helpers import from here.
  */
 
-export type AppRole = "Admin" | "Employee";
+export type AppRole = "Owner" | "Admin" | "Employee";
 
 export type NavRoute = {
 	title: string;
 	href: string;
 	requiredRole: AppRole;
+};
+
+const ROLE_RANK: Record<AppRole, number> = {
+	Employee: 0,
+	Admin: 1,
+	Owner: 2,
 };
 
 export const NAV_ROUTES: NavRoute[] = [
@@ -30,18 +36,31 @@ export const NAV_ROUTES: NavRoute[] = [
 	{ title: "Purchases", href: "/purchases", requiredRole: "Employee" },
 ];
 
-/** Admin operational default until Panoramica `/` (later ticket). */
+/** Admin/Owner operational default until Panoramica `/` (later ticket). */
 export const ADMIN_LANDING = "/accounts";
 /** Highest-frequency desk task for Dipendente. */
 export const EMPLOYEE_LANDING = "/entrances";
 
 export function landingPathForRole(role: AppRole): string {
-	return role === "Admin" ? ADMIN_LANDING : EMPLOYEE_LANDING;
+	return role === "Employee" ? EMPLOYEE_LANDING : ADMIN_LANDING;
 }
 
+/** True if `userRole` meets or exceeds `requiredRole` (Owner > Admin > Employee). */
 export function roleAllows(userRole: AppRole, requiredRole: AppRole): boolean {
-	if (userRole === "Admin") return true;
-	return userRole === requiredRole;
+	return ROLE_RANK[userRole] >= ROLE_RANK[requiredRole];
+}
+
+/** Strictly inferior only — peers and superiors are not manageable. */
+export function canManageRole(actorRole: AppRole, targetRole: AppRole): boolean {
+	return ROLE_RANK[actorRole] > ROLE_RANK[targetRole];
+}
+
+/**
+ * Roles the actor may assign via app UI/API.
+ * Owner is never assignable here (DB-only promotion).
+ */
+export function assignableRoles(actorRole: AppRole): AppRole[] {
+	return (["Admin", "Employee"] as const).filter((role) => canManageRole(actorRole, role));
 }
 
 export function requiredRoleForPath(pathname: string): AppRole | null {
@@ -51,5 +70,11 @@ export function requiredRoleForPath(pathname: string): AppRole | null {
 }
 
 export function isAppRole(value: unknown): value is AppRole {
-	return value === "Admin" || value === "Employee";
+	return value === "Owner" || value === "Admin" || value === "Employee";
+}
+
+export function roleLabelIt(role: AppRole): string {
+	if (role === "Owner") return "Proprietario";
+	if (role === "Admin") return "Amministratore";
+	return "Dipendente";
 }

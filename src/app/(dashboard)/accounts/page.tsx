@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createAccount, deleteAccount, editAccount, getAllAccounts } from "@/data-access/accounts";
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
+import { isAppRole, type AppRole } from "@/data/nav-routes";
 import { useEntityData } from "@/hooks/useEntityData";
 import { Account, Employee } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { columns } from "./columns";
 
@@ -56,6 +57,24 @@ export default function Accounts() {
 
 	const [newUsername, setNewUsername] = useState<string>("");
 	const [isPending, setIsPending] = useState(false);
+	const [actorRole, setActorRole] = useState<AppRole | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		(async () => {
+			try {
+				const res = await fetch("/api/auth/me");
+				const me = res.ok ? await res.json() : null;
+				if (cancelled) return;
+				if (isAppRole(me?.role)) setActorRole(me.role);
+			} catch {
+				/* nav/layout already redirects unauthenticated */
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 	const handleCreateAccount = useCallback(
 		async (values: z.infer<typeof createAccountSchema>) => {
 			setIsPending(true);
@@ -176,14 +195,14 @@ export default function Accounts() {
 		},
 	];
 
-	return isLoading ? (
+	return isLoading || !actorRole ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
-					columns={columns(handleDelete, handleEdit)}
+					columns={columns(handleDelete, handleEdit, actorRole)}
 					data={accounts}
 					filters={["username"]}
 					facetedFilters={["role", "approved"]}

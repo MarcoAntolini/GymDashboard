@@ -9,7 +9,7 @@ Policy operativa per create/update: ogni campo ha un ruolo di mutazione. I paylo
 | `create` | Accettato in create |
 | `update` | Accettato in update (incluso locator PK) |
 | `immutable` | Se presente nel payload → reject |
-| `Admin-only` | Solo Admin+ (`requireAdminActor`) |
+| `Admin-only` | Solo Admin+ (`requireAdminActor`: Owner \| Admin) + gerarchia ruoli su Account |
 | `write-only` | Solo scrittura (create); non in lettura sicura; su update → reject se inviato |
 | `strip` | Join/proiezione di lettura: ignorato |
 
@@ -29,7 +29,7 @@ Anagrafica completa: `create` + `update`. `remainingEntrances` → **immutable**
 |---|---|
 | `username`, `employeeId` | create (`employeeId` anche update locator) |
 | `password` | create + **write-only** |
-| `role`, `approved` | update + **Admin-only** |
+| `role`, `approved` | update + **Admin-only** (Owner gestisce Admin/Dipendente; Admin solo Dipendente; Owner non assegnabile via app) |
 | `employee` | strip (join) |
 
 ### Contratto
@@ -88,5 +88,5 @@ Write-only in create (register / createAccount). Non è campo di `editAccount` (
 ## Enforcement
 
 - Tutte le `create*` / `edit*` in `src/data-access` chiamano `assertMutationPayload`.
-- `editAccount` chiama anche `requireAdminActor()` (sessione + ruolo Admin approvato).
-- Smoke: `npx tsx scripts/verify-mutation-allowlist.ts`
+- `editAccount` / `deleteAccount` chiamano `requireAdminActor()` + `assertRoleHierarchy` (Owner > Admin > Employee; promozione a Owner solo via DB).
+- Smoke: `npx tsx scripts/verify-mutation-allowlist.ts`; gerarchia: `node scripts/smoke-rbac.mjs`
