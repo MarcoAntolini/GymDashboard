@@ -4,7 +4,11 @@
 
 **Blocked by:** 36 — Core entity tables: colonne, filtri, formatting; 37 — CRUD: Dialog create / Sheet edit + feedback
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+## Comments
+
+- 2026-07-24 — claimed by implement loop (cloud)
 
 - [ ] Fetch fallito → errore + retry (niente spinner infinito)
 - [ ] Loading coerente sulla shell condivisa
