@@ -2,6 +2,19 @@
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
+import {
+	buildListResult,
+	normalizeListQuery,
+	toPrismaListArgs,
+	type ListFilters,
+	type ListQueryInput,
+	type ListResult,
+} from "@/lib/list";
+import {
+	CATALOG_DEFAULT_SORT,
+	CATALOG_FILTER_ALLOWLIST,
+	CATALOG_SORT_ALLOWLIST,
+} from "@/lib/list/catalogs";
 import { Prisma } from "@prisma/client";
 
 const catalogInclude = {
@@ -13,11 +26,78 @@ const catalogInclude = {
 	},
 } as const;
 
+export type CatalogListRow = Prisma.CatalogGetPayload<{
+	include: typeof catalogInclude;
+}>;
+
 type CatalogWriteInput = {
 	year: number;
 	productCode: string;
 	price: Prisma.Decimal | number | string;
 };
+
+function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
+	if (typeof raw === "number" && Number.isFinite(raw)) {
+		const n = Math.trunc(raw);
+		return n > 0 ? n : undefined;
+	}
+	if (typeof raw === "string") {
+		const trimmed = raw.trim();
+		if (!/^\d+$/.test(trimmed)) return undefined;
+		const n = Number.parseInt(trimmed, 10);
+		return Number.isFinite(n) && n > 0 ? n : undefined;
+	}
+	return undefined;
+}
+
+function buildCatalogWhere(filters: ListFilters): Prisma.CatalogWhereInput {
+	const where: Prisma.CatalogWhereInput = {};
+
+	const year = parsePositiveIntFilter(filters.year);
+	if (year !== undefined) where.year = year;
+
+	const productCode = filters.productCode;
+	if (typeof productCode === "string") {
+		const value = productCode.trim();
+		if (value) where.productCode = { contains: value };
+	}
+
+	return where;
+}
+
+/**
+ * Lista Listino server-side: filtri su Conferma, sort + paginazione via DB.
+ */
+export async function listCatalogs(
+	input: ListQueryInput = {}
+): Promise<ListResult<CatalogListRow>> {
+	const query = normalizeListQuery(input, {
+		sortAllowlist: CATALOG_SORT_ALLOWLIST,
+		filterAllowlist: CATALOG_FILTER_ALLOWLIST,
+		defaultSort: [...CATALOG_DEFAULT_SORT],
+	});
+	const where = buildCatalogWhere(query.filters);
+	const { skip, take, orderBy } = toPrismaListArgs(query);
+	// Tie-break stabile su PK composta (year, productCode).
+	const orderByStable = [
+		...(orderBy ?? []),
+		...(orderBy?.some((o) => "year" in o) ? [] : [{ year: "asc" as const }]),
+		...(orderBy?.some((o) => "productCode" in o)
+			? []
+			: [{ productCode: "asc" as const }]),
+	];
+	const [total, items] = await Promise.all([
+		db.catalog.count({ where }),
+		db.catalog.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: catalogInclude,
+		}),
+	]);
+	return buildListResult(items, total, query);
+}
 
 export async function createCatalog(input: CatalogWriteInput) {
 	assertMutationPayload("catalog", "create", input);

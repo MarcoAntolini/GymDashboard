@@ -7,13 +7,24 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createCatalog, deleteCatalog, editCatalog, getAllCatalogs } from "@/data-access/catalogs";
+import {
+	createCatalog,
+	deleteCatalog,
+	editCatalog,
+	listCatalogs,
+} from "@/data-access/catalogs";
 import { getAllProducts } from "@/data-access/products";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useServerList } from "@/hooks/useServerList";
 import {
 	PRODUCT_KIND_LABEL,
 	ProductKind,
 } from "@/lib/domain/product-kind";
+import {
+	CATALOG_DEFAULT_SORT,
+	CATALOG_FILTER_ALLOWLIST,
+	CATALOG_FILTER_LABELS,
+	CATALOG_SORT_ALLOWLIST,
+} from "@/lib/list/catalogs";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
@@ -22,31 +33,13 @@ import { CatalogRow, columns, formSchema } from "./columns";
 type ProductOption = Awaited<ReturnType<typeof getAllProducts>>[number];
 
 export default function CatalogsPage() {
-	const {
-		data: catalogs,
-		setData: setCatalogs,
-		isLoading,
-		handleDelete,
-		handleEdit,
-	} = useEntityData<CatalogRow, "year" | "productCode">(
-		useMemo(
-			() => ({
-				getAll: getAllCatalogs,
-				deleteAction: async (key) => {
-					await deleteCatalog(key);
-					return key as CatalogRow;
-				},
-				editAction: async (catalog) =>
-					editCatalog({
-						year: catalog.year,
-						productCode: catalog.productCode,
-						price: catalog.price,
-					}),
-			}),
-			[]
-		),
-		["year", "productCode"]
-	);
+	const list = useServerList<CatalogRow>({
+		list: listCatalogs,
+		sortAllowlist: CATALOG_SORT_ALLOWLIST,
+		filterAllowlist: CATALOG_FILTER_ALLOWLIST,
+		defaultSort: [...CATALOG_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
 
 	const [products, setProducts] = useState<ProductOption[]>([]);
 	const [selectedType, setSelectedType] = useState<ProductKind>(ProductKind.Membership);
@@ -67,16 +60,42 @@ export default function CatalogsPage() {
 		[products, selectedType]
 	);
 
+	const handleDelete = useCallback(
+		async (catalog: Pick<CatalogRow, "year" | "productCode">) => {
+			await deleteCatalog(catalog);
+			refetch();
+		},
+		[refetch]
+	);
+
+	const handleEdit = useCallback(
+		async (catalog: CatalogRow) => {
+			const updated = await editCatalog({
+				year: catalog.year,
+				productCode: catalog.productCode,
+				price: catalog.price,
+			});
+			setItems((prev) =>
+				prev.map((item) =>
+					item.year === updated.year && item.productCode === updated.productCode
+						? updated
+						: item
+				)
+			);
+		},
+		[setItems]
+	);
+
 	const handleCreateCatalog = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newCatalog = await createCatalog({
+			await createCatalog({
 				year: values.year,
 				productCode: values.productCode,
 				price: values.price,
 			});
-			setCatalogs((prevCatalogs) => [...prevCatalogs, newCatalog]);
+			refetch();
 		},
-		[setCatalogs]
+		[refetch]
 	);
 
 	const actions: Action[] = [
@@ -101,7 +120,7 @@ export default function CatalogsPage() {
 							</FormItem>
 						)}
 					/>
-					{/* Tipo: solo filtro UI locale — non è FormField / non va nel payload Listino */}
+					{/* Tipo: solo filtro UI locale — non e' FormField / non va nel payload Listino */}
 					<div className="space-y-2">
 						<Label>Type</Label>
 						<Select
@@ -189,7 +208,7 @@ export default function CatalogsPage() {
 		},
 	];
 
-	return isLoading ? (
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
@@ -197,9 +216,23 @@ export default function CatalogsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
-					data={catalogs}
-					filters={["year", "productCode"]}
-					facetedFilters={["year"]}
+					data={list.items}
+					filters={[...CATALOG_FILTER_ALLOWLIST]}
+					filterLabels={CATALOG_FILTER_LABELS}
+					serverList={{
+						manual: true,
+						pageCount: list.pageCount,
+						rowCount: list.total,
+						sorting: list.sorting,
+						onSortingChange: list.onSortingChange,
+						pagination: list.pagination,
+						onPaginationChange: list.onPaginationChange,
+						draftFilters: list.draftFilters,
+						onDraftFilterChange: list.setDraftFilter,
+						onApplyFilters: list.applyFilters,
+						onResetFilters: list.resetFilters,
+						filtersDirty: list.filtersDirty,
+					}}
 				/>
 			}
 		/>
