@@ -4,6 +4,20 @@ import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { getCatalog } from "@/data-access/catalogs";
 import { db } from "@/lib/db";
 import { snapshotFromProduct } from "@/lib/domain/purchase-access";
+import {
+	buildListResult,
+	normalizeListQuery,
+	toPrismaPage,
+	type ListFilters,
+	type ListQueryInput,
+	type ListResult,
+	type ListSort,
+} from "@/lib/list";
+import {
+	PURCHASE_DEFAULT_SORT,
+	PURCHASE_FILTER_ALLOWLIST,
+	PURCHASE_SORT_ALLOWLIST,
+} from "@/lib/list/purchases";
 import { Prisma } from "@prisma/client";
 
 const PURCHASE_HAS_ENTRANCES_MESSAGE =
@@ -15,6 +29,130 @@ const purchaseInclude = {
 		include: { membership: true, entranceSet: true },
 	},
 } as const;
+
+export type PurchaseListRow = Prisma.PurchaseGetPayload<{
+	include: typeof purchaseInclude;
+}>;
+
+function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
+	if (typeof raw === "number" && Number.isFinite(raw)) {
+		const n = Math.trunc(raw);
+		return n > 0 ? n : undefined;
+	}
+	if (typeof raw === "string") {
+		const trimmed = raw.trim();
+		if (!/^\d+$/.test(trimmed)) return undefined;
+		const n = Number.parseInt(trimmed, 10);
+		return Number.isFinite(n) && n > 0 ? n : undefined;
+	}
+	return undefined;
+}
+
+function buildPurchaseWhere(filters: ListFilters): Prisma.PurchaseWhereInput {
+	const where: Prisma.PurchaseWhereInput = {};
+	const and: Prisma.PurchaseWhereInput[] = [];
+
+	const id = parsePositiveIntFilter(filters.id);
+	if (id !== undefined) where.id = id;
+
+	const clientId = parsePositiveIntFilter(filters.clientId);
+	if (clientId !== undefined) where.clientId = clientId;
+
+	const client = filters.client;
+	if (typeof client === "string") {
+		const value = client.trim();
+		if (value) {
+			and.push({
+				client: {
+					OR: [
+						{ surname: { contains: value } },
+						{ name: { contains: value } },
+					],
+				},
+			});
+		}
+	}
+
+	const productCode = filters.productCode;
+	if (typeof productCode === "string") {
+		const value = productCode.trim();
+		if (value) {
+			and.push({ productCode: { contains: value } });
+		}
+	}
+
+	if (and.length) where.AND = and;
+	return where;
+}
+
+function buildPurchaseOrderBy(
+	sort: ListSort[]
+): Prisma.PurchaseOrderByWithRelationInput[] {
+	const orderBy: Prisma.PurchaseOrderByWithRelationInput[] = [];
+	for (const entry of sort) {
+		const dir = entry.desc ? ("desc" as const) : ("asc" as const);
+		switch (entry.id) {
+			case "id":
+				orderBy.push({ id: dir });
+				break;
+			case "date":
+				orderBy.push({ date: dir });
+				break;
+			case "clientId":
+				orderBy.push({ clientId: dir });
+				break;
+			case "productCode":
+				orderBy.push({ productCode: dir });
+				break;
+			case "amount":
+				orderBy.push({ amount: dir });
+				break;
+			case "duration":
+				orderBy.push({ duration: dir });
+				break;
+			case "entranceNumber":
+				orderBy.push({ entranceNumber: dir });
+				break;
+			case "client":
+				orderBy.push({ client: { surname: dir } });
+				orderBy.push({ client: { name: dir } });
+				break;
+			default:
+				break;
+		}
+	}
+	if (!orderBy.some((o) => "id" in o)) {
+		orderBy.push({ id: "asc" });
+	}
+	return orderBy;
+}
+
+/**
+ * Lista Acquisti server-side: filtri su Conferma, sort + paginazione via DB.
+ */
+export async function listPurchases(
+	input: ListQueryInput = {}
+): Promise<ListResult<PurchaseListRow>> {
+	const query = normalizeListQuery(input, {
+		sortAllowlist: PURCHASE_SORT_ALLOWLIST,
+		filterAllowlist: PURCHASE_FILTER_ALLOWLIST,
+		defaultSort: [...PURCHASE_DEFAULT_SORT],
+	});
+	const where = buildPurchaseWhere(query.filters);
+	const { skip, take } = toPrismaPage(query);
+	const orderBy = buildPurchaseOrderBy(query.sort);
+	const [total, items] = await Promise.all([
+		db.purchase.count({ where }),
+		db.purchase.findMany({
+			where,
+			skip,
+			take,
+			orderBy,
+			include: purchaseInclude,
+		}),
+	]);
+	return buildListResult(items, total, query);
+}
 
 type PurchaseWriteInput = {
 	clientId: number;

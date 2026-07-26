@@ -11,12 +11,23 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllProducts } from "@/data-access/products";
-import { createPurchase, deletePurchase, editPurchase, getAllPurchases } from "@/data-access/purchases";
-import { useEntityData } from "@/hooks/useEntityData";
+import {
+	createPurchase,
+	deletePurchase,
+	editPurchase,
+	listPurchases,
+} from "@/data-access/purchases";
+import { useServerList } from "@/hooks/useServerList";
 import {
 	PRODUCT_KIND_LABEL,
 	ProductKind,
 } from "@/lib/domain/product-kind";
+import {
+	PURCHASE_DEFAULT_SORT,
+	PURCHASE_FILTER_ALLOWLIST,
+	PURCHASE_FILTER_LABELS,
+	PURCHASE_SORT_ALLOWLIST,
+} from "@/lib/list/purchases";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
@@ -26,32 +37,36 @@ import { CatalogAmountDefault } from "./catalog-amount-default";
 import { columns, formSchema, ProductWithSpec, PurchaseRow } from "./columns";
 
 export default function PurchasesPage() {
-	const {
-		data: purchases,
-		setData: setPurchases,
-		isLoading,
-		handleDelete,
-		handleEdit,
-	} = useEntityData<PurchaseRow, "id">(
-		useMemo(
-			() => ({
-				getAll: getAllPurchases,
-				deleteAction: async (key) => {
-					await deletePurchase(key);
-					return key as PurchaseRow;
-				},
-				editAction: async (purchase) =>
-					editPurchase({
-						id: purchase.id,
-						clientId: purchase.clientId,
-						date: purchase.date,
-						amount: purchase.amount,
-						productCode: purchase.productCode,
-					}),
-			}),
-			[]
-		),
-		["id"]
+	const list = useServerList<PurchaseRow>({
+		list: listPurchases,
+		sortAllowlist: PURCHASE_SORT_ALLOWLIST,
+		filterAllowlist: PURCHASE_FILTER_ALLOWLIST,
+		defaultSort: [...PURCHASE_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
+
+	const handleDelete = useCallback(
+		async (purchase: Pick<PurchaseRow, "id">) => {
+			await deletePurchase(purchase);
+			refetch();
+		},
+		[refetch]
+	);
+
+	const handleEdit = useCallback(
+		async (purchase: PurchaseRow) => {
+			const updated = await editPurchase({
+				id: purchase.id,
+				clientId: purchase.clientId,
+				date: purchase.date,
+				amount: purchase.amount,
+				productCode: purchase.productCode,
+			});
+			setItems((prev) =>
+				prev.map((item) => (item.id === updated.id ? updated : item))
+			);
+		},
+		[setItems]
 	);
 
 	const [products, setProducts] = useState<ProductWithSpec[]>([]);
@@ -75,10 +90,10 @@ export default function PurchasesPage() {
 
 	const handleCreatePurchase = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newPurchase = await createPurchase(values);
-			setPurchases((prevPurchases) => [...prevPurchases, newPurchase]);
+			await createPurchase(values);
+			refetch();
 		},
-		[setPurchases]
+		[refetch]
 	);
 
 	const actions: Action[] = [
@@ -231,7 +246,7 @@ export default function PurchasesPage() {
 		},
 	];
 
-	return isLoading ? (
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
@@ -239,9 +254,23 @@ export default function PurchasesPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit, products)}
-					data={purchases}
-					filters={["client", "productCode"]}
-					facetedFilters={[]}
+					data={list.items}
+					filters={[...PURCHASE_FILTER_ALLOWLIST]}
+					filterLabels={PURCHASE_FILTER_LABELS}
+					serverList={{
+						manual: true,
+						pageCount: list.pageCount,
+						rowCount: list.total,
+						sorting: list.sorting,
+						onSortingChange: list.onSortingChange,
+						pagination: list.pagination,
+						onPaginationChange: list.onPaginationChange,
+						draftFilters: list.draftFilters,
+						onDraftFilterChange: list.setDraftFilter,
+						onApplyFilters: list.applyFilters,
+						onResetFilters: list.resetFilters,
+						filtersDirty: list.filtersDirty,
+					}}
 				/>
 			}
 		/>
