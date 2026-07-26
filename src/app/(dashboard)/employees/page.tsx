@@ -8,41 +8,59 @@ import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { createEmployee, deleteEmployee, editEmployee, getAllEmployees } from "@/data-access/employees";
-import { useEntityData } from "@/hooks/useEntityData";
+import {
+	createEmployee,
+	deleteEmployee,
+	editEmployee,
+	listEmployees,
+} from "@/data-access/employees";
+import { useServerList } from "@/hooks/useServerList";
+import {
+	EMPLOYEE_DEFAULT_SORT,
+	EMPLOYEE_FILTER_ALLOWLIST,
+	EMPLOYEE_SORT_ALLOWLIST,
+} from "@/lib/list/employees";
 import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
 
 export default function Employees() {
-	const {
-		data: employees,
-		setData: setEmployees,
-		isLoading,
-		handleDelete,
-		handleEdit,
-	} = useEntityData<Employee, "id">(
-		useMemo(
-			() => ({
-				getAll: getAllEmployees,
-				deleteAction: deleteEmployee,
-				editAction: editEmployee,
-			}),
-			[]
-		),
-		["id"]
+	const list = useServerList<Employee>({
+		list: listEmployees,
+		sortAllowlist: EMPLOYEE_SORT_ALLOWLIST,
+		filterAllowlist: EMPLOYEE_FILTER_ALLOWLIST,
+		defaultSort: [...EMPLOYEE_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
+
+	const handleDelete = useCallback(
+		async (employee: Pick<Employee, "id">) => {
+			await deleteEmployee(employee);
+			refetch();
+		},
+		[refetch]
 	);
-	
+
+	const handleEdit = useCallback(
+		async (employee: Employee) => {
+			const updated = await editEmployee(employee);
+			setItems((prev) =>
+				prev.map((item) => (item.id === updated.id ? updated : item))
+			);
+		},
+		[setItems]
+	);
+
 	const handleCreateEmployee = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			const newEmployee = await createEmployee(values);
-			setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
+			await createEmployee(values);
+			refetch();
 		},
-		[setEmployees]
+		[refetch]
 	);
 
 	const actions: Action[] = [
@@ -225,7 +243,7 @@ export default function Employees() {
 		},
 	];
 
-	return isLoading ? (
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
@@ -233,9 +251,22 @@ export default function Employees() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
-					data={employees}
-					filters={["taxCode", "name", "surname"]}
-					facetedFilters={["city", "province"]}
+					data={list.items}
+					filters={["taxCode", "name", "surname", "city", "province"]}
+					serverList={{
+						manual: true,
+						pageCount: list.pageCount,
+						rowCount: list.total,
+						sorting: list.sorting,
+						onSortingChange: list.onSortingChange,
+						pagination: list.pagination,
+						onPaginationChange: list.onPaginationChange,
+						draftFilters: list.draftFilters,
+						onDraftFilterChange: list.setDraftFilter,
+						onApplyFilters: list.applyFilters,
+						onResetFilters: list.resetFilters,
+						filtersDirty: list.filtersDirty,
+					}}
 				/>
 			}
 		/>
