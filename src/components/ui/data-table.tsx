@@ -42,8 +42,11 @@ export type DataTableServerListProps = {
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
-	filters: Array<Extract<keyof TData, string>>;
-	facetedFilters?: Array<Extract<keyof TData, string>>;
+	/** Chiavi filtro toolbar (native o join mappati lato server). */
+	filters: string[];
+	facetedFilters?: string[];
+	/** Override placeholder per chiave filtro. */
+	filterLabels?: Record<string, string>;
 	className?: string;
 	serverList?: DataTableServerListProps;
 }
@@ -53,6 +56,7 @@ export function DataTable<TData, TValue>({
 	data,
 	filters,
 	facetedFilters,
+	filterLabels,
 	className,
 	serverList,
 }: DataTableProps<TData, TValue>) {
@@ -98,6 +102,7 @@ export function DataTable<TData, TValue>({
 				table={table}
 				filters={filters}
 				facetedFilters={isServer ? undefined : facetedFilters}
+				filterLabels={filterLabels}
 				serverList={
 					isServer
 						? {

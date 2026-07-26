@@ -47,6 +47,38 @@ async function main() {
 		"filters allowlist"
 	);
 
+	if (page1.items[0]) {
+		const sample = page1.items[0];
+		const byPurchase = await listEntrances({
+			filters: { purchaseId: String(sample.purchaseId) },
+			page: 1,
+			pageSize: 10,
+		});
+		assert(byPurchase.total > 0, "purchaseId filter finds rows");
+		assert(
+			byPurchase.items.every((e) => e.purchaseId === sample.purchaseId),
+			"purchaseId filter matches Acquisto column"
+		);
+
+		const byEntranceId = await listEntrances({
+			filters: { id: String(sample.id) },
+			page: 1,
+			pageSize: 10,
+		});
+		assert(byEntranceId.total === 1, "id filter → single entrance");
+		assert(byEntranceId.items[0]?.id === sample.id, "id filter exact");
+
+		const entranceIdAsPurchase = await listEntrances({
+			filters: { purchaseId: String(sample.id) },
+			page: 1,
+			pageSize: 10,
+		});
+		assert(
+			entranceIdAsPurchase.items.every((e) => e.purchaseId === sample.id),
+			"purchaseId does not silently match entrance id"
+		);
+	}
+
 	const badSort = await listEntrances({
 		sort: [{ id: "dropTable", desc: true }],
 		page: 1,

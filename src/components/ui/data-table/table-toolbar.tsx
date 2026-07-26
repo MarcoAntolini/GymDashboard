@@ -21,13 +21,18 @@ export type TableToolbarServerListProps = {
 
 interface TableToolbarProps<TData> {
 	table: Table<TData>;
-	filters: Array<Extract<keyof TData, string>>;
-	facetedFilters?: Array<Extract<keyof TData, string>>;
+	/** Chiavi filtro (accessor / id colonna / chiave server-list). */
+	filters: string[];
+	facetedFilters?: string[];
+	/** Override placeholder per chiave filtro (es. purchaseId → "ID Acquisto"). */
+	filterLabels?: Record<string, string>;
 	/** Se presente: draft + Conferma/Filtra (niente query a ogni keystroke). */
 	serverList?: TableToolbarServerListProps;
 }
 
-function filterPlaceholder(filter: string): string {
+function filterPlaceholder(filter: string, labels?: Record<string, string>): string {
+	const labeled = labels?.[filter];
+	if (labeled) return labeled;
 	return filter
 		.replace(/([A-Z])/g, (match, p1, offset) =>
 			offset > 0 && filter.charAt(offset - 1) !== " " ? ` ${p1}` : p1
@@ -41,6 +46,7 @@ export default function TableToolbar<TData>({
 	table,
 	filters,
 	facetedFilters,
+	filterLabels,
 	serverList,
 }: TableToolbarProps<TData>) {
 	const isServer = !!serverList;
@@ -55,7 +61,7 @@ export default function TableToolbar<TData>({
 				{filters.map((filter) => (
 					<Input
 						key={filter}
-						placeholder={filterPlaceholder(filter)}
+						placeholder={filterPlaceholder(filter, filterLabels)}
 						value={
 							isServer
 								? String(serverList.draftFilters[filter] ?? "")

@@ -25,6 +25,7 @@ import { useServerList } from "@/hooks/useServerList";
 import {
 	ENTRANCE_DEFAULT_SORT,
 	ENTRANCE_FILTER_ALLOWLIST,
+	ENTRANCE_FILTER_LABELS,
 	ENTRANCE_SORT_ALLOWLIST,
 } from "@/lib/list/entrances";
 import { cn } from "@/lib/utils";
@@ -244,7 +245,8 @@ export default function EntrancesPage() {
 					<DataTable
 						columns={columns(handleDelete, handleEdit)}
 						data={list.items}
-						filters={["purchaseId", "client", "product"]}
+						filters={[...ENTRANCE_FILTER_ALLOWLIST]}
+						filterLabels={ENTRANCE_FILTER_LABELS}
 						serverList={{
 							manual: true,
 							pageCount: list.pageCount,

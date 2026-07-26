@@ -35,17 +35,30 @@ const entranceInclude = {
 
 export type EntranceRow = Prisma.EntranceGetPayload<{ include: typeof entranceInclude }>;
 
+function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
+	if (typeof raw === "number" && Number.isFinite(raw)) {
+		const n = Math.trunc(raw);
+		return n > 0 ? n : undefined;
+	}
+	if (typeof raw === "string") {
+		const trimmed = raw.trim();
+		// Solo intero completo (niente prefissi parziali tipo "7" → 7).
+		if (!/^\d+$/.test(trimmed)) return undefined;
+		const n = Number.parseInt(trimmed, 10);
+		return Number.isFinite(n) && n > 0 ? n : undefined;
+	}
+	return undefined;
+}
+
 function buildEntranceWhere(filters: ListFilters): Prisma.EntranceWhereInput {
 	const where: Prisma.EntranceWhereInput = {};
 	const and: Prisma.EntranceWhereInput[] = [];
 
-	const purchaseIdRaw = filters.purchaseId;
-	if (typeof purchaseIdRaw === "number" && Number.isFinite(purchaseIdRaw)) {
-		where.purchaseId = Math.trunc(purchaseIdRaw);
-	} else if (typeof purchaseIdRaw === "string") {
-		const n = Number.parseInt(purchaseIdRaw.trim(), 10);
-		if (Number.isFinite(n)) where.purchaseId = n;
-	}
+	const id = parsePositiveIntFilter(filters.id);
+	if (id !== undefined) where.id = id;
+
+	const purchaseId = parsePositiveIntFilter(filters.purchaseId);
+	if (purchaseId !== undefined) where.purchaseId = purchaseId;
 
 	const client = filters.client;
 	if (typeof client === "string") {
