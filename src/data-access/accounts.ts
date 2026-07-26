@@ -9,7 +9,77 @@ import {
 } from "@/lib/auth";
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
-import { Role } from "@prisma/client";
+import {
+	buildListResult,
+	normalizeListQuery,
+	toPrismaListArgs,
+	type ListFilters,
+	type ListQueryInput,
+	type ListResult,
+} from "@/lib/list";
+import {
+	ACCOUNT_DEFAULT_SORT,
+	ACCOUNT_FILTER_ALLOWLIST,
+	ACCOUNT_SORT_ALLOWLIST,
+} from "@/lib/list/accounts";
+import { Account, Prisma, Role } from "@prisma/client";
+
+function parseApprovedFilter(raw: ListFilters[string]): boolean | undefined {
+	if (typeof raw === "boolean") return raw;
+	if (typeof raw !== "string") return undefined;
+	const value = raw.trim().toLowerCase();
+	if (value === "true" || value === "1" || value === "si" || value === "sì") return true;
+	if (value === "false" || value === "0" || value === "no") return false;
+	return undefined;
+}
+
+function buildAccountWhere(filters: ListFilters): Prisma.AccountWhereInput {
+	const where: Prisma.AccountWhereInput = {};
+
+	const username = filters.username;
+	if (typeof username === "string") {
+		const value = username.trim();
+		if (value) where.username = { contains: value };
+	}
+
+	const role = filters.role;
+	if (typeof role === "string") {
+		const value = role.trim();
+		if (value && isAppRole(value)) {
+			where.role = value;
+		}
+	}
+
+	const approved = parseApprovedFilter(filters.approved);
+	if (approved !== undefined) where.approved = approved;
+
+	return where;
+}
+
+/**
+ * Lista Account server-side: filtri su Conferma, sort + paginazione via DB.
+ */
+export async function listAccounts(
+	input: ListQueryInput = {}
+): Promise<ListResult<Account>> {
+	const query = normalizeListQuery(input, {
+		sortAllowlist: ACCOUNT_SORT_ALLOWLIST,
+		filterAllowlist: ACCOUNT_FILTER_ALLOWLIST,
+		defaultSort: [...ACCOUNT_DEFAULT_SORT],
+	});
+	const where = buildAccountWhere(query.filters);
+	const { skip, take, orderBy } = toPrismaListArgs(query);
+	// Tie-break stabile su PK username (evita overlap OFFSET con sort non unico).
+	const orderByStable = [
+		...(orderBy ?? []),
+		...(orderBy?.some((o) => "username" in o) ? [] : [{ username: "asc" as const }]),
+	];
+	const [total, items] = await Promise.all([
+		db.account.count({ where }),
+		db.account.findMany({ where, skip, take, orderBy: orderByStable }),
+	]);
+	return buildListResult(items, total, query);
+}
 
 export async function createAccount(input: {
 	username: string;

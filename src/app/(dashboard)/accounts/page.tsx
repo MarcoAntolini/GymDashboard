@@ -6,10 +6,22 @@ import { DataTable } from "@/components/ui/data-table";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createAccount, deleteAccount, editAccount, getAllAccounts } from "@/data-access/accounts";
+import {
+	createAccount,
+	deleteAccount,
+	editAccount,
+	getAccount,
+	listAccounts,
+} from "@/data-access/accounts";
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
 import { isAppRole, type AppRole } from "@/data/nav-routes";
 import { useEntityData } from "@/hooks/useEntityData";
+import { useServerList } from "@/hooks/useServerList";
+import {
+	ACCOUNT_DEFAULT_SORT,
+	ACCOUNT_FILTER_ALLOWLIST,
+	ACCOUNT_SORT_ALLOWLIST,
+} from "@/lib/list/accounts";
 import { Account, Employee } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -24,28 +36,14 @@ const createAccountSchema = z.object({
 });
 
 export default function Accounts() {
-	const {
-		data: accounts,
-		setData: setAccounts,
-		isLoading,
-		handleDelete,
-		handleEdit,
-	} = useEntityData<Account, "employeeId">(
-		useMemo(
-			() => ({
-				getAll: getAllAccounts,
-				deleteAction: deleteAccount,
-				editAction: async (account) =>
-					editAccount({
-						employeeId: account.employeeId,
-						role: account.role,
-						approved: account.approved,
-					}),
-			}),
-			[]
-		),
-		["employeeId"]
-	);
+	const list = useServerList<Account>({
+		list: listAccounts,
+		sortAllowlist: ACCOUNT_SORT_ALLOWLIST,
+		filterAllowlist: ACCOUNT_FILTER_ALLOWLIST,
+		defaultSort: [...ACCOUNT_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
+
 	const { data: employeesWithoutAccount, setData: setEmployeesWithoutAccount } = useEntityData<Employee, "id">(
 		useMemo(
 			() => ({
@@ -76,30 +74,57 @@ export default function Accounts() {
 			cancelled = true;
 		};
 	}, []);
+
+	const handleDelete = useCallback(
+		async (account: Pick<Account, "employeeId">) => {
+			await deleteAccount(account);
+			refetch();
+		},
+		[refetch]
+	);
+
+	const handleEdit = useCallback(
+		async (account: Account) => {
+			const updated = await editAccount({
+				employeeId: account.employeeId,
+				role: account.role,
+				approved: account.approved,
+			});
+			setItems((prev) =>
+				prev.map((item) =>
+					item.employeeId === updated.employeeId ? updated : item
+				)
+			);
+		},
+		[setItems]
+	);
+
 	const handleCreateAccount = useCallback(
 		async (values: z.infer<typeof createAccountSchema>) => {
 			setIsPending(true);
-			const newAccount = await createAccount({ ...values, username: newUsername });
-			setAccounts((prevAccounts) => [...prevAccounts, newAccount]);
+			await createAccount({ ...values, username: newUsername });
 			setIsPending(false);
 			setNewUsername("");
 			setEmployeesWithoutAccount((prevEmployees) =>
 				prevEmployees.filter((employee) => employee.id !== values.employeeId)
 			);
+			refetch();
 		},
-		[setAccounts, setEmployeesWithoutAccount, newUsername]
+		[newUsername, refetch, setEmployeesWithoutAccount]
 	);
-	function generateUsername(employee?: Employee) {
+
+	const generateUsername = useCallback(async (employee?: Employee) => {
 		if (!employee || !employee.name || !employee.surname) {
-			return "";
+			setNewUsername("");
+			return;
 		}
-		const username = `${employee.name.slice(0, 5)}.${employee.surname.slice(0, 5)}`;
+		const base = `${employee.name.slice(0, 5)}.${employee.surname.slice(0, 5)}`;
 		let number = 1;
-		while (accounts.some((account) => account.username === username + number)) {
+		while (await getAccount({ username: base + number })) {
 			number++;
 		}
-		setNewUsername(username + number);
-	}
+		setNewUsername(base + number);
+	}, []);
 
 	const createAccountFormData: FormData<typeof createAccountSchema> = {
 		formSchema: createAccountSchema,
@@ -129,7 +154,7 @@ export default function Accounts() {
 										<Select
 											onValueChange={(value) => {
 												field.onChange(parseInt(value, 10));
-												generateUsername(
+												void generateUsername(
 													employeesWithoutAccount.find((employee) => employee.id === parseInt(value, 10))
 												);
 											}}
@@ -159,7 +184,7 @@ export default function Accounts() {
 							/>
 							<FormField
 								name="username"
-								render={({ field }) => (
+								render={() => (
 									<FormItem>
 										<FormLabel>Username</FormLabel>
 										<Input
@@ -198,24 +223,24 @@ export default function Accounts() {
 
 	const handleQueueApproved = useCallback(
 		(employeeId: number) => {
-			setAccounts((prev) =>
+			setItems((prev) =>
 				prev.map((account) =>
 					account.employeeId === employeeId ? { ...account, approved: true } : account
 				)
 			);
 		},
-		[setAccounts]
+		[setItems]
 	);
 
 	const handleQueueRejected = useCallback(
 		(employeeId: number) => {
-			setAccounts((prev) => prev.filter((account) => account.employeeId !== employeeId));
+			setItems((prev) => prev.filter((account) => account.employeeId !== employeeId));
 			void getEmployeesWithoutAccount().then(setEmployeesWithoutAccount);
 		},
-		[setAccounts, setEmployeesWithoutAccount]
+		[setItems, setEmployeesWithoutAccount]
 	);
 
-	return isLoading || !actorRole ? (
+	return (list.isLoading && list.items.length === 0) || !actorRole ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
@@ -230,9 +255,22 @@ export default function Accounts() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit, actorRole)}
-					data={accounts}
-					filters={["username"]}
-					facetedFilters={["role", "approved"]}
+					data={list.items}
+					filters={[...ACCOUNT_FILTER_ALLOWLIST]}
+					serverList={{
+						manual: true,
+						pageCount: list.pageCount,
+						rowCount: list.total,
+						sorting: list.sorting,
+						onSortingChange: list.onSortingChange,
+						pagination: list.pagination,
+						onPaginationChange: list.onPaginationChange,
+						draftFilters: list.draftFilters,
+						onDraftFilterChange: list.setDraftFilter,
+						onApplyFilters: list.applyFilters,
+						onResetFilters: list.resetFilters,
+						filtersDirty: list.filtersDirty,
+					}}
 				/>
 			}
 		/>
