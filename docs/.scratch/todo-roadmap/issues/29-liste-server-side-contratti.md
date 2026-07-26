@@ -23,4 +23,5 @@
 - Pagina `/contracts` migrata a `useServerList` + `DataTable` `serverList`; filtri solo su **Filtra** (niente più faceted client-side su `type`).
 - CRUD: create/delete → `refetch`; edit → update ottimistico su pagina corrente; earnings sheet e create-dialog invariati.
 - Smoke DB: `npx tsx scripts/smoke-list-contracts.ts` (paginazione, filtri, allowlist sort, type/employeeId).
+- Commit: `14f9af3` — `feat(contratti): lista server-side Filtra/sort/paginazione (ticket 29)`.
 - Deferral: empty-from-filters vs empty-dataset resta ticket 39; `getAllContracts` tenuto per consumer non-lista.
