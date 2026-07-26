@@ -12,15 +12,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-    createContract,
-    deleteContract,
-    editContract,
-    EmployeesEarningsInPeriod,
-    getAllContracts,
-    getEmployeesEarningsInPeriod
+	createContract,
+	deleteContract,
+	editContract,
+	EmployeesEarningsInPeriod,
+	getEmployeesEarningsInPeriod,
+	listContracts,
 } from "@/data-access/contracts";
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
+import { useServerList } from "@/hooks/useServerList";
+import {
+	CONTRACT_DEFAULT_SORT,
+	CONTRACT_FILTER_ALLOWLIST,
+	CONTRACT_SORT_ALLOWLIST,
+} from "@/lib/list/contracts";
 import { cn } from "@/lib/utils";
 import { Contract, ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -40,23 +46,13 @@ const earningsFormSchema = z.object({
 });
 
 export default function Contracts() {
-	const {
-		data: contracts,
-		setData: setContracts,
-		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<Contract, "employeeId" | "startingDate">(
-		useMemo(
-			() => ({
-				getAll: getAllContracts,
-				deleteAction: deleteContract,
-				editAction: editContract
-			}),
-			[]
-		),
-		["employeeId", "startingDate"]
-	);
+	const list = useServerList<Contract>({
+		list: listContracts,
+		sortAllowlist: CONTRACT_SORT_ALLOWLIST,
+		filterAllowlist: CONTRACT_FILTER_ALLOWLIST,
+		defaultSort: [...CONTRACT_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
 
 	const { data: employeesWithoutContract, setData: setEmployeesWithoutContract } = useEntityData<Employee, "id">(
 		useMemo(
@@ -68,14 +64,22 @@ export default function Contracts() {
 		["id"]
 	);
 
+	const handleDelete = useCallback(
+		async (contract: Pick<Contract, "employeeId" | "startingDate">) => {
+			await deleteContract(contract);
+			refetch();
+		},
+		[refetch]
+	);
+
 	const handleCreateContract = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
 			try {
-				const newContract = await createContract(values);
-				setContracts((prevContracts) => [...prevContracts, newContract]);
+				await createContract(values);
 				setEmployeesWithoutContract((prevEmployees) =>
 					prevEmployees.filter((employee) => employee.id !== values.employeeId)
 				);
+				refetch();
 			} catch (error) {
 				const message =
 					error instanceof Error && error.message
@@ -85,13 +89,22 @@ export default function Contracts() {
 				throw error;
 			}
 		},
-		[setContracts, setEmployeesWithoutContract]
+		[refetch, setEmployeesWithoutContract]
 	);
 
 	const handleEditContract = useCallback(
 		async (contract: Contract) => {
 			try {
-				await handleEdit(contract);
+				const updated = await editContract(contract);
+				setItems((prev) =>
+					prev.map((item) =>
+						item.employeeId === updated.employeeId &&
+						new Date(item.startingDate).getTime() ===
+							new Date(updated.startingDate).getTime()
+							? updated
+							: item
+					)
+				);
 			} catch (error) {
 				const message =
 					error instanceof Error && error.message
@@ -101,7 +114,7 @@ export default function Contracts() {
 				throw error;
 			}
 		},
-		[handleEdit]
+		[setItems]
 	);
 	const createContractFormData: FormData<typeof formSchema> = {
 		formSchema,
@@ -323,7 +336,7 @@ export default function Contracts() {
 		}
 	];
 
-	return isLoading ? (
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<>
@@ -332,9 +345,22 @@ export default function Contracts() {
 				table={
 					<DataTable
 						columns={columns(handleDelete, handleEditContract, employeeId)}
-						data={contracts}
-						filters={["employeeId"]}
-						facetedFilters={["type"]}
+						data={list.items}
+						filters={[...CONTRACT_FILTER_ALLOWLIST]}
+						serverList={{
+							manual: true,
+							pageCount: list.pageCount,
+							rowCount: list.total,
+							sorting: list.sorting,
+							onSortingChange: list.onSortingChange,
+							pagination: list.pagination,
+							onPaginationChange: list.onPaginationChange,
+							draftFilters: list.draftFilters,
+							onDraftFilterChange: list.setDraftFilter,
+							onApplyFilters: list.applyFilters,
+							onResetFilters: list.resetFilters,
+							filtersDirty: list.filtersDirty,
+						}}
 					/>
 				}
 			/>

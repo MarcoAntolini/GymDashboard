@@ -9,9 +9,87 @@ import {
 import { requireRole } from "@/lib/auth";
 import { resolveContractEndingDate } from "@/lib/contract-term";
 import { db } from "@/lib/db";
+import {
+	buildListResult,
+	normalizeListQuery,
+	toPrismaListArgs,
+	type ListFilters,
+	type ListQueryInput,
+	type ListResult,
+} from "@/lib/list";
+import {
+	CONTRACT_DEFAULT_SORT,
+	CONTRACT_FILTER_ALLOWLIST,
+	CONTRACT_SORT_ALLOWLIST,
+} from "@/lib/list/contracts";
 import { Contract, ContractType, Prisma } from "@prisma/client";
 
 type MoneyInput = Prisma.Decimal | number | string;
+
+const CONTRACT_TYPES = new Set<string>(Object.values(ContractType));
+
+function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
+	if (typeof raw === "number" && Number.isFinite(raw)) {
+		const n = Math.trunc(raw);
+		return n > 0 ? n : undefined;
+	}
+	if (typeof raw === "string") {
+		const trimmed = raw.trim();
+		if (!/^\d+$/.test(trimmed)) return undefined;
+		const n = Number.parseInt(trimmed, 10);
+		return Number.isFinite(n) && n > 0 ? n : undefined;
+	}
+	return undefined;
+}
+
+function parseContractTypeFilter(raw: ListFilters[string]): ContractType | undefined {
+	if (typeof raw !== "string") return undefined;
+	const value = raw.trim();
+	if (!value || !CONTRACT_TYPES.has(value)) return undefined;
+	return value as ContractType;
+}
+
+function buildContractWhere(filters: ListFilters): Prisma.ContractWhereInput {
+	const where: Prisma.ContractWhereInput = {};
+
+	const employeeId = parsePositiveIntFilter(filters.employeeId);
+	if (employeeId !== undefined) where.employeeId = employeeId;
+
+	const type = parseContractTypeFilter(filters.type);
+	if (type !== undefined) where.type = type;
+
+	return where;
+}
+
+/**
+ * Lista Contratti server-side: filtri su Conferma, sort + paginazione via DB.
+ */
+export async function listContracts(
+	input: ListQueryInput = {}
+): Promise<ListResult<Contract>> {
+	const query = normalizeListQuery(input, {
+		sortAllowlist: CONTRACT_SORT_ALLOWLIST,
+		filterAllowlist: CONTRACT_FILTER_ALLOWLIST,
+		defaultSort: [...CONTRACT_DEFAULT_SORT],
+	});
+	const where = buildContractWhere(query.filters);
+	const { skip, take, orderBy } = toPrismaListArgs(query);
+	// Tie-break stabile su PK composta (evita overlap OFFSET con sort non unico).
+	const orderByStable = [
+		...(orderBy ?? []),
+		...(orderBy?.some((o) => "employeeId" in o)
+			? []
+			: [{ employeeId: "asc" as const }]),
+		...(orderBy?.some((o) => "startingDate" in o)
+			? []
+			: [{ startingDate: "asc" as const }]),
+	];
+	const [total, items] = await Promise.all([
+		db.contract.count({ where }),
+		db.contract.findMany({ where, skip, take, orderBy: orderByStable }),
+	]);
+	return buildListResult(items, total, query);
+}
 
 async function assertNoOverlappingContract({
 	employeeId,
