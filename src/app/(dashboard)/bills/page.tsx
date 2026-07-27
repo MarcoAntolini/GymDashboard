@@ -3,37 +3,70 @@
 import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
-import { deleteBill, editBill, getAllBills } from "@/data-access/bills";
-import { useEntityData } from "@/hooks/useEntityData";
+import { deleteBill, editBill, listBills } from "@/data-access/bills";
+import { useServerList } from "@/hooks/useServerList";
+import {
+	BILL_DEFAULT_SORT,
+	BILL_FILTER_ALLOWLIST,
+	BILL_SORT_ALLOWLIST,
+} from "@/lib/list/bills";
 import { Bill } from "@prisma/client";
-import { useMemo } from "react";
+import { useCallback } from "react";
 import { columns } from "./columns";
 
 export default function BillsPage() {
-	const {
-		data: bills,
-		setData: setBills,
-		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<Bill, "paymentId">(
-		useMemo(
-			() => ({
-				getAll: getAllBills,
-				deleteAction: deleteBill,
-				editAction: editBill
-			}),
-			[]
-		),
-		["paymentId"]
+	const list = useServerList<Bill>({
+		list: listBills,
+		sortAllowlist: BILL_SORT_ALLOWLIST,
+		filterAllowlist: BILL_FILTER_ALLOWLIST,
+		defaultSort: [...BILL_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
+
+	const handleDelete = useCallback(
+		async (bill: Pick<Bill, "paymentId">) => {
+			await deleteBill(bill);
+			refetch();
+		},
+		[refetch]
 	);
 
-	return isLoading ? (
+	const handleEdit = useCallback(
+		async (bill: Bill) => {
+			const updated = await editBill(bill);
+			setItems((prev) =>
+				prev.map((item) => (item.paymentId === updated.paymentId ? updated : item))
+			);
+		},
+		[setItems]
+	);
+
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={[]}
-			table={<DataTable columns={columns(handleDelete, handleEdit)} data={bills} filters={["paymentId", "provider"]} />}
+			table={
+				<DataTable
+					columns={columns(handleDelete, handleEdit)}
+					data={list.items}
+					filters={[...BILL_FILTER_ALLOWLIST]}
+					serverList={{
+						manual: true,
+						pageCount: list.pageCount,
+						rowCount: list.total,
+						sorting: list.sorting,
+						onSortingChange: list.onSortingChange,
+						pagination: list.pagination,
+						onPaginationChange: list.onPaginationChange,
+						draftFilters: list.draftFilters,
+						onDraftFilterChange: list.setDraftFilter,
+						onApplyFilters: list.applyFilters,
+						onResetFilters: list.resetFilters,
+						filtersDirty: list.filtersDirty,
+					}}
+				/>
+			}
 		/>
 	);
 }
