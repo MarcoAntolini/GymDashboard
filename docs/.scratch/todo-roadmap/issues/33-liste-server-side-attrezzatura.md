@@ -23,4 +23,5 @@
 - Pagina `/equipment` migrata a `useServerList` + `DataTable` `serverList`; filtri solo su **Filtra**.
 - CRUD: delete → `refetch`; edit → update ottimistico su pagina corrente.
 - Smoke DB: `npx tsx scripts/smoke-list-equipment.ts` (paginazione, filtri, allowlist sort, paymentId/provider).
+- Commit: `0025951` — `feat(attrezzatura): lista server-side Filtra/sort/paginazione (ticket 33)`.
 - Deferral: empty-from-filters vs empty-dataset resta ticket 39; `getAllEquipment` tenuto per consumer non-lista.
