@@ -23,4 +23,5 @@
 - Pagina `/bills` migrata a `useServerList` + `DataTable` `serverList`; filtri solo su **Filtra**.
 - CRUD: delete → `refetch`; edit → update ottimistico su pagina corrente.
 - Smoke DB: `npx tsx scripts/smoke-list-bills.ts` (paginazione, filtri, allowlist sort, paymentId/provider).
+- Commit: `3694020` — `feat(bollette): lista server-side Filtra/sort/paginazione (ticket 32)`.
 - Deferral: empty-from-filters vs empty-dataset resta ticket 39; `getAllBills` tenuto per consumer non-lista.
