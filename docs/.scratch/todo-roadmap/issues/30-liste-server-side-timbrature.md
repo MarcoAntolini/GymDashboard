@@ -23,4 +23,5 @@
 - Pagina `/clockings` migrata a `useServerList` + `DataTable` `serverList`; filtri solo su **Filtra**.
 - CRUD: create/delete → `refetch`; edit → update ottimistico su pagina corrente.
 - Smoke DB: `npx tsx scripts/smoke-list-clockings.ts` (paginazione, filtri, allowlist sort, employeeId).
+- Commit: `a7d6bed` — `feat(timbrature): lista server-side Filtra/sort/paginazione (ticket 30)`.
 - Deferral: empty-from-filters vs empty-dataset resta ticket 39; `getAllClockings` tenuto per consumer non-lista.
