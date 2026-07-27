@@ -23,4 +23,5 @@
 - Pagina `/salaries` migrata a `useServerList` + `DataTable` `serverList`; filtri solo su **Filtra**.
 - CRUD: delete → `refetch`; edit → update ottimistico su pagina corrente.
 - Smoke DB: `npx tsx scripts/smoke-list-salaries.ts` (paginazione, filtri, allowlist sort, paymentId/employeeId).
+- Commit: `4ab6f27` — `feat(stipendi): lista server-side Filtra/sort/paginazione (ticket 31)`.
 - Deferral: empty-from-filters vs empty-dataset resta ticket 39; `getAllSalaries` tenuto per consumer non-lista.
