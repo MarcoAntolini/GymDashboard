@@ -4,10 +4,23 @@
 
 **Blocked by:** 19 — Fondamenta liste server-side (filtri Conferma, sort, paginazione)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] List Timbrature non filtra più l’intero dataset solo in frontend
-- [ ] Conferma/Filtra esegue la query; keystroke nei filtri non martellano il backend
-- [ ] Sort colonna → re-query con ORDER BY + paginazione corretta
-- [ ] Paginazione server-side con totale/count usabile in UI
-- [ ] Empty da filtri distinto da dataset vuoto (se già supportato dalla shell)
+- [x] List Timbrature non filtra più l’intero dataset solo in frontend
+- [x] Conferma/Filtra esegue la query; keystroke nei filtri non martellano il backend
+- [x] Sort colonna → re-query con ORDER BY + paginazione corretta
+- [x] Paginazione server-side con totale/count usabile in UI
+- [x] Empty da filtri distinto da dataset vuoto (se già supportato dalla shell)
+
+## Comments
+
+- 2026-07-27 — claimed by implement loop
+
+## Done
+
+- Aggiunto `listClockings` in `src/data-access/clockings.ts` (allowlist sort/filter; `employeeId` exact; ORDER BY + tie-break PK `employeeId`/`entranceTime`).
+- Config `src/lib/list/clockings.ts` (sort: employeeId/entranceTime/exitTime; filter: employeeId; default `entranceTime` desc).
+- Pagina `/clockings` migrata a `useServerList` + `DataTable` `serverList`; filtri solo su **Filtra**.
+- CRUD: create/delete → `refetch`; edit → update ottimistico su pagina corrente.
+- Smoke DB: `npx tsx scripts/smoke-list-clockings.ts` (paginazione, filtri, allowlist sort, employeeId).
+- Deferral: empty-from-filters vs empty-dataset resta ticket 39; `getAllClockings` tenuto per consumer non-lista.

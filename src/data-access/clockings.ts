@@ -3,7 +3,73 @@
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Clocking } from "@prisma/client";
+import {
+	buildListResult,
+	normalizeListQuery,
+	toPrismaListArgs,
+	type ListFilters,
+	type ListQueryInput,
+	type ListResult,
+} from "@/lib/list";
+import {
+	CLOCKING_DEFAULT_SORT,
+	CLOCKING_FILTER_ALLOWLIST,
+	CLOCKING_SORT_ALLOWLIST,
+} from "@/lib/list/clockings";
+import { Clocking, Prisma } from "@prisma/client";
+
+function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
+	if (typeof raw === "number" && Number.isFinite(raw)) {
+		const n = Math.trunc(raw);
+		return n > 0 ? n : undefined;
+	}
+	if (typeof raw === "string") {
+		const trimmed = raw.trim();
+		if (!/^\d+$/.test(trimmed)) return undefined;
+		const n = Number.parseInt(trimmed, 10);
+		return Number.isFinite(n) && n > 0 ? n : undefined;
+	}
+	return undefined;
+}
+
+function buildClockingWhere(filters: ListFilters): Prisma.ClockingWhereInput {
+	const where: Prisma.ClockingWhereInput = {};
+
+	const employeeId = parsePositiveIntFilter(filters.employeeId);
+	if (employeeId !== undefined) where.employeeId = employeeId;
+
+	return where;
+}
+
+/**
+ * Lista Timbrature server-side: filtri su Conferma, sort + paginazione via DB.
+ */
+export async function listClockings(
+	input: ListQueryInput = {}
+): Promise<ListResult<Clocking>> {
+	const query = normalizeListQuery(input, {
+		sortAllowlist: CLOCKING_SORT_ALLOWLIST,
+		filterAllowlist: CLOCKING_FILTER_ALLOWLIST,
+		defaultSort: [...CLOCKING_DEFAULT_SORT],
+	});
+	const where = buildClockingWhere(query.filters);
+	const { skip, take, orderBy } = toPrismaListArgs(query);
+	// Tie-break stabile su PK composta (evita overlap OFFSET con sort non unico).
+	const orderByStable = [
+		...(orderBy ?? []),
+		...(orderBy?.some((o) => "employeeId" in o)
+			? []
+			: [{ employeeId: "asc" as const }]),
+		...(orderBy?.some((o) => "entranceTime" in o)
+			? []
+			: [{ entranceTime: "asc" as const }]),
+	];
+	const [total, items] = await Promise.all([
+		db.clocking.count({ where }),
+		db.clocking.findMany({ where, skip, take, orderBy: orderByStable }),
+	]);
+	return buildListResult(items, total, query);
+}
 
 export async function createClocking(input: {
 	employeeId: number;

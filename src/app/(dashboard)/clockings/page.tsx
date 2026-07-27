@@ -6,33 +6,57 @@ import { DataTable } from "@/components/ui/data-table";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createClocking, deleteClocking, editClocking, getAllClockings } from "@/data-access/clockings";
+import {
+	createClocking,
+	deleteClocking,
+	editClocking,
+	listClockings,
+} from "@/data-access/clockings";
 import { getEmployee } from "@/data-access/employees";
-import { useEntityData } from "@/hooks/useEntityData";
+import { useServerList } from "@/hooks/useServerList";
+import {
+	CLOCKING_DEFAULT_SORT,
+	CLOCKING_FILTER_ALLOWLIST,
+	CLOCKING_SORT_ALLOWLIST,
+} from "@/lib/list/clockings";
 import { Clocking } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { columns, formSchema } from "./columns";
 
 export default function Clockings() {
-	const {
-		data: clockings,
-		setData: setClockings,
-		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<Clocking, "employeeId" | "entranceTime">(
-		useMemo(
-			() => ({
-				getAll: getAllClockings,
-				deleteAction: deleteClocking,
-				editAction: editClocking
-			}),
-			[]
-		),
-		["employeeId", "entranceTime"]
+	const list = useServerList<Clocking>({
+		list: listClockings,
+		sortAllowlist: CLOCKING_SORT_ALLOWLIST,
+		filterAllowlist: CLOCKING_FILTER_ALLOWLIST,
+		defaultSort: [...CLOCKING_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
+
+	const handleDelete = useCallback(
+		async (clocking: Pick<Clocking, "employeeId" | "entranceTime">) => {
+			await deleteClocking(clocking);
+			refetch();
+		},
+		[refetch]
+	);
+
+	const handleEdit = useCallback(
+		async (clocking: Clocking) => {
+			const updated = await editClocking(clocking);
+			setItems((prev) =>
+				prev.map((item) =>
+					item.employeeId === updated.employeeId &&
+					new Date(item.entranceTime).getTime() ===
+						new Date(updated.entranceTime).getTime()
+						? updated
+						: item
+				)
+			);
+		},
+		[setItems]
 	);
 
 	const handleCreateClocking = useCallback(
@@ -42,10 +66,10 @@ export default function Clockings() {
 				toast.error("Employee not found");
 				return;
 			}
-			const newClocking = await createClocking(values);
-			setClockings((prevClockings) => [...prevClockings, newClocking]);
+			await createClocking(values);
+			refetch();
 		},
-		[setClockings]
+		[refetch]
 	);
 
 	const actions: Action[] = [
@@ -100,12 +124,32 @@ export default function Clockings() {
 		}
 	];
 
-	return isLoading ? (
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={actions}
-			table={<DataTable columns={columns(handleDelete, handleEdit)} data={clockings} filters={["employeeId"]} />}
+			table={
+				<DataTable
+					columns={columns(handleDelete, handleEdit)}
+					data={list.items}
+					filters={[...CLOCKING_FILTER_ALLOWLIST]}
+					serverList={{
+						manual: true,
+						pageCount: list.pageCount,
+						rowCount: list.total,
+						sorting: list.sorting,
+						onSortingChange: list.onSortingChange,
+						pagination: list.pagination,
+						onPaginationChange: list.onPaginationChange,
+						draftFilters: list.draftFilters,
+						onDraftFilterChange: list.setDraftFilter,
+						onApplyFilters: list.applyFilters,
+						onResetFilters: list.resetFilters,
+						filtersDirty: list.filtersDirty,
+					}}
+				/>
+			}
 		/>
 	);
 }
