@@ -17,7 +17,9 @@ export const formSchema = z.object({
 
 export const columns = (
   handleDelete: (payment: Pick<Payment, "id">) => Promise<void>,
-  handleEdit: (payment: Payment) => Promise<void>
+  handleEdit: (
+    payment: Omit<Payment, "amount"> & { amount: Payment["amount"] | number }
+  ) => Promise<void>
 ): ColumnDef<Payment>[] => [
   {
     accessorKey: "id",

@@ -2,6 +2,19 @@
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
+import {
+	buildListResult,
+	normalizeListQuery,
+	toPrismaListArgs,
+	type ListFilters,
+	type ListQueryInput,
+	type ListResult,
+} from "@/lib/list";
+import {
+	PAYMENT_DEFAULT_SORT,
+	PAYMENT_FILTER_ALLOWLIST,
+	PAYMENT_SORT_ALLOWLIST,
+} from "@/lib/list/payments";
 import { Payment, PaymentType, Prisma } from "@prisma/client";
 
 type MoneyInput = Prisma.Decimal | number | string;
@@ -22,6 +35,66 @@ type PaymentData = {
 			endingTime: Date;
 	  }
 );
+
+const PAYMENT_TYPES = new Set<string>(Object.values(PaymentType));
+
+function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
+	if (typeof raw === "number" && Number.isFinite(raw)) {
+		const n = Math.trunc(raw);
+		return n > 0 ? n : undefined;
+	}
+	if (typeof raw === "string") {
+		const trimmed = raw.trim();
+		if (!/^\d+$/.test(trimmed)) return undefined;
+		const n = Number.parseInt(trimmed, 10);
+		return Number.isFinite(n) && n > 0 ? n : undefined;
+	}
+	return undefined;
+}
+
+function parsePaymentTypeFilter(raw: ListFilters[string]): PaymentType | undefined {
+	if (typeof raw !== "string") return undefined;
+	const value = raw.trim();
+	if (!value || !PAYMENT_TYPES.has(value)) return undefined;
+	return value as PaymentType;
+}
+
+function buildPaymentWhere(filters: ListFilters): Prisma.PaymentWhereInput {
+	const where: Prisma.PaymentWhereInput = {};
+
+	const id = parsePositiveIntFilter(filters.id);
+	if (id !== undefined) where.id = id;
+
+	const type = parsePaymentTypeFilter(filters.type);
+	if (type !== undefined) where.type = type;
+
+	return where;
+}
+
+/**
+ * Lista Pagamenti server-side: filtri su Conferma, sort + paginazione via DB.
+ */
+export async function listPayments(
+	input: ListQueryInput = {}
+): Promise<ListResult<Payment>> {
+	const query = normalizeListQuery(input, {
+		sortAllowlist: PAYMENT_SORT_ALLOWLIST,
+		filterAllowlist: PAYMENT_FILTER_ALLOWLIST,
+		defaultSort: [...PAYMENT_DEFAULT_SORT],
+	});
+	const where = buildPaymentWhere(query.filters);
+	const { skip, take, orderBy } = toPrismaListArgs(query);
+	// Tie-break stabile su PK (evita overlap OFFSET con sort non unico).
+	const orderByStable = [
+		...(orderBy ?? []),
+		...(orderBy?.some((o) => "id" in o) ? [] : [{ id: "asc" as const }]),
+	];
+	const [total, items] = await Promise.all([
+		db.payment.count({ where }),
+		db.payment.findMany({ where, skip, take, orderBy: orderByStable }),
+	]);
+	return buildListResult(items, total, query);
+}
 
 export async function createPayment(data: PaymentData) {
 	assertMutationPayload("payment", "create", data);

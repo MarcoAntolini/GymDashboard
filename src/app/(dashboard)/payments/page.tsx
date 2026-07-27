@@ -10,13 +10,18 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createPayment, deletePayment, editPayment, getAllPayments } from "@/data-access/payments";
-import { useEntityData } from "@/hooks/useEntityData";
+import { createPayment, deletePayment, editPayment, listPayments } from "@/data-access/payments";
+import { useServerList } from "@/hooks/useServerList";
+import {
+	PAYMENT_DEFAULT_SORT,
+	PAYMENT_FILTER_ALLOWLIST,
+	PAYMENT_SORT_ALLOWLIST,
+} from "@/lib/list/payments";
 import { cn } from "@/lib/utils";
 import { Payment, PaymentType } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { z } from "zod";
 import { columns } from "./columns";
 
@@ -53,30 +58,49 @@ const paymentSchema = z.discriminatedUnion("type", [
 ]);
 
 export default function PaymentsPage() {
-	const {
-		data: payments,
-		setData: setPayments,
-		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<Payment, "id">(
-		useMemo(
-			() => ({
-				getAll: getAllPayments,
-				deleteAction: deletePayment,
-				editAction: editPayment
-			}),
-			[]
-		),
-		["id"]
+	const list = useServerList<Payment>({
+		list: listPayments,
+		sortAllowlist: PAYMENT_SORT_ALLOWLIST,
+		filterAllowlist: PAYMENT_FILTER_ALLOWLIST,
+		defaultSort: [...PAYMENT_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
+
+	const handleDelete = useCallback(
+		async (payment: Pick<Payment, "id">) => {
+			await deletePayment(payment);
+			refetch();
+		},
+		[refetch]
+	);
+
+	const handleEdit = useCallback(
+		async (
+			payment: Omit<Payment, "amount"> & { amount: Payment["amount"] | number }
+		) => {
+			const updated = await editPayment(payment);
+			setItems((prev) =>
+				prev.map((item) =>
+					item.id === updated.id
+						? {
+								id: updated.id,
+								date: updated.date,
+								amount: updated.amount,
+								type: updated.type,
+							}
+						: item
+				)
+			);
+		},
+		[setItems]
 	);
 
 	const handleCreatePayment = useCallback(
 		async (values: z.infer<typeof paymentSchema>) => {
-			const newPayment = await createPayment(values);
-			setPayments((prevPayments) => [...prevPayments, newPayment]);
+			await createPayment(values);
+			refetch();
 		},
-		[setPayments]
+		[refetch]
 	);
 
 	const actions: Action[] = [
@@ -286,7 +310,7 @@ export default function PaymentsPage() {
 		}
 	];
 
-	return isLoading ? (
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
@@ -294,9 +318,22 @@ export default function PaymentsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
-					data={payments}
-					filters={["type"]}
-					facetedFilters={["type"]}
+					data={list.items}
+					filters={[...PAYMENT_FILTER_ALLOWLIST]}
+					serverList={{
+						manual: true,
+						pageCount: list.pageCount,
+						rowCount: list.total,
+						sorting: list.sorting,
+						onSortingChange: list.onSortingChange,
+						pagination: list.pagination,
+						onPaginationChange: list.onPaginationChange,
+						draftFilters: list.draftFilters,
+						onDraftFilterChange: list.setDraftFilter,
+						onApplyFilters: list.applyFilters,
+						onResetFilters: list.resetFilters,
+						filtersDirty: list.filtersDirty,
+					}}
 				/>
 			}
 		/>
