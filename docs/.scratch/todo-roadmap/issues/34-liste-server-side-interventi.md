@@ -23,4 +23,5 @@
 - Pagina `/interventions` migrata a `useServerList` + `DataTable` `serverList`; filtri solo su **Filtra**.
 - CRUD: delete → `refetch`; edit → update ottimistico su pagina corrente.
 - Smoke DB: `npx tsx scripts/smoke-list-interventions.ts` (paginazione, filtri, allowlist sort, paymentId/maker).
+- Commit: `f0f208c` — `feat(interventi): lista server-side Filtra/sort/paginazione (ticket 34)`.
 - Deferral: empty-from-filters vs empty-dataset resta ticket 39; `getAllInterventions` tenuto per consumer non-lista.
