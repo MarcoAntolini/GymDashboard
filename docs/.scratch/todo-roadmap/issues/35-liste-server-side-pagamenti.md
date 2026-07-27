@@ -23,4 +23,5 @@
 - Pagina `/payments` migrata a `useServerList` + `DataTable` `serverList`; filtri solo su **Filtra**.
 - CRUD: create/delete → `refetch`; edit → update ottimistico su pagina corrente.
 - Smoke DB: `npx tsx scripts/smoke-list-payments.ts` (paginazione, filtri, allowlist sort, id/type).
+- Commit: `3a756b5` — `feat(pagamenti): lista server-side Filtra/sort/paginazione (ticket 35)`.
 - Deferral: empty-from-filters vs empty-dataset resta ticket 39; `getAllPayments` tenuto per consumer non-lista.
