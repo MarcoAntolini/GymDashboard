@@ -3,38 +3,75 @@
 import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
-import { deleteEquipment, editEquipment, getAllEquipment } from "@/data-access/equipment";
-import { useEntityData } from "@/hooks/useEntityData";
+import {
+	deleteEquipment,
+	editEquipment,
+	listEquipment,
+} from "@/data-access/equipment";
+import { useServerList } from "@/hooks/useServerList";
+import {
+	EQUIPMENT_DEFAULT_SORT,
+	EQUIPMENT_FILTER_ALLOWLIST,
+	EQUIPMENT_SORT_ALLOWLIST,
+} from "@/lib/list/equipment";
 import { Equipment } from "@prisma/client";
-import { useMemo } from "react";
+import { useCallback } from "react";
 import { columns } from "./columns";
 
 export default function EquipmentPage() {
-	const {
-		data: equipment,
-		setData: setEquipment,
-		isLoading,
-		handleDelete,
-		handleEdit
-	} = useEntityData<Equipment, "paymentId">(
-		useMemo(
-			() => ({
-				getAll: getAllEquipment,
-				deleteAction: deleteEquipment,
-				editAction: editEquipment
-			}),
-			[]
-		),
-		["paymentId"]
+	const list = useServerList<Equipment>({
+		list: listEquipment,
+		sortAllowlist: EQUIPMENT_SORT_ALLOWLIST,
+		filterAllowlist: EQUIPMENT_FILTER_ALLOWLIST,
+		defaultSort: [...EQUIPMENT_DEFAULT_SORT],
+	});
+	const { refetch, setItems } = list;
+
+	const handleDelete = useCallback(
+		async (equipment: Pick<Equipment, "paymentId">) => {
+			await deleteEquipment(equipment);
+			refetch();
+		},
+		[refetch]
 	);
 
-	return isLoading ? (
+	const handleEdit = useCallback(
+		async (equipment: Equipment) => {
+			const updated = await editEquipment(equipment);
+			setItems((prev) =>
+				prev.map((item) =>
+					item.paymentId === updated.paymentId ? updated : item
+				)
+			);
+		},
+		[setItems]
+	);
+
+	return list.isLoading && list.items.length === 0 ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
 			actions={[]}
 			table={
-				<DataTable columns={columns(handleDelete, handleEdit)} data={equipment} filters={["paymentId", "provider"]} />
+				<DataTable
+					columns={columns(handleDelete, handleEdit)}
+					data={list.items}
+					filters={[...EQUIPMENT_FILTER_ALLOWLIST]}
+					serverList={{
+						manual: true,
+						pageCount: list.pageCount,
+						rowCount: list.total,
+						sorting: list.sorting,
+						onSortingChange: list.onSortingChange,
+						pagination: list.pagination,
+						onPaginationChange: list.onPaginationChange,
+						draftFilters: list.draftFilters,
+						onDraftFilterChange: list.setDraftFilter,
+						onApplyFilters: list.applyFilters,
+						onResetFilters: list.resetFilters,
+						filtersDirty: list.filtersDirty,
+					}}
+				/>
 			}
 		/>
 	);
