@@ -27,4 +27,5 @@ Usare skill /impeccable e /shadcn.
 - `CreateElsewhereHint` + empty-state aggiornati su Stipendi/Bollette/Attrezzatura/Interventi/Prodotti.
 - Pagamento: tipo bloccato in edit (UI + `editPayment`); create Dialog con copy di dominio.
 - Copy delete con messaggi Restrict su Cliente/Prodotto/Acquisto; `entityLabel` su tutte le liste.
+- Commit: `69ceb9d149c81dec4964aea4c94bfc87714456d1`
 - Deferral: Italianizzazione completa etichette create form fuori Pagamenti → ticket 47; smoke browser Restrict live vs DB → deferred.
