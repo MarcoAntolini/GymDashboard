@@ -25,3 +25,4 @@ Usare skill /impeccable e /shadcn dove serve.
 - Analisi Ingressi: giorni/mesi in italiano + tooltip serie `Ingressi`.
 - Fallback data-table `record` → `elemento`; copy delete Restrict senza “record”.
 - Brand `Gym Dashboard` e loanword `Password`/`Email` lasciati intenzionalmente.
+- Commit: `5fc9643`
