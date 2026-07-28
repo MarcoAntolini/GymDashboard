@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
@@ -72,7 +71,7 @@ export default function MembershipsPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Membership",
+			title: "Aggiungi abbonamento",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -80,7 +79,7 @@ export default function MembershipsPage() {
 						name="productCode"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Product Code</FormLabel>
+								<FormLabel>Codice prodotto</FormLabel>
 								<FormControl>
 									<Input {...field} />
 								</FormControl>
@@ -92,7 +91,7 @@ export default function MembershipsPage() {
 						name="duration"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Duration (days)</FormLabel>
+								<FormLabel>Durata (giorni)</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -119,21 +118,22 @@ export default function MembershipsPage() {
 		},
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...MEMBERSHIP_FILTER_ALLOWLIST]}
 					filterLabels={MEMBERSHIP_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessun abbonamento"
-							hint="Definisci un Abbonamento oppure modifica i filtri."
+							hint="Usa Aggiungi abbonamento per definire il primo Abbonamento."
 						/>
 					}
 					serverList={{
@@ -149,6 +149,7 @@ export default function MembershipsPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

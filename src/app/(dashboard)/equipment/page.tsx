@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { CreateElsewhereHint } from "@/components/ui/create-elsewhere-hint";
@@ -51,9 +50,7 @@ export default function EquipmentPage() {
 		[setItems]
 	);
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={[]}
 			extraToolbar={
@@ -67,12 +64,15 @@ export default function EquipmentPage() {
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...EQUIPMENT_FILTER_ALLOWLIST]}
 					filterLabels={EQUIPMENT_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessuna attrezzatura"
-							hint="Crea un Pagamento di tipo Attrezzatura nella sezione Pagamenti; poi filtra per fornitore."
+							hint="Crea un Pagamento di tipo Attrezzatura nella sezione Pagamenti."
 						/>
 					}
 					serverList={{
@@ -88,6 +88,7 @@ export default function EquipmentPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

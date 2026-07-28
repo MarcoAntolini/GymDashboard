@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { CreateElsewhereHint } from "@/components/ui/create-elsewhere-hint";
@@ -44,9 +43,7 @@ export default function BillsPage() {
 		[setItems]
 	);
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={[]}
 			extraToolbar={
@@ -60,12 +57,15 @@ export default function BillsPage() {
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...BILL_FILTER_ALLOWLIST]}
 					filterLabels={BILL_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessuna bolletta"
-							hint="Crea un Pagamento di tipo Bolletta nella sezione Pagamenti; poi filtra per fornitore."
+							hint="Crea un Pagamento di tipo Bolletta nella sezione Pagamenti."
 						/>
 					}
 					serverList={{
@@ -81,6 +81,7 @@ export default function BillsPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

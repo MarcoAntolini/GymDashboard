@@ -1,9 +1,8 @@
-﻿"use client";
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -249,21 +248,22 @@ export default function PurchasesPage() {
 		},
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit, products)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...PURCHASE_FILTER_ALLOWLIST]}
 					filterLabels={PURCHASE_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessun acquisto"
-							hint="Inserisci un Acquisto oppure modifica i filtri su Cliente/prodotto."
+							hint="Usa Aggiungi acquisto per registrare il primo Acquisto."
 						/>
 					}
 					serverList={{
@@ -279,6 +279,7 @@ export default function PurchasesPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

@@ -141,19 +141,19 @@ export default function Accounts() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Account",
+			title: "Aggiungi account",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
 					{employeesWithoutAccount.length === 0 ? (
-						<div className="text-center text-gray-500 py-4">All the employees already have an account</div>
+						<div className="text-center text-gray-500 py-4">Tutti i dipendenti hanno già un account</div>
 					) : (
 						<>
 							<FormField
 								name="employeeId"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Employee</FormLabel>
+										<FormLabel>Dipendente</FormLabel>
 										<Select
 											onValueChange={(value) => {
 												field.onChange(parseInt(value, 10));
@@ -165,7 +165,7 @@ export default function Accounts() {
 										>
 											<FormControl>
 												<SelectTrigger>
-													<SelectValue placeholder="Select an employee" />
+													<SelectValue placeholder="Seleziona un dipendente" />
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
@@ -243,7 +243,7 @@ export default function Accounts() {
 		[setItems, setEmployeesWithoutAccount]
 	);
 
-	return (list.isLoading && list.items.length === 0) || !actorRole ? (
+	return !actorRole ? (
 		<DashboardPlaceholder />
 	) : (
 		<Dashboard
@@ -259,12 +259,15 @@ export default function Accounts() {
 				<DataTable
 					columns={columns(handleDelete, handleEdit, actorRole)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...ACCOUNT_FILTER_ALLOWLIST]}
 					filterLabels={ACCOUNT_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessun account"
-							hint="Crea un Account o filtra per Dipendente/username/ruolo."
+							hint="Usa Aggiungi account per creare il primo Account."
 						/>
 					}
 					serverList={{
@@ -280,6 +283,7 @@ export default function Accounts() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

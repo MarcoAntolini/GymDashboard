@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -101,7 +100,7 @@ export default function CatalogsPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add to Catalog",
+			title: "Aggiungi al listino",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -109,7 +108,7 @@ export default function CatalogsPage() {
 						name="year"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Year</FormLabel>
+								<FormLabel>Anno</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -123,13 +122,13 @@ export default function CatalogsPage() {
 					/>
 					{/* Tipo: solo filtro UI locale — non e' FormField / non va nel payload Listino */}
 					<div className="space-y-2">
-						<Label>Type</Label>
+						<Label>Tipo</Label>
 						<Select
 							value={selectedType}
 							onValueChange={(value) => setSelectedType(value as ProductKind)}
 						>
 							<SelectTrigger>
-								<SelectValue placeholder="Select a type" />
+								<SelectValue placeholder="Seleziona un tipo" />
 							</SelectTrigger>
 							<SelectContent>
 								{(Object.keys(PRODUCT_KIND_LABEL) as ProductKind[]).map((kind) => (
@@ -144,7 +143,7 @@ export default function CatalogsPage() {
 						name="productCode"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Product</FormLabel>
+								<FormLabel>Prodotto</FormLabel>
 								<Select
 									onValueChange={field.onChange}
 									value={field.value}
@@ -155,8 +154,8 @@ export default function CatalogsPage() {
 											<SelectValue
 												placeholder={
 													filteredProducts.length === 0
-														? `No ${PRODUCT_KIND_LABEL[selectedType].toLowerCase()} products available`
-														: "Select a product"
+														? `Nessun prodotto ${PRODUCT_KIND_LABEL[selectedType].toLowerCase()} disponibile`
+														: "Seleziona un prodotto"
 												}
 											/>
 										</SelectTrigger>
@@ -166,8 +165,8 @@ export default function CatalogsPage() {
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}{" "}
 												{selectedType === ProductKind.Membership
-													? `(${product.membership?.duration} days)`
-													: `(${product.entranceSet?.entranceNumber} entrances)`}
+													? `(${product.membership?.duration} giorni)`
+													: `(${product.entranceSet?.entranceNumber} ingressi)`}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -180,7 +179,7 @@ export default function CatalogsPage() {
 						name="price"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Price</FormLabel>
+								<FormLabel>Prezzo</FormLabel>
 								<FormControl>
 									<Input
 										type="text"
@@ -209,21 +208,22 @@ export default function CatalogsPage() {
 		},
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...CATALOG_FILTER_ALLOWLIST]}
 					filterLabels={CATALOG_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessuna voce di listino"
-							hint="Aggiungi un prezzo annuale oppure modifica Anno/prodotto."
+							hint="Usa Aggiungi al listino per impostare il primo prezzo annuale."
 						/>
 					}
 					serverList={{
@@ -239,6 +239,7 @@ export default function CatalogsPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

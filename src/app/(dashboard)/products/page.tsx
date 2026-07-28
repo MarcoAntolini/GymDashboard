@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
@@ -51,9 +50,7 @@ export default function ProductsPage() {
 		[setItems]
 	);
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={[]}
 			extraToolbar={
@@ -79,6 +76,9 @@ export default function ProductsPage() {
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...PRODUCT_FILTER_ALLOWLIST]}
 					filterLabels={PRODUCT_FILTER_LABELS}
 					emptyState={
@@ -100,6 +100,7 @@ export default function ProductsPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

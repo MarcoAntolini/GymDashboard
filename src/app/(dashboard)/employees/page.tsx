@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -24,7 +23,7 @@ import {
 } from "@/lib/list/employees";
 import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
-import { format } from "date-fns";
+import { formatDateIt } from "@/lib/format";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback } from "react";
 import { z } from "zod";
@@ -67,7 +66,7 @@ export default function Employees() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Employee",
+			title: "Aggiungi dipendente",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -76,7 +75,7 @@ export default function Employees() {
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Name</FormLabel>
+									<FormLabel>Nome</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -88,7 +87,7 @@ export default function Employees() {
 							name="surname"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Surname</FormLabel>
+									<FormLabel>Cognome</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -102,7 +101,7 @@ export default function Employees() {
 							name="taxCode"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Tax Code</FormLabel>
+									<FormLabel>Codice fiscale</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -114,7 +113,7 @@ export default function Employees() {
 							name="birthDate"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Birth Date</FormLabel>
+									<FormLabel>Data di nascita</FormLabel>
 									<Popover>
 										<PopoverTrigger asChild>
 											<FormControl>
@@ -122,7 +121,7 @@ export default function Employees() {
 													variant={"outline"}
 													className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
 												>
-													{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+													{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 													<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 												</Button>
 											</FormControl>
@@ -150,7 +149,7 @@ export default function Employees() {
 							name="street"
 							render={({ field }) => (
 								<FormItem className="col-span-3">
-									<FormLabel>Street</FormLabel>
+									<FormLabel>Via</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -162,7 +161,7 @@ export default function Employees() {
 							name="houseNumber"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Number</FormLabel>
+									<FormLabel>Civico</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -176,7 +175,7 @@ export default function Employees() {
 							name="city"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>City</FormLabel>
+									<FormLabel>Città</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -188,7 +187,7 @@ export default function Employees() {
 							name="province"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Province</FormLabel>
+									<FormLabel>Provincia</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -202,7 +201,7 @@ export default function Employees() {
 							name="phoneNumber"
 							render={({ field }) => (
 								<FormItem className="col-span-3">
-									<FormLabel>Phone Number</FormLabel>
+									<FormLabel>Telefono</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -245,21 +244,22 @@ export default function Employees() {
 		},
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={["taxCode", "name", "surname", "city", "province"]}
 					filterLabels={EMPLOYEE_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessun dipendente"
-							hint="Aggiungi un Dipendente oppure modifica i filtri anagrafici."
+							hint="Usa Aggiungi dipendente per registrare il primo Dipendente."
 						/>
 					}
 					serverList={{
@@ -275,6 +275,7 @@ export default function Employees() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

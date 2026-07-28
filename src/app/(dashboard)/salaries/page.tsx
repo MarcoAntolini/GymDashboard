@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { CreateElsewhereHint } from "@/components/ui/create-elsewhere-hint";
@@ -49,9 +48,7 @@ export default function Salaries() {
 		[setItems]
 	);
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={[]}
 			extraToolbar={
@@ -65,12 +62,15 @@ export default function Salaries() {
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...SALARY_FILTER_ALLOWLIST]}
 					filterLabels={SALARY_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessuno stipendio"
-							hint="Crea un Pagamento di tipo Stipendio nella sezione Pagamenti; poi filtra per Dipendente."
+							hint="Crea un Pagamento di tipo Stipendio nella sezione Pagamenti."
 						/>
 					}
 					serverList={{
@@ -86,6 +86,7 @@ export default function Salaries() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

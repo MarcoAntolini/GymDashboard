@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -28,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { formatDateIt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export default function ClientsPage() {
@@ -68,7 +67,7 @@ export default function ClientsPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Client",
+			title: "Aggiungi cliente",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -77,7 +76,7 @@ export default function ClientsPage() {
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Name</FormLabel>
+									<FormLabel>Nome</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -89,7 +88,7 @@ export default function ClientsPage() {
 							name="surname"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Surname</FormLabel>
+									<FormLabel>Cognome</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -103,7 +102,7 @@ export default function ClientsPage() {
 							name="taxCode"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Tax Code</FormLabel>
+									<FormLabel>Codice fiscale</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -115,7 +114,7 @@ export default function ClientsPage() {
 							name="birthDate"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Birth Date</FormLabel>
+									<FormLabel>Data di nascita</FormLabel>
 									<Popover>
 										<PopoverTrigger asChild>
 											<FormControl>
@@ -127,9 +126,9 @@ export default function ClientsPage() {
 													)}
 												>
 													{field.value ? (
-														format(field.value, "PPP")
+														formatDateIt(field.value)
 													) : (
-														<span>Pick a date</span>
+														<span>Scegli una data</span>
 													)}
 													<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 												</Button>
@@ -157,7 +156,7 @@ export default function ClientsPage() {
 							name="street"
 							render={({ field }) => (
 								<FormItem className="col-span-3">
-									<FormLabel>Street</FormLabel>
+									<FormLabel>Via</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -169,7 +168,7 @@ export default function ClientsPage() {
 							name="houseNumber"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Number</FormLabel>
+									<FormLabel>Civico</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -183,7 +182,7 @@ export default function ClientsPage() {
 							name="city"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>City</FormLabel>
+									<FormLabel>Città</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -195,7 +194,7 @@ export default function ClientsPage() {
 							name="province"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Province</FormLabel>
+									<FormLabel>Provincia</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -209,7 +208,7 @@ export default function ClientsPage() {
 							name="phoneNumber"
 							render={({ field }) => (
 								<FormItem className="col-span-3">
-									<FormLabel>Phone Number</FormLabel>
+									<FormLabel>Telefono</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -235,7 +234,7 @@ export default function ClientsPage() {
 							name="enrollmentDate"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Enrollment Date</FormLabel>
+									<FormLabel>Data iscrizione</FormLabel>
 									<Popover>
 										<PopoverTrigger asChild>
 											<FormControl>
@@ -247,9 +246,9 @@ export default function ClientsPage() {
 													)}
 												>
 													{field.value ? (
-														format(field.value, "PPP")
+														formatDateIt(field.value)
 													) : (
-														<span>Pick a date</span>
+														<span>Scegli una data</span>
 													)}
 													<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 												</Button>
@@ -292,21 +291,22 @@ export default function ClientsPage() {
 		},
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={["taxCode", "name", "surname", "city", "province"]}
 					filterLabels={CLIENT_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessun cliente"
-							hint="Registra un Cliente oppure amplia i filtri (cognome, codice fiscale)."
+							hint="Usa Aggiungi cliente per registrare il primo Cliente."
 						/>
 					}
 					serverList={{
@@ -322,6 +322,7 @@ export default function ClientsPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

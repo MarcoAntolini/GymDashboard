@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -319,21 +318,22 @@ export default function PaymentsPage() {
 		}
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...PAYMENT_FILTER_ALLOWLIST]}
 					filterLabels={PAYMENT_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessun pagamento"
-							hint="Registra un Pagamento in uscita oppure filtra per tipo."
+							hint="Usa Aggiungi pagamento per registrare il primo Pagamento in uscita."
 						/>
 					}
 					serverList={{
@@ -349,6 +349,7 @@ export default function PaymentsPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

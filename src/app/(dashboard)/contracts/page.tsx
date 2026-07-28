@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
@@ -33,7 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Contract, ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatDateIt, formatEur } from "@/lib/format";
 import { Calculator, Calendar as CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -165,26 +164,26 @@ export default function Contracts() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Contract",
+			title: "Aggiungi contratto",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
 					{employeesWithoutContract.length === 0 ? (
-						<div className="text-center text-sm text-muted-foreground">There are no employees without a contract</div>
+						<div className="text-center text-sm text-muted-foreground">Non ci sono dipendenti senza contratto</div>
 					) : (
 						<>
 							<FormField
 								name="employeeId"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Employee</FormLabel>
+										<FormLabel>Dipendente</FormLabel>
 										<Select
 											onValueChange={(value) => field.onChange(parseInt(value, 10))}
 											value={field.value?.toString()}
 										>
 											<FormControl>
 												<SelectTrigger>
-													<SelectValue placeholder="Select an employee" />
+													<SelectValue placeholder="Seleziona un dipendente" />
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
@@ -205,16 +204,16 @@ export default function Contracts() {
 								name="type"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Contract Type</FormLabel>
+										<FormLabel>Tipo contratto</FormLabel>
 										<Select onValueChange={field.onChange} defaultValue={field.value}>
 											<FormControl>
 												<SelectTrigger>
-													<SelectValue placeholder="Select a contract type" />
+													<SelectValue placeholder="Seleziona un tipo di contratto" />
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
-												<SelectItem value={ContractType.FixedTerm}>Fixed Term</SelectItem>
-												<SelectItem value={ContractType.OpenEnded}>Open Ended</SelectItem>
+												<SelectItem value={ContractType.FixedTerm}>Tempo determinato</SelectItem>
+												<SelectItem value={ContractType.OpenEnded}>Tempo indeterminato</SelectItem>
 											</SelectContent>
 										</Select>
 										<FormMessage />
@@ -225,7 +224,7 @@ export default function Contracts() {
 								name="hourlyFee"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Hourly Fee</FormLabel>
+										<FormLabel>Compenso orario</FormLabel>
 										<FormControl>
 											<Input
 												min={0}
@@ -247,7 +246,7 @@ export default function Contracts() {
 								name="startingDate"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Starting Date</FormLabel>
+										<FormLabel>Data inizio</FormLabel>
 										<Popover>
 											<PopoverTrigger asChild>
 												<FormControl>
@@ -255,7 +254,7 @@ export default function Contracts() {
 														variant={"outline"}
 														className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
 													>
-														{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+														{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 														<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 													</Button>
 												</FormControl>
@@ -282,7 +281,7 @@ export default function Contracts() {
 			formData: createContractFormData
 		},
 		{
-			title: "Calculate Earnings",
+			title: "Calcola guadagni",
 			icon: Calculator,
 			dialogContent: (
 				<>
@@ -290,7 +289,7 @@ export default function Contracts() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel className="text-sm font-medium mr-4">Select Dates</FormLabel>
+								<FormLabel className="text-sm font-medium mr-4">Seleziona date</FormLabel>
 								<FormControl>
 									<Popover>
 										<PopoverTrigger asChild>
@@ -306,13 +305,13 @@ export default function Contracts() {
 													{field.value?.from ? (
 														field.value.to ? (
 															<>
-																{format(field.value.from, "LLL dd, y")} - {format(field.value.to, "LLL dd, y")}
+																{formatDateIt(field.value.from)} - {formatDateIt(field.value.to)}
 															</>
 														) : (
-															format(field.value.from, "LLL dd, y")
+															formatDateIt(field.value.from)
 														)
 													) : (
-														<span>Pick a date</span>
+														<span>Scegli una data</span>
 													)}
 												</Button>
 											</FormControl>
@@ -339,9 +338,7 @@ export default function Contracts() {
 		}
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<>
 			<Dashboard
 				actions={actions}
@@ -349,12 +346,15 @@ export default function Contracts() {
 					<DataTable
 						columns={columns(handleDelete, handleEditContract, employeeId)}
 						data={list.items}
+						isLoading={list.isLoading}
+						error={list.error}
+						onRetry={list.refetch}
 						filters={[...CONTRACT_FILTER_ALLOWLIST]}
 						filterLabels={CONTRACT_FILTER_LABELS}
 						emptyState={
 							<TableEmptyState
 								title="Nessun contratto"
-								hint="Registra un Contratto oppure filtra per Dipendente/tipo."
+								hint="Usa Aggiungi contratto per registrare il primo Contratto."
 							/>
 						}
 						serverList={{
@@ -370,6 +370,7 @@ export default function Contracts() {
 							onApplyFilters: list.applyFilters,
 							onResetFilters: list.resetFilters,
 							filtersDirty: list.filtersDirty,
+							appliedFilters: list.query.filters,
 						}}
 					/>
 				}
@@ -379,11 +380,8 @@ export default function Contracts() {
 					<SheetHeader className="mb-6">
 						<SheetTitle>
 							{selectedDateRange
-								? `Employees Earnings: ${format(selectedDateRange.from, "LLL dd, y")} - ${format(
-										selectedDateRange.to,
-										"LLL dd, y"
-								  )}`
-								: "Employees Earnings"}
+								? `Guadagni dipendenti: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)}`
+								: "Guadagni dipendenti"}
 						</SheetTitle>
 						<SheetDescription></SheetDescription>
 					</SheetHeader>
@@ -402,7 +400,7 @@ export default function Contracts() {
 const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 	{
 		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="ID Dipendente" />,
 		cell: ({ row }) => {
 			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
 		}
@@ -425,30 +423,18 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 	// },
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Compenso orario" />,
 		cell: ({ row }) => {
 			const amount = Number(row.original.hourlyFee);
-			const formatted = new Intl.NumberFormat("en-US", {
-				style: "currency",
-				currency: "USD"
-			})
-				.format(amount)
-				.replace("$", "$ ");
-			return <div className="font-medium">{formatted}</div>;
+			return <div className="font-medium">{formatEur(amount)}</div>;
 		}
 	},
 	{
 		accessorKey: "totalEarnings",
-		header: ({ column }) => <TableSortableHeader column={column} title="Total Earnings" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Guadagni totali" />,
 		cell: ({ row }) => {
 			const amount = Number(row.original.totalEarnings);
-			const formatted = new Intl.NumberFormat("en-US", {
-				style: "currency",
-				currency: "USD"
-			})
-				.format(amount)
-				.replace("$", "$ ");
-			return <div className="font-medium">{formatted}</div>;
+			return <div className="font-medium">{formatEur(amount)}</div>;
 		}
 	},
 	{

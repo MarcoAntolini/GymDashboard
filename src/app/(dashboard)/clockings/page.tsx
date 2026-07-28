@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -66,7 +65,7 @@ export default function Clockings() {
 		async (values: z.infer<typeof formSchema>) => {
 			const employee = await getEmployee(values.employeeId);
 			if (!employee) {
-				toast.error("Employee not found");
+				toast.error("Dipendente non trovato");
 				return;
 			}
 			await createClocking(values);
@@ -77,7 +76,7 @@ export default function Clockings() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Clocking",
+			title: "Aggiungi timbratura",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -85,7 +84,7 @@ export default function Clockings() {
 						name="employeeId"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Employee ID</FormLabel>
+								<FormLabel>ID Dipendente</FormLabel>
 								<FormControl>
 									<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} min={0} />
 								</FormControl>
@@ -97,7 +96,7 @@ export default function Clockings() {
 						name="entranceTime"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Entrance Time</FormLabel>
+								<FormLabel>Entrata</FormLabel>
 								<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 								<FormMessage />
 							</FormItem>
@@ -107,7 +106,7 @@ export default function Clockings() {
 						name="exitTime"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Exit Time</FormLabel>
+								<FormLabel>Uscita</FormLabel>
 								<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 								<FormMessage />
 							</FormItem>
@@ -127,21 +126,22 @@ export default function Clockings() {
 		}
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...CLOCKING_FILTER_ALLOWLIST]}
 					filterLabels={CLOCKING_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessuna timbratura"
-							hint="Registra una Timbratura oppure filtra per Dipendente."
+							hint="Usa Aggiungi timbratura per registrare la prima Timbratura."
 						/>
 					}
 					serverList={{
@@ -157,6 +157,7 @@ export default function Clockings() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

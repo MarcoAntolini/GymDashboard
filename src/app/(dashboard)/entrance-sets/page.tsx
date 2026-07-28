@@ -1,7 +1,6 @@
 "use client";
 
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
@@ -72,7 +71,7 @@ export default function EntranceSetsPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Entrance Set",
+			title: "Aggiungi pacchetto ingressi",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -80,7 +79,7 @@ export default function EntranceSetsPage() {
 						name="productCode"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Product Code</FormLabel>
+								<FormLabel>Codice prodotto</FormLabel>
 								<FormControl>
 									<Input {...field} />
 								</FormControl>
@@ -92,7 +91,7 @@ export default function EntranceSetsPage() {
 						name="entranceNumber"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Number of Entrances</FormLabel>
+								<FormLabel>Numero ingressi</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -119,21 +118,22 @@ export default function EntranceSetsPage() {
 		},
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<Dashboard
 			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
+					isLoading={list.isLoading}
+					error={list.error}
+					onRetry={list.refetch}
 					filters={[...ENTRANCE_SET_FILTER_ALLOWLIST]}
 					filterLabels={ENTRANCE_SET_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessun pacchetto ingressi"
-							hint="Definisci un Pacchetto ingressi oppure modifica i filtri."
+							hint="Usa Aggiungi pacchetto ingressi per definire il primo Pacchetto."
 						/>
 					}
 					serverList={{
@@ -149,6 +149,7 @@ export default function EntranceSetsPage() {
 						onApplyFilters: list.applyFilters,
 						onResetFilters: list.resetFilters,
 						filtersDirty: list.filtersDirty,
+						appliedFilters: list.query.filters,
 					}}
 				/>
 			}

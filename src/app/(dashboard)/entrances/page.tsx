@@ -1,9 +1,8 @@
-﻿"use client";
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
-import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -238,9 +237,7 @@ export default function EntrancesPage() {
 		},
 	];
 
-	return list.isLoading && list.items.length === 0 ? (
-		<DashboardPlaceholder />
-	) : (
+	return (
 		<>
 			<Dashboard
 				actions={actions}
@@ -248,12 +245,15 @@ export default function EntrancesPage() {
 					<DataTable
 						columns={columns(handleDelete, handleEdit)}
 						data={list.items}
+						isLoading={list.isLoading}
+						error={list.error}
+						onRetry={list.refetch}
 						filters={[...ENTRANCE_FILTER_ALLOWLIST]}
 						filterLabels={ENTRANCE_FILTER_LABELS}
 						emptyState={
 							<TableEmptyState
 								title="Nessun ingresso"
-								hint="Registra un Ingresso dal bancone oppure modifica i filtri."
+								hint="Usa Registra ingresso per aggiungere il primo Ingresso."
 							/>
 						}
 						serverList={{
@@ -269,6 +269,7 @@ export default function EntrancesPage() {
 							onApplyFilters: list.applyFilters,
 							onResetFilters: list.resetFilters,
 							filtersDirty: list.filtersDirty,
+							appliedFilters: list.query.filters,
 						}}
 					/>
 				}
