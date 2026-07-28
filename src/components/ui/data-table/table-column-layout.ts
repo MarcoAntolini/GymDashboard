@@ -1,10 +1,36 @@
 import type { CSSProperties } from "react";
-import type { Column } from "@tanstack/react-table";
+import type { Column, ColumnPinningState } from "@tanstack/react-table";
 
 /** Colonne strutturali: non riordinabili dall'operatore. */
 export const LOCKED_COLUMN_IDS = new Set(["__select", "actions"]);
 
+export const SELECT_COLUMN_ID = "__select";
+export const ACTIONS_COLUMN_ID = "actions";
+
+/** Checkbox 16px + padding cella 16px per lato (come `p-4` verticale). */
+export const SELECT_COLUMN_SIZE = 48;
 export const ACTIONS_COLUMN_SIZE = 56;
+
+/**
+ * Ancora `__select` a sinistra e `actions` a destra.
+ * Così un pin utente resta seconda (dopo select) o penultima (prima di actions).
+ */
+export function normalizeColumnPinning(
+	pinning: ColumnPinningState,
+	options: { hasSelect: boolean; hasActions: boolean }
+): ColumnPinningState {
+	const left = (pinning.left ?? []).filter(
+		(id) => id !== SELECT_COLUMN_ID && id !== ACTIONS_COLUMN_ID
+	);
+	const right = (pinning.right ?? []).filter(
+		(id) => id !== SELECT_COLUMN_ID && id !== ACTIONS_COLUMN_ID
+	);
+
+	return {
+		left: options.hasSelect ? [SELECT_COLUMN_ID, ...left] : left,
+		right: options.hasActions ? [...right, ACTIONS_COLUMN_ID] : right,
+	};
+}
 
 /** Colonna subito prima di `actions`: assorbe lo spazio libero a destra. */
 export function getFlexFillColumnId(leafColumnIds: string[]): string | null {
@@ -63,6 +89,19 @@ export function moveColumnInOrder(
 export function ensureActionsTrailing(order: string[]): string[] {
 	if (!order.includes("actions")) return order;
 	return [...order.filter((id) => id !== "actions"), "actions"];
+}
+
+/** Colonne leaf nell’ordine di pin (left → center → right), allineato a header/celle. */
+export function getPinnedLeafColumnOrder(table: {
+	getLeftVisibleLeafColumns: () => { id: string; getSize: () => number }[];
+	getCenterVisibleLeafColumns: () => { id: string; getSize: () => number }[];
+	getRightVisibleLeafColumns: () => { id: string; getSize: () => number }[];
+}) {
+	return [
+		...table.getLeftVisibleLeafColumns(),
+		...table.getCenterVisibleLeafColumns(),
+		...table.getRightVisibleLeafColumns(),
+	];
 }
 
 /** Stili sticky per column pinning (scroll orizzontale nel container overflow). */

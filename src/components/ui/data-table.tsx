@@ -20,12 +20,16 @@ import {
 	useRowActionsRegistry,
 } from "@/components/ui/data-table/table-row-actions-context";
 import {
+	ACTIONS_COLUMN_ID,
 	ACTIONS_COLUMN_SIZE,
 	ensureActionsTrailing,
 	getColumnPinningStyle,
 	getColumnWidthStyle,
 	getFlexFillColumnId,
+	getPinnedLeafColumnOrder,
 	moveColumnInOrder,
+	normalizeColumnPinning,
+	SELECT_COLUMN_SIZE,
 } from "@/components/ui/data-table/table-column-layout";
 import { ColumnLayoutProvider } from "@/components/ui/data-table/table-column-layout-context";
 import {
@@ -275,10 +279,19 @@ function DataTableInner<TData, TValue>({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([]);
-	const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>({
-		left: [],
-		right: [],
-	});
+	const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>(() =>
+		normalizeColumnPinning(
+			{ left: [], right: [] },
+			{
+				hasSelect: !!bulkDeleteRow || (bulkActions?.length ?? 0) > 0,
+				hasActions: columns.some(
+					(col) =>
+						col.id === ACTIONS_COLUMN_ID ||
+						("accessorKey" in col && col.accessorKey === ACTIONS_COLUMN_ID)
+				),
+			}
+		)
+	);
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({});
 	const [headerMinSizes, setHeaderMinSizes] = React.useState<Record<string, number>>(
 		{}
@@ -314,30 +327,34 @@ function DataTableInner<TData, TValue>({
 			enableResizing: false,
 			enablePinning: false,
 			header: ({ table }) => (
-				<Checkbox
-					aria-label="Seleziona tutte le righe visibili"
-					checked={
-						table.getIsAllPageRowsSelected()
-							? true
-							: table.getIsSomePageRowsSelected()
-								? "indeterminate"
-								: false
-					}
-					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				/>
+				<div className="flex items-center justify-center">
+					<Checkbox
+						aria-label="Seleziona tutte le righe visibili"
+						checked={
+							table.getIsAllPageRowsSelected()
+								? true
+								: table.getIsSomePageRowsSelected()
+									? "indeterminate"
+									: false
+						}
+						onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+					/>
+				</div>
 			),
 			cell: ({ row }) => (
-				<Checkbox
-					aria-label="Seleziona riga"
-					checked={row.getIsSelected()}
-					disabled={!row.getCanSelect()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					onClick={(event) => event.stopPropagation()}
-				/>
+				<div className="flex items-center justify-center">
+					<Checkbox
+						aria-label="Seleziona riga"
+						checked={row.getIsSelected()}
+						disabled={!row.getCanSelect()}
+						onCheckedChange={(value) => row.toggleSelected(!!value)}
+						onClick={(event) => event.stopPropagation()}
+					/>
+				</div>
 			),
-			size: 40,
-			minSize: 40,
-			maxSize: 40,
+			size: SELECT_COLUMN_SIZE,
+			minSize: SELECT_COLUMN_SIZE,
+			maxSize: SELECT_COLUMN_SIZE,
 		}),
 		[]
 	);
@@ -350,7 +367,7 @@ function DataTableInner<TData, TValue>({
 				("accessorKey" in col && col.accessorKey != null
 					? String(col.accessorKey)
 					: undefined);
-			if (id === "actions") {
+			if (id === ACTIONS_COLUMN_ID) {
 				return {
 					...col,
 					enableResizing: false,
@@ -386,6 +403,30 @@ function DataTableInner<TData, TValue>({
 				)
 				.filter(Boolean),
 		[tableColumns]
+	);
+
+	const hasActionsColumn = leafColumnIds.includes(ACTIONS_COLUMN_ID);
+
+	React.useEffect(() => {
+		setColumnPinning((prev) =>
+			normalizeColumnPinning(prev, {
+				hasSelect: enableSelection,
+				hasActions: hasActionsColumn,
+			})
+		);
+	}, [enableSelection, hasActionsColumn]);
+
+	const onColumnPinningChange = React.useCallback<OnChangeFn<ColumnPinningState>>(
+		(updater) => {
+			setColumnPinning((prev) => {
+				const next = typeof updater === "function" ? updater(prev) : updater;
+				return normalizeColumnPinning(next, {
+					hasSelect: enableSelection,
+					hasActions: hasActionsColumn,
+				});
+			});
+		},
+		[enableSelection, hasActionsColumn]
 	);
 
 	const table = useReactTable({
@@ -427,7 +468,7 @@ function DataTableInner<TData, TValue>({
 				return ensureActionsTrailing(next);
 			});
 		},
-		onColumnPinningChange: setColumnPinning,
+		onColumnPinningChange,
 		onColumnSizingChange: setColumnSizing,
 		state: {
 			sorting: isServer ? serverList.sorting : sorting,
@@ -471,8 +512,9 @@ function DataTableInner<TData, TValue>({
 	const bottomPinnedCount = bottomRows.length;
 	const selectedRows = table.getSelectedRowModel().rows.map((r) => r.original);
 	const colSpan = tableColumns.length;
+	const orderedLeafColumns = getPinnedLeafColumnOrder(table);
 	const flexFillColumnId = getFlexFillColumnId(
-		table.getVisibleLeafColumns().map((column) => column.id)
+		orderedLeafColumns.map((column) => column.id)
 	);
 	const hasBodyRows =
 		topRows.length + centerRows.length + bottomRows.length > 0;
@@ -572,7 +614,7 @@ function DataTableInner<TData, TValue>({
 					style={{ minWidth: table.getTotalSize() }}
 				>
 					<colgroup>
-						{table.getVisibleLeafColumns().map((column) => (
+						{orderedLeafColumns.map((column) => (
 							<col
 								key={column.id}
 								style={getColumnWidthStyle(

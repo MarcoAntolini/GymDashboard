@@ -188,7 +188,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 						<MoreHorizontal className="h-4 w-4" />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end">
+				<DropdownMenuContent align="end" className="w-48">
 					<DropdownMenuLabel>Azioni</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					{!editBlocked && (
@@ -205,7 +205,12 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 						</DropdownMenuItem>
 					))}
 					{!deleteBlocked && (
-						<DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>Elimina</DropdownMenuItem>
+						<DropdownMenuItem
+							className="text-destructive focus:text-destructive"
+							onClick={() => setIsDeleteOpen(true)}
+						>
+							Elimina
+						</DropdownMenuItem>
 					)}
 					{canPin ? (
 						<>
