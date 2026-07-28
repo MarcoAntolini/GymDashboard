@@ -23,4 +23,5 @@
 - Nuovi stati condivisi: `TableLoadingState`, `TableErrorState`; `TableEmptyState` supporta CTA opzionale.
 - Tutte le pagine lista entità: shell sempre montata (niente `DashboardPlaceholder` su first-load lista); empty copy solo dataset (create / create-elsewhere), senza confondere con i filtri.
 - Accounts: placeholder solo finché manca `actorRole`; poi stessa shell stati lista.
+- Commit: `87b086a`
 - Deferral: critique Impeccable formale non eseguito in browser; stati allineati a pattern densità operativa già in repo (P0 AC soddisfatti). `useEntityData` secondario fuori scope.
