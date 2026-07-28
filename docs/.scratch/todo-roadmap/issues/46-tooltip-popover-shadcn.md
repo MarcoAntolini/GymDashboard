@@ -22,3 +22,4 @@
 - Sostituito quel `title` con `Tooltip` + `TooltipTrigger` + `TooltipContent` shadcn in `payments/columns.tsx`.
 - Nav collassata già usava shadcn Tooltip sotto `TooltipProvider` (hover/focus su Link); Popover date/filtri già via `@/components/ui/popover`.
 - Deferral esplicito: tooltip Recharts nei grafici Ingressi restano della chart library (non overlay UI shadcn).
+- Commit: `2a9a82ea295be6ef2888055f49059a75f8651f89`
