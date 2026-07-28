@@ -39,7 +39,7 @@ export function HighlightText({
 				segment.match ? (
 					<mark
 						key={index}
-						className="rounded-[2px] bg-warning/25 px-0.5 text-foreground"
+						className="rounded-[2px] bg-warning/25 text-foreground"
 					>
 						{segment.text}
 					</mark>
