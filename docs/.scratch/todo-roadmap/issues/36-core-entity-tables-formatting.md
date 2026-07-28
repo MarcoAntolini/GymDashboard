@@ -27,3 +27,4 @@ Usare skill /impeccable.
 - Join colonne ISA (Stipendi/Bollette/Attrezzatura/Interventi) e Dipendente su Contratti/Timbrature/Account; filtri umani (`employee`, fornitore, …) + `filterLabels` IT.
 - Sweep colonne: header IT, niente più `en-US`/`USD` sulle liste; Dipendenti senza address dump in tabella.
 - Distinzione empty-from-filters vs empty-dataset e shell loading/error deferiti al ticket **39**; form copy EN e sweep UI completa deferiti a **37**/**47**.
+- Commit: `e1139d1`
