@@ -22,3 +22,4 @@
 - `mockAccounts`: primo dipendente → `Role.Owner` con login `owner` / `Password1`; altri Admin/Employee.
 - Listino su anni recenti + acquisti nell’ultimo anno (prezzi collegabili per filtri/analytics).
 - Smoke: `node scripts/smoke-mock-italian.mjs` verde (locale + Owner + no import en). `mockAll` non rieseguito qui (wipe DB).
+- Commit: `64190fb`
