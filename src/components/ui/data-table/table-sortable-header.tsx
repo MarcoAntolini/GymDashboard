@@ -9,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Column, type Table as TanStackTable } from "@tanstack/react-table";
+import { Column } from "@tanstack/react-table";
 import {
 	ArrowDownIcon,
 	ArrowLeftIcon,
@@ -20,13 +20,8 @@ import {
 	PinOff,
 	type LucideIcon,
 } from "lucide-react";
-import { LOCKED_COLUMN_IDS, moveColumnInOrder } from "./table-column-layout";
-
-function columnTable<TData, TValue>(
-	column: Column<TData, TValue>
-): TanStackTable<TData> {
-	return (column as Column<TData, TValue> & { table: TanStackTable<TData> }).table;
-}
+import { LOCKED_COLUMN_IDS } from "./table-column-layout";
+import { useColumnLayout } from "./table-column-layout-context";
 
 interface TableSortableHeaderProps<TData, TValue>
 	extends React.HTMLAttributes<HTMLDivElement> {
@@ -50,22 +45,12 @@ export function TableSortableHeader<TData, TValue>({
 	align = "left",
 	className,
 }: TableSortableHeaderProps<TData, TValue>) {
+	const columnLayout = useColumnLayout();
 	const alignClass = align === "right" ? "justify-end" : "justify-start";
 	const canSort = column.getCanSort();
 	const canPin = column.getCanPin();
-	const canReorder = !LOCKED_COLUMN_IDS.has(column.id);
+	const canReorder = !!columnLayout && !LOCKED_COLUMN_IDS.has(column.id);
 	const pinned = column.getIsPinned();
-
-	const reorder = (direction: -1 | 1) => {
-		const table = columnTable(column);
-		const next = moveColumnInOrder(
-			table.getState().columnOrder,
-			table.getAllLeafColumns().map((c) => c.id),
-			column.id,
-			direction
-		);
-		table.setColumnOrder(next);
-	};
 
 	const hasLayoutActions = canPin || canReorder;
 	if (!canSort && !hasLayoutActions) {
@@ -130,11 +115,15 @@ export function TableSortableHeader<TData, TValue>({
 					{canSort && hasLayoutActions ? <DropdownMenuSeparator /> : null}
 					{canReorder ? (
 						<>
-							<DropdownMenuItem onClick={() => reorder(-1)}>
+							<DropdownMenuItem
+								onClick={() => columnLayout.moveColumn(column.id, -1)}
+							>
 								<ArrowLeftIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
 								Sposta a sinistra
 							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => reorder(1)}>
+							<DropdownMenuItem
+								onClick={() => columnLayout.moveColumn(column.id, 1)}
+							>
 								<ArrowRightIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
 								Sposta a destra
 							</DropdownMenuItem>

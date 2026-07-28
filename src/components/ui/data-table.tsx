@@ -19,7 +19,14 @@ import {
 	RowActionsProvider,
 	useRowActionsRegistry,
 } from "@/components/ui/data-table/table-row-actions-context";
-import { getColumnPinningStyle } from "@/components/ui/data-table/table-column-layout";
+import {
+	ACTIONS_COLUMN_SIZE,
+	ensureActionsTrailing,
+	getColumnPinningStyle,
+	getColumnWidthStyle,
+	moveColumnInOrder,
+} from "@/components/ui/data-table/table-column-layout";
+import { ColumnLayoutProvider } from "@/components/ui/data-table/table-column-layout-context";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ListFilters } from "@/lib/list";
@@ -117,16 +124,19 @@ function DataTableRow<TData>({ row }: { row: Row<TData> }) {
 
 	const cells = row.getVisibleCells().map((cell) => {
 		const pinned = cell.column.getIsPinned();
+		const size = cell.column.getSize();
 		return (
 			<TableCell
 				key={cell.id}
 				className={cn(
-					pinned && "bg-background",
+					"box-border overflow-hidden",
+					// Opaque bg only when pinned (scroll-under); must follow row hover/selection.
+					pinned &&
+						"bg-background group-hover:bg-muted/50 group-data-[state=selected]:bg-muted",
 					pinned && "shadow-[inset_-1px_0_0] shadow-border"
 				)}
 				style={{
-					width: cell.column.getSize(),
-					minWidth: cell.column.getSize(),
+					...getColumnWidthStyle(cell.column.id, size),
 					...getColumnPinningStyle(cell.column),
 				}}
 			>
@@ -143,7 +153,12 @@ function DataTableRow<TData>({ row }: { row: Row<TData> }) {
 			}}
 		>
 			<ContextMenuTrigger asChild>
-				<TableRow data-state={row.getIsSelected() && "selected"}>{cells}</TableRow>
+				<TableRow
+					className="group"
+					data-state={row.getIsSelected() && "selected"}
+				>
+					{cells}
+				</TableRow>
 			</ContextMenuTrigger>
 			<ContextMenuContent className="w-48">
 				<ContextMenuLabel>Azioni</ContextMenuLabel>
@@ -212,7 +227,7 @@ function DataTableInner<TData, TValue>({
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([]);
 	const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>({
 		left: [],
-		right: [],
+		right: ["actions"],
 	});
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({});
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
@@ -257,9 +272,24 @@ function DataTableInner<TData, TValue>({
 		[]
 	);
 
+	const spacerColumn = React.useMemo<ColumnDef<TData, TValue>>(
+		() => ({
+			id: "__spacer",
+			header: () => null,
+			cell: () => null,
+			enableSorting: false,
+			enableHiding: false,
+			enableResizing: false,
+			enablePinning: false,
+			size: 0,
+			minSize: 0,
+		}),
+		[]
+	);
+
 	const tableColumns = React.useMemo(() => {
-		const base = enableSelection ? [selectColumn, ...columns] : columns;
-		return base.map((col) => {
+		const base = enableSelection ? [selectColumn, ...columns] : [...columns];
+		const normalized = base.map((col) => {
 			const id =
 				col.id ??
 				("accessorKey" in col && col.accessorKey != null
@@ -269,15 +299,42 @@ function DataTableInner<TData, TValue>({
 				return {
 					...col,
 					enableResizing: false,
-					enablePinning: false,
-					size: col.size ?? 100,
-					minSize: col.minSize ?? 80,
-					maxSize: col.maxSize ?? 120,
+					enableHiding: false,
+					size: ACTIONS_COLUMN_SIZE,
+					minSize: ACTIONS_COLUMN_SIZE,
+					maxSize: ACTIONS_COLUMN_SIZE,
 				};
 			}
 			return col;
 		});
-	}, [enableSelection, selectColumn, columns]);
+
+		const actionsIndex = normalized.findIndex((col) => {
+			const id =
+				col.id ??
+				("accessorKey" in col && col.accessorKey != null
+					? String(col.accessorKey)
+					: undefined);
+			return id === "actions";
+		});
+		if (actionsIndex === -1) return normalized;
+
+		const withSpacer = [...normalized];
+		withSpacer.splice(actionsIndex, 0, spacerColumn);
+		return withSpacer;
+	}, [enableSelection, selectColumn, spacerColumn, columns]);
+
+	const leafColumnIds = React.useMemo(
+		() =>
+			tableColumns
+				.map((col) =>
+					col.id ??
+					("accessorKey" in col && col.accessorKey != null
+						? String(col.accessorKey)
+						: "")
+				)
+				.filter(Boolean),
+		[tableColumns]
+	);
 
 	const table = useReactTable({
 		data,
@@ -308,8 +365,23 @@ function DataTableInner<TData, TValue>({
 		getFacetedRowModel: isServer ? undefined : getFacetedRowModel(),
 		getFacetedUniqueValues: isServer ? undefined : getFacetedUniqueValues(),
 		onColumnVisibilityChange: setColumnVisibility,
-		onColumnOrderChange: setColumnOrder,
-		onColumnPinningChange: setColumnPinning,
+		onColumnOrderChange: (updater) => {
+			setColumnOrder((prev) => {
+				const next = typeof updater === "function" ? updater(prev) : updater;
+				return ensureActionsTrailing(next);
+			});
+		},
+		onColumnPinningChange: (updater) => {
+			setColumnPinning((prev) => {
+				const next = typeof updater === "function" ? updater(prev) : updater;
+				const left = (next.left ?? []).filter((id) => id !== "actions");
+				const right = (next.right ?? []).filter((id) => id !== "actions");
+				return {
+					left,
+					right: [...right, "actions"],
+				};
+			});
+		},
 		onColumnSizingChange: setColumnSizing,
 		state: {
 			sorting: isServer ? serverList.sorting : sorting,
@@ -322,6 +394,17 @@ function DataTableInner<TData, TValue>({
 			rowSelection,
 		},
 	});
+
+	const moveColumn = React.useCallback(
+		(columnId: string, direction: -1 | 1) => {
+			setColumnOrder((prev) =>
+				ensureActionsTrailing(
+					moveColumnInOrder(prev, leafColumnIds, columnId, direction)
+				)
+			);
+		},
+		[leafColumnIds]
+	);
 
 	const pageIndex = isServer ? serverList.pagination.pageIndex : pagination.pageIndex;
 	const pageSize = isServer ? serverList.pagination.pageSize : pagination.pageSize;
@@ -389,6 +472,7 @@ function DataTableInner<TData, TValue>({
 	}
 
 	return (
+		<ColumnLayoutProvider moveColumn={moveColumn}>
 		<div
 			className="flex h-full min-h-0 min-w-0 flex-col"
 			aria-busy={isLoading || undefined}
@@ -422,26 +506,36 @@ function DataTableInner<TData, TValue>({
 			) : null}
 			<div className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border">
 				<Table
-					className={cn("w-max min-w-full table-fixed", className)}
-					style={{ width: table.getTotalSize() }}
+					className={cn(
+						"w-full table-fixed [&_tr_td:last-child]:w-auto [&_tr_th:last-child]:w-auto",
+						className
+					)}
+					style={{ minWidth: table.getTotalSize() }}
 				>
+					<colgroup>
+						{table.getVisibleLeafColumns().map((column) => (
+							<col
+								key={column.id}
+								style={getColumnWidthStyle(column.id, column.getSize())}
+							/>
+						))}
+					</colgroup>
 					<TableHeader className="sticky top-0 z-20 bg-background [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="bg-opacity-25 bg-stone-600">
+							<TableRow key={headerGroup.id} className="bg-stone-600/25">
 								{headerGroup.headers.map((header) => {
 									const pinned = header.column.getIsPinned();
+									const size = header.getSize();
 									return (
 										<TableHead
 											key={header.id}
 											colSpan={header.colSpan}
 											className={cn(
-												"relative group/col",
-												pinned && "bg-background",
+												"relative box-border group/col overflow-hidden bg-stone-600/25",
 												pinned && "shadow-[inset_-1px_0_0] shadow-border"
 											)}
 											style={{
-												width: header.getSize(),
-												minWidth: header.getSize(),
+												...getColumnWidthStyle(header.column.id, size),
 												...getColumnPinningStyle(header.column),
 												zIndex: pinned ? 3 : undefined,
 											}}
@@ -490,6 +584,7 @@ function DataTableInner<TData, TValue>({
 			</div>
 			<TablePagination table={table} />
 		</div>
+		</ColumnLayoutProvider>
 	);
 }
 

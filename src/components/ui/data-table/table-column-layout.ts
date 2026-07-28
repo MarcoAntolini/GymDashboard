@@ -2,7 +2,26 @@ import type { CSSProperties } from "react";
 import type { Column } from "@tanstack/react-table";
 
 /** Colonne strutturali: non riordinabili dall'operatore. */
-export const LOCKED_COLUMN_IDS = new Set(["__select", "actions"]);
+export const LOCKED_COLUMN_IDS = new Set(["__select", "__spacer", "actions"]);
+
+export const ACTIONS_COLUMN_SIZE = 56;
+
+export function isFlexSpacerColumn(columnId: string): boolean {
+	return columnId === "__spacer";
+}
+
+/** Stili larghezza: spacer assorbe lo spazio libero; le altre restano a px fissi. */
+export function getColumnWidthStyle(columnId: string, size: number): CSSProperties {
+	if (isFlexSpacerColumn(columnId)) {
+		// In table-fixed, width 100% on the flex col claims leftover space.
+		return { width: "100%" };
+	}
+	return {
+		width: size,
+		minWidth: size,
+		maxWidth: size,
+	};
+}
 
 /**
  * Sposta `columnId` di una posizione nella columnOrder.
@@ -29,6 +48,18 @@ export function moveColumnInOrder(
 	current.splice(from, 1);
 	current.splice(to, 0, columnId);
 	return current;
+}
+
+/** Tiene `__spacer` + `actions` in coda (actions sempre ultima). */
+export function ensureActionsTrailing(order: string[]): string[] {
+	const rest = order.filter((id) => id !== "__spacer" && id !== "actions");
+	const hasSpacer = order.includes("__spacer");
+	const hasActions = order.includes("actions");
+	return [
+		...rest,
+		...(hasSpacer ? ["__spacer"] : []),
+		...(hasActions ? ["actions"] : []),
+	];
 }
 
 /** Stili sticky per column pinning (scroll orizzontale nel container overflow). */

@@ -134,7 +134,7 @@ export default function TableToolbar<TData>({
 				<DropdownMenuContent align="end">
 					{table
 						.getAllColumns()
-						.filter((column) => column.id !== "actions")
+						.filter((column) => column.id !== "actions" && column.id !== "__spacer")
 						.filter((column) => column.getCanHide())
 						.map((column) => {
 							return (
