@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createPayment, deletePayment, editPayment, listPayments } from "@/data-access/payments";
 import { useServerList } from "@/hooks/useServerList";
+import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import {
 	PAYMENT_DEFAULT_SORT,
 	PAYMENT_FILTER_ALLOWLIST,
@@ -21,7 +22,7 @@ import {
 } from "@/lib/list/payments";
 import { cn } from "@/lib/utils";
 import { Payment, PaymentType } from "@prisma/client";
-import { format } from "date-fns";
+import { formatDateIt } from "@/lib/format";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback } from "react";
 import { z } from "zod";
@@ -107,7 +108,9 @@ export default function PaymentsPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Payment",
+			title: "Aggiungi pagamento",
+			description:
+				"Crea un Pagamento tipizzato (Stipendio, Bolletta, Attrezzatura o Intervento) con i dettagli della specializzazione.",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -115,7 +118,7 @@ export default function PaymentsPage() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
+								<FormLabel>Data</FormLabel>
 								<Popover>
 									<PopoverTrigger asChild>
 										<FormControl>
@@ -123,7 +126,7 @@ export default function PaymentsPage() {
 												variant={"outline"}
 												className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
 											>
-												{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+												{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 											</Button>
 										</FormControl>
@@ -145,7 +148,7 @@ export default function PaymentsPage() {
 						name="amount"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Amount</FormLabel>
+								<FormLabel>Importo</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -162,18 +165,19 @@ export default function PaymentsPage() {
 						name="type"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Type</FormLabel>
+								<FormLabel>Tipo</FormLabel>
 								<Select onValueChange={field.onChange} defaultValue={field.value}>
 									<FormControl>
 										<SelectTrigger>
-											<SelectValue placeholder="Select payment type" />
+											<SelectValue placeholder="Seleziona tipo pagamento" />
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										<SelectItem value="Salary">Salary</SelectItem>
-										<SelectItem value="Bill">Bill</SelectItem>
-										<SelectItem value="Equipment">Equipment</SelectItem>
-										<SelectItem value="Intervention">Intervention</SelectItem>
+										{Object.values(PaymentType).map((type) => (
+											<SelectItem key={type} value={type}>
+												{PAYMENT_TYPE_LABEL[type]}
+											</SelectItem>
+										))}
 									</SelectContent>
 								</Select>
 								<FormMessage />
@@ -191,7 +195,7 @@ export default function PaymentsPage() {
 											name="employeeId"
 											render={({ field }) => (
 												<FormItem>
-													<FormLabel>Employee ID</FormLabel>
+													<FormLabel>ID Dipendente</FormLabel>
 													<FormControl>
 														<Input
 															type="number"
@@ -212,7 +216,7 @@ export default function PaymentsPage() {
 												name="description"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Description</FormLabel>
+														<FormLabel>Descrizione</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -224,7 +228,7 @@ export default function PaymentsPage() {
 												name="provider"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Provider</FormLabel>
+														<FormLabel>Fornitore</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -241,7 +245,7 @@ export default function PaymentsPage() {
 												name="description"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Description</FormLabel>
+														<FormLabel>Descrizione</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -253,7 +257,7 @@ export default function PaymentsPage() {
 												name="maker"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Maker</FormLabel>
+														<FormLabel>Produttore</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -265,7 +269,7 @@ export default function PaymentsPage() {
 												name="startingTime"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Starting Time</FormLabel>
+														<FormLabel>Ora inizio</FormLabel>
 														<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 														<FormMessage />
 													</FormItem>
@@ -275,7 +279,7 @@ export default function PaymentsPage() {
 												name="endingTime"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Ending Time</FormLabel>
+														<FormLabel>Ora fine</FormLabel>
 														<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 														<FormMessage />
 													</FormItem>

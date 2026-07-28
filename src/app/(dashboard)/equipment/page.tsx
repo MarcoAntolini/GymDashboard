@@ -4,6 +4,7 @@ import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
+import { CreateElsewhereHint } from "@/components/ui/create-elsewhere-hint";
 import {
 	deleteEquipment,
 	editEquipment,
@@ -55,6 +56,13 @@ export default function EquipmentPage() {
 	) : (
 		<Dashboard
 			actions={[]}
+			extraToolbar={
+				<CreateElsewhereHint
+					message="L'Attrezzatura si crea da"
+					href="/payments"
+					linkLabel="Pagamenti (tipo Attrezzatura)"
+				/>
+			}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
@@ -64,7 +72,7 @@ export default function EquipmentPage() {
 					emptyState={
 						<TableEmptyState
 							title="Nessuna attrezzatura"
-							hint="Registra un pagamento Attrezzatura oppure filtra per fornitore."
+							hint="Crea un Pagamento di tipo Attrezzatura nella sezione Pagamenti; poi filtra per fornitore."
 						/>
 					}
 					serverList={{

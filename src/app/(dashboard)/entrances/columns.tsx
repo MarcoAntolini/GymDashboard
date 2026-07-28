@@ -80,6 +80,7 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={editFormSchema}
+				entityLabel="Ingresso"
 				editFormContent={
 					<>
 						<FormField

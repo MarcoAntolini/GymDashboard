@@ -72,6 +72,7 @@ export const columns = (
 					},
 				}}
 				formSchema={formSchema}
+				entityLabel="Voce di listino"
 				editFormContent={
 					<>
 						<FormField

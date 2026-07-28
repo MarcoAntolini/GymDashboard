@@ -177,6 +177,15 @@ export async function getPayment(id: number) {
 export async function editPayment(input: Omit<Payment, "amount"> & { amount: MoneyInput }) {
 	assertMutationPayload("payment", "update", input);
 	const { id, date, amount, type } = input;
+	const existing = await db.payment.findUnique({ where: { id } });
+	if (!existing) {
+		throw new Error("Pagamento non trovato.");
+	}
+	if (type !== existing.type) {
+		throw new Error(
+			"Il tipo del Pagamento non è modificabile: crea un nuovo Pagamento per la specializzazione desiderata."
+		);
+	}
 	return await db.payment.update({
 		where: {
 			id
@@ -184,7 +193,6 @@ export async function editPayment(input: Omit<Payment, "amount"> & { amount: Mon
 		data: {
 			date,
 			amount: new Prisma.Decimal(amount),
-			type
 		},
 		include: {
 			intervention: true,

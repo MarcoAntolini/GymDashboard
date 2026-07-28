@@ -112,6 +112,7 @@ export const columns = (
 					},
 				}}
 				formSchema={formSchema}
+				entityLabel="Contratto"
 				editFormContent={
 					<>
 						<FormField

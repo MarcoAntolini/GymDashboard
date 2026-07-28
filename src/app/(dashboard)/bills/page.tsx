@@ -4,6 +4,7 @@ import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
+import { CreateElsewhereHint } from "@/components/ui/create-elsewhere-hint";
 import { deleteBill, editBill, listBills, type BillRow } from "@/data-access/bills";
 import { useServerList } from "@/hooks/useServerList";
 import {
@@ -48,6 +49,13 @@ export default function BillsPage() {
 	) : (
 		<Dashboard
 			actions={[]}
+			extraToolbar={
+				<CreateElsewhereHint
+					message="Le Bollette si creano da"
+					href="/payments"
+					linkLabel="Pagamenti (tipo Bolletta)"
+				/>
+			}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
@@ -57,7 +65,7 @@ export default function BillsPage() {
 					emptyState={
 						<TableEmptyState
 							title="Nessuna bolletta"
-							hint="Registra una Bolletta oppure filtra per fornitore."
+							hint="Crea un Pagamento di tipo Bolletta nella sezione Pagamenti; poi filtra per fornitore."
 						/>
 					}
 					serverList={{

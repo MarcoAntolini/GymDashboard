@@ -59,6 +59,7 @@ export const columns = (
 			<ItemActions
 				row={row}
 				formSchema={formSchema}
+				entityLabel="Timbratura"
 				editFormContent={
 					<>
 						<FormField

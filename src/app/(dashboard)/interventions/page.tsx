@@ -4,6 +4,7 @@ import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
+import { CreateElsewhereHint } from "@/components/ui/create-elsewhere-hint";
 import {
 	deleteIntervention,
 	editIntervention,
@@ -55,6 +56,13 @@ export default function InterventionsPage() {
 	) : (
 		<Dashboard
 			actions={[]}
+			extraToolbar={
+				<CreateElsewhereHint
+					message="Gli Interventi si creano da"
+					href="/payments"
+					linkLabel="Pagamenti (tipo Intervento)"
+				/>
+			}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
@@ -64,7 +72,7 @@ export default function InterventionsPage() {
 					emptyState={
 						<TableEmptyState
 							title="Nessun intervento"
-							hint="Registra un Intervento oppure filtra per attuatore."
+							hint="Crea un Pagamento di tipo Intervento nella sezione Pagamenti; poi filtra per attuatore."
 						/>
 					}
 					serverList={{

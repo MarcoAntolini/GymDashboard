@@ -4,7 +4,6 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { formatDateIt, formatEur } from "@/lib/format";
@@ -68,6 +67,9 @@ export const columns = (
 					},
 				}}
 				formSchema={formSchema}
+				entityLabel="Pagamento"
+				editDescription="Modifica data e importo. Il tipo (e la specializzazione collegata) non è modificabile da qui."
+				deleteDescription="Eliminando il Pagamento verranno eliminate anche le specializzazioni collegate (Stipendio, Bolletta, Attrezzatura o Intervento)."
 				editFormContent={
 					<>
 						<FormField
@@ -104,29 +106,13 @@ export const columns = (
 								</FormItem>
 							)}
 						/>
-						<FormField
-							name="type"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Tipo</FormLabel>
-									<Select onValueChange={field.onChange} defaultValue={field.value}>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue placeholder="Seleziona un tipo" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-											{Object.values(PaymentType).map((type) => (
-												<SelectItem key={type} value={type}>
-													{PAYMENT_TYPE_LABEL[type]}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						<FormItem>
+							<FormLabel>Tipo</FormLabel>
+							<p className="text-sm text-muted-foreground">
+								{PAYMENT_TYPE_LABEL[row.original.type]} (bloccato — crea un nuovo Pagamento per
+								cambiare tipo)
+							</p>
+						</FormItem>
 					</>
 				}
 				editAction={async ({ values }) => {
@@ -134,7 +120,7 @@ export const columns = (
 						id: row.original.id,
 						date: values.date,
 						amount: values.amount,
-						type: values.type,
+						type: row.original.type,
 					});
 				}}
 				deleteAction={() => handleDelete({ id: row.original.id })}

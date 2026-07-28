@@ -16,6 +16,7 @@ import {
 	PRODUCT_FILTER_LABELS,
 	PRODUCT_SORT_ALLOWLIST,
 } from "@/lib/list/products";
+import Link from "next/link";
 import { useCallback } from "react";
 import { columns, type ProductRow } from "./columns";
 
@@ -55,6 +56,25 @@ export default function ProductsPage() {
 	) : (
 		<Dashboard
 			actions={[]}
+			extraToolbar={
+				<p className="text-sm text-muted-foreground">
+					I Prodotti si creano da{" "}
+					<Link
+						href="/memberships"
+						className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+					>
+						Abbonamenti
+					</Link>{" "}
+					o{" "}
+					<Link
+						href="/entrance-sets"
+						className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+					>
+						Pacchetti ingressi
+					</Link>
+					.
+				</p>
+			}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
@@ -64,7 +84,7 @@ export default function ProductsPage() {
 					emptyState={
 						<TableEmptyState
 							title="Nessun prodotto"
-							hint="Aggiungi un Prodotto al listino oppure modifica il filtro codice."
+							hint="Crea un Abbonamento o un Pacchetto ingressi: il Prodotto correlato compare qui."
 						/>
 					}
 					serverList={{

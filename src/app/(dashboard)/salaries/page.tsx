@@ -4,6 +4,7 @@ import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
+import { CreateElsewhereHint } from "@/components/ui/create-elsewhere-hint";
 import {
 	deleteSalary,
 	editSalary,
@@ -53,6 +54,13 @@ export default function Salaries() {
 	) : (
 		<Dashboard
 			actions={[]}
+			extraToolbar={
+				<CreateElsewhereHint
+					message="Gli Stipendi si creano da"
+					href="/payments"
+					linkLabel="Pagamenti (tipo Stipendio)"
+				/>
+			}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
@@ -62,7 +70,7 @@ export default function Salaries() {
 					emptyState={
 						<TableEmptyState
 							title="Nessuno stipendio"
-							hint="Gli Stipendi compaiono dai Pagamenti di tipo Stipendio; filtra per Dipendente."
+							hint="Crea un Pagamento di tipo Stipendio nella sezione Pagamenti; poi filtra per Dipendente."
 						/>
 					}
 					serverList={{

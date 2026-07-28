@@ -129,6 +129,8 @@ export const columns = (
       <ItemActions
         row={row}
         formSchema={formSchema}
+        entityLabel="Cliente"
+        deleteDescription="Se il Cliente ha Acquisti collegati, l'eliminazione viene rifiutata (Restrict)."
         editFormContent={
           <>
             <div className="grid grid-cols-2 gap-4">
