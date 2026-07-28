@@ -11,7 +11,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createPayment, deletePayment, editPayment, listPayments } from "@/data-access/payments";
+import { createPayment, deletePayment, editPayment, listPayments, type PaymentRow } from "@/data-access/payments";
 import { useServerList } from "@/hooks/useServerList";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import {
@@ -21,7 +21,7 @@ import {
 	PAYMENT_FILTER_LABELS,
 } from "@/lib/list/payments";
 import { cn } from "@/lib/utils";
-import { Payment, PaymentType } from "@prisma/client";
+import { PaymentType } from "@prisma/client";
 import { formatDateIt } from "@/lib/format";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback } from "react";
@@ -61,7 +61,7 @@ const paymentSchema = z.discriminatedUnion("type", [
 ]);
 
 export default function PaymentsPage() {
-	const list = useServerList<Payment>({
+	const list = useServerList<PaymentRow>({
 		list: listPayments,
 		sortAllowlist: PAYMENT_SORT_ALLOWLIST,
 		filterAllowlist: PAYMENT_FILTER_ALLOWLIST,
@@ -70,7 +70,7 @@ export default function PaymentsPage() {
 	const { refetch, setItems } = list;
 
 	const handleDelete = useCallback(
-		async (payment: Pick<Payment, "id">) => {
+		async (payment: Pick<PaymentRow, "id">) => {
 			await deletePayment(payment);
 			refetch();
 		},
@@ -78,15 +78,18 @@ export default function PaymentsPage() {
 	);
 
 	const handleEdit = useCallback(
-		async (
-			payment: Omit<Payment, "amount"> & { amount: Payment["amount"] | number }
-		) => {
+		async (payment: {
+			id: number;
+			date: Date;
+			amount: PaymentRow["amount"] | number;
+			type: PaymentType;
+		}) => {
 			const updated = await editPayment(payment);
 			setItems((prev) =>
 				prev.map((item) =>
 					item.id === updated.id
 						? {
-								id: updated.id,
+								...item,
 								date: updated.date,
 								amount: updated.amount,
 								type: updated.type,

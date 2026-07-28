@@ -73,13 +73,14 @@ export const columns = (
 				}}
 				formSchema={formSchema}
 				entityLabel="Voce di listino"
+				editDescription="Anno e codice prodotto identificano la voce. Il prezzo è quello del Listino per quell'anno (usato come proposta sull'Acquisto)."
 				editFormContent={
 					<>
 						<FormField
 							name="year"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Year</FormLabel>
+									<FormLabel>Anno</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -96,7 +97,7 @@ export const columns = (
 							name="productCode"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Product Code</FormLabel>
+									<FormLabel>Codice prodotto</FormLabel>
 									<FormControl>
 										<Input {...field} disabled />
 									</FormControl>
@@ -108,7 +109,7 @@ export const columns = (
 							name="price"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Price</FormLabel>
+									<FormLabel>Prezzo</FormLabel>
 									<FormControl>
 										<Input
 											type="text"

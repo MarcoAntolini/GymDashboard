@@ -130,7 +130,7 @@ export const columns = (
         row={row}
         formSchema={formSchema}
         entityLabel="Cliente"
-        deleteDescription="Se il Cliente ha Acquisti collegati, l'eliminazione viene rifiutata (Restrict)."
+			deleteDescription="Se il Cliente ha Acquisti collegati, l'eliminazione viene rifiutata (vincolo Restrict)."
         editFormContent={
           <>
             <div className="grid grid-cols-2 gap-4">

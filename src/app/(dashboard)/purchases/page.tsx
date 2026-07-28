@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -30,7 +30,7 @@ import {
 	PURCHASE_SORT_ALLOWLIST,
 } from "@/lib/list/purchases";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatDateIt } from "@/lib/format";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
@@ -99,7 +99,9 @@ export default function PurchasesPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Purchase",
+			title: "Aggiungi acquisto",
+			description:
+				"Importo, durata e N ingressi sono snapshot al momento della vendita. L'importo proposto viene dal Listino dell'anno della data (modificabile prima del salvataggio).",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -108,7 +110,7 @@ export default function PurchasesPage() {
 						name="clientId"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Client ID</FormLabel>
+								<FormLabel>ID Cliente</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -124,7 +126,7 @@ export default function PurchasesPage() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
+								<FormLabel>Data</FormLabel>
 								<Popover>
 									<PopoverTrigger asChild>
 										<FormControl>
@@ -135,7 +137,7 @@ export default function PurchasesPage() {
 													!field.value && "text-muted-foreground"
 												)}
 											>
-												{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+												{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 											</Button>
 										</FormControl>
@@ -156,13 +158,13 @@ export default function PurchasesPage() {
 					/>
 					{/* Tipo: solo filtro UI locale — non è FormField / non va nel payload Acquisto */}
 					<div className="space-y-2">
-						<Label>Type</Label>
+						<Label>Tipo</Label>
 						<Select
 							value={selectedType}
 							onValueChange={(value) => setSelectedType(value as ProductKind)}
 						>
 							<SelectTrigger>
-								<SelectValue placeholder="Select a type" />
+								<SelectValue placeholder="Seleziona un tipo" />
 							</SelectTrigger>
 							<SelectContent>
 								{(Object.keys(PRODUCT_KIND_LABEL) as ProductKind[]).map((kind) => (
@@ -177,7 +179,7 @@ export default function PurchasesPage() {
 						name="productCode"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Product</FormLabel>
+								<FormLabel>Prodotto</FormLabel>
 								<Select
 									onValueChange={field.onChange}
 									value={field.value}
@@ -188,8 +190,8 @@ export default function PurchasesPage() {
 											<SelectValue
 												placeholder={
 													filteredProducts.length === 0
-														? `No ${PRODUCT_KIND_LABEL[selectedType].toLowerCase()} products available`
-														: "Select a product"
+														? `Nessun prodotto ${PRODUCT_KIND_LABEL[selectedType].toLowerCase()} disponibile`
+														: "Seleziona un prodotto"
 												}
 											/>
 										</SelectTrigger>
@@ -199,8 +201,8 @@ export default function PurchasesPage() {
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}
 												{selectedType === ProductKind.Membership
-													? ` (${product.membership?.duration} days)`
-													: ` (${product.entranceSet?.entranceNumber} entrances)`}
+													? ` (${product.membership?.duration} giorni)`
+													: ` (${product.entranceSet?.entranceNumber} ingressi)`}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -213,7 +215,7 @@ export default function PurchasesPage() {
 						name="amount"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Amount</FormLabel>
+								<FormLabel>Importo (snapshot)</FormLabel>
 								<FormControl>
 									<Input
 										type="text"

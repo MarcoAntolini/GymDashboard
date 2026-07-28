@@ -1,7 +1,7 @@
 "use client";
 
 import { getCatalog } from "@/data-access/catalogs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 // react-hook-form types are broken project-wide (see form.tsx); runtime exports are fine.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as RHF from "react-hook-form";
@@ -21,15 +21,29 @@ export function CatalogAmountDefault() {
 	const { setValue } = useFormContext();
 	const date = useWatch({ name: "date" }) as Date | undefined;
 	const productCode = useWatch({ name: "productCode" }) as string | undefined;
+	const [hint, setHint] = useState<string | null>(null);
 
 	useEffect(() => {
 		let cancelled = false;
 
 		async function proposeListinoAmount() {
-			if (!date || !productCode) return;
-			const catalog = await getCatalog(new Date(date).getFullYear(), productCode);
-			if (cancelled || !catalog) return;
+			if (!date || !productCode) {
+				setHint(null);
+				return;
+			}
+			const year = new Date(date).getFullYear();
+			const catalog = await getCatalog(year, productCode);
+			if (cancelled) return;
+			if (!catalog) {
+				setHint(
+					`Nessuna voce Listino per «${productCode}» nell'anno ${year}. Imposta l'importo manualmente (snapshot sull'Acquisto).`
+				);
+				return;
+			}
 			setValue("amount", Number(catalog.price).toFixed(2), { shouldValidate: true });
+			setHint(
+				`Prezzo proposto dal Listino ${year} per «${productCode}». Resta snapshot sull'Acquisto anche se il Listino cambia dopo.`
+			);
 		}
 
 		void proposeListinoAmount();
@@ -38,5 +52,7 @@ export function CatalogAmountDefault() {
 		};
 	}, [date, productCode, setValue]);
 
-	return null;
+	if (!hint) return null;
+
+	return <p className="text-sm text-muted-foreground">{hint}</p>;
 }

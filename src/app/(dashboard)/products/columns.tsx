@@ -50,7 +50,7 @@ export const columns = (
 				row={row}
 				formSchema={formSchema}
 				entityLabel="Prodotto"
-				deleteDescription="Se il Prodotto ha Acquisti collegati, l'eliminazione viene rifiutata (Restrict)."
+				deleteDescription="Se il Prodotto ha Acquisti o voci di Listino collegati, l'eliminazione viene rifiutata (vincolo Restrict)."
 				editFormContent={
 					<>
 						<FormField

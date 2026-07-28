@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -30,7 +30,7 @@ import {
 	ENTRANCE_SORT_ALLOWLIST,
 } from "@/lib/list/entrances";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatDateIt } from "@/lib/format";
 import { BarChart as BarChartIcon, CalendarDays, CalendarIcon, Clock, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -147,7 +147,9 @@ export default function EntrancesPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Add Entrance",
+			title: "Registra ingresso",
+			description:
+				"L'Acquisto giustificatore è scelto automaticamente: priorità ad un Abbonamento valido alla data, altrimenti al Pacchetto con residuo (FIFO). Se nessun Acquisto copre la data, la registrazione fallisce con un messaggio chiaro.",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -181,7 +183,7 @@ export default function EntrancesPage() {
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
+								<FormLabel>Data</FormLabel>
 								<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 								<FormMessage />
 							</FormItem>
@@ -199,7 +201,7 @@ export default function EntrancesPage() {
 			},
 		},
 		{
-			title: "Daily Analysis",
+			title: "Analisi giornaliera",
 			icon: Clock,
 			dialogContent: (
 				<DateRangePickerField onSubmit={(values) => handleAnalytics(values, "daily")} formData={analyticsFormData} />
@@ -210,7 +212,7 @@ export default function EntrancesPage() {
 			},
 		},
 		{
-			title: "Weekly Analysis",
+			title: "Analisi settimanale",
 			icon: CalendarDays,
 			dialogContent: (
 				<DateRangePickerField onSubmit={(values) => handleAnalytics(values, "weekly")} formData={analyticsFormData} />
@@ -221,7 +223,7 @@ export default function EntrancesPage() {
 			},
 		},
 		{
-			title: "Monthly Analysis",
+			title: "Analisi mensile",
 			icon: BarChartIcon,
 			dialogContent: (
 				<DateRangePickerField
@@ -274,10 +276,10 @@ export default function EntrancesPage() {
 			<Sheet open={isDailySheetOpen} onOpenChange={setIsDailySheetOpen}>
 				<SheetContent side="bottom" className="h-[450px]">
 					<SheetHeader>
-						<SheetTitle>Daily Entrances Analysis</SheetTitle>
+						<SheetTitle>Analisi ingressi giornaliera</SheetTitle>
 						<SheetDescription>
 							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
+								`Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)}`}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="h-[350px] mt-4">
@@ -296,10 +298,10 @@ export default function EntrancesPage() {
 			<Sheet open={isWeeklySheetOpen} onOpenChange={setIsWeeklySheetOpen}>
 				<SheetContent side="bottom" className="h-[450px]">
 					<SheetHeader>
-						<SheetTitle>Weekly Entrances Analysis</SheetTitle>
+						<SheetTitle>Analisi ingressi settimanale</SheetTitle>
 						<SheetDescription>
 							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
+								`Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)}`}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="h-[350px] mt-4">
@@ -318,10 +320,10 @@ export default function EntrancesPage() {
 			<Sheet open={isMonthlySheetOpen} onOpenChange={setIsMonthlySheetOpen}>
 				<SheetContent side="bottom" className="h-[450px]">
 					<SheetHeader>
-						<SheetTitle>Monthly Entrances Analysis</SheetTitle>
+						<SheetTitle>Analisi ingressi mensile</SheetTitle>
 						<SheetDescription>
 							{selectedDateRange &&
-								`Period: ${format(selectedDateRange.from, "PP")} - ${format(selectedDateRange.to, "PP")}`}
+								`Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)}`}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="h-[350px] mt-4">
@@ -353,7 +355,7 @@ function DateRangePickerField({
 			name="date"
 			render={({ field }) => (
 				<FormItem className="w-full flex flex-col gap-2">
-					<FormLabel>Select Period</FormLabel>
+					<FormLabel>Seleziona periodo</FormLabel>
 					<Popover>
 						<PopoverTrigger asChild>
 							<FormControl>
@@ -368,13 +370,13 @@ function DateRangePickerField({
 									{field.value?.from ? (
 										field.value.to ? (
 											<>
-												{format(field.value.from, "LLL dd, y")} - {format(field.value.to, "LLL dd, y")}
+												{formatDateIt(field.value.from)} - {formatDateIt(field.value.to)}
 											</>
 										) : (
-											format(field.value.from, "LLL dd, y")
+											formatDateIt(field.value.from)
 										)
 									) : (
-										<span>Pick a date range</span>
+										<span>Seleziona un intervallo di date</span>
 									)}
 								</Button>
 							</FormControl>

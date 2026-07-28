@@ -176,7 +176,7 @@ function PurchaseRowActions({
 			}}
 			formSchema={formSchema}
 			entityLabel="Acquisto"
-			deleteDescription="Se l'Acquisto ha Ingressi collegati, l'eliminazione viene rifiutata (Restrict)."
+			deleteDescription="Se l'Acquisto ha Ingressi collegati, l'eliminazione viene rifiutata (vincolo Restrict)."
 			editFormContent={
 				<>
 					<FormField

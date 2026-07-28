@@ -81,18 +81,25 @@ export const columns = (
 				row={row}
 				formSchema={editFormSchema}
 				entityLabel="Ingresso"
+				editDescription="Puoi correggere solo la data. Cliente e Acquisto restano quelli scelti alla registrazione (giustificazione automatica)."
 				editFormContent={
 					<>
 						<FormField
 							name="date"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Date</FormLabel>
+									<FormLabel>Data</FormLabel>
 									<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
+						<FormItem>
+							<FormLabel>Acquisto</FormLabel>
+							<p className="text-sm text-muted-foreground">
+								#{row.original.purchaseId} — {row.original.purchase.productCode} (bloccato)
+							</p>
+						</FormItem>
 					</>
 				}
 				editAction={async ({ values }) => {

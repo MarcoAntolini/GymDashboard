@@ -38,6 +38,17 @@ type PaymentData = {
 
 const PAYMENT_TYPES = new Set<string>(Object.values(PaymentType));
 
+const paymentListInclude = {
+	salary: true,
+	bill: true,
+	equipment: true,
+	intervention: true,
+} as const;
+
+export type PaymentRow = Prisma.PaymentGetPayload<{
+	include: typeof paymentListInclude;
+}>;
+
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
 		const n = Math.trunc(raw);
@@ -73,10 +84,11 @@ function buildPaymentWhere(filters: ListFilters): Prisma.PaymentWhereInput {
 
 /**
  * Lista Pagamenti server-side: filtri su Conferma, sort + paginazione via DB.
+ * Include le specializzazioni così la UI può ispezionare i campi tipizzati.
  */
 export async function listPayments(
 	input: ListQueryInput = {}
-): Promise<ListResult<Payment>> {
+): Promise<ListResult<PaymentRow>> {
 	const query = normalizeListQuery(input, {
 		sortAllowlist: PAYMENT_SORT_ALLOWLIST,
 		filterAllowlist: PAYMENT_FILTER_ALLOWLIST,
@@ -91,7 +103,13 @@ export async function listPayments(
 	];
 	const [total, items] = await Promise.all([
 		db.payment.count({ where }),
-		db.payment.findMany({ where, skip, take, orderBy: orderByStable }),
+		db.payment.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: paymentListInclude,
+		}),
 	]);
 	return buildListResult(items, total, query);
 }

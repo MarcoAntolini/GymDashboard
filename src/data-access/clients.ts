@@ -1,6 +1,7 @@
 "use server";
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { throwIfRestrictViolation } from "@/lib/domain/prisma-restrict";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
@@ -18,7 +19,7 @@ import {
 import { Client, Prisma } from "@prisma/client";
 
 const CLIENT_HAS_PURCHASES_MESSAGE =
-	"Impossibile eliminare il cliente: esistono acquisti collegati.";
+	"Impossibile eliminare il Cliente: esistono Acquisti collegati (vincolo Restrict).";
 
 function buildClientWhere(filters: ListFilters): Prisma.ClientWhereInput {
 	const where: Prisma.ClientWhereInput = {};
@@ -145,12 +146,6 @@ export async function deleteClient({ id }: { id: number }) {
 			},
 		});
 	} catch (error) {
-		if (
-			error instanceof Prisma.PrismaClientKnownRequestError &&
-			(error.code === "P2003" || error.code === "P2014")
-		) {
-			throw new Error(CLIENT_HAS_PURCHASES_MESSAGE);
-		}
-		throw error;
+		throwIfRestrictViolation(error, CLIENT_HAS_PURCHASES_MESSAGE);
 	}
 }

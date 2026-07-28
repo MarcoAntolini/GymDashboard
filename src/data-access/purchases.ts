@@ -3,6 +3,7 @@
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { getCatalog } from "@/data-access/catalogs";
 import { db } from "@/lib/db";
+import { throwIfRestrictViolation } from "@/lib/domain/prisma-restrict";
 import { snapshotFromProduct } from "@/lib/domain/purchase-access";
 import {
 	buildListResult,
@@ -21,7 +22,7 @@ import {
 import { Prisma } from "@prisma/client";
 
 const PURCHASE_HAS_ENTRANCES_MESSAGE =
-	"Impossibile eliminare l'acquisto: esistono ingressi collegati.";
+	"Impossibile eliminare l'Acquisto: esistono Ingressi collegati (vincolo Restrict).";
 
 const purchaseInclude = {
 	client: true,
@@ -249,12 +250,6 @@ export async function deletePurchase({ id }: { id: number }) {
 	try {
 		return await db.purchase.delete({ where: { id } });
 	} catch (error) {
-		if (
-			error instanceof Prisma.PrismaClientKnownRequestError &&
-			(error.code === "P2003" || error.code === "P2014")
-		) {
-			throw new Error(PURCHASE_HAS_ENTRANCES_MESSAGE);
-		}
-		throw error;
+		throwIfRestrictViolation(error, PURCHASE_HAS_ENTRANCES_MESSAGE);
 	}
 }

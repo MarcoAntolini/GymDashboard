@@ -1,6 +1,7 @@
 "use server";
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { throwIfRestrictViolation } from "@/lib/domain/prisma-restrict";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
@@ -18,7 +19,7 @@ import {
 import { Prisma, Product } from "@prisma/client";
 
 const PRODUCT_HAS_DEPENDENTS_MESSAGE =
-	"Impossibile eliminare il prodotto: esistono acquisti collegati.";
+	"Impossibile eliminare il Prodotto: esistono Acquisti o voci di Listino collegati (vincolo Restrict).";
 
 const productInclude = {
 	membership: true,
@@ -117,12 +118,6 @@ export async function deleteProduct({ code }: { code: string }) {
 			},
 		});
 	} catch (error) {
-		if (
-			error instanceof Prisma.PrismaClientKnownRequestError &&
-			(error.code === "P2003" || error.code === "P2014")
-		) {
-			throw new Error(PRODUCT_HAS_DEPENDENTS_MESSAGE);
-		}
-		throw error;
+		throwIfRestrictViolation(error, PRODUCT_HAS_DEPENDENTS_MESSAGE);
 	}
 }

@@ -4,10 +4,11 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { PaymentRow } from "@/data-access/payments";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
-import { formatDateIt, formatEur } from "@/lib/format";
-import { Payment, PaymentType } from "@prisma/client";
+import { formatDateIt, formatDateTimeIt, formatEur } from "@/lib/format";
+import { PaymentType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -17,12 +18,100 @@ export const formSchema = z.object({
 	type: z.nativeEnum(PaymentType),
 });
 
+function specializationSummary(payment: PaymentRow): string {
+	switch (payment.type) {
+		case "Salary":
+			return payment.salary
+				? `Dipendente #${payment.salary.employeeId}`
+				: "Specializzazione assente";
+		case "Bill":
+			return payment.bill
+				? `${payment.bill.provider} — ${payment.bill.description}`
+				: "Specializzazione assente";
+		case "Equipment":
+			return payment.equipment
+				? `${payment.equipment.provider} — ${payment.equipment.description}`
+				: "Specializzazione assente";
+		case "Intervention":
+			return payment.intervention
+				? `${payment.intervention.maker} — ${payment.intervention.description}`
+				: "Specializzazione assente";
+		default:
+			return "—";
+	}
+}
+
+function PaymentSpecializationDetails({ payment }: { payment: PaymentRow }) {
+	switch (payment.type) {
+		case "Salary":
+			return (
+				<FormItem>
+					<FormLabel>Specializzazione — Stipendio</FormLabel>
+					<p className="text-sm text-muted-foreground">
+						{payment.salary
+							? `ID Dipendente: ${payment.salary.employeeId}`
+							: "Dati specializzazione non disponibili."}
+					</p>
+				</FormItem>
+			);
+		case "Bill":
+			return (
+				<FormItem>
+					<FormLabel>Specializzazione — Bolletta</FormLabel>
+					{payment.bill ? (
+						<ul className="text-sm text-muted-foreground space-y-1">
+							<li>Fornitore: {payment.bill.provider}</li>
+							<li>Descrizione: {payment.bill.description}</li>
+						</ul>
+					) : (
+						<p className="text-sm text-muted-foreground">Dati specializzazione non disponibili.</p>
+					)}
+				</FormItem>
+			);
+		case "Equipment":
+			return (
+				<FormItem>
+					<FormLabel>Specializzazione — Attrezzatura</FormLabel>
+					{payment.equipment ? (
+						<ul className="text-sm text-muted-foreground space-y-1">
+							<li>Fornitore: {payment.equipment.provider}</li>
+							<li>Descrizione: {payment.equipment.description}</li>
+						</ul>
+					) : (
+						<p className="text-sm text-muted-foreground">Dati specializzazione non disponibili.</p>
+					)}
+				</FormItem>
+			);
+		case "Intervention":
+			return (
+				<FormItem>
+					<FormLabel>Specializzazione — Intervento</FormLabel>
+					{payment.intervention ? (
+						<ul className="text-sm text-muted-foreground space-y-1">
+							<li>Produttore: {payment.intervention.maker}</li>
+							<li>Descrizione: {payment.intervention.description}</li>
+							<li>Inizio: {formatDateTimeIt(payment.intervention.startingTime)}</li>
+							<li>Fine: {formatDateTimeIt(payment.intervention.endingTime)}</li>
+						</ul>
+					) : (
+						<p className="text-sm text-muted-foreground">Dati specializzazione non disponibili.</p>
+					)}
+				</FormItem>
+			);
+		default:
+			return null;
+	}
+}
+
 export const columns = (
-	handleDelete: (payment: Pick<Payment, "id">) => Promise<void>,
-	handleEdit: (
-		payment: Omit<Payment, "amount"> & { amount: Payment["amount"] | number }
-	) => Promise<void>
-): ColumnDef<Payment>[] => [
+	handleDelete: (payment: Pick<PaymentRow, "id">) => Promise<void>,
+	handleEdit: (payment: {
+		id: number;
+		date: Date;
+		amount: PaymentRow["amount"] | number;
+		type: PaymentType;
+	}) => Promise<void>
+): ColumnDef<PaymentRow>[] => [
 	{
 		accessorKey: "date",
 		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
@@ -48,6 +137,18 @@ export const columns = (
 		),
 	},
 	{
+		id: "specialization",
+		accessorFn: (row) => specializationSummary(row),
+		header: ({ column }) => <TableSortableHeader column={column} title="Dettaglio" />,
+		meta: columnMeta(ColumnClass.Join),
+		enableSorting: false,
+		cell: ({ row }) => (
+			<div className="max-w-[280px] truncate text-muted-foreground" title={specializationSummary(row.original)}>
+				{specializationSummary(row.original)}
+			</div>
+		),
+	},
+	{
 		accessorKey: "id",
 		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
 		meta: columnMeta(ColumnClass.Native),
@@ -68,7 +169,7 @@ export const columns = (
 				}}
 				formSchema={formSchema}
 				entityLabel="Pagamento"
-				editDescription="Modifica data e importo. Il tipo (e la specializzazione collegata) non è modificabile da qui."
+				editDescription="Modifica data e importo. Il tipo e i campi della specializzazione non sono modificabili da qui — ispezionali sotto."
 				deleteDescription="Eliminando il Pagamento verranno eliminate anche le specializzazioni collegate (Stipendio, Bolletta, Attrezzatura o Intervento)."
 				editFormContent={
 					<>
@@ -113,6 +214,7 @@ export const columns = (
 								cambiare tipo)
 							</p>
 						</FormItem>
+						<PaymentSpecializationDetails payment={row.original} />
 					</>
 				}
 				editAction={async ({ values }) => {
