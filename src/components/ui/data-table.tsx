@@ -24,6 +24,7 @@ import {
 	ensureActionsTrailing,
 	getColumnPinningStyle,
 	getColumnWidthStyle,
+	getFlexFillColumnId,
 	moveColumnInOrder,
 } from "@/components/ui/data-table/table-column-layout";
 import { ColumnLayoutProvider } from "@/components/ui/data-table/table-column-layout-context";
@@ -116,11 +117,19 @@ function hasAppliedFilters(filters: ListFilters | undefined): boolean {
 	});
 }
 
-function DataTableRow<TData>({ row }: { row: Row<TData> }) {
+function DataTableRow<TData>({
+	row,
+	flexFillColumnId,
+}: {
+	row: Row<TData>;
+	flexFillColumnId: string | null;
+}) {
 	const registry = useRowActionsRegistry();
 	const [menuActions, setMenuActions] = React.useState<
 		ReturnType<typeof registry.get>
 	>(undefined);
+	const [hovered, setHovered] = React.useState(false);
+	const selected = row.getIsSelected();
 
 	const cells = row.getVisibleCells().map((cell) => {
 		const pinned = cell.column.getIsPinned();
@@ -130,13 +139,17 @@ function DataTableRow<TData>({ row }: { row: Row<TData> }) {
 				key={cell.id}
 				className={cn(
 					"box-border overflow-hidden",
-					// Opaque bg only when pinned (scroll-under); must follow row hover/selection.
-					pinned &&
-						"bg-background group-hover:bg-muted/50 group-data-[state=selected]:bg-muted",
-					pinned && "shadow-[inset_-1px_0_0] shadow-border"
+					pinned && "shadow-[inset_-1px_0_0] shadow-border",
+					selected
+						? "bg-muted"
+						: hovered
+							? "bg-muted/50"
+							: pinned
+								? "bg-background"
+								: undefined
 				)}
 				style={{
-					...getColumnWidthStyle(cell.column.id, size),
+					...getColumnWidthStyle(cell.column.id, size, flexFillColumnId),
 					...getColumnPinningStyle(cell.column),
 				}}
 			>
@@ -154,8 +167,10 @@ function DataTableRow<TData>({ row }: { row: Row<TData> }) {
 		>
 			<ContextMenuTrigger asChild>
 				<TableRow
-					className="group"
-					data-state={row.getIsSelected() && "selected"}
+					className="hover:bg-transparent data-[state=selected]:bg-transparent"
+					data-state={selected && "selected"}
+					onMouseEnter={() => setHovered(true)}
+					onMouseLeave={() => setHovered(false)}
 				>
 					{cells}
 				</TableRow>
@@ -227,7 +242,7 @@ function DataTableInner<TData, TValue>({
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([]);
 	const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>({
 		left: [],
-		right: ["actions"],
+		right: [],
 	});
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({});
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
@@ -272,24 +287,9 @@ function DataTableInner<TData, TValue>({
 		[]
 	);
 
-	const spacerColumn = React.useMemo<ColumnDef<TData, TValue>>(
-		() => ({
-			id: "__spacer",
-			header: () => null,
-			cell: () => null,
-			enableSorting: false,
-			enableHiding: false,
-			enableResizing: false,
-			enablePinning: false,
-			size: 0,
-			minSize: 0,
-		}),
-		[]
-	);
-
 	const tableColumns = React.useMemo(() => {
 		const base = enableSelection ? [selectColumn, ...columns] : [...columns];
-		const normalized = base.map((col) => {
+		return base.map((col) => {
 			const id =
 				col.id ??
 				("accessorKey" in col && col.accessorKey != null
@@ -300,6 +300,7 @@ function DataTableInner<TData, TValue>({
 					...col,
 					enableResizing: false,
 					enableHiding: false,
+					enablePinning: false,
 					size: ACTIONS_COLUMN_SIZE,
 					minSize: ACTIONS_COLUMN_SIZE,
 					maxSize: ACTIONS_COLUMN_SIZE,
@@ -307,21 +308,7 @@ function DataTableInner<TData, TValue>({
 			}
 			return col;
 		});
-
-		const actionsIndex = normalized.findIndex((col) => {
-			const id =
-				col.id ??
-				("accessorKey" in col && col.accessorKey != null
-					? String(col.accessorKey)
-					: undefined);
-			return id === "actions";
-		});
-		if (actionsIndex === -1) return normalized;
-
-		const withSpacer = [...normalized];
-		withSpacer.splice(actionsIndex, 0, spacerColumn);
-		return withSpacer;
-	}, [enableSelection, selectColumn, spacerColumn, columns]);
+	}, [enableSelection, selectColumn, columns]);
 
 	const leafColumnIds = React.useMemo(
 		() =>
@@ -371,17 +358,7 @@ function DataTableInner<TData, TValue>({
 				return ensureActionsTrailing(next);
 			});
 		},
-		onColumnPinningChange: (updater) => {
-			setColumnPinning((prev) => {
-				const next = typeof updater === "function" ? updater(prev) : updater;
-				const left = (next.left ?? []).filter((id) => id !== "actions");
-				const right = (next.right ?? []).filter((id) => id !== "actions");
-				return {
-					left,
-					right: [...right, "actions"],
-				};
-			});
-		},
+		onColumnPinningChange: setColumnPinning,
 		onColumnSizingChange: setColumnSizing,
 		state: {
 			sorting: isServer ? serverList.sorting : sorting,
@@ -420,6 +397,9 @@ function DataTableInner<TData, TValue>({
 	const rows = table.getRowModel().rows;
 	const selectedRows = table.getSelectedRowModel().rows.map((r) => r.original);
 	const colSpan = tableColumns.length;
+	const flexFillColumnId = getFlexFillColumnId(
+		table.getVisibleLeafColumns().map((column) => column.id)
+	);
 	const showLoading = isLoading && rows.length === 0 && !error;
 	const showError = !!error;
 	const showEmpty = !showLoading && !showError && rows.length === 0;
@@ -516,7 +496,11 @@ function DataTableInner<TData, TValue>({
 						{table.getVisibleLeafColumns().map((column) => (
 							<col
 								key={column.id}
-								style={getColumnWidthStyle(column.id, column.getSize())}
+								style={getColumnWidthStyle(
+									column.id,
+									column.getSize(),
+									flexFillColumnId
+								)}
 							/>
 						))}
 					</colgroup>
@@ -535,7 +519,11 @@ function DataTableInner<TData, TValue>({
 												pinned && "shadow-[inset_-1px_0_0] shadow-border"
 											)}
 											style={{
-												...getColumnWidthStyle(header.column.id, size),
+												...getColumnWidthStyle(
+													header.column.id,
+													size,
+													flexFillColumnId
+												),
 												...getColumnPinningStyle(header.column),
 												zIndex: pinned ? 3 : undefined,
 											}}
@@ -546,7 +534,8 @@ function DataTableInner<TData, TValue>({
 														header.column.columnDef.header,
 														header.getContext()
 													)}
-											{header.column.getCanResize() ? (
+											{header.column.getCanResize() &&
+											header.column.id !== flexFillColumnId ? (
 												<div
 													role="separator"
 													aria-orientation="vertical"
@@ -577,7 +566,13 @@ function DataTableInner<TData, TValue>({
 								</TableCell>
 							</TableRow>
 						) : (
-							rows.map((row) => <DataTableRow key={row.id} row={row} />)
+							rows.map((row) => (
+								<DataTableRow
+									key={row.id}
+									row={row}
+									flexFillColumnId={flexFillColumnId}
+								/>
+							))
 						)}
 					</TableBody>
 				</Table>
