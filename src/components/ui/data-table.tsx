@@ -245,11 +245,27 @@ function DataTableInner<TData, TValue>({
 		right: [],
 	});
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({});
+	const [headerMinSizes, setHeaderMinSizes] = React.useState<Record<string, number>>(
+		{}
+	);
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 	const [pagination, setPagination] = React.useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 10,
 	});
+
+	const ensureHeaderMinSize = React.useCallback((columnId: string, minSize: number) => {
+		if (!columnId || minSize <= 0) return;
+		setHeaderMinSizes((prev) => {
+			if ((prev[columnId] ?? 0) >= minSize) return prev;
+			return { ...prev, [columnId]: minSize };
+		});
+		setColumnSizing((prev) => {
+			const current = prev[columnId];
+			if (current == null || current >= minSize) return prev;
+			return { ...prev, [columnId]: minSize };
+		});
+	}, []);
 
 	const selectColumn = React.useMemo<ColumnDef<TData, TValue>>(
 		() => ({
@@ -306,9 +322,19 @@ function DataTableInner<TData, TValue>({
 					maxSize: ACTIONS_COLUMN_SIZE,
 				};
 			}
-			return col;
+			const headerMin = id ? headerMinSizes[id] : undefined;
+			if (headerMin == null) return col;
+			const nextMin = Math.max(col.minSize ?? 64, headerMin);
+			const nextSize = Math.max(col.size ?? 160, headerMin);
+			const nextMax = Math.max(col.maxSize ?? 480, nextMin);
+			return {
+				...col,
+				minSize: nextMin,
+				size: nextSize,
+				maxSize: nextMax,
+			};
 		});
-	}, [enableSelection, selectColumn, columns]);
+	}, [enableSelection, selectColumn, columns, headerMinSizes]);
 
 	const leafColumnIds = React.useMemo(
 		() =>
@@ -452,7 +478,10 @@ function DataTableInner<TData, TValue>({
 	}
 
 	return (
-		<ColumnLayoutProvider moveColumn={moveColumn}>
+		<ColumnLayoutProvider
+			moveColumn={moveColumn}
+			ensureHeaderMinSize={ensureHeaderMinSize}
+		>
 		<div
 			className="flex h-full min-h-0 min-w-0 flex-col"
 			aria-busy={isLoading || undefined}
