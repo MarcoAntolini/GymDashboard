@@ -17,6 +17,12 @@ import {
 } from "@/lib/list/equipment";
 import { Equipment, Prisma } from "@prisma/client";
 
+const equipmentInclude = { payment: true } as const;
+
+export type EquipmentRow = Prisma.EquipmentGetPayload<{
+	include: typeof equipmentInclude;
+}>;
+
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
 		const n = Math.trunc(raw);
@@ -51,7 +57,7 @@ function buildEquipmentWhere(filters: ListFilters): Prisma.EquipmentWhereInput {
  */
 export async function listEquipment(
 	input: ListQueryInput = {}
-): Promise<ListResult<Equipment>> {
+): Promise<ListResult<EquipmentRow>> {
 	const query = normalizeListQuery(input, {
 		sortAllowlist: EQUIPMENT_SORT_ALLOWLIST,
 		filterAllowlist: EQUIPMENT_FILTER_ALLOWLIST,
@@ -68,7 +74,13 @@ export async function listEquipment(
 	];
 	const [total, items] = await Promise.all([
 		db.equipment.count({ where }),
-		db.equipment.findMany({ where, skip, take, orderBy: orderByStable }),
+		db.equipment.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: equipmentInclude,
+		}),
 	]);
 	return buildListResult(items, total, query);
 }
@@ -108,7 +120,7 @@ export async function getEquipment(paymentId: number) {
 	});
 }
 
-export async function editEquipment(input: Equipment) {
+export async function editEquipment(input: Equipment): Promise<EquipmentRow> {
 	assertMutationPayload("equipment", "update", input);
 	const { paymentId, description, provider } = input;
 	return await db.equipment.update({
@@ -119,6 +131,7 @@ export async function editEquipment(input: Equipment) {
 			description,
 			provider,
 		},
+		include: equipmentInclude,
 	});
 }
 

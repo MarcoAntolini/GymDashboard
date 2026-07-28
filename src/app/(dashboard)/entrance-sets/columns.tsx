@@ -10,6 +10,7 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -35,14 +36,16 @@ export const columns = (
 	{
 		accessorKey: "productCode",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Product Code" />
+			<TableSortableHeader column={column} title="Codice prodotto" />
 		),
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "entranceNumber",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Number of Entrances" />
+			<TableSortableHeader column={column} title="N ingressi" />
 		),
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		id: "actions",

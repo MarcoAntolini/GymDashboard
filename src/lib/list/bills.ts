@@ -8,7 +8,15 @@ export const BILL_SORT_ALLOWLIST = [
 ] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
-export const BILL_FILTER_ALLOWLIST = ["paymentId", "provider"] as const;
+export const BILL_FILTER_ALLOWLIST = ["provider", "paymentId"] as const;
+
+export const BILL_FILTER_LABELS: Record<
+	(typeof BILL_FILTER_ALLOWLIST)[number],
+	string
+> = {
+	provider: "Fornitore",
+	paymentId: "ID Pagamento",
+};
 
 export const BILL_DEFAULT_SORT: readonly ListSort[] = [
 	{ id: "paymentId", desc: true },

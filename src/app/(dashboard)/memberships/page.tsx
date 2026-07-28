@@ -3,6 +3,7 @@
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
 	FormControl,
 	FormField,
@@ -129,6 +130,12 @@ export default function MembershipsPage() {
 					data={list.items}
 					filters={[...MEMBERSHIP_FILTER_ALLOWLIST]}
 					filterLabels={MEMBERSHIP_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessun abbonamento"
+							hint="Definisci un Abbonamento oppure modifica i filtri."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

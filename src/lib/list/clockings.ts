@@ -8,7 +8,14 @@ export const CLOCKING_SORT_ALLOWLIST = [
 ] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
-export const CLOCKING_FILTER_ALLOWLIST = ["employeeId"] as const;
+export const CLOCKING_FILTER_ALLOWLIST = ["employee"] as const;
+
+export const CLOCKING_FILTER_LABELS: Record<
+	(typeof CLOCKING_FILTER_ALLOWLIST)[number],
+	string
+> = {
+	employee: "Dipendente",
+};
 
 export const CLOCKING_DEFAULT_SORT: readonly ListSort[] = [
 	{ id: "entranceTime", desc: true },

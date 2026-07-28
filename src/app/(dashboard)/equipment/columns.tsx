@@ -4,6 +4,9 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { EquipmentRow } from "@/data-access/equipment";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatDateIt, formatEur } from "@/lib/format";
 import { Equipment } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -17,64 +20,43 @@ export const formSchema = z.object({
 export const columns = (
 	handleDelete: (equipment: Pick<Equipment, "paymentId">) => Promise<void>,
 	handleEdit: (equipment: Equipment) => Promise<void>
-): ColumnDef<Equipment>[] => [
+): ColumnDef<EquipmentRow>[] => [
 	{
-		accessorKey: "paymentId",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Payment ID"
-			/>
-		),
+		accessorKey: "provider",
+		header: ({ column }) => <TableSortableHeader column={column} title="Fornitore" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "description",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Description"
-			/>
+		header: ({ column }) => <TableSortableHeader column={column} title="Descrizione" />,
+		meta: columnMeta(ColumnClass.Native),
+	},
+	{
+		id: "paymentDate",
+		accessorFn: (row) => row.payment.date,
+		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateIt(row.original.payment.date)}</div>
 		),
 	},
 	{
-		accessorKey: "provider",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Provider"
-			/>
+		id: "paymentAmount",
+		accessorFn: (row) => Number(row.payment.amount),
+		header: ({ column }) => <TableSortableHeader column={column} title="Importo" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatEur(row.original.payment.amount)}</div>
 		),
 	},
-	// {
-	// 	accessorKey: "payment.amount",
-	// 	header: ({ column }) => (
-	// 		<TableSortableHeader
-	// 			column={column}
-	// 			title="Amount"
-	// 		/>
-	// 	),
-	// 	cell: ({ row }) => {
-	// 		const amount = parseFloat(row.original.payment.amount);
-	// 		const formatted = new Intl.NumberFormat("en-US", {
-	// 			style: "currency",
-	// 			currency: "USD",
-	// 		}).format(amount);
-	// 		return <div className="font-medium">{formatted}</div>;
-	// 	},
-	// },
-	// {
-	// 	accessorKey: "payment.date",
-	// 	header: ({ column }) => (
-	// 		<TableSortableHeader
-	// 			column={column}
-	// 			title="Payment Date"
-	// 		/>
-	// 	),
-	// 	cell: ({ row }) => {
-	// 		const date = new Date(row.original.payment.date);
-	// 		return <div className="font-medium">{date.toLocaleDateString()}</div>;
-	// 	},
-	// },
+	{
+		accessorKey: "paymentId",
+		header: ({ column }) => <TableSortableHeader column={column} title="ID Pagamento" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="text-muted-foreground">{row.original.paymentId}</div>
+		),
+	},
 	{
 		id: "actions",
 		cell: ({ row }) => (
@@ -87,7 +69,7 @@ export const columns = (
 							name="paymentId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Payment ID</FormLabel>
+									<FormLabel>ID Pagamento</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -104,7 +86,7 @@ export const columns = (
 							name="description"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Description</FormLabel>
+									<FormLabel>Descrizione</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -116,7 +98,7 @@ export const columns = (
 							name="provider"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Provider</FormLabel>
+									<FormLabel>Fornitore</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -127,11 +109,11 @@ export const columns = (
 					</>
 				}
 				editAction={async ({ values }) => {
-					const updatedEquipment = {
-						...row.original,
-						...values,
-					};
-					await handleEdit(updatedEquipment);
+					await handleEdit({
+						paymentId: row.original.paymentId,
+						description: values.description,
+						provider: values.provider,
+					});
 				}}
 				deleteAction={() => handleDelete({ paymentId: row.original.paymentId })}
 			/>

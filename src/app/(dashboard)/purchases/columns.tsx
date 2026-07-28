@@ -15,6 +15,7 @@ import {
 	ProductKind,
 	productKindFromSnapshot,
 } from "@/lib/domain/product-kind";
+import { formatDateIt, formatEur } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
@@ -44,15 +45,6 @@ export const formSchema = z.object({
 	productCode: z.string().min(1),
 });
 
-function formatAmount(amount: PurchaseRow["amount"]) {
-	return new Intl.NumberFormat("it-IT", {
-		style: "currency",
-		currency: "EUR",
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(Number(amount));
-}
-
 export const columns = (
 	handleDelete: (purchase: Pick<PurchaseRow, "id">) => Promise<void>,
 	handleEdit: (purchase: PurchaseRow) => Promise<void>,
@@ -76,12 +68,11 @@ export const columns = (
 	},
 	{
 		accessorKey: "date",
-		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => {
-			const date = new Date(row.getValue("date"));
-			return <div className="font-medium">{date.toLocaleDateString("it-IT")}</div>;
-		},
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateIt(row.original.date)}</div>
+		),
 	},
 	{
 		accessorKey: "amount",
@@ -90,13 +81,13 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Snapshot),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatAmount(row.original.amount)}</div>
+			<div className="font-medium">{formatEur(row.original.amount)}</div>
 		),
 	},
 	{
 		id: "type",
 		accessorFn: (row) => productKindFromSnapshot(row),
-		header: ({ column }) => <TableSortableHeader column={column} title="Type" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
 			const kind = productKindFromSnapshot(row.original);
@@ -109,7 +100,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "productCode",
-		header: ({ column }) => <TableSortableHeader column={column} title="Product Code" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Codice prodotto" />,
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{

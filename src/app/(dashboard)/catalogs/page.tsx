@@ -3,6 +3,7 @@
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -219,6 +220,12 @@ export default function CatalogsPage() {
 					data={list.items}
 					filters={[...CATALOG_FILTER_ALLOWLIST]}
 					filterLabels={CATALOG_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessuna voce di listino"
+							hint="Aggiungi un prezzo annuale oppure modifica Anno/prodotto."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

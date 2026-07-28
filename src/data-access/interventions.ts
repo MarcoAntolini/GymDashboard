@@ -17,6 +17,12 @@ import {
 } from "@/lib/list/interventions";
 import { Intervention, Prisma } from "@prisma/client";
 
+const interventionInclude = { payment: true } as const;
+
+export type InterventionRow = Prisma.InterventionGetPayload<{
+	include: typeof interventionInclude;
+}>;
+
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
 		const n = Math.trunc(raw);
@@ -53,7 +59,7 @@ function buildInterventionWhere(
  */
 export async function listInterventions(
 	input: ListQueryInput = {}
-): Promise<ListResult<Intervention>> {
+): Promise<ListResult<InterventionRow>> {
 	const query = normalizeListQuery(input, {
 		sortAllowlist: INTERVENTION_SORT_ALLOWLIST,
 		filterAllowlist: INTERVENTION_FILTER_ALLOWLIST,
@@ -70,7 +76,13 @@ export async function listInterventions(
 	];
 	const [total, items] = await Promise.all([
 		db.intervention.count({ where }),
-		db.intervention.findMany({ where, skip, take, orderBy: orderByStable }),
+		db.intervention.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: interventionInclude,
+		}),
 	]);
 	return buildListResult(items, total, query);
 }
@@ -114,7 +126,9 @@ export async function getIntervention(paymentId: number) {
 	});
 }
 
-export async function editIntervention(input: Intervention) {
+export async function editIntervention(
+	input: Intervention
+): Promise<InterventionRow> {
 	assertMutationPayload("intervention", "update", input);
 	const { paymentId, description, maker, startingTime, endingTime } = input;
 	return await db.intervention.update({
@@ -127,6 +141,7 @@ export async function editIntervention(input: Intervention) {
 			startingTime,
 			endingTime,
 		},
+		include: interventionInclude,
 	});
 }
 

@@ -3,6 +3,7 @@
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
 	FormControl,
 	FormField,
@@ -129,6 +130,12 @@ export default function EntranceSetsPage() {
 					data={list.items}
 					filters={[...ENTRANCE_SET_FILTER_ALLOWLIST]}
 					filterLabels={ENTRANCE_SET_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessun pacchetto ingressi"
+							hint="Definisci un Pacchetto ingressi oppure modifica i filtri."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

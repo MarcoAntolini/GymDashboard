@@ -5,12 +5,16 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { ContractRow } from "@/data-access/contracts";
 import {
 	contractRequiresEndingDate,
 	ENDING_DATE_BEFORE_START,
 	FIXED_TERM_ENDING_DATE_REQUIRED,
-	formatContractEndingDateLabel
+	formatContractEndingDateLabel,
 } from "@/lib/contract-term";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { CONTRACT_TYPE_LABEL, formatPersonLabel } from "@/lib/domain/labels";
+import { formatDateIt, formatEur } from "@/lib/format";
 import { Contract, ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -18,11 +22,11 @@ import { ContractEndingDateField } from "./contract-ending-date-field";
 
 export const formSchema = z
 	.object({
-		employeeId: z.number().int().positive("Must select an employee"),
+		employeeId: z.number().int().positive("Devi selezionare un dipendente"),
 		type: z.nativeEnum(ContractType),
 		hourlyFee: z.number().positive(),
 		startingDate: z.date(),
-		endingDate: z.date().optional()
+		endingDate: z.date().optional(),
 	})
 	.superRefine((data, ctx) => {
 		if (!contractRequiresEndingDate(data.type)) {
@@ -32,7 +36,7 @@ export const formSchema = z
 			ctx.addIssue({
 				code: "custom",
 				message: FIXED_TERM_ENDING_DATE_REQUIRED,
-				path: ["endingDate"]
+				path: ["endingDate"],
 			});
 			return;
 		}
@@ -40,7 +44,7 @@ export const formSchema = z
 			ctx.addIssue({
 				code: "custom",
 				message: ENDING_DATE_BEFORE_START,
-				path: ["endingDate"]
+				path: ["endingDate"],
 			});
 		}
 	});
@@ -49,57 +53,52 @@ export const columns = (
 	handleDelete: (contract: Pick<Contract, "employeeId" | "startingDate">) => Promise<void>,
 	handleEdit: (contract: Contract) => Promise<void>,
 	loggedEmployeeId: number
-): ColumnDef<Contract>[] => [
+): ColumnDef<ContractRow>[] => [
 	{
-		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
-		cell: ({ row }) => {
-			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
-		}
+		id: "employee",
+		accessorFn: (row) => formatPersonLabel(row.employee),
+		header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
+		),
 	},
 	{
 		accessorKey: "type",
-		header: ({ column }) => <TableSortableHeader column={column} title="Contract Type" />,
-		cell: ({ row }) => {
-			const type = row.getValue("type");
-			return <div className="font-medium">{type === ContractType.FixedTerm ? "Fixed Term" : "Open Ended"}</div>;
-		},
+		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">{CONTRACT_TYPE_LABEL[row.original.type]}</div>
+		),
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
-		}
+		},
 	},
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => <TableSortableHeader column={column} title="Hourly Fee" />,
-		cell: ({ row }) => {
-			const amount = Number(row.original.hourlyFee);
-			const formatted = new Intl.NumberFormat("en-US", {
-				style: "currency",
-				currency: "USD"
-			})
-				.format(amount)
-				.replace("$", "$ ");
-			return <div className="font-medium">{formatted}</div>;
-		}
+		header: ({ column }) => <TableSortableHeader column={column} title="Compenso orario" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatEur(row.original.hourlyFee)}</div>
+		),
 	},
 	{
 		accessorKey: "startingDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Starting Date" />,
-		cell: ({ row }) => {
-			const date = new Date(row.getValue("startingDate"));
-			return <div className="font-medium">{date.toLocaleDateString()}</div>;
-		}
+		header: ({ column }) => <TableSortableHeader column={column} title="Data inizio" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateIt(row.original.startingDate)}</div>
+		),
 	},
 	{
 		accessorKey: "endingDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
-		cell: ({ row }) => {
-			return (
-				<div className="font-medium">
-					{formatContractEndingDateLabel(row.original.type, row.original.endingDate)}
-				</div>
-			);
-		}
+		header: ({ column }) => <TableSortableHeader column={column} title="Data fine" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">
+				{formatContractEndingDateLabel(row.original.type, row.original.endingDate)}
+			</div>
+		),
 	},
 	{
 		id: "actions",
@@ -109,8 +108,8 @@ export const columns = (
 					...row,
 					original: {
 						...row.original,
-						hourlyFee: Number(row.original.hourlyFee)
-					}
+						hourlyFee: Number(row.original.hourlyFee),
+					},
 				}}
 				formSchema={formSchema}
 				editFormContent={
@@ -119,7 +118,7 @@ export const columns = (
 							name="employeeId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Employee ID</FormLabel>
+									<FormLabel>ID Dipendente</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -136,16 +135,20 @@ export const columns = (
 							name="type"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Contract Type</FormLabel>
+									<FormLabel>Tipo</FormLabel>
 									<Select onValueChange={field.onChange} defaultValue={field.value}>
 										<FormControl>
 											<SelectTrigger>
-												<SelectValue placeholder="Select a contract type" />
+												<SelectValue placeholder="Seleziona un tipo di contratto" />
 											</SelectTrigger>
 										</FormControl>
 										<SelectContent>
-											<SelectItem value={ContractType.FixedTerm}>Fixed Term</SelectItem>
-											<SelectItem value={ContractType.OpenEnded}>Open Ended</SelectItem>
+											<SelectItem value={ContractType.FixedTerm}>
+												{CONTRACT_TYPE_LABEL.FixedTerm}
+											</SelectItem>
+											<SelectItem value={ContractType.OpenEnded}>
+												{CONTRACT_TYPE_LABEL.OpenEnded}
+											</SelectItem>
 										</SelectContent>
 									</Select>
 									<FormMessage />
@@ -156,7 +159,7 @@ export const columns = (
 							name="hourlyFee"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Hourly Fee</FormLabel>
+									<FormLabel>Compenso orario</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -173,9 +176,14 @@ export const columns = (
 							name="startingDate"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Starting Date</FormLabel>
+									<FormLabel>Data inizio</FormLabel>
 									<FormControl>
-										<Input type="date" {...field} onChange={(e) => field.onChange(new Date(e.target.value))} disabled />
+										<Input
+											type="date"
+											{...field}
+											onChange={(e) => field.onChange(new Date(e.target.value))}
+											disabled
+										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -185,21 +193,24 @@ export const columns = (
 					</>
 				}
 				editAction={async ({ values }) => {
-					const updatedContract = {
-						...row.original,
+					await handleEdit({
+						employeeId: row.original.employeeId,
+						startingDate: row.original.startingDate,
 						type: values.type,
-						hourlyFee: values.hourlyFee,
+						hourlyFee: values.hourlyFee as unknown as Contract["hourlyFee"],
 						endingDate:
-							values.type === ContractType.OpenEnded ? null : (values.endingDate ?? null)
-					};
-					await handleEdit(updatedContract as unknown as Contract);
+							values.type === ContractType.OpenEnded ? null : (values.endingDate ?? null),
+					});
 				}}
 				deleteAction={() =>
-					handleDelete({ employeeId: row.original.employeeId, startingDate: row.original.startingDate })
+					handleDelete({
+						employeeId: row.original.employeeId,
+						startingDate: row.original.startingDate,
+					})
 				}
 				editUnavailabe={row.original.employeeId === loggedEmployeeId}
 				deleteUnavailabe={row.original.employeeId === loggedEmployeeId}
 			/>
-		)
-	}
+		),
+	},
 ];

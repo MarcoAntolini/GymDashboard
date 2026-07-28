@@ -1,6 +1,7 @@
 "use client";
 
 import TablePagination from "@/components/ui/data-table/table-pagination";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ListFilters } from "@/lib/list";
@@ -47,6 +48,8 @@ interface DataTableProps<TData, TValue> {
 	facetedFilters?: string[];
 	/** Override placeholder per chiave filtro. */
 	filterLabels?: Record<string, string>;
+	/** Empty state dominio (default IT generico). Distinzione filtri vs dataset → ticket 39. */
+	emptyState?: React.ReactNode;
 	className?: string;
 	serverList?: DataTableServerListProps;
 }
@@ -57,6 +60,7 @@ export function DataTable<TData, TValue>({
 	filters,
 	facetedFilters,
 	filterLabels,
+	emptyState,
 	className,
 	serverList,
 }: DataTableProps<TData, TValue>) {
@@ -146,7 +150,12 @@ export function DataTable<TData, TValue>({
 						) : (
 							<TableRow>
 								<TableCell colSpan={columns.length} className="h-24 text-center">
-									No results.
+									{emptyState ?? (
+										<TableEmptyState
+											title="Nessun risultato"
+											hint="Prova a modificare i filtri o registra un nuovo elemento."
+										/>
+									)}
 								</TableCell>
 							</TableRow>
 						)}

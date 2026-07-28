@@ -5,6 +5,7 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatDateIt } from "@/lib/format";
 import { Client } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -42,13 +43,16 @@ export const columns = (
       />
     ),
     meta: columnMeta(ColumnClass.Native),
+    cell: ({ row }) => (
+      <div className="text-muted-foreground">{row.original.id}</div>
+    ),
   },
   {
     accessorKey: "taxCode",
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Tax Code"
+        title="Codice fiscale"
       />
     ),
     meta: columnMeta(ColumnClass.Native),
@@ -58,7 +62,7 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Name"
+        title="Nome"
       />
     ),
     meta: columnMeta(ColumnClass.Native),
@@ -68,7 +72,7 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Surname"
+        title="Cognome"
       />
     ),
     meta: columnMeta(ColumnClass.Native),
@@ -78,21 +82,20 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Birth Date"
+        title="Data di nascita"
       />
     ),
     meta: columnMeta(ColumnClass.Native),
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("birthDate"));
-      return <div className="font-medium">{date.toLocaleDateString()}</div>;
-    },
+    cell: ({ row }) => (
+      <div className="font-medium">{formatDateIt(row.original.birthDate)}</div>
+    ),
   },
   {
     accessorKey: "city",
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="City"
+        title="Città"
       />
     ),
     meta: columnMeta(ColumnClass.Native),
@@ -102,7 +105,7 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Province"
+        title="Provincia"
       />
     ),
     meta: columnMeta(ColumnClass.Native),
@@ -112,14 +115,13 @@ export const columns = (
     header: ({ column }) => (
       <TableSortableHeader
         column={column}
-        title="Enrollment Date"
+        title="Data iscrizione"
       />
     ),
     meta: columnMeta(ColumnClass.Native),
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("enrollmentDate"));
-      return <div className="font-medium">{date.toLocaleDateString()}</div>;
-    },
+    cell: ({ row }) => (
+      <div className="font-medium">{formatDateIt(row.original.enrollmentDate)}</div>
+    ),
   },
   {
     id: "actions",

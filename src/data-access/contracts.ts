@@ -24,6 +24,12 @@ import {
 } from "@/lib/list/contracts";
 import { Contract, ContractType, Prisma } from "@prisma/client";
 
+const contractInclude = { employee: true } as const;
+
+export type ContractRow = Prisma.ContractGetPayload<{
+	include: typeof contractInclude;
+}>;
+
 type MoneyInput = Prisma.Decimal | number | string;
 
 const CONTRACT_TYPES = new Set<string>(Object.values(ContractType));
@@ -58,6 +64,19 @@ function buildContractWhere(filters: ListFilters): Prisma.ContractWhereInput {
 	const type = parseContractTypeFilter(filters.type);
 	if (type !== undefined) where.type = type;
 
+	const employee = filters.employee;
+	if (typeof employee === "string") {
+		const value = employee.trim();
+		if (value) {
+			where.employee = {
+				OR: [
+					{ surname: { contains: value } },
+					{ name: { contains: value } },
+				],
+			};
+		}
+	}
+
 	return where;
 }
 
@@ -66,7 +85,7 @@ function buildContractWhere(filters: ListFilters): Prisma.ContractWhereInput {
  */
 export async function listContracts(
 	input: ListQueryInput = {}
-): Promise<ListResult<Contract>> {
+): Promise<ListResult<ContractRow>> {
 	const query = normalizeListQuery(input, {
 		sortAllowlist: CONTRACT_SORT_ALLOWLIST,
 		filterAllowlist: CONTRACT_FILTER_ALLOWLIST,
@@ -86,7 +105,13 @@ export async function listContracts(
 	];
 	const [total, items] = await Promise.all([
 		db.contract.count({ where }),
-		db.contract.findMany({ where, skip, take, orderBy: orderByStable }),
+		db.contract.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: contractInclude,
+		}),
 	]);
 	return buildListResult(items, total, query);
 }
@@ -199,7 +224,8 @@ export async function editContract(input: Omit<Contract, "hourlyFee"> & { hourly
 			type,
 			hourlyFee: new Prisma.Decimal(hourlyFee),
 			endingDate: resolvedEndingDate
-		}
+		},
+		include: contractInclude,
 	});
 }
 

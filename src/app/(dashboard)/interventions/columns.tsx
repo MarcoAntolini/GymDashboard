@@ -4,6 +4,9 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { InterventionRow } from "@/data-access/interventions";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatDateIt, formatDateTimeIt, formatEur } from "@/lib/format";
 import { Intervention } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -19,59 +22,58 @@ export const formSchema = z.object({
 export const columns = (
 	handleDelete: (intervention: Pick<Intervention, "paymentId">) => Promise<void>,
 	handleEdit: (intervention: Intervention) => Promise<void>
-): ColumnDef<Intervention>[] => [
+): ColumnDef<InterventionRow>[] => [
 	{
-		accessorKey: "paymentId",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Payment ID"
-			/>
-		),
+		accessorKey: "maker",
+		header: ({ column }) => <TableSortableHeader column={column} title="Attuatore" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "description",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Description"
-			/>
-		),
-	},
-	{
-		accessorKey: "maker",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Maker"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Descrizione" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "startingTime",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Starting Time"
-			/>
+		header: ({ column }) => <TableSortableHeader column={column} title="Inizio" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateTimeIt(row.original.startingTime)}</div>
 		),
-		cell: ({ row }) => {
-			const date = new Date(row.getValue("startingTime"));
-			return <div className="font-medium">{date.toLocaleString()}</div>;
-		},
 	},
 	{
 		accessorKey: "endingTime",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Ending Time"
-			/>
+		header: ({ column }) => <TableSortableHeader column={column} title="Fine" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateTimeIt(row.original.endingTime)}</div>
 		),
-		cell: ({ row }) => {
-			const date = new Date(row.getValue("endingTime"));
-			return <div className="font-medium">{date.toLocaleString()}</div>;
-		},
+	},
+	{
+		id: "paymentDate",
+		accessorFn: (row) => row.payment.date,
+		header: ({ column }) => <TableSortableHeader column={column} title="Data pagamento" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateIt(row.original.payment.date)}</div>
+		),
+	},
+	{
+		id: "paymentAmount",
+		accessorFn: (row) => Number(row.payment.amount),
+		header: ({ column }) => <TableSortableHeader column={column} title="Importo" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatEur(row.original.payment.amount)}</div>
+		),
+	},
+	{
+		accessorKey: "paymentId",
+		header: ({ column }) => <TableSortableHeader column={column} title="ID Pagamento" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="text-muted-foreground">{row.original.paymentId}</div>
+		),
 	},
 	{
 		id: "actions",
@@ -85,7 +87,7 @@ export const columns = (
 							name="paymentId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Payment ID</FormLabel>
+									<FormLabel>ID Pagamento</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -102,7 +104,7 @@ export const columns = (
 							name="description"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Description</FormLabel>
+									<FormLabel>Descrizione</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -114,7 +116,7 @@ export const columns = (
 							name="maker"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Maker</FormLabel>
+									<FormLabel>Attuatore</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
@@ -126,7 +128,7 @@ export const columns = (
 							name="startingTime"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Starting Time</FormLabel>
+									<FormLabel>Inizio</FormLabel>
 									<FormControl>
 										<Input
 											type="datetime-local"
@@ -142,7 +144,7 @@ export const columns = (
 							name="endingTime"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Ending Time</FormLabel>
+									<FormLabel>Fine</FormLabel>
 									<FormControl>
 										<Input
 											type="datetime-local"
@@ -157,11 +159,13 @@ export const columns = (
 					</>
 				}
 				editAction={async ({ values }) => {
-					const updatedIntervention = {
-						...row.original,
-						...values,
-					};
-					await handleEdit(updatedIntervention);
+					await handleEdit({
+						paymentId: row.original.paymentId,
+						description: values.description,
+						maker: values.maker,
+						startingTime: values.startingTime,
+						endingTime: values.endingTime,
+					});
 				}}
 				deleteAction={() => handleDelete({ paymentId: row.original.paymentId })}
 			/>

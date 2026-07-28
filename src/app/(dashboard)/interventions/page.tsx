@@ -3,15 +3,18 @@
 import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
 	deleteIntervention,
 	editIntervention,
 	listInterventions,
+	type InterventionRow,
 } from "@/data-access/interventions";
 import { useServerList } from "@/hooks/useServerList";
 import {
 	INTERVENTION_DEFAULT_SORT,
 	INTERVENTION_FILTER_ALLOWLIST,
+	INTERVENTION_FILTER_LABELS,
 	INTERVENTION_SORT_ALLOWLIST,
 } from "@/lib/list/interventions";
 import { Intervention } from "@prisma/client";
@@ -19,7 +22,7 @@ import { useCallback } from "react";
 import { columns } from "./columns";
 
 export default function InterventionsPage() {
-	const list = useServerList<Intervention>({
+	const list = useServerList<InterventionRow>({
 		list: listInterventions,
 		sortAllowlist: INTERVENTION_SORT_ALLOWLIST,
 		filterAllowlist: INTERVENTION_FILTER_ALLOWLIST,
@@ -57,6 +60,13 @@ export default function InterventionsPage() {
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
 					filters={[...INTERVENTION_FILTER_ALLOWLIST]}
+					filterLabels={INTERVENTION_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessun intervento"
+							hint="Registra un Intervento oppure filtra per attuatore."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

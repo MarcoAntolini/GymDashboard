@@ -77,7 +77,7 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 |---|---|---|
 | Payments | id, date, amount, type | native (ISA) |
 | Salaries / Bills / Equipment / Interventions | `paymentId` + campi propri | native |
-| Date/importo pagamento, nome dipendente | via include | **join** — caricati in data-access; colonne UI deferred (liste ISA minimali) |
+| Date/importo pagamento, nome dipendente | via include | **join** — esposti in lista (ticket 36) |
 
 ---
 
@@ -90,7 +90,7 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 | Snapshot Acquisto | `amount`, `duration`, `entranceNumber` persistiti; etichette UI + `meta.columnClass`. |
 | Join Ingressi | Cliente/Prodotto esposti. |
 | Join Acquisti | Etichetta Cliente esposta (oltre a `clientId`). |
-| Join ISA (stipendi/bollette/…) | Include presenti; colonne commentate — **deferral** documentato (non violazione di persistenza). |
+| Join ISA (stipendi/bollette/…) | Include + colonne join in lista (ticket 36). |
 | Residuo pacchetto in lista | Non mostrato; resta aggregato in domain (`purchase-access`) — ok. |
 | DTO formali con classificazione | Nessun DTO “falso”; distinzione via `meta.columnClass` + questa matrice. |
 

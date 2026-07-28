@@ -3,6 +3,7 @@
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +13,7 @@ import {
 	editAccount,
 	getAccount,
 	listAccounts,
+	type AccountRow,
 } from "@/data-access/accounts";
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
 import { isAppRole, type AppRole } from "@/data/nav-routes";
@@ -21,6 +23,7 @@ import {
 	ACCOUNT_DEFAULT_SORT,
 	ACCOUNT_FILTER_ALLOWLIST,
 	ACCOUNT_SORT_ALLOWLIST,
+	ACCOUNT_FILTER_LABELS,
 } from "@/lib/list/accounts";
 import { Account, Employee } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
@@ -36,7 +39,7 @@ const createAccountSchema = z.object({
 });
 
 export default function Accounts() {
-	const list = useServerList<Account>({
+	const list = useServerList<AccountRow>({
 		list: listAccounts,
 		sortAllowlist: ACCOUNT_SORT_ALLOWLIST,
 		filterAllowlist: ACCOUNT_FILTER_ALLOWLIST,
@@ -257,6 +260,13 @@ export default function Accounts() {
 					columns={columns(handleDelete, handleEdit, actorRole)}
 					data={list.items}
 					filters={[...ACCOUNT_FILTER_ALLOWLIST]}
+					filterLabels={ACCOUNT_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessun account"
+							hint="Crea un Account o filtra per Dipendente/username/ruolo."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

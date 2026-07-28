@@ -9,6 +9,7 @@ import {
 	PRODUCT_KIND_LABEL,
 	productKindFromProduct,
 } from "@/lib/domain/product-kind";
+import { formatEur } from "@/lib/format";
 import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -30,23 +31,13 @@ export const formSchema = z.object({
 		.refine((value) => Number(value) > 0, "Price must be a positive number"),
 });
 
-function formatPrice(price: CatalogRow["price"]) {
-	const amount = Number(price);
-	return new Intl.NumberFormat("it-IT", {
-		style: "currency",
-		currency: "EUR",
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(amount);
-}
-
 export const columns = (
 	handleDelete: (catalog: Pick<CatalogRow, "year" | "productCode">) => Promise<void>,
 	handleEdit: (catalog: CatalogRow) => Promise<void>
 ): ColumnDef<CatalogRow>[] => [
 	{
 		accessorKey: "year",
-		header: ({ column }) => <TableSortableHeader column={column} title="Year" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Anno" />,
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
@@ -55,19 +46,19 @@ export const columns = (
 			const kind = productKindFromProduct(row.product);
 			return kind ? PRODUCT_KIND_LABEL[kind] : "—";
 		},
-		header: ({ column }) => <TableSortableHeader column={column} title="Type" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
 		meta: columnMeta(ColumnClass.Derived),
 	},
 	{
 		accessorKey: "productCode",
-		header: ({ column }) => <TableSortableHeader column={column} title="Product Code" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Codice prodotto" />,
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "price",
-		header: ({ column }) => <TableSortableHeader column={column} title="Price" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Prezzo" />,
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => <div className="font-medium">{formatPrice(row.original.price)}</div>,
+		cell: ({ row }) => <div className="font-medium">{formatEur(row.original.price)}</div>,
 	},
 	{
 		id: "actions",

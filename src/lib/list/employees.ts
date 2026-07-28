@@ -21,6 +21,17 @@ export const EMPLOYEE_FILTER_ALLOWLIST = [
 	"province",
 ] as const;
 
+export const EMPLOYEE_FILTER_LABELS: Record<
+	(typeof EMPLOYEE_FILTER_ALLOWLIST)[number],
+	string
+> = {
+	taxCode: "Codice fiscale",
+	name: "Nome",
+	surname: "Cognome",
+	city: "Città",
+	province: "Provincia",
+};
+
 export const EMPLOYEE_DEFAULT_SORT: readonly ListSort[] = [
 	{ id: "surname", desc: false },
 	{ id: "name", desc: false },

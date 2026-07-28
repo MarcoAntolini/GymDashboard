@@ -6,6 +6,7 @@ import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import type { EntranceRow } from "@/data-access/entrances";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatDateTimeIt } from "@/lib/format";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
@@ -37,12 +38,11 @@ export const columns = (
 	},
 	{
 		accessorKey: "date",
-		header: ({ column }) => <TableSortableHeader column={column} title="Date" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => {
-			const date = new Date(row.getValue("date"));
-			return <div className="font-medium">{date.toLocaleString("it-IT")}</div>;
-		},
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateTimeIt(row.original.date)}</div>
+		),
 	},
 	{
 		id: "client",

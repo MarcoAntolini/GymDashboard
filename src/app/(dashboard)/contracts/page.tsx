@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import {
 	EmployeesEarningsInPeriod,
 	getEmployeesEarningsInPeriod,
 	listContracts,
+	type ContractRow,
 } from "@/data-access/contracts";
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
@@ -26,6 +28,7 @@ import {
 	CONTRACT_DEFAULT_SORT,
 	CONTRACT_FILTER_ALLOWLIST,
 	CONTRACT_SORT_ALLOWLIST,
+	CONTRACT_FILTER_LABELS,
 } from "@/lib/list/contracts";
 import { cn } from "@/lib/utils";
 import { Contract, ContractType, Employee } from "@prisma/client";
@@ -46,7 +49,7 @@ const earningsFormSchema = z.object({
 });
 
 export default function Contracts() {
-	const list = useServerList<Contract>({
+	const list = useServerList<ContractRow>({
 		list: listContracts,
 		sortAllowlist: CONTRACT_SORT_ALLOWLIST,
 		filterAllowlist: CONTRACT_FILTER_ALLOWLIST,
@@ -347,6 +350,13 @@ export default function Contracts() {
 						columns={columns(handleDelete, handleEditContract, employeeId)}
 						data={list.items}
 						filters={[...CONTRACT_FILTER_ALLOWLIST]}
+						filterLabels={CONTRACT_FILTER_LABELS}
+						emptyState={
+							<TableEmptyState
+								title="Nessun contratto"
+								hint="Registra un Contratto oppure filtra per Dipendente/tipo."
+							/>
+						}
 						serverList={{
 							manual: true,
 							pageCount: list.pageCount,

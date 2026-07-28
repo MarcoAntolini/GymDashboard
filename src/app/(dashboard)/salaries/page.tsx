@@ -3,11 +3,18 @@
 import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
-import { deleteSalary, editSalary, listSalaries } from "@/data-access/salaries";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
+import {
+	deleteSalary,
+	editSalary,
+	listSalaries,
+	type SalaryRow,
+} from "@/data-access/salaries";
 import { useServerList } from "@/hooks/useServerList";
 import {
 	SALARY_DEFAULT_SORT,
 	SALARY_FILTER_ALLOWLIST,
+	SALARY_FILTER_LABELS,
 	SALARY_SORT_ALLOWLIST,
 } from "@/lib/list/salaries";
 import { Salary } from "@prisma/client";
@@ -15,7 +22,7 @@ import { useCallback } from "react";
 import { columns } from "./columns";
 
 export default function Salaries() {
-	const list = useServerList<Salary>({
+	const list = useServerList<SalaryRow>({
 		list: listSalaries,
 		sortAllowlist: SALARY_SORT_ALLOWLIST,
 		filterAllowlist: SALARY_FILTER_ALLOWLIST,
@@ -51,6 +58,13 @@ export default function Salaries() {
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
 					filters={[...SALARY_FILTER_ALLOWLIST]}
+					filterLabels={SALARY_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessuno stipendio"
+							hint="Gli Stipendi compaiono dai Pagamenti di tipo Stipendio; filtra per Dipendente."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

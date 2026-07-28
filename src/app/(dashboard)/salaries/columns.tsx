@@ -4,72 +4,58 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { SalaryRow } from "@/data-access/salaries";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatPersonLabel } from "@/lib/domain/labels";
+import { formatDateIt, formatEur } from "@/lib/format";
 import { Salary } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
 export const formSchema = z.object({
 	paymentId: z.number().int().positive(),
-	employeeId: z.number().int().positive()
+	employeeId: z.number().int().positive(),
 });
 
 export const columns = (
 	handleDelete: (salary: Pick<Salary, "paymentId">) => Promise<void>,
 	handleEdit: (salary: Salary) => Promise<void>
-): ColumnDef<Salary>[] => [
+): ColumnDef<SalaryRow>[] => [
+	{
+		id: "employee",
+		accessorFn: (row) => formatPersonLabel(row.employee),
+		header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
+		),
+	},
+	{
+		id: "paymentDate",
+		accessorFn: (row) => row.payment.date,
+		header: ({ column }) => <TableSortableHeader column={column} title="Data pagamento" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateIt(row.original.payment.date)}</div>
+		),
+	},
+	{
+		id: "paymentAmount",
+		accessorFn: (row) => Number(row.payment.amount),
+		header: ({ column }) => <TableSortableHeader column={column} title="Importo" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatEur(row.original.payment.amount)}</div>
+		),
+	},
 	{
 		accessorKey: "paymentId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Payment ID" />
+		header: ({ column }) => <TableSortableHeader column={column} title="ID Pagamento" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="text-muted-foreground">{row.original.paymentId}</div>
+		),
 	},
-	{
-		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
-		cell: ({ row }) => {
-			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
-		}
-	},
-	// {
-	// 	accessorKey: "payment.amount",
-	// 	header: ({ column }) => (
-	// 		<TableSortableHeader
-	// 			column={column}
-	// 			title="Amount"
-	// 		/>
-	// 	),
-	// 	cell: ({ row }) => {
-	// 		const amount = parseFloat(row.original.payment.amount);
-	// 		const formatted = new Intl.NumberFormat("en-US", {
-	// 			style: "currency",
-	// 			currency: "USD",
-	// 		}).format(amount);
-	// 		return <div className="font-medium">{formatted}</div>;
-	// 	},
-	// },
-	// {
-	// 	accessorKey: "payment.date",
-	// 	header: ({ column }) => (
-	// 		<TableSortableHeader
-	// 			column={column}
-	// 			title="Payment Date"
-	// 		/>
-	// 	),
-	// 	cell: ({ row }) => {
-	// 		const date = new Date(row.original.payment.date);
-	// 		return <div className="font-medium">{date.toLocaleDateString()}</div>;
-	// 	},
-	// },
-	// {
-	// 	accessorKey: "employee.name",
-	// 	header: ({ column }) => (
-	// 		<TableSortableHeader
-	// 			column={column}
-	// 			title="Employee Name"
-	// 		/>
-	// 	),
-	// 	cell: ({ row }) => {
-	// 		return <div className="font-medium">{`${row.original.employee.name} ${row.original.employee.surname}`}</div>;
-	// 	},
-	// },
 	{
 		id: "actions",
 		cell: ({ row }) => (
@@ -82,7 +68,7 @@ export const columns = (
 							name="paymentId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Payment ID</FormLabel>
+									<FormLabel>ID Pagamento</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
@@ -99,9 +85,13 @@ export const columns = (
 							name="employeeId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Employee ID</FormLabel>
+									<FormLabel>ID Dipendente</FormLabel>
 									<FormControl>
-										<Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
+										<Input
+											type="number"
+											{...field}
+											onChange={(e) => field.onChange(parseInt(e.target.value))}
+										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -110,14 +100,13 @@ export const columns = (
 					</>
 				}
 				editAction={async ({ values }) => {
-					const updatedSalary = {
-						...row.original,
-						...values
-					};
-					await handleEdit(updatedSalary);
+					await handleEdit({
+						paymentId: row.original.paymentId,
+						employeeId: values.employeeId,
+					});
 				}}
 				deleteAction={() => handleDelete({ paymentId: row.original.paymentId })}
 			/>
-		)
-	}
+		),
+	},
 ];

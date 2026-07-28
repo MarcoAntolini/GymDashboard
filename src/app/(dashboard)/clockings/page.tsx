@@ -3,6 +3,7 @@
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import {
 	deleteClocking,
 	editClocking,
 	listClockings,
+	type ClockingRow,
 } from "@/data-access/clockings";
 import { getEmployee } from "@/data-access/employees";
 import { useServerList } from "@/hooks/useServerList";
@@ -18,6 +20,7 @@ import {
 	CLOCKING_DEFAULT_SORT,
 	CLOCKING_FILTER_ALLOWLIST,
 	CLOCKING_SORT_ALLOWLIST,
+	CLOCKING_FILTER_LABELS,
 } from "@/lib/list/clockings";
 import { Clocking } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
@@ -27,7 +30,7 @@ import { z } from "zod";
 import { columns, formSchema } from "./columns";
 
 export default function Clockings() {
-	const list = useServerList<Clocking>({
+	const list = useServerList<ClockingRow>({
 		list: listClockings,
 		sortAllowlist: CLOCKING_SORT_ALLOWLIST,
 		filterAllowlist: CLOCKING_FILTER_ALLOWLIST,
@@ -134,6 +137,13 @@ export default function Clockings() {
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
 					filters={[...CLOCKING_FILTER_ALLOWLIST]}
+					filterLabels={CLOCKING_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessuna timbratura"
+							hint="Registra una Timbratura oppure filtra per Dipendente."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

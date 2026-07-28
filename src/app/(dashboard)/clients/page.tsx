@@ -3,6 +3,7 @@
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,6 +17,7 @@ import {
 	CLIENT_DEFAULT_SORT,
 	CLIENT_FILTER_ALLOWLIST,
 	CLIENT_SORT_ALLOWLIST,
+	CLIENT_FILTER_LABELS,
 } from "@/lib/list/clients";
 import { Client } from "@prisma/client";
 import { PlusCircle } from "lucide-react";
@@ -300,6 +302,13 @@ export default function ClientsPage() {
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
 					filters={["taxCode", "name", "surname", "city", "province"]}
+					filterLabels={CLIENT_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessun cliente"
+							hint="Registra un Cliente oppure amplia i filtri (cognome, codice fiscale)."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

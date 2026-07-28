@@ -7,7 +7,10 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { AccountRow } from "@/data-access/accounts";
 import { assignableRoles, canManageRole, isAppRole, type AppRole } from "@/data/nav-routes";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatPersonLabel, ROLE_LABEL } from "@/lib/domain/labels";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, EyeOff } from "lucide-react";
@@ -29,7 +32,7 @@ function MaskedPasswordCell({ password }: { password: string }) {
 				variant="ghost"
 				size="icon"
 				className="h-7 w-7 shrink-0 text-muted-foreground"
-				aria-label={revealed ? "Hide password" : "Show password"}
+				aria-label={revealed ? "Nascondi password" : "Mostra password"}
 				aria-pressed={revealed}
 				onClick={() => setRevealed((open) => !open)}
 			>
@@ -63,41 +66,55 @@ export const columns = (
 	handleDelete: (account: Pick<Account, "employeeId">) => Promise<void>,
 	handleEdit: (account: Account) => Promise<void>,
 	actorRole: AppRole
-): ColumnDef<Account>[] => {
+): ColumnDef<AccountRow>[] => {
 	const formSchema = roleFormSchema(actorRole);
 	const rolesForSelect = assignableRoles(actorRole);
 
 	return [
 		{
-			accessorKey: "employeeId",
-			header: ({ column }) => <TableSortableHeader column={column} title="EmployeeID" />,
-			cell: ({ row }) => {
-				return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
-			},
+			id: "employee",
+			accessorFn: (row) =>
+				row.employee ? formatPersonLabel(row.employee) : "",
+			header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+			meta: columnMeta(ColumnClass.Join),
+			cell: ({ row }) => (
+				<div className="font-medium">
+					{row.original.employee
+						? formatPersonLabel(row.original.employee)
+						: "—"}
+				</div>
+			),
 		},
 		{
 			accessorKey: "username",
-
 			header: ({ column }) => <TableSortableHeader column={column} title="Username" />,
+			meta: columnMeta(ColumnClass.Native),
 		},
 		{
 			accessorKey: "password",
 			header: ({ column }) => <TableSortableHeader column={column} title="Password" />,
+			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
 			cell: ({ row }) => <MaskedPasswordCell password={row.original.password} />,
 		},
 		{
 			accessorKey: "role",
-			header: ({ column }) => <TableSortableHeader column={column} title="Role" />,
+			header: ({ column }) => <TableSortableHeader column={column} title="Ruolo" />,
+			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
+			cell: ({ row }) => <div>{ROLE_LABEL[row.original.role]}</div>,
 			filterFn: (row, id, value) => {
 				return value.includes(row.getValue(id));
 			},
 		},
 		{
 			accessorKey: "approved",
-			header: ({ column }) => <TableSortableHeader column={column} title="Approved" />,
+			header: ({ column }) => <TableSortableHeader column={column} title="Approvazione" />,
+			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
+			cell: ({ row }) => (
+				<div>{row.original.approved ? "Sì" : "No"}</div>
+			),
 			filterFn: (row, id, value) => {
 				return value.includes(row.getValue(id));
 			},
@@ -121,7 +138,7 @@ export const columns = (
 										name="employeeId"
 										render={({ field }) => (
 											<FormItem className="col-span-1">
-												<FormLabel className="text-muted-foreground">Employee ID</FormLabel>
+												<FormLabel className="text-muted-foreground">ID Dipendente</FormLabel>
 												<Input disabled onChange={field.onChange} defaultValue={field.value} />
 											</FormItem>
 										)}
@@ -140,17 +157,17 @@ export const columns = (
 									name="role"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel className="sr-only">Role</FormLabel>
+											<FormLabel className="sr-only">Ruolo</FormLabel>
 											<Select onValueChange={field.onChange} defaultValue={field.value}>
 												<FormControl>
 													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Select a role" />
+														<SelectValue placeholder="Seleziona un ruolo" />
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
 													{rolesForSelect.map((role) => (
 														<SelectItem key={role} value={role}>
-															{role === "Admin" ? "Admin" : "Employee"}
+															{ROLE_LABEL[role]}
 														</SelectItem>
 													))}
 												</SelectContent>
@@ -166,11 +183,13 @@ export const columns = (
 										}, []);
 										return (
 											<FormItem className="flex flex-row items-start justify-between space-x-3 space-y-0 rounded-md border p-3">
-												<FormLabel>Approved</FormLabel>
+												<FormLabel>Approvato</FormLabel>
 												<FormControl>
 													<Checkbox
 														checked={field.value === "true"}
-														onCheckedChange={(checked) => field.onChange(checked ? "true" : "false")}
+														onCheckedChange={(checked) =>
+															field.onChange(checked ? "true" : "false")
+														}
 													/>
 												</FormControl>
 											</FormItem>
@@ -180,15 +199,15 @@ export const columns = (
 							</>
 						}
 						editAction={async ({ values }) => {
-							const updatedAccount = {
-								...row.original,
-								...values,
+							await handleEdit({
+								employeeId: row.original.employeeId,
+								username: row.original.username,
+								password: row.original.password,
 								role: values.role as Role,
 								approved: values.approved === "true",
-							};
-							await handleEdit(updatedAccount);
+							} satisfies Account);
 						}}
-						deleteAction={() => handleDelete({ employeeId: row.original.employeeId! })}
+						deleteAction={() => handleDelete({ employeeId: row.original.employeeId })}
 					/>
 				);
 			},

@@ -5,6 +5,10 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { ClockingRow } from "@/data-access/clockings";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatPersonLabel } from "@/lib/domain/labels";
+import { formatDateTimeIt } from "@/lib/format";
 import { Clocking } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
@@ -12,35 +16,42 @@ import { z } from "zod";
 export const formSchema = z.object({
 	employeeId: z.number().int().positive(),
 	entranceTime: z.date(),
-	exitTime: z.date().optional()
+	exitTime: z.date().optional(),
 });
 
 export const columns = (
 	handleDelete: (clocking: Pick<Clocking, "employeeId" | "entranceTime">) => Promise<void>,
 	handleEdit: (clocking: Clocking) => Promise<void>
-): ColumnDef<Clocking>[] => [
+): ColumnDef<ClockingRow>[] => [
 	{
-		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Employee ID" />,
-		cell: ({ row }) => {
-			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
-		}
+		id: "employee",
+		accessorFn: (row) => formatPersonLabel(row.employee),
+		header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+		meta: columnMeta(ColumnClass.Join),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
+		),
 	},
 	{
 		accessorKey: "entranceTime",
-		header: ({ column }) => <TableSortableHeader column={column} title="Entrance Time" />,
-		cell: ({ row }) => {
-			const date = new Date(row.getValue("entranceTime"));
-			return <div className="font-medium">{date.toLocaleString()}</div>;
-		}
+		header: ({ column }) => <TableSortableHeader column={column} title="Entrata" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateTimeIt(row.original.entranceTime)}</div>
+		),
 	},
 	{
 		accessorKey: "exitTime",
-		header: ({ column }) => <TableSortableHeader column={column} title="Exit Time" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Uscita" />,
+		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => {
-			const date = row.getValue("exitTime");
-			return date ? <div className="font-medium">{new Date(date as Date).toLocaleString()}</div> : <div>-</div>;
-		}
+			const exitTime = row.original.exitTime;
+			return exitTime ? (
+				<div className="font-medium">{formatDateTimeIt(exitTime)}</div>
+			) : (
+				<div className="text-muted-foreground">—</div>
+			);
+		},
 	},
 	{
 		id: "actions",
@@ -54,7 +65,7 @@ export const columns = (
 							name="employeeId"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Employee ID</FormLabel>
+									<FormLabel>ID Dipendente</FormLabel>
 									<FormControl>
 										<Input type="number" {...field} disabled />
 									</FormControl>
@@ -66,7 +77,7 @@ export const columns = (
 							name="entranceTime"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Entrance Time</FormLabel>
+									<FormLabel>Entrata</FormLabel>
 									<DateTimePicker field={field} onChange={(date) => field.onChange(date)} disabled={true} />
 									<FormMessage />
 								</FormItem>
@@ -76,7 +87,7 @@ export const columns = (
 							name="exitTime"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Exit Time</FormLabel>
+									<FormLabel>Uscita</FormLabel>
 									<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
 									<FormMessage />
 								</FormItem>
@@ -85,16 +96,19 @@ export const columns = (
 					</>
 				}
 				editAction={async ({ values }) => {
-					const updatedClocking = {
-						...row.original,
-						...values
-					};
-					await handleEdit(updatedClocking);
+					await handleEdit({
+						employeeId: row.original.employeeId,
+						entranceTime: row.original.entranceTime,
+						exitTime: values.exitTime ?? null,
+					});
 				}}
 				deleteAction={() =>
-					handleDelete({ employeeId: row.original.employeeId, entranceTime: row.original.entranceTime })
+					handleDelete({
+						employeeId: row.original.employeeId,
+						entranceTime: row.original.entranceTime,
+					})
 				}
 			/>
-		)
-	}
+		),
+	},
 ];

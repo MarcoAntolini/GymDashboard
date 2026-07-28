@@ -17,6 +17,10 @@ import {
 } from "@/lib/list/bills";
 import { Bill, Prisma } from "@prisma/client";
 
+const billInclude = { payment: true } as const;
+
+export type BillRow = Prisma.BillGetPayload<{ include: typeof billInclude }>;
+
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
 		const n = Math.trunc(raw);
@@ -51,7 +55,7 @@ function buildBillWhere(filters: ListFilters): Prisma.BillWhereInput {
  */
 export async function listBills(
 	input: ListQueryInput = {}
-): Promise<ListResult<Bill>> {
+): Promise<ListResult<BillRow>> {
 	const query = normalizeListQuery(input, {
 		sortAllowlist: BILL_SORT_ALLOWLIST,
 		filterAllowlist: BILL_FILTER_ALLOWLIST,
@@ -68,7 +72,13 @@ export async function listBills(
 	];
 	const [total, items] = await Promise.all([
 		db.bill.count({ where }),
-		db.bill.findMany({ where, skip, take, orderBy: orderByStable }),
+		db.bill.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: billInclude,
+		}),
 	]);
 	return buildListResult(items, total, query);
 }
@@ -108,7 +118,7 @@ export async function getBill(paymentId: number) {
 	});
 }
 
-export async function editBill(input: Bill) {
+export async function editBill(input: Bill): Promise<BillRow> {
 	assertMutationPayload("bill", "update", input);
 	const { paymentId, description, provider } = input;
 	return await db.bill.update({
@@ -119,6 +129,7 @@ export async function editBill(input: Bill) {
 			description,
 			provider,
 		},
+		include: billInclude,
 	});
 }
 

@@ -53,15 +53,34 @@ function buildAccountWhere(filters: ListFilters): Prisma.AccountWhereInput {
 	const approved = parseApprovedFilter(filters.approved);
 	if (approved !== undefined) where.approved = approved;
 
+	const employee = filters.employee;
+	if (typeof employee === "string") {
+		const value = employee.trim();
+		if (value) {
+			where.employee = {
+				OR: [
+					{ surname: { contains: value } },
+					{ name: { contains: value } },
+				],
+			};
+		}
+	}
+
 	return where;
 }
+
+const accountInclude = { employee: true } as const;
+
+export type AccountRow = Prisma.AccountGetPayload<{
+	include: typeof accountInclude;
+}>;
 
 /**
  * Lista Account server-side: filtri su Conferma, sort + paginazione via DB.
  */
 export async function listAccounts(
 	input: ListQueryInput = {}
-): Promise<ListResult<Account>> {
+): Promise<ListResult<AccountRow>> {
 	const query = normalizeListQuery(input, {
 		sortAllowlist: ACCOUNT_SORT_ALLOWLIST,
 		filterAllowlist: ACCOUNT_FILTER_ALLOWLIST,
@@ -76,7 +95,13 @@ export async function listAccounts(
 	];
 	const [total, items] = await Promise.all([
 		db.account.count({ where }),
-		db.account.findMany({ where, skip, take, orderBy: orderByStable }),
+		db.account.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: accountInclude,
+		}),
 	]);
 	return buildListResult(items, total, query);
 }
@@ -225,6 +250,7 @@ export async function editAccount(input: {
 			role,
 			approved,
 		},
+		include: accountInclude,
 	});
 }
 

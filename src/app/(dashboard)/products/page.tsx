@@ -3,6 +3,7 @@
 import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
 	deleteProduct,
 	editProduct,
@@ -60,6 +61,12 @@ export default function ProductsPage() {
 					data={list.items}
 					filters={[...PRODUCT_FILTER_ALLOWLIST]}
 					filterLabels={PRODUCT_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessun prodotto"
+							hint="Aggiungi un Prodotto al listino oppure modifica il filtro codice."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

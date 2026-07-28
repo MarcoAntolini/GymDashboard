@@ -1,3 +1,4 @@
+import { formatDateIt } from "@/lib/format";
 import { ContractType } from "@prisma/client";
 
 /**
@@ -50,5 +51,5 @@ export function formatContractEndingDateLabel(
 	if (type === ContractType.OpenEnded || endingDate == null) {
 		return "In corso";
 	}
-	return new Date(endingDate).toLocaleDateString();
+	return formatDateIt(endingDate);
 }

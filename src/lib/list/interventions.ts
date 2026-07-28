@@ -10,7 +10,15 @@ export const INTERVENTION_SORT_ALLOWLIST = [
 ] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
-export const INTERVENTION_FILTER_ALLOWLIST = ["paymentId", "maker"] as const;
+export const INTERVENTION_FILTER_ALLOWLIST = ["maker", "paymentId"] as const;
+
+export const INTERVENTION_FILTER_LABELS: Record<
+	(typeof INTERVENTION_FILTER_ALLOWLIST)[number],
+	string
+> = {
+	maker: "Attuatore",
+	paymentId: "ID Pagamento",
+};
 
 export const INTERVENTION_DEFAULT_SORT: readonly ListSort[] = [
 	{ id: "paymentId", desc: true },

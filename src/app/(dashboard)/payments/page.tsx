@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import {
 	PAYMENT_DEFAULT_SORT,
 	PAYMENT_FILTER_ALLOWLIST,
 	PAYMENT_SORT_ALLOWLIST,
+	PAYMENT_FILTER_LABELS,
 } from "@/lib/list/payments";
 import { cn } from "@/lib/utils";
 import { Payment, PaymentType } from "@prisma/client";
@@ -320,6 +322,13 @@ export default function PaymentsPage() {
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
 					filters={[...PAYMENT_FILTER_ALLOWLIST]}
+					filterLabels={PAYMENT_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessun pagamento"
+							hint="Registra un Pagamento in uscita oppure filtra per tipo."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

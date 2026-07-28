@@ -18,6 +18,13 @@ import {
 } from "@/lib/list/salaries";
 import { Prisma, Salary } from "@prisma/client";
 
+const salaryInclude = {
+	payment: true,
+	employee: true,
+} as const;
+
+export type SalaryRow = Prisma.SalaryGetPayload<{ include: typeof salaryInclude }>;
+
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
 		const n = Math.trunc(raw);
@@ -41,6 +48,19 @@ function buildSalaryWhere(filters: ListFilters): Prisma.SalaryWhereInput {
 	const employeeId = parsePositiveIntFilter(filters.employeeId);
 	if (employeeId !== undefined) where.employeeId = employeeId;
 
+	const employee = filters.employee;
+	if (typeof employee === "string") {
+		const value = employee.trim();
+		if (value) {
+			where.employee = {
+				OR: [
+					{ surname: { contains: value } },
+					{ name: { contains: value } },
+				],
+			};
+		}
+	}
+
 	return where;
 }
 
@@ -49,7 +69,7 @@ function buildSalaryWhere(filters: ListFilters): Prisma.SalaryWhereInput {
  */
 export async function listSalaries(
 	input: ListQueryInput = {}
-): Promise<ListResult<Salary>> {
+): Promise<ListResult<SalaryRow>> {
 	const query = normalizeListQuery(input, {
 		sortAllowlist: SALARY_SORT_ALLOWLIST,
 		filterAllowlist: SALARY_FILTER_ALLOWLIST,
@@ -66,7 +86,13 @@ export async function listSalaries(
 	];
 	const [total, items] = await Promise.all([
 		db.salary.count({ where }),
-		db.salary.findMany({ where, skip, take, orderBy: orderByStable }),
+		db.salary.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: salaryInclude,
+		}),
 	]);
 	return buildListResult(items, total, query);
 }
@@ -106,7 +132,7 @@ export async function getSalary(paymentId: number) {
 	});
 }
 
-export async function editSalary(input: Salary) {
+export async function editSalary(input: Salary): Promise<SalaryRow> {
 	await requireRole("Admin");
 	assertMutationPayload("salary", "update", input);
 	const { paymentId, employeeId } = input;
@@ -117,6 +143,7 @@ export async function editSalary(input: Salary) {
 		data: {
 			employeeId,
 		},
+		include: salaryInclude,
 	});
 }
 

@@ -3,11 +3,13 @@
 import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
-import { deleteBill, editBill, listBills } from "@/data-access/bills";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
+import { deleteBill, editBill, listBills, type BillRow } from "@/data-access/bills";
 import { useServerList } from "@/hooks/useServerList";
 import {
 	BILL_DEFAULT_SORT,
 	BILL_FILTER_ALLOWLIST,
+	BILL_FILTER_LABELS,
 	BILL_SORT_ALLOWLIST,
 } from "@/lib/list/bills";
 import { Bill } from "@prisma/client";
@@ -15,7 +17,7 @@ import { useCallback } from "react";
 import { columns } from "./columns";
 
 export default function BillsPage() {
-	const list = useServerList<Bill>({
+	const list = useServerList<BillRow>({
 		list: listBills,
 		sortAllowlist: BILL_SORT_ALLOWLIST,
 		filterAllowlist: BILL_FILTER_ALLOWLIST,
@@ -51,6 +53,13 @@ export default function BillsPage() {
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
 					filters={[...BILL_FILTER_ALLOWLIST]}
+					filterLabels={BILL_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessuna bolletta"
+							hint="Registra una Bolletta oppure filtra per fornitore."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

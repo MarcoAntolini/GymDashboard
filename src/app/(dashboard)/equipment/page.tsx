@@ -3,15 +3,18 @@
 import Dashboard from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
 	deleteEquipment,
 	editEquipment,
 	listEquipment,
+	type EquipmentRow,
 } from "@/data-access/equipment";
 import { useServerList } from "@/hooks/useServerList";
 import {
 	EQUIPMENT_DEFAULT_SORT,
 	EQUIPMENT_FILTER_ALLOWLIST,
+	EQUIPMENT_FILTER_LABELS,
 	EQUIPMENT_SORT_ALLOWLIST,
 } from "@/lib/list/equipment";
 import { Equipment } from "@prisma/client";
@@ -19,7 +22,7 @@ import { useCallback } from "react";
 import { columns } from "./columns";
 
 export default function EquipmentPage() {
-	const list = useServerList<Equipment>({
+	const list = useServerList<EquipmentRow>({
 		list: listEquipment,
 		sortAllowlist: EQUIPMENT_SORT_ALLOWLIST,
 		filterAllowlist: EQUIPMENT_FILTER_ALLOWLIST,
@@ -57,6 +60,13 @@ export default function EquipmentPage() {
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
 					filters={[...EQUIPMENT_FILTER_ALLOWLIST]}
+					filterLabels={EQUIPMENT_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessuna attrezzatura"
+							hint="Registra un pagamento Attrezzatura oppure filtra per fornitore."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

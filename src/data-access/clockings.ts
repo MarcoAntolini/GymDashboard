@@ -18,6 +18,12 @@ import {
 } from "@/lib/list/clockings";
 import { Clocking, Prisma } from "@prisma/client";
 
+const clockingInclude = { employee: true } as const;
+
+export type ClockingRow = Prisma.ClockingGetPayload<{
+	include: typeof clockingInclude;
+}>;
+
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
 		const n = Math.trunc(raw);
@@ -38,6 +44,19 @@ function buildClockingWhere(filters: ListFilters): Prisma.ClockingWhereInput {
 	const employeeId = parsePositiveIntFilter(filters.employeeId);
 	if (employeeId !== undefined) where.employeeId = employeeId;
 
+	const employee = filters.employee;
+	if (typeof employee === "string") {
+		const value = employee.trim();
+		if (value) {
+			where.employee = {
+				OR: [
+					{ surname: { contains: value } },
+					{ name: { contains: value } },
+				],
+			};
+		}
+	}
+
 	return where;
 }
 
@@ -46,7 +65,7 @@ function buildClockingWhere(filters: ListFilters): Prisma.ClockingWhereInput {
  */
 export async function listClockings(
 	input: ListQueryInput = {}
-): Promise<ListResult<Clocking>> {
+): Promise<ListResult<ClockingRow>> {
 	const query = normalizeListQuery(input, {
 		sortAllowlist: CLOCKING_SORT_ALLOWLIST,
 		filterAllowlist: CLOCKING_FILTER_ALLOWLIST,
@@ -66,7 +85,13 @@ export async function listClockings(
 	];
 	const [total, items] = await Promise.all([
 		db.clocking.count({ where }),
-		db.clocking.findMany({ where, skip, take, orderBy: orderByStable }),
+		db.clocking.findMany({
+			where,
+			skip,
+			take,
+			orderBy: orderByStable,
+			include: clockingInclude,
+		}),
 	]);
 	return buildListResult(items, total, query);
 }
@@ -105,7 +130,7 @@ export async function getClocking(employeeId: number, entranceTime: Date) {
 	});
 }
 
-export async function editClocking(input: Clocking) {
+export async function editClocking(input: Clocking): Promise<ClockingRow> {
 	await requireRole("Admin");
 	assertMutationPayload("clocking", "update", input);
 	const { employeeId, entranceTime, exitTime } = input;
@@ -119,6 +144,7 @@ export async function editClocking(input: Clocking) {
 		data: {
 			exitTime,
 		},
+		include: clockingInclude,
 	});
 }
 

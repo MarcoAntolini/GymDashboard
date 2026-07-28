@@ -27,7 +27,7 @@ export const columns = (
 ): ColumnDef<ProductRow>[] => [
 	{
 		accessorKey: "code",
-		header: ({ column }) => <TableSortableHeader column={column} title="Product Code" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Codice prodotto" />,
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
@@ -36,7 +36,7 @@ export const columns = (
 			const kind = productKindFromProduct(row);
 			return kind ? PRODUCT_KIND_LABEL[kind] : "—";
 		},
-		header: ({ column }) => <TableSortableHeader column={column} title="Type" />,
+		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
 			const kind = productKindFromProduct(row.original);

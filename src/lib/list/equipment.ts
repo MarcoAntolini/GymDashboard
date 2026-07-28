@@ -8,7 +8,15 @@ export const EQUIPMENT_SORT_ALLOWLIST = [
 ] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
-export const EQUIPMENT_FILTER_ALLOWLIST = ["paymentId", "provider"] as const;
+export const EQUIPMENT_FILTER_ALLOWLIST = ["provider", "paymentId"] as const;
+
+export const EQUIPMENT_FILTER_LABELS: Record<
+	(typeof EQUIPMENT_FILTER_ALLOWLIST)[number],
+	string
+> = {
+	provider: "Fornitore",
+	paymentId: "ID Pagamento",
+};
 
 export const EQUIPMENT_DEFAULT_SORT: readonly ListSort[] = [
 	{ id: "paymentId", desc: true },

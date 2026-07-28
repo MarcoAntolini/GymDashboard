@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,6 +20,7 @@ import {
 	EMPLOYEE_DEFAULT_SORT,
 	EMPLOYEE_FILTER_ALLOWLIST,
 	EMPLOYEE_SORT_ALLOWLIST,
+	EMPLOYEE_FILTER_LABELS,
 } from "@/lib/list/employees";
 import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
@@ -253,6 +255,13 @@ export default function Employees() {
 					columns={columns(handleDelete, handleEdit)}
 					data={list.items}
 					filters={["taxCode", "name", "surname", "city", "province"]}
+					filterLabels={EMPLOYEE_FILTER_LABELS}
+					emptyState={
+						<TableEmptyState
+							title="Nessun dipendente"
+							hint="Aggiungi un Dipendente oppure modifica i filtri anagrafici."
+						/>
+					}
 					serverList={{
 						manual: true,
 						pageCount: list.pageCount,

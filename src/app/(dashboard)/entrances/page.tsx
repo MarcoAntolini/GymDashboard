@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import DashboardPlaceholder from "@/components/ui/dashboard-placeholder";
 import { DataTable } from "@/components/ui/data-table";
+import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -247,6 +248,12 @@ export default function EntrancesPage() {
 						data={list.items}
 						filters={[...ENTRANCE_FILTER_ALLOWLIST]}
 						filterLabels={ENTRANCE_FILTER_LABELS}
+						emptyState={
+							<TableEmptyState
+								title="Nessun ingresso"
+								hint="Registra un Ingresso dal bancone oppure modifica i filtri."
+							/>
+						}
 						serverList={{
 							manual: true,
 							pageCount: list.pageCount,

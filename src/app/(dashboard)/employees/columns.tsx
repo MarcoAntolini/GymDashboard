@@ -7,6 +7,8 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatDateIt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -36,132 +38,58 @@ export const columns = (
 ): ColumnDef<Employee>[] => [
 	{
 		accessorKey: "id",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="ID"
-			/>
+		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="text-muted-foreground">{row.original.id.toString().padStart(4, "0")}</div>
 		),
-		cell: ({ row }) => {
-			return <div>{row.original.id.toString().padStart(4, "0")}</div>;
-		}
 	},
 	{
 		accessorKey: "taxCode",
-
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="TaxCode"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="CF" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "name",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Name"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Nome" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "surname",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Surname"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Cognome" />,
+		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "birthDate",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="BirthDate"
-			/>
+		header: ({ column }) => <TableSortableHeader column={column} title="Nascita" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateIt(row.original.birthDate)}</div>
 		),
-		cell: ({ row }) => {
-			const formatted = new Date(row.original.birthDate).toLocaleDateString();
-			return <div className="font-medium">{formatted}</div>;
-		},
-	},
-	{
-		accessorKey: "street",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Street"
-			/>
-		),
-	},
-	{
-		accessorKey: "houseNumber",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="HouseNumber"
-			/>
-		),
-		enableSorting: false,
 	},
 	{
 		accessorKey: "city",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="City"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Città" />,
+		meta: columnMeta(ColumnClass.Native),
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
 		},
 	},
 	{
 		accessorKey: "province",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Province"
-			/>
-		),
+		header: ({ column }) => <TableSortableHeader column={column} title="Provincia" />,
+		meta: columnMeta(ColumnClass.Native),
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
 		},
 	},
 	{
-		accessorKey: "phoneNumber",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="PhoneNumber"
-			/>
-		),
-		enableSorting: false,
-	},
-	{
-		accessorKey: "email",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Email"
-			/>
-		),
-		enableSorting: false,
-	},
-	{
 		accessorKey: "hiringDate",
-		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="HiringDate"
-			/>
+		header: ({ column }) => <TableSortableHeader column={column} title="Data assunzione" />,
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatDateIt(row.original.hiringDate)}</div>
 		),
-		cell: ({ row }) => {
-			const formatted = new Date(row.original.hiringDate).toLocaleDateString();
-			return <div className="font-medium">{formatted}</div>;
-		},
 	},
 	{
 		id: "actions",
@@ -176,7 +104,7 @@ export const columns = (
 								name="name"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Name</FormLabel>
+										<FormLabel>Nome</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
@@ -188,7 +116,7 @@ export const columns = (
 								name="surname"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Surname</FormLabel>
+										<FormLabel>Cognome</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
@@ -202,7 +130,7 @@ export const columns = (
 								name="taxCode"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Tax Code</FormLabel>
+										<FormLabel>Codice fiscale</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
@@ -214,23 +142,23 @@ export const columns = (
 								name="birthDate"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Birth Date</FormLabel>
+										<FormLabel>Data di nascita</FormLabel>
 										<Popover>
 											<PopoverTrigger asChild>
 												<FormControl>
 													<Button
 														variant={"outline"}
-														className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+														className={cn(
+															"w-full pl-3 text-left font-normal",
+															!field.value && "text-muted-foreground"
+														)}
 													>
-														{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+														{field.value ? format(field.value, "PPP") : <span>Scegli una data</span>}
 														<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 													</Button>
 												</FormControl>
 											</PopoverTrigger>
-											<PopoverContent
-												className="w-auto p-0"
-												align="start"
-											>
+											<PopoverContent className="w-auto p-0" align="start">
 												<Calendar
 													mode="single"
 													selected={field.value}
@@ -250,7 +178,7 @@ export const columns = (
 								name="street"
 								render={({ field }) => (
 									<FormItem className="col-span-3">
-										<FormLabel>Street</FormLabel>
+										<FormLabel>Via</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
@@ -262,7 +190,7 @@ export const columns = (
 								name="houseNumber"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Number</FormLabel>
+										<FormLabel>Civico</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
@@ -276,7 +204,7 @@ export const columns = (
 								name="city"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>City</FormLabel>
+										<FormLabel>Città</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
@@ -288,7 +216,7 @@ export const columns = (
 								name="province"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Province</FormLabel>
+										<FormLabel>Provincia</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
@@ -302,7 +230,7 @@ export const columns = (
 								name="phoneNumber"
 								render={({ field }) => (
 									<FormItem className="col-span-3">
-										<FormLabel>Phone Number</FormLabel>
+										<FormLabel>Telefono</FormLabel>
 										<FormControl>
 											<Input {...field} />
 										</FormControl>
