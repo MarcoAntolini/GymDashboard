@@ -17,6 +17,7 @@
 
 ## Done
 
+- Commit: `30a3fb1`
 - Resize colonne via handle sul bordo header (`columnResizeMode: onChange`, sizing client-only).
 - Reorder accessibile dal menu header: Sposta a sinistra/destra (`columnOrder`; `__select` / `actions` bloccate).
 - Pin sinistra/destra + sblocca dal menu header; celle sticky nello scroll orizzontale del container tabella.
