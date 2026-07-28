@@ -324,6 +324,12 @@ export default function PaymentsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => String(row.id)}
+					entityLabel="Pagamento"
+					bulkDeleteRow={async (row) => {
+						await deletePayment({ id: row.id });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

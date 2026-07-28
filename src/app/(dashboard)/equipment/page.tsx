@@ -63,6 +63,12 @@ export default function EquipmentPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => String(row.paymentId)}
+					entityLabel="Attrezzatura"
+					bulkDeleteRow={async (row) => {
+						await deleteEquipment({ paymentId: row.paymentId });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

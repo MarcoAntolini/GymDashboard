@@ -124,6 +124,12 @@ export default function MembershipsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => row.productCode}
+					entityLabel="Abbonamento"
+					bulkDeleteRow={async (row) => {
+						await deleteMembership({ productCode: row.productCode });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

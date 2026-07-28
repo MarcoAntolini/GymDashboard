@@ -250,6 +250,12 @@ export default function Employees() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => String(row.id)}
+					entityLabel="Dipendente"
+					bulkDeleteRow={async (row) => {
+						await deleteEmployee({ id: row.id });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

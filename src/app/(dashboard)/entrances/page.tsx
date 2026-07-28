@@ -244,6 +244,12 @@ export default function EntrancesPage() {
 				table={
 					<DataTable
 						columns={columns(handleDelete, handleEdit)}
+						getRowId={(row) => String(row.id)}
+						entityLabel="Ingresso"
+						bulkDeleteRow={async (row) => {
+							await deleteEntrance({ id: row.id });
+						}}
+						onBulkComplete={refetch}
 						data={list.items}
 						isLoading={list.isLoading}
 						error={list.error}

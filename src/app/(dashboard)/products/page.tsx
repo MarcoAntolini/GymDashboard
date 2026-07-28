@@ -75,6 +75,12 @@ export default function ProductsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => row.code}
+					entityLabel="Prodotto"
+					bulkDeleteRow={async (row) => {
+						await deleteProduct({ code: row.code });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

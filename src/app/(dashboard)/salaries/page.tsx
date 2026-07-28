@@ -61,6 +61,12 @@ export default function Salaries() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => String(row.paymentId)}
+					entityLabel="Stipendio"
+					bulkDeleteRow={async (row) => {
+						await deleteSalary({ paymentId: row.paymentId });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

@@ -132,6 +132,17 @@ export default function Clockings() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) =>
+						`${row.employeeId}::${new Date(row.entranceTime).toISOString()}`
+					}
+					entityLabel="Timbratura"
+					bulkDeleteRow={async (row) => {
+						await deleteClocking({
+							employeeId: row.employeeId,
+							entranceTime: row.entranceTime,
+						});
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

@@ -56,6 +56,12 @@ export default function BillsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => String(row.paymentId)}
+					entityLabel="Bolletta"
+					bulkDeleteRow={async (row) => {
+						await deleteBill({ paymentId: row.paymentId });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

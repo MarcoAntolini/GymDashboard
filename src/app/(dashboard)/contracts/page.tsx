@@ -345,6 +345,17 @@ export default function Contracts() {
 				table={
 					<DataTable
 						columns={columns(handleDelete, handleEditContract, employeeId)}
+						getRowId={(row) =>
+							`${row.employeeId}::${new Date(row.startingDate).toISOString()}`
+						}
+						entityLabel="Contratto"
+						bulkDeleteRow={async (row) => {
+							await deleteContract({
+								employeeId: row.employeeId,
+								startingDate: row.startingDate,
+							});
+						}}
+						onBulkComplete={refetch}
 						data={list.items}
 						isLoading={list.isLoading}
 						error={list.error}

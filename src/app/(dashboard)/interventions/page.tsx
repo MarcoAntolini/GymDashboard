@@ -63,6 +63,12 @@ export default function InterventionsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => String(row.paymentId)}
+					entityLabel="Intervento"
+					bulkDeleteRow={async (row) => {
+						await deleteIntervention({ paymentId: row.paymentId });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

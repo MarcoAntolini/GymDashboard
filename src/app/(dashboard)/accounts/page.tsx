@@ -8,6 +8,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
+	approveAccount,
 	createAccount,
 	deleteAccount,
 	editAccount,
@@ -16,7 +17,7 @@ import {
 	type AccountRow,
 } from "@/data-access/accounts";
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
-import { isAppRole, type AppRole } from "@/data/nav-routes";
+import { canManageRole, isAppRole, type AppRole } from "@/data/nav-routes";
 import { useEntityData } from "@/hooks/useEntityData";
 import { useServerList } from "@/hooks/useServerList";
 import {
@@ -31,6 +32,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { ApprovalQueueToolbarButton } from "./approval-queue-sheet";
 import { columns } from "./columns";
+import type { DataTableBulkAction } from "@/components/ui/data-table";
 
 const createAccountSchema = z.object({
 	employeeId: z.number().int().positive(),
@@ -85,6 +87,48 @@ export default function Accounts() {
 		},
 		[refetch]
 	);
+
+	const handleApprove = useCallback(
+		async (account: Pick<Account, "employeeId">) => {
+			await approveAccount({ employeeId: account.employeeId });
+			setItems((prev) =>
+				prev.map((item) =>
+					item.employeeId === account.employeeId
+						? { ...item, approved: true }
+						: item
+				)
+			);
+		},
+		[setItems]
+	);
+
+	const bulkApproveActions = useMemo<DataTableBulkAction<AccountRow>[]>(() => {
+		if (!actorRole) return [];
+		return [
+			{
+				id: "approve",
+				label: "Approva",
+				isAvailable: (rows) =>
+					rows.some((row) => {
+						if (row.approved) return false;
+						const targetRole = isAppRole(row.role) ? row.role : null;
+						return targetRole != null && canManageRole(actorRole, targetRole);
+					}),
+				filterRows: (rows) =>
+					rows.filter((row) => {
+						if (row.approved) return false;
+						const targetRole = isAppRole(row.role) ? row.role : null;
+						return targetRole != null && canManageRole(actorRole, targetRole);
+					}),
+				run: async (row) => {
+					await approveAccount({ employeeId: row.employeeId });
+				},
+				confirmTitle: (count) => `Approvare ${count} account?`,
+				confirmDescription:
+					"Solo gli account in attesa gestibili dal tuo ruolo verranno approvati.",
+			},
+		];
+	}, [actorRole]);
 
 	const handleEdit = useCallback(
 		async (account: Account) => {
@@ -257,7 +301,14 @@ export default function Accounts() {
 			actions={actions}
 			table={
 				<DataTable
-					columns={columns(handleDelete, handleEdit, actorRole)}
+					columns={columns(handleDelete, handleEdit, actorRole, handleApprove)}
+					getRowId={(row) => String(row.employeeId)}
+					entityLabel="Account"
+					bulkDeleteRow={async (row) => {
+						await deleteAccount({ employeeId: row.employeeId });
+					}}
+					bulkActions={bulkApproveActions}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

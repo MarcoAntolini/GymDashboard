@@ -297,6 +297,12 @@ export default function ClientsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => String(row.id)}
+					entityLabel="Cliente"
+					bulkDeleteRow={async (row) => {
+						await deleteClient({ id: row.id });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

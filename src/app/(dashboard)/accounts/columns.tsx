@@ -28,6 +28,7 @@ import {
 	User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const PASSWORD_MASK = "••••••••";
@@ -78,7 +79,8 @@ function roleFormSchema(actorRole: AppRole) {
 export const columns = (
 	handleDelete: (account: Pick<Account, "employeeId">) => Promise<void>,
 	handleEdit: (account: Account) => Promise<void>,
-	actorRole: AppRole
+	actorRole: AppRole,
+	handleApprove?: (account: Pick<Account, "employeeId">) => Promise<void>
 ): ColumnDef<AccountRow>[] => {
 	const formSchema = roleFormSchema(actorRole);
 	const rolesForSelect = assignableRoles(actorRole);
@@ -161,6 +163,32 @@ export const columns = (
 						entityLabel="Account"
 						editUnavailabe={!manageable || rolesForSelect.length === 0}
 						deleteUnavailabe={!manageable}
+						extraMenuItems={
+							!row.original.approved && manageable && handleApprove
+								? [
+										{
+											id: "approve",
+											label: "Approva",
+											onSelect: () => {
+												void (async () => {
+													try {
+														await handleApprove({
+															employeeId: row.original.employeeId,
+														});
+														toast.success("Account approvato");
+													} catch (error) {
+														toast.error(
+															error instanceof Error && error.message
+																? error.message
+																: "Impossibile approvare l'account."
+														);
+													}
+												})();
+											},
+										},
+									]
+								: undefined
+						}
 						editFormContent={
 							<>
 								<div className="grid grid-cols-3 gap-4">

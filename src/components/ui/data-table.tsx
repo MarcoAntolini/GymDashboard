@@ -1,10 +1,24 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuLabel,
+	ContextMenuSeparator,
+	ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import TablePagination from "@/components/ui/data-table/table-pagination";
+import { TableBulkBar, type DataTableBulkAction } from "@/components/ui/data-table/table-bulk-bar";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { TableErrorState } from "@/components/ui/data-table/table-error-state";
 import { TableLoadingState } from "@/components/ui/data-table/table-loading-state";
+import {
+	RowActionsProvider,
+	useRowActionsRegistry,
+} from "@/components/ui/data-table/table-row-actions-context";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ListFilters } from "@/lib/list";
@@ -13,6 +27,8 @@ import {
 	ColumnFiltersState,
 	OnChangeFn,
 	PaginationState,
+	Row,
+	RowSelectionState,
 	SortingState,
 	VisibilityState,
 	flexRender,
@@ -25,6 +41,8 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import * as React from "react";
+
+export type { DataTableBulkAction };
 
 /** Controlli server-side (ticket 19). Se assente → comportamento client legacy. */
 export type DataTableServerListProps = {
@@ -64,6 +82,16 @@ interface DataTableProps<TData, TValue> {
 	onRetry?: () => void;
 	className?: string;
 	serverList?: DataTableServerListProps;
+	/** Stable row id (richiesto per multi-select con PK composite). */
+	getRowId?: (originalRow: TData, index: number) => string;
+	/** Nome dominio per copy bulk delete (es. "Cliente"). */
+	entityLabel?: string;
+	/** Elimina una riga selezionata (bulk); abilita checkbox + barra azioni. */
+	bulkDeleteRow?: (row: TData) => Promise<void>;
+	/** Azioni bulk extra (es. Approva Account). */
+	bulkActions?: DataTableBulkAction<TData>[];
+	/** Dopo bulk riuscito (anche parziale) — tipicamente refetch. */
+	onBulkComplete?: () => void;
 }
 
 function hasAppliedFilters(filters: ListFilters | undefined): boolean {
@@ -76,7 +104,67 @@ function hasAppliedFilters(filters: ListFilters | undefined): boolean {
 	});
 }
 
-export function DataTable<TData, TValue>({
+function DataTableRow<TData>({ row }: { row: Row<TData> }) {
+	const registry = useRowActionsRegistry();
+	const [menuActions, setMenuActions] = React.useState<
+		ReturnType<typeof registry.get>
+	>(undefined);
+
+	const cells = row.getVisibleCells().map((cell) => (
+		<TableCell key={cell.id}>
+			{flexRender(cell.column.columnDef.cell, cell.getContext())}
+		</TableCell>
+	));
+
+	return (
+		<ContextMenu
+			onOpenChange={(open) => {
+				if (open) setMenuActions(registry.get(row.id));
+				else setMenuActions(undefined);
+			}}
+		>
+			<ContextMenuTrigger asChild>
+				<TableRow data-state={row.getIsSelected() && "selected"}>{cells}</TableRow>
+			</ContextMenuTrigger>
+			<ContextMenuContent className="w-48">
+				<ContextMenuLabel>Azioni</ContextMenuLabel>
+				<ContextMenuSeparator />
+				{menuActions?.canEdit ? (
+					<ContextMenuItem onSelect={() => menuActions.openEdit()}>
+						Modifica
+					</ContextMenuItem>
+				) : null}
+				{menuActions?.extraActions?.map((item) => (
+					<ContextMenuItem
+						key={item.id}
+						disabled={item.disabled}
+						className={
+							item.destructive ? "text-destructive focus:text-destructive" : undefined
+						}
+						onSelect={() => item.onSelect()}
+					>
+						{item.label}
+					</ContextMenuItem>
+				))}
+				{menuActions?.canDelete ? (
+					<ContextMenuItem
+						className="text-destructive focus:text-destructive"
+						onSelect={() => menuActions.openDelete()}
+					>
+						Elimina
+					</ContextMenuItem>
+				) : null}
+				{!menuActions?.canEdit &&
+				!menuActions?.canDelete &&
+				!(menuActions?.extraActions?.length ?? 0) ? (
+					<ContextMenuItem disabled>Nessuna azione</ContextMenuItem>
+				) : null}
+			</ContextMenuContent>
+		</ContextMenu>
+	);
+}
+
+function DataTableInner<TData, TValue>({
 	columns,
 	data,
 	filters,
@@ -89,22 +177,69 @@ export function DataTable<TData, TValue>({
 	onRetry,
 	className,
 	serverList,
+	getRowId,
+	entityLabel = "record",
+	bulkDeleteRow,
+	bulkActions,
+	onBulkComplete,
 }: DataTableProps<TData, TValue>) {
 	const isServer = !!serverList?.manual;
 	const filtersActive = hasAppliedFilters(serverList?.appliedFilters);
+	const enableSelection = !!bulkDeleteRow || (bulkActions?.length ?? 0) > 0;
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 	const [pagination, setPagination] = React.useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 10,
 	});
 
+	const selectColumn = React.useMemo<ColumnDef<TData, TValue>>(
+		() => ({
+			id: "__select",
+			enableSorting: false,
+			enableHiding: false,
+			header: ({ table }) => (
+				<Checkbox
+					aria-label="Seleziona tutte le righe visibili"
+					checked={
+						table.getIsAllPageRowsSelected()
+							? true
+							: table.getIsSomePageRowsSelected()
+								? "indeterminate"
+								: false
+					}
+					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+				/>
+			),
+			cell: ({ row }) => (
+				<Checkbox
+					aria-label="Seleziona riga"
+					checked={row.getIsSelected()}
+					disabled={!row.getCanSelect()}
+					onCheckedChange={(value) => row.toggleSelected(!!value)}
+					onClick={(event) => event.stopPropagation()}
+				/>
+			),
+			size: 40,
+		}),
+		[]
+	);
+
+	const tableColumns = React.useMemo(
+		() => (enableSelection ? [selectColumn, ...columns] : columns),
+		[enableSelection, selectColumn, columns]
+	);
+
 	const table = useReactTable({
 		data,
-		columns,
+		columns: tableColumns,
 		getCoreRowModel: getCoreRowModel(),
+		getRowId,
+		enableRowSelection: enableSelection,
+		onRowSelectionChange: setRowSelection,
 		manualSorting: isServer,
 		manualFiltering: isServer,
 		manualPagination: isServer,
@@ -124,10 +259,24 @@ export function DataTable<TData, TValue>({
 			columnFilters: isServer ? [] : columnFilters,
 			columnVisibility,
 			pagination: isServer ? serverList.pagination : pagination,
+			rowSelection,
 		},
 	});
 
+	const pageIndex = isServer ? serverList.pagination.pageIndex : pagination.pageIndex;
+	const pageSize = isServer ? serverList.pagination.pageSize : pagination.pageSize;
+	const dataIdentity = React.useMemo(
+		() => data.map((_, i) => (getRowId ? getRowId(data[i], i) : String(i))).join("|"),
+		[data, getRowId]
+	);
+
+	React.useEffect(() => {
+		setRowSelection({});
+	}, [pageIndex, pageSize, dataIdentity]);
+
 	const rows = table.getRowModel().rows;
+	const selectedRows = table.getSelectedRowModel().rows.map((r) => r.original);
+	const colSpan = tableColumns.length;
 	const showLoading = isLoading && rows.length === 0 && !error;
 	const showError = !!error;
 	const showEmpty = !showLoading && !showError && rows.length === 0;
@@ -201,6 +350,16 @@ export function DataTable<TData, TValue>({
 						: undefined
 				}
 			/>
+			{enableSelection ? (
+				<TableBulkBar
+					selectedRows={selectedRows}
+					entityLabel={entityLabel}
+					bulkDeleteRow={bulkDeleteRow}
+					bulkActions={bulkActions}
+					onComplete={() => onBulkComplete?.()}
+					onClearSelection={() => setRowSelection({})}
+				/>
+			) : null}
 			<div className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border">
 				<Table className={className}>
 					<TableHeader className="sticky top-0 bg-background z-10 [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
@@ -222,27 +381,27 @@ export function DataTable<TData, TValue>({
 						{bodyContent ? (
 							<TableRow>
 								<TableCell
-									colSpan={columns.length}
+									colSpan={colSpan}
 									className="h-24 text-center"
 								>
 									{bodyContent}
 								</TableCell>
 							</TableRow>
 						) : (
-							rows.map((row) => (
-								<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
-								</TableRow>
-							))
+							rows.map((row) => <DataTableRow key={row.id} row={row} />)
 						)}
 					</TableBody>
 				</Table>
 			</div>
 			<TablePagination table={table} />
 		</div>
+	);
+}
+
+export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
+	return (
+		<RowActionsProvider>
+			<DataTableInner {...props} />
+		</RowActionsProvider>
 	);
 }

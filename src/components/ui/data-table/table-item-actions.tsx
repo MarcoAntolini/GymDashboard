@@ -28,6 +28,10 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import {
+	useOptionalRowActionsRegistry,
+	type RowExtraAction,
+} from "@/components/ui/data-table/table-row-actions-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Row } from "@tanstack/react-table";
 import { Loader2, MoreHorizontal } from "lucide-react";
@@ -58,6 +62,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	editUnavailabe,
 	/** @deprecated typo — use deleteUnavailable */
 	deleteUnavailabe,
+	extraMenuItems,
 }: {
 	row: Row<any>;
 	formSchema: TFormSchema;
@@ -74,6 +79,8 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	deleteUnavailable?: boolean;
 	editUnavailabe?: boolean;
 	deleteUnavailabe?: boolean;
+	/** Azioni extra (dropdown + context menu), es. Approva. */
+	extraMenuItems?: RowExtraAction[];
 }) {
 	const editBlocked = editUnavailable ?? editUnavailabe;
 	const deleteBlocked = deleteUnavailable ?? deleteUnavailabe;
@@ -93,6 +100,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
 
 	const router = useRouter();
+	const registry = useOptionalRowActionsRegistry();
 
 	const form = useForm<z.infer<TFormSchema>>({
 		resolver: zodResolver(formSchema),
@@ -108,6 +116,21 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 		// Reset only when the sheet opens — not on every row identity refresh.
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- intentional open-gated reset
 	}, [isEditOpen]);
+
+	// Keep registry in sync each render; cleanup only on unmount / row id change.
+	if (registry) {
+		registry.register(row.id, {
+			canEdit: !editBlocked,
+			canDelete: !deleteBlocked,
+			openEdit: () => setIsEditOpen(true),
+			openDelete: () => setIsDeleteOpen(true),
+			extraActions: extraMenuItems,
+		});
+	}
+	useEffect(() => {
+		const rowId = row.id;
+		return () => registry?.unregister(rowId);
+	}, [registry, row.id]);
 
 	async function onEditSubmit(values: z.infer<TFormSchema>) {
 		setIsEditSubmitting(true);
@@ -146,6 +169,9 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 		setIsDeleteOpen(open);
 	}
 
+	const hasExtra = (extraMenuItems?.length ?? 0) > 0;
+	const menuDisabled = !!editBlocked && !!deleteBlocked && !hasExtra;
+
 	return (
 		<>
 			<DropdownMenu modal={false}>
@@ -153,7 +179,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 					<Button
 						variant="ghost"
 						className="h-7 w-7 p-0"
-						disabled={!!editBlocked && !!deleteBlocked}
+						disabled={menuDisabled}
 					>
 						<span className="sr-only">Apri menu</span>
 						<MoreHorizontal className="h-4 w-4" />
@@ -165,6 +191,16 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 					{!editBlocked && (
 						<DropdownMenuItem onClick={() => setIsEditOpen(true)}>Modifica</DropdownMenuItem>
 					)}
+					{extraMenuItems?.map((item) => (
+						<DropdownMenuItem
+							key={item.id}
+							disabled={item.disabled}
+							className={item.destructive ? "text-destructive focus:text-destructive" : undefined}
+							onClick={item.onSelect}
+						>
+							{item.label}
+						</DropdownMenuItem>
+					))}
 					{!deleteBlocked && (
 						<DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>Elimina</DropdownMenuItem>
 					)}

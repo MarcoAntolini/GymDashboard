@@ -254,6 +254,12 @@ export default function PurchasesPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit, products)}
+					getRowId={(row) => String(row.id)}
+					entityLabel="Acquisto"
+					bulkDeleteRow={async (row) => {
+						await deletePurchase({ id: row.id });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

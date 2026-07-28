@@ -124,6 +124,12 @@ export default function EntranceSetsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => row.productCode}
+					entityLabel="Pacchetto ingressi"
+					bulkDeleteRow={async (row) => {
+						await deleteEntranceSet({ productCode: row.productCode });
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}

@@ -214,6 +214,15 @@ export default function CatalogsPage() {
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
+					getRowId={(row) => `${row.year}::${row.productCode}`}
+					entityLabel="Listino"
+					bulkDeleteRow={async (row) => {
+						await deleteCatalog({
+							year: row.year,
+							productCode: row.productCode,
+						});
+					}}
+					onBulkComplete={refetch}
 					data={list.items}
 					isLoading={list.isLoading}
 					error={list.error}
