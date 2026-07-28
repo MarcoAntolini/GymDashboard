@@ -17,6 +17,7 @@
 
 ## Done
 
+- Commit: cf7892728f8fb35075aad4fa7d7e711cae8a7295
 - Highlight basato su `serverList.appliedFilters` (dopo Filtra), non sui draft: niente match fuorvianti sulla page non ancora refetchata.
 - `splitHighlightMatches` + `HighlightText` / `HighlightValueCell`; context `SearchHighlightProvider` in `DataTable`.
 - Celle senza `cell` custom: highlight automatico se la chiave colonna ha un filtro stringa/numero applicato (copre Clienti, Dipendenti, username, productCode, provider, ecc.).
