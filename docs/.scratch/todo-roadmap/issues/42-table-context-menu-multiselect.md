@@ -20,4 +20,5 @@
 - Multi-select con colonna checkbox (header = pagina corrente) + barra “N selezionati”
 - Bulk delete su tutte le 16 liste entity: confirm, delete sequenziale, toast Restrict per fallimento singolo, poi refetch
 - Bulk Approva su Account (solo pending gestibili dal ruolo); Approva anche in dropdown/context menu riga
+- Commit: `ec240e5`
 - Deferral: coda Approvazione (sheet ticket 16) resta single-item; nessun `deleteMany` Prisma
