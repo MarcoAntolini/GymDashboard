@@ -3,7 +3,7 @@ export function Footer() {
 		<footer className="py-6 md:px-8 md:py-0">
 			<div className="container flex flex-col items-center justify-center gap-4 md:h-14 md:flex-row">
 				<p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
-					© 2024 Gym Dashboard™. Built by{" "}
+					© 2024 Gym Dashboard™. Realizzato da{" "}
 					<a
 						href="https://marcoantolini.com"
 						target="_blank"
@@ -12,7 +12,7 @@ export function Footer() {
 					>
 						Marco Antolini
 					</a>
-					. All rights reserved.
+					. Tutti i diritti riservati.
 				</p>
 			</div>
 		</footer>

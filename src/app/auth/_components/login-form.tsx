@@ -15,13 +15,13 @@ import { z } from "zod";
 const formSchema = z.object({
 	username: z
 		.string()
-		.min(4, "Username must be at least 4 characters long")
-		.max(12, "Username must be at most 12 characters long"),
+		.min(4, "Lo username deve avere almeno 4 caratteri")
+		.max(12, "Lo username deve avere al massimo 12 caratteri"),
 	password: z
 		.string()
 		.regex(
 			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
-			"Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"
+			"La password deve avere almeno 8 caratteri, una maiuscola, una minuscola e un numero"
 		),
 });
 
@@ -97,7 +97,7 @@ export function LoginForm() {
 					)}
 				/>
 				<Button type="submit" className="mt-6" disabled={isLoading}>
-					{isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Login"}
+					{isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Accedi"}
 				</Button>
 			</form>
 		</Form>

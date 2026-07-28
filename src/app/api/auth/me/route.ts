@@ -13,16 +13,16 @@ import { NextResponse } from "next/server";
 export async function GET() {
 	const sessionCookie = (await cookies()).get(getSessionCookieName())?.value;
 	if (!sessionCookie) {
-		return NextResponse.json({ message: "Unauthenticated" }, { status: 401 });
+		return NextResponse.json({ message: "Non autenticato" }, { status: 401 });
 	}
 	const payload = await verifySessionValue(sessionCookie);
 	if (!payload) {
-		return NextResponse.json({ message: "Unauthenticated" }, { status: 401 });
+		return NextResponse.json({ message: "Non autenticato" }, { status: 401 });
 	}
 
 	const account = await getAccountSafe(payload.u);
 	if (!account || !account.approved || !isAppRole(account.role)) {
-		const res = NextResponse.json({ message: "Unauthenticated" }, { status: 401 });
+		const res = NextResponse.json({ message: "Non autenticato" }, { status: 401 });
 		res.cookies.delete(getSessionCookieName());
 		return res;
 	}

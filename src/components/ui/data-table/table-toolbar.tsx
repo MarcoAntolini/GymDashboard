@@ -6,6 +6,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { columnLabel } from "@/lib/domain/column-labels";
 import type { ListFilters } from "@/lib/list";
 import { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
@@ -33,13 +34,7 @@ interface TableToolbarProps<TData> {
 function filterPlaceholder(filter: string, labels?: Record<string, string>): string {
 	const labeled = labels?.[filter];
 	if (labeled) return labeled;
-	return filter
-		.replace(/([A-Z])/g, (match, p1, offset) =>
-			offset > 0 && filter.charAt(offset - 1) !== " " ? ` ${p1}` : p1
-		)
-		.replace(/\bId\b/g, "ID")
-		.trim()
-		.replace(/^./, (str) => str.toUpperCase());
+	return columnLabel(filter);
 }
 
 export default function TableToolbar<TData>({
@@ -94,7 +89,7 @@ export default function TableToolbar<TData>({
 						<TableFacetedFilter
 							key={filter}
 							column={table.getColumn(filter)}
-							title={filter.charAt(0).toUpperCase() + filter.slice(1)}
+							title={columnLabel(filter)}
 							options={Array.from(
 								new Set(table.getCoreRowModel().flatRows.map((row) => row.getValue(filter)))
 							).map((value) => ({
@@ -125,7 +120,7 @@ export default function TableToolbar<TData>({
 						}}
 						className="h-10 px-2 lg:px-3"
 					>
-						Reset
+						Reimposta
 						<X className="ml-2 h-4 w-4" />
 					</Button>
 				)}
@@ -133,7 +128,7 @@ export default function TableToolbar<TData>({
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="outline" className="ml-auto">
-						Columns
+						Colonne
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
@@ -145,11 +140,10 @@ export default function TableToolbar<TData>({
 							return (
 								<DropdownMenuCheckboxItem
 									key={column.id}
-									className="capitalize"
 									checked={column.getIsVisible()}
 									onCheckedChange={(value) => column.toggleVisibility(!!value)}
 								>
-									{column.id}
+									{columnLabel(column.id)}
 								</DropdownMenuCheckboxItem>
 							);
 						})}

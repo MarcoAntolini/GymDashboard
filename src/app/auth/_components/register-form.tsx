@@ -14,20 +14,20 @@ const formSchema = z
 	.object({
 		username: z
 			.string()
-			.min(4, "Username must be at least 4 characters long")
-			.max(12, "Username must be at most 12 characters long"),
+			.min(4, "Lo username deve avere almeno 4 caratteri")
+			.max(12, "Lo username deve avere al massimo 12 caratteri"),
 		password: z
 			.string()
 			.regex(
 				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
-				"Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"
+				"La password deve avere almeno 8 caratteri, una maiuscola, una minuscola e un numero"
 			),
 		confirmPassword: z.string(),
-		employeeId: z.string().length(4, "Employee ID must be 4 digits long")
+		employeeId: z.string().length(4, "L'ID dipendente deve essere di 4 cifre"),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords must match",
-		path: ["confirmPassword"]
+		message: "Le password devono coincidere",
+		path: ["confirmPassword"],
 	});
 
 export function RegisterForm() {
@@ -37,8 +37,8 @@ export function RegisterForm() {
 			username: "",
 			password: "",
 			confirmPassword: "",
-			employeeId: ""
-		}
+			employeeId: "",
+		},
 	});
 
 	const [isLoading, setIsLoading] = useState(false);
@@ -53,9 +53,9 @@ export function RegisterForm() {
 		await fetch("/api/auth/register", {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json"
+				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(values)
+			body: JSON.stringify(values),
 		})
 			.then((res) => res.json())
 			.then((data) => {
@@ -106,9 +106,9 @@ export function RegisterForm() {
 					name="confirmPassword"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Confirm Password</FormLabel>
+							<FormLabel>Conferma password</FormLabel>
 							<FormControl>
-								<Input type="password" placeholder="Confirm Password" {...field} />
+								<Input type="password" placeholder="Conferma password" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -119,16 +119,16 @@ export function RegisterForm() {
 					name="employeeId"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Employee ID</FormLabel>
+							<FormLabel>ID Dipendente</FormLabel>
 							<FormControl>
-								<Input placeholder="Employee ID" {...field} />
+								<Input placeholder="ID Dipendente" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
 				<Button type="submit" className="mt-6" disabled={isLoading}>
-					{isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Register"}
+					{isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Registrati"}
 				</Button>
 			</form>
 		</Form>

@@ -10,8 +10,8 @@ export default function LoginPage() {
 				className="w-[400px] mx-auto mt-20 flex flex-col"
 			>
 				<TabsList className="mx-auto mb-10">
-					<TabsTrigger value="login">Login</TabsTrigger>
-					<TabsTrigger value="register">Register</TabsTrigger>
+					<TabsTrigger value="login">Accedi</TabsTrigger>
+					<TabsTrigger value="register">Registrati</TabsTrigger>
 				</TabsList>
 				<TabsContent value="login">
 					<LoginForm />

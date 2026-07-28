@@ -10,12 +10,9 @@ interface DataTablePaginationProps<TData> {
 export default function DataTablePagination<TData>({ table }: DataTablePaginationProps<TData>) {
 	return (
 		<div className="flex items-center justify-end px-2 pt-4">
-			{/* <div className="flex-1 text-sm text-muted-foreground">
-				{table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
-			</div> */}
 			<div className="flex items-center space-x-6 lg:space-x-8">
 					<div className="flex items-center space-x-2">
-						<p className="text-sm font-medium">Rows per page</p>
+						<p className="text-sm font-medium">Righe per pagina</p>
 						<Select
 							value={`${table.getState().pagination.pageSize}`}
 							onValueChange={(value) => {
@@ -38,7 +35,7 @@ export default function DataTablePagination<TData>({ table }: DataTablePaginatio
 						</Select>
 					</div>
 					<div className="flex w-[100px] items-center justify-center text-sm font-medium">
-						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+						Pagina {table.getState().pagination.pageIndex + 1} di {table.getPageCount()}
 					</div>
 					<div className="flex items-center space-x-2">
 						<Button
@@ -47,7 +44,7 @@ export default function DataTablePagination<TData>({ table }: DataTablePaginatio
 							onClick={() => table.setPageIndex(0)}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<span className="sr-only">Go to first page</span>
+							<span className="sr-only">Vai alla prima pagina</span>
 							<ChevronsLeftIcon className="h-4 w-4" />
 						</Button>
 						<Button
@@ -56,7 +53,7 @@ export default function DataTablePagination<TData>({ table }: DataTablePaginatio
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
-							<span className="sr-only">Go to previous page</span>
+							<span className="sr-only">Vai alla pagina precedente</span>
 							<ChevronLeftIcon className="h-4 w-4" />
 						</Button>
 						<Button
@@ -65,7 +62,7 @@ export default function DataTablePagination<TData>({ table }: DataTablePaginatio
 							onClick={() => table.nextPage()}
 							disabled={!table.getCanNextPage()}
 						>
-							<span className="sr-only">Go to next page</span>
+							<span className="sr-only">Vai alla pagina successiva</span>
 							<ChevronRightIcon className="h-4 w-4" />
 						</Button>
 						<Button
@@ -74,7 +71,7 @@ export default function DataTablePagination<TData>({ table }: DataTablePaginatio
 							onClick={() => table.setPageIndex(table.getPageCount() - 1)}
 							disabled={!table.getCanNextPage()}
 						>
-							<span className="sr-only">Go to last page</span>
+							<span className="sr-only">Vai all&apos;ultima pagina</span>
 							<ChevronsRightIcon className="h-4 w-4" />
 						</Button>
 					</div>

@@ -8,21 +8,21 @@ export async function POST(req: NextRequest) {
 	try {
 		const { username, password } = (await req.json()) as { username?: string; password?: string };
 		if (!username || !password) {
-			return NextResponse.json({ message: "Missing credentials", success: false }, { status: 400 });
+			return NextResponse.json({ message: "Credenziali mancanti", success: false }, { status: 400 });
 		}
 		const account = await getAccount({ username });
 		if (!account) {
-			return NextResponse.json({ message: "Invalid username or password", success: false }, { status: 401 });
+			return NextResponse.json({ message: "Username o password non validi", success: false }, { status: 401 });
 		}
 		const ok = await bcrypt.compare(password, account.password);
 		if (!ok) {
-			return NextResponse.json({ message: "Invalid username or password", success: false }, { status: 401 });
+			return NextResponse.json({ message: "Username o password non validi", success: false }, { status: 401 });
 		}
 		if (!account.approved) {
-			return NextResponse.json({ message: "Account not yet authorized", success: false }, { status: 403 });
+			return NextResponse.json({ message: "Account non ancora autorizzato", success: false }, { status: 403 });
 		}
 		if (!isAppRole(account.role)) {
-			return NextResponse.json({ message: "Invalid account role", success: false }, { status: 403 });
+			return NextResponse.json({ message: "Ruolo account non valido", success: false }, { status: 403 });
 		}
 
 		const now = Math.floor(Date.now() / 1000);
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 		const value = await signSessionValue(payloadB64);
 
 		const res = NextResponse.json(
-			{ message: "Logged in", success: true, role: account.role },
+			{ message: "Accesso effettuato", success: true, role: account.role },
 			{ status: 200 }
 		);
 		res.cookies.set(getSessionCookieName(), value, {
@@ -43,6 +43,6 @@ export async function POST(req: NextRequest) {
 		});
 		return res;
 	} catch {
-		return NextResponse.json({ message: "Invalid request", success: false }, { status: 400 });
+		return NextResponse.json({ message: "Richiesta non valida", success: false }, { status: 400 });
 	}
 }

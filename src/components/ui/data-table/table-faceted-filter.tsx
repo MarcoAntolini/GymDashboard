@@ -56,7 +56,7 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 										variant="secondary"
 										className="rounded-sm px-1 font-normal"
 									>
-										{selectedValues.size} selected
+										{selectedValues.size} selezionati
 									</Badge>
 								) : (
 									options
@@ -83,7 +83,7 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 				<Command>
 					<CommandInput placeholder={title} />
 					<CommandList>
-						<CommandEmpty>No results found.</CommandEmpty>
+						<CommandEmpty>Nessun risultato.</CommandEmpty>
 						<CommandGroup>
 							{options.map((option) => {
 								const isSelected = selectedValues.has(option.value);
@@ -127,7 +127,7 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 										onSelect={() => column?.setFilterValue(undefined)}
 										className="justify-center text-center"
 									>
-										Clear filters
+										Cancella filtri
 									</CommandItem>
 								</CommandGroup>
 							</>

@@ -197,7 +197,7 @@ export function ProfileSheet({
 				photoUrl?: string | null;
 			};
 			if (!res.ok || !data.success) {
-				toast.error(data.message ?? "Upload fallito");
+				toast.error(data.message ?? "Caricamento non riuscito");
 				return;
 			}
 			setPhotoUrl(
@@ -205,7 +205,7 @@ export function ProfileSheet({
 			);
 			toast.success("Foto aggiornata");
 		} catch {
-			toast.error("Upload fallito");
+			toast.error("Caricamento non riuscito");
 		} finally {
 			setPhotoBusy(false);
 		}

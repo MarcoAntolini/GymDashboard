@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 		const message =
 			error instanceof Error && error.message
 				? error.message
-				: "Upload fallito";
+				: "Caricamento non riuscito";
 		const status = message === UNAUTHENTICATED_MESSAGE ? 401 : 400;
 		return NextResponse.json({ success: false, message }, { status });
 	}
