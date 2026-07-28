@@ -20,4 +20,4 @@
 - Sticky verticale sulle celle delle righe pinnate (sotto l?header), compatibile con column pinning via `mergeCellStickyStyles`.
 - Helper puro `table-row-pinning.ts`; stato TanStack `rowPinning` con `keepPinnedRows: false`.
 - **Paginazione / filtri:** il pin è solo sulla pagina corrente ? cambio pagina, pageSize o dati azzera i pin (come la multi-select). Selezione e pin sono indipendenti.
-- Commit: (vedi git log dopo commit)
+- Commit: `600273c`
