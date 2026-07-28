@@ -9,6 +9,7 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -64,8 +65,14 @@ export const columns = (
 			const client = row.original.client;
 			return (
 				<div className="font-medium">
-					{client.surname} {client.name}{" "}
-					<span className="text-muted-foreground">#{client.id}</span>
+					<HighlightText
+						text={`${client.surname} ${client.name}`}
+						filterKeys="client"
+					/>{" "}
+					<span className="text-muted-foreground">
+						#
+						<HighlightText text={String(client.id)} filterKeys="clientId" />
+					</span>
 				</div>
 			);
 		},

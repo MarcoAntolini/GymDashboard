@@ -10,6 +10,7 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ContractRow } from "@/data-access/contracts";
@@ -71,7 +72,12 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
+			<div className="font-medium">
+				<HighlightText
+					text={formatPersonLabel(row.original.employee)}
+					filterKeys="employee"
+				/>
+			</div>
 		),
 	},
 	{

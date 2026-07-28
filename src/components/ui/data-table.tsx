@@ -32,11 +32,13 @@ import {
 	SELECT_COLUMN_SIZE,
 } from "@/components/ui/data-table/table-column-layout";
 import { ColumnLayoutProvider } from "@/components/ui/data-table/table-column-layout-context";
+import { SearchHighlightProvider } from "@/components/ui/data-table/search-highlight-context";
 import {
 	getRowPinningStyle,
 	mergeCellStickyStyles,
 } from "@/components/ui/data-table/table-row-pinning";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
+import { HighlightValueCell } from "@/components/ui/highlight-text";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ListFilters } from "@/lib/list";
 import { cn } from "@/lib/utils";
@@ -124,6 +126,25 @@ function hasAppliedFilters(filters: ListFilters | undefined): boolean {
 		if (Array.isArray(value)) return value.length > 0;
 		return String(value).trim() !== "";
 	});
+}
+
+/** Colonne senza `cell` custom: evidenzia il value se c'è filtro applicato sulla stessa chiave. */
+function withDefaultSearchHighlightCell<TData, TValue>(
+	col: ColumnDef<TData, TValue>
+): ColumnDef<TData, TValue> {
+	if (col.cell) return col;
+	const id =
+		col.id ??
+		("accessorKey" in col && col.accessorKey != null
+			? String(col.accessorKey)
+			: undefined);
+	if (!id || id === ACTIONS_COLUMN_ID || id === "__select") return col;
+	return {
+		...col,
+		cell: ({ getValue }) => (
+			<HighlightValueCell value={getValue()} filterKeys={id} />
+		),
+	};
 }
 
 function DataTableRow<TData>({
@@ -362,14 +383,15 @@ function DataTableInner<TData, TValue>({
 	const tableColumns = React.useMemo(() => {
 		const base = enableSelection ? [selectColumn, ...columns] : [...columns];
 		return base.map((col) => {
+			const withHighlight = withDefaultSearchHighlightCell(col);
 			const id =
-				col.id ??
-				("accessorKey" in col && col.accessorKey != null
-					? String(col.accessorKey)
+				withHighlight.id ??
+				("accessorKey" in withHighlight && withHighlight.accessorKey != null
+					? String(withHighlight.accessorKey)
 					: undefined);
 			if (id === ACTIONS_COLUMN_ID) {
 				return {
-					...col,
+					...withHighlight,
 					enableResizing: false,
 					enableHiding: false,
 					enablePinning: false,
@@ -379,12 +401,12 @@ function DataTableInner<TData, TValue>({
 				};
 			}
 			const headerMin = id ? headerMinSizes[id] : undefined;
-			if (headerMin == null) return col;
-			const nextMin = Math.max(col.minSize ?? 64, headerMin);
-			const nextSize = Math.max(col.size ?? 160, headerMin);
-			const nextMax = Math.max(col.maxSize ?? 480, nextMin);
+			if (headerMin == null) return withHighlight;
+			const nextMin = Math.max(withHighlight.minSize ?? 64, headerMin);
+			const nextSize = Math.max(withHighlight.size ?? 160, headerMin);
+			const nextMax = Math.max(withHighlight.maxSize ?? 480, nextMin);
 			return {
-				...col,
+				...withHighlight,
 				minSize: nextMin,
 				size: nextSize,
 				maxSize: nextMax,
@@ -570,6 +592,7 @@ function DataTableInner<TData, TValue>({
 	}
 
 	return (
+		<SearchHighlightProvider filters={isServer ? serverList?.appliedFilters : undefined}>
 		<ColumnLayoutProvider
 			moveColumn={moveColumn}
 			ensureHeaderMinSize={ensureHeaderMinSize}
@@ -720,6 +743,7 @@ function DataTableInner<TData, TValue>({
 			<TablePagination table={table} />
 		</div>
 		</ColumnLayoutProvider>
+		</SearchHighlightProvider>
 	);
 }
 

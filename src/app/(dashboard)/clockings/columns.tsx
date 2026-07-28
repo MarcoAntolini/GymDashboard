@@ -5,6 +5,7 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import type { ClockingRow } from "@/data-access/clockings";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
@@ -33,7 +34,12 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
+			<div className="font-medium">
+				<HighlightText
+					text={formatPersonLabel(row.original.employee)}
+					filterKeys="employee"
+				/>
+			</div>
 		),
 	},
 	{

@@ -9,6 +9,7 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import type { PaymentRow } from "@/data-access/payments";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
@@ -174,7 +175,9 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">{row.original.id}</div>
+			<div className="text-muted-foreground">
+				<HighlightText text={String(row.original.id)} filterKeys="id" />
+			</div>
 		),
 	},
 	{

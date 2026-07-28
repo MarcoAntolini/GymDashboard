@@ -7,6 +7,7 @@ import {
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import type { SalaryRow } from "@/data-access/salaries";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
@@ -34,7 +35,12 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
+			<div className="font-medium">
+				<HighlightText
+					text={formatPersonLabel(row.original.employee)}
+					filterKeys="employee"
+				/>
+			</div>
 		),
 	},
 	{
@@ -68,7 +74,9 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">{row.original.paymentId}</div>
+			<div className="text-muted-foreground">
+				<HighlightText text={String(row.original.paymentId)} filterKeys="paymentId" />
+			</div>
 		),
 	},
 	{

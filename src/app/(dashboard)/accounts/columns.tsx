@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { AccountRow } from "@/data-access/accounts";
@@ -96,9 +97,14 @@ export const columns = (
 			meta: columnMeta(ColumnClass.Join),
 			cell: ({ row }) => (
 				<div className="font-medium">
-					{row.original.employee
-						? formatPersonLabel(row.original.employee)
-						: "—"}
+					{row.original.employee ? (
+						<HighlightText
+							text={formatPersonLabel(row.original.employee)}
+							filterKeys="employee"
+						/>
+					) : (
+						"—"
+					)}
 				</div>
 			),
 		},

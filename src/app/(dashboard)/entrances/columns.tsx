@@ -4,6 +4,7 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { HighlightText } from "@/components/ui/highlight-text";
 import type { EntranceRow } from "@/data-access/entrances";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatDateTimeIt } from "@/lib/format";
@@ -61,7 +62,10 @@ export const columns = (
 			const client = row.original.purchase.client;
 			return (
 				<div className="font-medium">
-					{client.surname} {client.name}{" "}
+					<HighlightText
+						text={`${client.surname} ${client.name}`}
+						filterKeys="client"
+					/>{" "}
 					<span className="text-muted-foreground">#{client.id}</span>
 				</div>
 			);
@@ -75,7 +79,12 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">{row.original.purchase.productCode}</div>
+			<div className="font-medium">
+				<HighlightText
+					text={row.original.purchase.productCode}
+					filterKeys="product"
+				/>
+			</div>
 		),
 	},
 	{
