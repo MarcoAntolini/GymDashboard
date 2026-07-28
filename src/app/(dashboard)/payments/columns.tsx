@@ -11,6 +11,11 @@ import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { PaymentRow } from "@/data-access/payments";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
@@ -162,11 +167,19 @@ export const columns = (
 		header: ({ column }) => <TableSortableHeader column={column} title="Dettaglio" />,
 		meta: columnMeta(ColumnClass.Join),
 		enableSorting: false,
-		cell: ({ row }) => (
-			<div className="max-w-[280px] truncate text-muted-foreground" title={specializationSummary(row.original)}>
-				{specializationSummary(row.original)}
-			</div>
-		),
+		cell: ({ row }) => {
+			const summary = specializationSummary(row.original);
+			return (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<span className="block max-w-[280px] truncate text-muted-foreground">
+							{summary}
+						</span>
+					</TooltipTrigger>
+					<TooltipContent className="max-w-sm">{summary}</TooltipContent>
+				</Tooltip>
+			);
+		},
 	},
 	{
 		accessorKey: "id",
