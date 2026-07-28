@@ -21,7 +21,7 @@ export type ProductRow = Prisma.ProductGetPayload<{
 }>;
 
 export const formSchema = z.object({
-	code: z.string().min(1, "Product code is required"),
+	code: z.string().min(1, "Il codice prodotto è obbligatorio"),
 });
 
 export const columns = (

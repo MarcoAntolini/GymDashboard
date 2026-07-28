@@ -377,7 +377,7 @@ export function ProfileSheet({
 						<section className="flex flex-col gap-3">
 							<h3 className="text-sm font-medium">Credenziali</h3>
 							<div className="space-y-1.5">
-								<Label htmlFor="profile-username">Username</Label>
+								<Label htmlFor="profile-username">Nome utente</Label>
 								<Input
 									id="profile-username"
 									value={newUsername}

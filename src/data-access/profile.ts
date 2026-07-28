@@ -204,14 +204,14 @@ export async function updateOwnCredentials(input: {
 
 	if (newUsername && newUsername !== account.username) {
 		if (newUsername.length < 4 || newUsername.length > 12) {
-			throw new Error("Username deve essere tra 4 e 12 caratteri");
+			throw new Error("Il nome utente deve essere tra 4 e 12 caratteri");
 		}
 		const taken = await db.account.findUnique({
 			where: { username: newUsername },
 			select: { username: true },
 		});
 		if (taken) {
-			throw new Error("Username gia' in uso");
+			throw new Error("Nome utente già in uso");
 		}
 	}
 

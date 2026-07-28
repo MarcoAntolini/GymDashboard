@@ -110,7 +110,7 @@ export const columns = (
 		},
 		{
 			accessorKey: "username",
-			header: ({ column }) => <TableSortableHeader column={column} title="Username" />,
+			header: ({ column }) => <TableSortableHeader column={column} title="Nome utente" />,
 			meta: columnMeta(ColumnClass.Native),
 		},
 		{
@@ -211,7 +211,7 @@ export const columns = (
 										name="username"
 										render={({ field }) => (
 											<FormItem className="col-span-2">
-												<FormLabel className="text-muted-foreground">Username</FormLabel>
+												<FormLabel className="text-muted-foreground">Nome utente</FormLabel>
 												<Input disabled onChange={field.onChange} defaultValue={field.value} />
 											</FormItem>
 										)}

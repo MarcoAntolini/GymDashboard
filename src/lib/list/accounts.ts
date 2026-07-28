@@ -16,7 +16,7 @@ export const ACCOUNT_FILTER_LABELS: Record<
 	string
 > = {
 	employee: "Dipendente",
-	username: "Username",
+	username: "Nome utente",
 	role: "Ruolo",
 	approved: "Approvazione (si/no)",
 };

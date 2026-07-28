@@ -233,7 +233,7 @@ export default function Accounts() {
 								name="username"
 								render={() => (
 									<FormItem>
-										<FormLabel>Username</FormLabel>
+										<FormLabel>Nome utente</FormLabel>
 										<Input
 											value={newUsername}
 											disabled

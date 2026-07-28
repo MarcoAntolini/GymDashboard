@@ -30,12 +30,12 @@ export type CatalogRow = Prisma.CatalogGetPayload<{
 }>;
 
 export const formSchema = z.object({
-	year: z.number().int().positive("Year must be a positive integer"),
-	productCode: z.string().min(1, "Product code is required"),
+	year: z.number().int().positive("L'anno deve essere un intero positivo"),
+	productCode: z.string().min(1, "Il codice prodotto è obbligatorio"),
 	price: z
 		.string()
-		.regex(/^\d+(\.\d{1,2})?$/, "Price must have at most 2 decimal places")
-		.refine((value) => Number(value) > 0, "Price must be a positive number"),
+		.regex(/^\d+(\.\d{1,2})?$/, "Il prezzo può avere al massimo 2 decimali")
+		.refine((value) => Number(value) > 0, "Il prezzo deve essere un numero positivo"),
 });
 
 export const columns = (

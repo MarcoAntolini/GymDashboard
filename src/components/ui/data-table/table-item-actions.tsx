@@ -85,14 +85,14 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	const editBlocked = editUnavailable ?? editUnavailabe;
 	const deleteBlocked = deleteUnavailable ?? deleteUnavailabe;
 
-	const label = entityLabel ?? "record";
+	const label = entityLabel ?? "elemento";
 	const resolvedEditTitle = editTitle ?? `Modifica ${label}`;
 	const resolvedEditDescription =
 		editDescription ?? `Aggiorna i dati del ${label}.`;
 	const resolvedDeleteTitle = deleteTitle ?? `Eliminare questo ${label}?`;
 	const resolvedDeleteDescription =
 		deleteDescription ??
-		`L'eliminazione è definitiva. Se esistono record collegati (Restrict), l'operazione verrà rifiutata.`;
+		`L'eliminazione è definitiva. Se esistono elementi collegati (Restrict), l'operazione verrà rifiutata.`;
 
 	const [isEditOpen, setIsEditOpen] = useState(false);
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false);

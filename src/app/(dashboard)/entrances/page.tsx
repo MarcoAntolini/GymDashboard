@@ -296,7 +296,7 @@ export default function EntrancesPage() {
 								<XAxis dataKey="hourOfDay" />
 								<YAxis />
 								<Tooltip />
-								<Bar dataKey="totalEntrances" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+								<Bar dataKey="totalEntrances" name="Ingressi" fill="#3b82f6" radius={[4, 4, 0, 0]} />
 							</BarChart>
 						</ResponsiveContainer>
 					</div>
@@ -318,7 +318,7 @@ export default function EntrancesPage() {
 								<XAxis dataKey="dayOfWeek" />
 								<YAxis />
 								<Tooltip />
-								<Bar dataKey="totalEntrances" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+								<Bar dataKey="totalEntrances" name="Ingressi" fill="#3b82f6" radius={[4, 4, 0, 0]} />
 							</BarChart>
 						</ResponsiveContainer>
 					</div>
@@ -340,7 +340,7 @@ export default function EntrancesPage() {
 								<XAxis dataKey="month" />
 								<YAxis />
 								<Tooltip />
-								<Bar dataKey="totalEntrances" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+								<Bar dataKey="totalEntrances" name="Ingressi" fill="#3b82f6" radius={[4, 4, 0, 0]} />
 							</BarChart>
 						</ResponsiveContainer>
 					</div>

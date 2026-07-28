@@ -22,11 +22,11 @@ export type EntranceSetRow = Prisma.EntranceSetGetPayload<{
 }>;
 
 export const formSchema = z.object({
-	productCode: z.string().min(1, "Product code is required"),
+	productCode: z.string().min(1, "Il codice prodotto è obbligatorio"),
 	entranceNumber: z
 		.number()
 		.int()
-		.positive("Number of entrances must be a positive integer"),
+		.positive("Il numero di ingressi deve essere un intero positivo"),
 });
 
 export const columns = (

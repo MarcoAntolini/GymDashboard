@@ -27,7 +27,7 @@ export const COLUMN_LABELS: Record<string, string> = {
 	clientId: "ID Cliente",
 	employeeId: "ID Dipendente",
 	employee: "Dipendente",
-	username: "Username",
+	username: "Nome utente",
 	password: "Password",
 	role: "Ruolo",
 	approved: "Approvato",

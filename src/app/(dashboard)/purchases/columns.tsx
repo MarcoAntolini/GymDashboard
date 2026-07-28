@@ -43,8 +43,8 @@ export const formSchema = z.object({
 	date: z.date(),
 	amount: z
 		.string()
-		.regex(/^\d+(\.\d{1,2})?$/, "Amount must have at most 2 decimal places")
-		.refine((value) => Number(value) > 0, "Amount must be a positive number"),
+		.regex(/^\d+(\.\d{1,2})?$/, "L'importo può avere al massimo 2 decimali")
+		.refine((value) => Number(value) > 0, "L'importo deve essere un numero positivo"),
 	productCode: z.string().min(1),
 });
 

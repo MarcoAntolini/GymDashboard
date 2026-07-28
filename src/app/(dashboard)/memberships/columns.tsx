@@ -22,8 +22,8 @@ export type MembershipRow = Prisma.MembershipGetPayload<{
 }>;
 
 export const formSchema = z.object({
-	productCode: z.string().min(1, "Product code is required"),
-	duration: z.number().int().positive("Duration must be a positive integer"),
+	productCode: z.string().min(1, "Il codice prodotto è obbligatorio"),
+	duration: z.number().int().positive("La durata deve essere un intero positivo"),
 });
 
 export const columns = (

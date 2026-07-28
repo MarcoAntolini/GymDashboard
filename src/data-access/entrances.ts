@@ -291,7 +291,15 @@ export async function getWeeklyEntrances(startDate: Date, endDate: Date): Promis
 			},
 		},
 	});
-	const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+	const weekdays = [
+		"Domenica",
+		"Lunedì",
+		"Martedì",
+		"Mercoledì",
+		"Giovedì",
+		"Venerdì",
+		"Sabato",
+	];
 	const weekdayCounts = new Array(7).fill(0);
 	for (const entrance of entrances) {
 		const day = entrance.date.getDay();
@@ -320,18 +328,18 @@ export async function getMonthlyEntrances(
 		},
 	});
 	const months = [
-		"January",
-		"February",
-		"March",
-		"April",
-		"May",
-		"June",
-		"July",
-		"August",
-		"September",
-		"October",
-		"November",
-		"December",
+		"Gennaio",
+		"Febbraio",
+		"Marzo",
+		"Aprile",
+		"Maggio",
+		"Giugno",
+		"Luglio",
+		"Agosto",
+		"Settembre",
+		"Ottobre",
+		"Novembre",
+		"Dicembre",
 	];
 	const monthCounts = new Array(12).fill(0);
 	for (const entrance of entrances) {

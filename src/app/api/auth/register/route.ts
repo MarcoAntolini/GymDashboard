@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 	}
 	const existingAccount = await getAccount({ username });
 	if (existingAccount) {
-		return NextResponse.json({ message: "Username già esistente", success: false }, { status: 409 });
+		return NextResponse.json({ message: "Nome utente già esistente", success: false }, { status: 409 });
 	}
 	const createdAccount = await createAccount({ username, password: hashedPassword, employeeId: employeeIdN });
 	if (!createdAccount) {

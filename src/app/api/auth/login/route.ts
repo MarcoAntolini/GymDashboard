@@ -12,11 +12,11 @@ export async function POST(req: NextRequest) {
 		}
 		const account = await getAccount({ username });
 		if (!account) {
-			return NextResponse.json({ message: "Username o password non validi", success: false }, { status: 401 });
+			return NextResponse.json({ message: "Nome utente o password non validi", success: false }, { status: 401 });
 		}
 		const ok = await bcrypt.compare(password, account.password);
 		if (!ok) {
-			return NextResponse.json({ message: "Username o password non validi", success: false }, { status: 401 });
+			return NextResponse.json({ message: "Nome utente o password non validi", success: false }, { status: 401 });
 		}
 		if (!account.approved) {
 			return NextResponse.json({ message: "Account non ancora autorizzato", success: false }, { status: 403 });

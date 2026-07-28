@@ -287,7 +287,7 @@ function DataTableInner<TData, TValue>({
 	className,
 	serverList,
 	getRowId,
-	entityLabel = "record",
+	entityLabel = "elemento",
 	bulkDeleteRow,
 	bulkActions,
 	onBulkComplete,

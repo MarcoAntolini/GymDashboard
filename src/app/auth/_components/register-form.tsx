@@ -14,8 +14,8 @@ const formSchema = z
 	.object({
 		username: z
 			.string()
-			.min(4, "Lo username deve avere almeno 4 caratteri")
-			.max(12, "Lo username deve avere al massimo 12 caratteri"),
+			.min(4, "Il nome utente deve avere almeno 4 caratteri")
+			.max(12, "Il nome utente deve avere al massimo 12 caratteri"),
 		password: z
 			.string()
 			.regex(
@@ -80,9 +80,9 @@ export function RegisterForm() {
 					name="username"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Username</FormLabel>
+							<FormLabel>Nome utente</FormLabel>
 							<FormControl>
-								<Input placeholder="Username" {...field} />
+								<Input placeholder="Nome utente" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>

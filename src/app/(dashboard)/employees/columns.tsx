@@ -13,16 +13,16 @@ import { Briefcase, Calendar, Hash, IdCard, MapPin, User } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
-	name: z.string().min(1, "Name is a required field"),
-	surname: z.string().min(1, "Surname is a required field"),
-	taxCode: z.string().length(16, "Tax Code must be 16 characters long"),
+	name: z.string().min(1, "Il nome è obbligatorio"),
+	surname: z.string().min(1, "Il cognome è obbligatorio"),
+	taxCode: z.string().length(16, "Il codice fiscale deve essere di 16 caratteri"),
 	birthDate: z.date({
-		required_error: "Birth Date is a required field",
+		required_error: "La data di nascita è obbligatoria",
 	}),
-	street: z.string().min(1, "Street is a required field"),
-	houseNumber: z.string().min(1, "House Number is a required field"),
-	city: z.string().min(1, "City is a required field"),
-	province: z.string().min(1, "Province is a required field"),
+	street: z.string().min(1, "La via è obbligatoria"),
+	houseNumber: z.string().min(1, "Il civico è obbligatorio"),
+	city: z.string().min(1, "La città è obbligatoria"),
+	province: z.string().min(1, "La provincia è obbligatoria"),
 	phoneNumber: z.string(),
 	email: z.string(),
 	hiringDate: z.date(),

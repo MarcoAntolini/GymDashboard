@@ -19,16 +19,16 @@ import {
 import { z } from "zod";
 
 export const formSchema = z.object({
-	taxCode: z.string().min(1, "Tax Code is required"),
-	name: z.string().min(1, "Name is required"),
-	surname: z.string().min(1, "Surname is required"),
+	taxCode: z.string().min(1, "Il codice fiscale è obbligatorio"),
+	name: z.string().min(1, "Il nome è obbligatorio"),
+	surname: z.string().min(1, "Il cognome è obbligatorio"),
 	birthDate: z.date(),
-	street: z.string().min(1, "Street is required"),
-	houseNumber: z.string().min(1, "House Number is required"),
-	city: z.string().min(1, "City is required"),
-	province: z.string().min(1, "Province is required"),
-	phoneNumber: z.string().min(1, "Phone Number is required"),
-	email: z.string().email("Invalid email address"),
+	street: z.string().min(1, "La via è obbligatoria"),
+	houseNumber: z.string().min(1, "Il civico è obbligatorio"),
+	city: z.string().min(1, "La città è obbligatoria"),
+	province: z.string().min(1, "La provincia è obbligatoria"),
+	phoneNumber: z.string().min(1, "Il telefono è obbligatorio"),
+	email: z.string().email("Indirizzo email non valido"),
 	enrollmentDate: z.date(),
 });
 
