@@ -25,3 +25,4 @@ Usare skill /impeccable e /shadcn.
 - Componenti riusabili: `DotBadge`, `DomainBadge`, `MoneyTone`, `NumericCell` (`domain-badge.tsx`); `FormDateField`; `TableSortableHeader` con `icon` + chrome uniforme anche non-sortable
 - Colonne entità: chip categoria (tipo pagamento/prodotto/ruolo/contratto), badge stato (approvazione, “In corso”), importi colorati entrate/uscite, numeri `text-right tabular-nums`, icone header
 - Form edit: date via `FormDateField` / `formatDateTimeIt` (niente più PPP / `type="date"` inconsistente); campi importo allineati a destra
+- Commit: `e93162d`
