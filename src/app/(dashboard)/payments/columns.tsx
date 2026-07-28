@@ -1,15 +1,23 @@
 "use client";
 
+import {
+	DotBadge,
+	MoneyTone,
+	NumericCell,
+} from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
+import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { PaymentRow } from "@/data-access/payments";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
+import { PAYMENT_TYPE_TONE } from "@/lib/domain/visual";
 import { formatDateIt, formatDateTimeIt, formatEur } from "@/lib/format";
 import { PaymentType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Banknote, Calendar, Hash, Tag } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -114,7 +122,9 @@ export const columns = (
 ): ColumnDef<PaymentRow>[] => [
 	{
 		accessorKey: "date",
-		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data" icon={Calendar} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateIt(row.original.date)}</div>
@@ -122,18 +132,27 @@ export const columns = (
 	},
 	{
 		accessorKey: "amount",
-		header: ({ column }) => <TableSortableHeader column={column} title="Importo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Importo" icon={Banknote} align="right" />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatEur(row.original.amount)}</div>
+			<NumericCell>
+				<MoneyTone tone="expense">{formatEur(row.original.amount)}</MoneyTone>
+			</NumericCell>
 		),
 	},
 	{
 		accessorKey: "type",
-		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div>{PAYMENT_TYPE_LABEL[row.original.type]}</div>
+			<DotBadge
+				label={PAYMENT_TYPE_LABEL[row.original.type]}
+				tone={PAYMENT_TYPE_TONE[row.original.type]}
+			/>
 		),
 	},
 	{
@@ -150,7 +169,9 @@ export const columns = (
 	},
 	{
 		accessorKey: "id",
-		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID" icon={Hash} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="text-muted-foreground">{row.original.id}</div>
@@ -178,14 +199,11 @@ export const columns = (
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Data</FormLabel>
-									<FormControl>
-										<Input
-											type="date"
-											{...field}
-											value={field.value ? new Date(field.value).toISOString().split("T")[0] : ""}
-											onChange={(e) => field.onChange(new Date(e.target.value))}
-										/>
-									</FormControl>
+									<FormDateField
+										value={field.value}
+										onChange={field.onChange}
+										disabledDates={(date) => date < new Date("1900-01-01")}
+									/>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -199,6 +217,7 @@ export const columns = (
 										<Input
 											type="number"
 											step="0.01"
+											className="text-right tabular-nums"
 											{...field}
 											onChange={(e) => field.onChange(parseFloat(e.target.value))}
 										/>
@@ -209,10 +228,15 @@ export const columns = (
 						/>
 						<FormItem>
 							<FormLabel>Tipo</FormLabel>
-							<p className="text-sm text-muted-foreground">
-								{PAYMENT_TYPE_LABEL[row.original.type]} (bloccato — crea un nuovo Pagamento per
-								cambiare tipo)
-							</p>
+							<div className="pt-1">
+								<DotBadge
+									label={PAYMENT_TYPE_LABEL[row.original.type]}
+									tone={PAYMENT_TYPE_TONE[row.original.type]}
+								/>
+								<p className="mt-1.5 text-sm text-muted-foreground">
+									Bloccato — crea un nuovo Pagamento per cambiare tipo
+								</p>
+							</div>
 						</FormItem>
 						<PaymentSpecializationDetails payment={row.original} />
 					</>

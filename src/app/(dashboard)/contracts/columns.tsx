@@ -1,7 +1,14 @@
 "use client";
 
+import {
+	DomainBadge,
+	DotBadge,
+	MoneyTone,
+	NumericCell,
+} from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
+import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,9 +21,11 @@ import {
 } from "@/lib/contract-term";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { CONTRACT_TYPE_LABEL, formatPersonLabel } from "@/lib/domain/labels";
+import { CONTRACT_TYPE_TONE } from "@/lib/domain/visual";
 import { formatDateIt, formatEur } from "@/lib/format";
 import { Contract, ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Banknote, Calendar, CirclePlay, FileText, Tag, User } from "lucide-react";
 import { z } from "zod";
 import { ContractEndingDateField } from "./contract-ending-date-field";
 
@@ -57,7 +66,9 @@ export const columns = (
 	{
 		id: "employee",
 		accessorFn: (row) => formatPersonLabel(row.employee),
-		header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dipendente" icon={User} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
@@ -65,10 +76,15 @@ export const columns = (
 	},
 	{
 		accessorKey: "type",
-		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="font-medium">{CONTRACT_TYPE_LABEL[row.original.type]}</div>
+			<DotBadge
+				label={CONTRACT_TYPE_LABEL[row.original.type]}
+				tone={CONTRACT_TYPE_TONE[row.original.type]}
+			/>
 		),
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
@@ -76,15 +92,21 @@ export const columns = (
 	},
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => <TableSortableHeader column={column} title="Compenso orario" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Compenso orario" icon={Banknote} align="right" />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatEur(row.original.hourlyFee)}</div>
+			<NumericCell>
+				<MoneyTone tone="expense">{formatEur(row.original.hourlyFee)}</MoneyTone>
+			</NumericCell>
 		),
 	},
 	{
 		accessorKey: "startingDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Data inizio" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data inizio" icon={Calendar} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateIt(row.original.startingDate)}</div>
@@ -92,13 +114,22 @@ export const columns = (
 	},
 	{
 		accessorKey: "endingDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Data fine" />,
-		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<div className="font-medium">
-				{formatContractEndingDateLabel(row.original.type, row.original.endingDate)}
-			</div>
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data fine" icon={FileText} />
 		),
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => {
+			const open =
+				row.original.type === ContractType.OpenEnded || row.original.endingDate == null;
+			if (open) {
+				return <DomainBadge label="In corso" tone="info" icon={CirclePlay} />;
+			}
+			return (
+				<div className="font-medium">
+					{formatContractEndingDateLabel(row.original.type, row.original.endingDate)}
+				</div>
+			);
+		},
 	},
 	{
 		id: "actions",
@@ -165,6 +196,7 @@ export const columns = (
 										<Input
 											type="number"
 											step="0.01"
+											className="text-right tabular-nums"
 											{...field}
 											onChange={(e) => field.onChange(parseFloat(e.target.value))}
 										/>
@@ -178,19 +210,12 @@ export const columns = (
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Data inizio</FormLabel>
-									<FormControl>
-										<Input
-											type="date"
-											{...field}
-											onChange={(e) => field.onChange(new Date(e.target.value))}
-											disabled
-										/>
-									</FormControl>
+									<FormDateField value={field.value} onChange={field.onChange} disabled />
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
-						<ContractEndingDateField variant="input" />
+						<ContractEndingDateField variant="calendar" />
 					</>
 				}
 				editAction={async ({ values }) => {

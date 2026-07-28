@@ -1,5 +1,9 @@
 "use client";
 
+import {
+	MoneyTone,
+	NumericCell,
+} from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -10,6 +14,7 @@ import { formatPersonLabel } from "@/lib/domain/labels";
 import { formatDateIt, formatEur } from "@/lib/format";
 import { Salary } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Banknote, Calendar, Hash, User } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -24,7 +29,9 @@ export const columns = (
 	{
 		id: "employee",
 		accessorFn: (row) => formatPersonLabel(row.employee),
-		header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dipendente" icon={User} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
@@ -33,7 +40,9 @@ export const columns = (
 	{
 		id: "paymentDate",
 		accessorFn: (row) => row.payment.date,
-		header: ({ column }) => <TableSortableHeader column={column} title="Data pagamento" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data pagamento" icon={Calendar} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateIt(row.original.payment.date)}</div>
@@ -42,15 +51,21 @@ export const columns = (
 	{
 		id: "paymentAmount",
 		accessorFn: (row) => Number(row.payment.amount),
-		header: ({ column }) => <TableSortableHeader column={column} title="Importo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Importo" icon={Banknote} align="right" />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatEur(row.original.payment.amount)}</div>
+			<NumericCell>
+				<MoneyTone tone="expense">{formatEur(row.original.payment.amount)}</MoneyTone>
+			</NumericCell>
 		),
 	},
 	{
 		accessorKey: "paymentId",
-		header: ({ column }) => <TableSortableHeader column={column} title="ID Pagamento" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID Pagamento" icon={Hash} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="text-muted-foreground">{row.original.paymentId}</div>

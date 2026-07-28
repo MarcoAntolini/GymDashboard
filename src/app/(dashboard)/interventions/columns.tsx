@@ -1,5 +1,9 @@
 "use client";
 
+import {
+	MoneyTone,
+	NumericCell,
+} from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -9,6 +13,7 @@ import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatDateIt, formatDateTimeIt, formatEur } from "@/lib/format";
 import { Intervention } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Banknote, Calendar, Clock, FileText, Hash, User } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -25,17 +30,23 @@ export const columns = (
 ): ColumnDef<InterventionRow>[] => [
 	{
 		accessorKey: "maker",
-		header: ({ column }) => <TableSortableHeader column={column} title="Attuatore" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Attuatore" icon={User} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "description",
-		header: ({ column }) => <TableSortableHeader column={column} title="Descrizione" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Descrizione" icon={FileText} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "startingTime",
-		header: ({ column }) => <TableSortableHeader column={column} title="Inizio" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Inizio" icon={Clock} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateTimeIt(row.original.startingTime)}</div>
@@ -43,7 +54,9 @@ export const columns = (
 	},
 	{
 		accessorKey: "endingTime",
-		header: ({ column }) => <TableSortableHeader column={column} title="Fine" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Fine" icon={Clock} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateTimeIt(row.original.endingTime)}</div>
@@ -52,7 +65,9 @@ export const columns = (
 	{
 		id: "paymentDate",
 		accessorFn: (row) => row.payment.date,
-		header: ({ column }) => <TableSortableHeader column={column} title="Data pagamento" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data pagamento" icon={Calendar} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateIt(row.original.payment.date)}</div>
@@ -61,15 +76,21 @@ export const columns = (
 	{
 		id: "paymentAmount",
 		accessorFn: (row) => Number(row.payment.amount),
-		header: ({ column }) => <TableSortableHeader column={column} title="Importo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Importo" icon={Banknote} align="right" />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatEur(row.original.payment.amount)}</div>
+			<NumericCell>
+				<MoneyTone tone="expense">{formatEur(row.original.payment.amount)}</MoneyTone>
+			</NumericCell>
 		),
 	},
 	{
 		accessorKey: "paymentId",
-		header: ({ column }) => <TableSortableHeader column={column} title="ID Pagamento" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID Pagamento" icon={Hash} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="text-muted-foreground">{row.original.paymentId}</div>

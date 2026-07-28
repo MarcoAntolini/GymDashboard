@@ -1,5 +1,6 @@
 "use client";
 
+import { NumericCell } from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import {
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Hash, Package } from "lucide-react";
 import { z } from "zod";
 
 export type EntranceSetRow = Prisma.EntranceSetGetPayload<{
@@ -36,16 +38,22 @@ export const columns = (
 	{
 		accessorKey: "productCode",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Codice prodotto" />
+			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "entranceNumber",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="N ingressi" />
+			<TableSortableHeader
+				column={column}
+				title="N ingressi"
+				icon={Hash}
+				align="right"
+			/>
 		),
 		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => <NumericCell>{row.original.entranceNumber}</NumericCell>,
 	},
 	{
 		id: "actions",
@@ -60,7 +68,7 @@ export const columns = (
 							name="productCode"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Product Code</FormLabel>
+									<FormLabel>Codice prodotto</FormLabel>
 									<FormControl>
 										<Input {...field} disabled />
 									</FormControl>
@@ -72,10 +80,11 @@ export const columns = (
 							name="entranceNumber"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Number of Entrances</FormLabel>
+									<FormLabel>N ingressi</FormLabel>
 									<FormControl>
 										<Input
 											type="number"
+											className="text-right tabular-nums"
 											{...field}
 											onChange={(e) =>
 												field.onChange(parseInt(e.target.value))

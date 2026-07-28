@@ -4,13 +4,24 @@
 
 **Blocked by:** 36 — Core entity tables: colonne, filtri, formatting; 37 — CRUD: Dialog create / Sheet edit + feedback
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Header colonne: icona muted + stesso chrome (anche non-sortable)
-- [ ] Categorie = chip outline+dot; stati azionabili = badge soft+icona; etichetta sempre presente
-- [ ] Semantica colore riusata (entrate/success, uscite/danger, warning, info)
-- [ ] Date in locale con mese abbreviato testuale
-- [ ] Colonne numeriche (non id) allineate a destra
-- [ ] Stessi pattern visivi nei form create/edit; componenti riusabili; contrasto AA light/dark
+- [x] Header colonne: icona muted + stesso chrome (anche non-sortable)
+- [x] Categorie = chip outline+dot; stati azionabili = badge soft+icona; etichetta sempre presente
+- [x] Semantica colore riusata (entrate/success, uscite/danger, warning, info)
+- [x] Date in locale con mese abbreviato testuale
+- [x] Colonne numeriche (non id) allineate a destra
+- [x] Stessi pattern visivi nei form create/edit; componenti riusabili; contrasto AA light/dark
 
 Usare skill /impeccable e /shadcn.
+
+## Comments
+
+- 2026-07-28 — claimed by implement loop
+
+## Done
+
+- Token CSS `success` / `warning` / `info` (+ dark) in `globals.css` / `tailwind.config.ts`
+- Componenti riusabili: `DotBadge`, `DomainBadge`, `MoneyTone`, `NumericCell` (`domain-badge.tsx`); `FormDateField`; `TableSortableHeader` con `icon` + chrome uniforme anche non-sortable
+- Colonne entità: chip categoria (tipo pagamento/prodotto/ruolo/contratto), badge stato (approvazione, “In corso”), importi colorati entrate/uscite, numeri `text-right tabular-nums`, icone header
+- Form edit: date via `FormDateField` / `formatDateTimeIt` (niente più PPP / `type="date"` inconsistente); campi importo allineati a destra

@@ -1,26 +1,28 @@
 "use client";
 
+import {
+	DotBadge,
+	MoneyTone,
+	NumericCell,
+} from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
+import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
 	ProductKind,
 	productKindFromSnapshot,
 } from "@/lib/domain/product-kind";
+import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { formatDateIt, formatEur } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { Banknote, Calendar, Hash, Package, Tag, Timer, User } from "lucide-react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 
@@ -54,7 +56,9 @@ export const columns = (
 		id: "client",
 		accessorFn: (row) =>
 			`${row.client.surname} ${row.client.name} (#${row.clientId})`,
-		header: ({ column }) => <TableSortableHeader column={column} title="Cliente" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Cliente" icon={User} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => {
 			const client = row.original.client;
@@ -68,7 +72,9 @@ export const columns = (
 	},
 	{
 		accessorKey: "date",
-		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data" icon={Calendar} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateIt(row.original.date)}</div>
@@ -77,21 +83,30 @@ export const columns = (
 	{
 		accessorKey: "amount",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Importo (snapshot)" />
+			<TableSortableHeader
+				column={column}
+				title="Importo (snapshot)"
+				icon={Banknote}
+				align="right"
+			/>
 		),
 		meta: columnMeta(ColumnClass.Snapshot),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatEur(row.original.amount)}</div>
+			<NumericCell>
+				<MoneyTone tone="income">{formatEur(row.original.amount)}</MoneyTone>
+			</NumericCell>
 		),
 	},
 	{
 		id: "type",
 		accessorFn: (row) => productKindFromSnapshot(row),
-		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+		),
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
 			const kind = productKindFromSnapshot(row.original);
-			return <div>{PRODUCT_KIND_LABEL[kind]}</div>;
+			return <DotBadge label={PRODUCT_KIND_LABEL[kind]} tone={PRODUCT_KIND_TONE[kind]} />;
 		},
 		filterFn: (row, _id, value: string[]) => {
 			const kind = productKindFromSnapshot(row.original);
@@ -100,33 +115,45 @@ export const columns = (
 	},
 	{
 		accessorKey: "productCode",
-		header: ({ column }) => <TableSortableHeader column={column} title="Codice prodotto" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "duration",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Durata (snapshot)" />
+			<TableSortableHeader
+				column={column}
+				title="Durata (snapshot)"
+				icon={Timer}
+				align="right"
+			/>
 		),
 		meta: columnMeta(ColumnClass.Snapshot),
 		cell: ({ row }) => {
 			const duration = row.getValue("duration") as number | null;
 			return (
-				<div className="text-muted-foreground">
+				<NumericCell muted>
 					{duration != null ? `${duration} gg` : "—"}
-				</div>
+				</NumericCell>
 			);
 		},
 	},
 	{
 		accessorKey: "entranceNumber",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="N ingressi (snapshot)" />
+			<TableSortableHeader
+				column={column}
+				title="N ingressi (snapshot)"
+				icon={Hash}
+				align="right"
+			/>
 		),
 		meta: columnMeta(ColumnClass.Snapshot),
 		cell: ({ row }) => {
 			const n = row.getValue("entranceNumber") as number | null;
-			return <div className="text-muted-foreground">{n != null ? n : "—"}</div>;
+			return <NumericCell muted>{n != null ? n : "—"}</NumericCell>;
 		},
 	},
 	{
@@ -183,7 +210,7 @@ function PurchaseRowActions({
 						name="clientId"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Client ID</FormLabel>
+								<FormLabel>ID Cliente</FormLabel>
 								<FormControl>
 									<Input
 										type="number"
@@ -200,45 +227,24 @@ function PurchaseRowActions({
 						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Date</FormLabel>
-								<Popover>
-									<PopoverTrigger asChild>
-										<FormControl>
-											<Button
-												variant={"outline"}
-												className={cn(
-													"w-full pl-3 text-left font-normal",
-													!field.value && "text-muted-foreground"
-												)}
-											>
-												{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-											</Button>
-										</FormControl>
-									</PopoverTrigger>
-									<PopoverContent className="w-auto p-0" align="start">
-										<Calendar
-											mode="single"
-											selected={field.value}
-											onSelect={field.onChange}
-											disabled={(date) => date < new Date("1900-01-01")}
-											initialFocus
-										/>
-									</PopoverContent>
-								</Popover>
+								<FormLabel>Data</FormLabel>
+								<FormDateField
+									value={field.value}
+									onChange={field.onChange}
+									disabledDates={(date) => date < new Date("1900-01-01")}
+								/>
 								<FormMessage />
 							</FormItem>
 						)}
 					/>
-					{/* Tipo: solo filtro UI locale — non è FormField / non va nel payload Acquisto */}
 					<div className="space-y-2">
-						<Label>Type</Label>
+						<Label>Tipo</Label>
 						<Select
 							value={selectedType}
 							onValueChange={(value) => setSelectedType(value as ProductKind)}
 						>
 							<SelectTrigger>
-								<SelectValue placeholder="Select a type" />
+								<SelectValue placeholder="Seleziona un tipo" />
 							</SelectTrigger>
 							<SelectContent>
 								{(Object.keys(PRODUCT_KIND_LABEL) as ProductKind[]).map((kind) => (
@@ -253,7 +259,7 @@ function PurchaseRowActions({
 						name="productCode"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Product</FormLabel>
+								<FormLabel>Prodotto</FormLabel>
 								<Select
 									onValueChange={field.onChange}
 									value={field.value}
@@ -264,8 +270,8 @@ function PurchaseRowActions({
 											<SelectValue
 												placeholder={
 													filteredProducts.length === 0
-														? `No ${PRODUCT_KIND_LABEL[selectedType].toLowerCase()} products available`
-														: "Select a product"
+														? `Nessun ${PRODUCT_KIND_LABEL[selectedType].toLowerCase()} disponibile`
+														: "Seleziona un prodotto"
 												}
 											/>
 										</SelectTrigger>
@@ -275,8 +281,8 @@ function PurchaseRowActions({
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}
 												{selectedType === ProductKind.Membership
-													? ` (${product.membership?.duration} days)`
-													: ` (${product.entranceSet?.entranceNumber} entrances)`}
+													? ` (${product.membership?.duration} gg)`
+													: ` (${product.entranceSet?.entranceNumber} ingressi)`}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -289,12 +295,13 @@ function PurchaseRowActions({
 						name="amount"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Amount</FormLabel>
+								<FormLabel>Importo</FormLabel>
 								<FormControl>
 									<Input
 										type="text"
 										inputMode="decimal"
 										placeholder="0.00"
+										className="text-right tabular-nums"
 										{...field}
 										value={
 											typeof field.value === "string"

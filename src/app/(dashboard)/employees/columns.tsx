@@ -1,19 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
+import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatDateIt } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { Briefcase, Calendar, Hash, IdCard, MapPin, User } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -38,7 +34,9 @@ export const columns = (
 ): ColumnDef<Employee>[] => [
 	{
 		accessorKey: "id",
-		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID" icon={Hash} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="text-muted-foreground">{row.original.id.toString().padStart(4, "0")}</div>
@@ -46,22 +44,30 @@ export const columns = (
 	},
 	{
 		accessorKey: "taxCode",
-		header: ({ column }) => <TableSortableHeader column={column} title="CF" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="CF" icon={IdCard} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "name",
-		header: ({ column }) => <TableSortableHeader column={column} title="Nome" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Nome" icon={User} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "surname",
-		header: ({ column }) => <TableSortableHeader column={column} title="Cognome" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Cognome" icon={User} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "birthDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Nascita" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Nascita" icon={Calendar} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateIt(row.original.birthDate)}</div>
@@ -69,7 +75,9 @@ export const columns = (
 	},
 	{
 		accessorKey: "city",
-		header: ({ column }) => <TableSortableHeader column={column} title="Città" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Città" icon={MapPin} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
@@ -77,7 +85,9 @@ export const columns = (
 	},
 	{
 		accessorKey: "province",
-		header: ({ column }) => <TableSortableHeader column={column} title="Provincia" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Provincia" icon={MapPin} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id));
@@ -85,7 +95,9 @@ export const columns = (
 	},
 	{
 		accessorKey: "hiringDate",
-		header: ({ column }) => <TableSortableHeader column={column} title="Data assunzione" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data assunzione" icon={Briefcase} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateIt(row.original.hiringDate)}</div>
@@ -144,31 +156,14 @@ export const columns = (
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Data di nascita</FormLabel>
-										<Popover>
-											<PopoverTrigger asChild>
-												<FormControl>
-													<Button
-														variant={"outline"}
-														className={cn(
-															"w-full pl-3 text-left font-normal",
-															!field.value && "text-muted-foreground"
-														)}
-													>
-														{field.value ? format(field.value, "PPP") : <span>Scegli una data</span>}
-														<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-													</Button>
-												</FormControl>
-											</PopoverTrigger>
-											<PopoverContent className="w-auto p-0" align="start">
-												<Calendar
-													mode="single"
-													selected={field.value}
-													onSelect={field.onChange}
-													disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-													defaultMonth={field.value || new Date()}
-												/>
-											</PopoverContent>
-										</Popover>
+										<FormDateField
+											value={field.value}
+											onChange={field.onChange}
+											disabledDates={(date) =>
+												date > new Date() || date < new Date("1900-01-01")
+											}
+											defaultMonth={field.value || new Date()}
+										/>
 										<FormMessage />
 									</FormItem>
 								)}
@@ -252,6 +247,20 @@ export const columns = (
 								)}
 							/>
 						</div>
+						<FormField
+							name="hiringDate"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Data assunzione</FormLabel>
+									<FormDateField
+										value={field.value}
+										onChange={field.onChange}
+										disabledDates={(date) => date < new Date("1900-01-01")}
+									/>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 					</>
 				}
 				editAction={async ({ values }) => {

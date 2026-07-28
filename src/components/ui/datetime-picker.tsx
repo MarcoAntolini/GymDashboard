@@ -5,8 +5,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { FormControl } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { formatDateTimeIt } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
 export function DateTimePicker(props: { field: any; onChange: (date: Date) => void; disabled?: boolean }) {
@@ -45,7 +45,11 @@ export function DateTimePicker(props: { field: any; onChange: (date: Date) => vo
 						)}
 						disabled={disabled}
 					>
-						{field.value ? format(field.value, "MM/dd/yyyy HH:mm") : <span>MM/DD/YYYY HH:mm</span>}
+						{field.value ? (
+							formatDateTimeIt(field.value)
+						) : (
+							<span>Scegli data e ora</span>
+						)}
 						<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
 					</Button>
 				</FormControl>

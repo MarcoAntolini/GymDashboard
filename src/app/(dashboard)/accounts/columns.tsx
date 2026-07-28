@@ -1,6 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+	DomainBadge,
+	DotBadge,
+} from "@/components/ui/domain-badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
@@ -11,9 +15,18 @@ import type { AccountRow } from "@/data-access/accounts";
 import { assignableRoles, canManageRole, isAppRole, type AppRole } from "@/data/nav-routes";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel, ROLE_LABEL } from "@/lib/domain/labels";
+import { ROLE_TONE } from "@/lib/domain/visual";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, EyeOff } from "lucide-react";
+import {
+	BadgeCheck,
+	Clock,
+	Eye,
+	EyeOff,
+	KeyRound,
+	Shield,
+	User,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -75,7 +88,9 @@ export const columns = (
 			id: "employee",
 			accessorFn: (row) =>
 				row.employee ? formatPersonLabel(row.employee) : "",
-			header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+			header: ({ column }) => (
+				<TableSortableHeader column={column} title="Dipendente" icon={User} />
+			),
 			meta: columnMeta(ColumnClass.Join),
 			cell: ({ row }) => (
 				<div className="font-medium">
@@ -92,29 +107,43 @@ export const columns = (
 		},
 		{
 			accessorKey: "password",
-			header: ({ column }) => <TableSortableHeader column={column} title="Password" />,
+			header: ({ column }) => (
+				<TableSortableHeader column={column} title="Password" icon={KeyRound} />
+			),
 			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
 			cell: ({ row }) => <MaskedPasswordCell password={row.original.password} />,
 		},
 		{
 			accessorKey: "role",
-			header: ({ column }) => <TableSortableHeader column={column} title="Ruolo" />,
+			header: ({ column }) => (
+				<TableSortableHeader column={column} title="Ruolo" icon={Shield} />
+			),
 			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
-			cell: ({ row }) => <div>{ROLE_LABEL[row.original.role]}</div>,
+			cell: ({ row }) => (
+				<DotBadge
+					label={ROLE_LABEL[row.original.role]}
+					tone={ROLE_TONE[row.original.role]}
+				/>
+			),
 			filterFn: (row, id, value) => {
 				return value.includes(row.getValue(id));
 			},
 		},
 		{
 			accessorKey: "approved",
-			header: ({ column }) => <TableSortableHeader column={column} title="Approvazione" />,
+			header: ({ column }) => (
+				<TableSortableHeader column={column} title="Approvazione" icon={BadgeCheck} />
+			),
 			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
-			cell: ({ row }) => (
-				<div>{row.original.approved ? "Sì" : "No"}</div>
-			),
+			cell: ({ row }) =>
+				row.original.approved ? (
+					<DomainBadge label="Approvato" tone="success" icon={BadgeCheck} />
+				) : (
+					<DomainBadge label="In attesa" tone="warning" icon={Clock} />
+				),
 			filterFn: (row, id, value) => {
 				return value.includes(row.getValue(id));
 			},
@@ -158,7 +187,7 @@ export const columns = (
 									name="role"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel className="sr-only">Ruolo</FormLabel>
+											<FormLabel>Ruolo</FormLabel>
 											<Select onValueChange={field.onChange} defaultValue={field.value}>
 												<FormControl>
 													<SelectTrigger className="w-full">
@@ -184,7 +213,14 @@ export const columns = (
 										}, []);
 										return (
 											<FormItem className="flex flex-row items-start justify-between space-x-3 space-y-0 rounded-md border p-3">
-												<FormLabel>Approvato</FormLabel>
+												<div className="space-y-1">
+													<FormLabel>Approvato</FormLabel>
+													{field.value === "true" ? (
+														<DomainBadge label="Approvato" tone="success" icon={BadgeCheck} />
+													) : (
+														<DomainBadge label="In attesa" tone="warning" icon={Clock} />
+													)}
+												</div>
 												<FormControl>
 													<Checkbox
 														checked={field.value === "true"}

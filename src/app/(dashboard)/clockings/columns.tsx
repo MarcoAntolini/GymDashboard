@@ -1,5 +1,6 @@
 "use client";
 
+import { DomainBadge } from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -11,6 +12,7 @@ import { formatPersonLabel } from "@/lib/domain/labels";
 import { formatDateTimeIt } from "@/lib/format";
 import { Clocking } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { CirclePlay, LogIn, LogOut, User } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -26,7 +28,9 @@ export const columns = (
 	{
 		id: "employee",
 		accessorFn: (row) => formatPersonLabel(row.employee),
-		header: ({ column }) => <TableSortableHeader column={column} title="Dipendente" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dipendente" icon={User} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
@@ -34,7 +38,9 @@ export const columns = (
 	},
 	{
 		accessorKey: "entranceTime",
-		header: ({ column }) => <TableSortableHeader column={column} title="Entrata" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Entrata" icon={LogIn} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateTimeIt(row.original.entranceTime)}</div>
@@ -42,14 +48,16 @@ export const columns = (
 	},
 	{
 		accessorKey: "exitTime",
-		header: ({ column }) => <TableSortableHeader column={column} title="Uscita" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Uscita" icon={LogOut} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => {
 			const exitTime = row.original.exitTime;
 			return exitTime ? (
 				<div className="font-medium">{formatDateTimeIt(exitTime)}</div>
 			) : (
-				<div className="text-muted-foreground">—</div>
+				<DomainBadge label="In corso" tone="info" icon={CirclePlay} />
 			);
 		},
 	},

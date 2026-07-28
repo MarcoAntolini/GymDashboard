@@ -1,5 +1,10 @@
 "use client";
 
+import {
+	DotBadge,
+	MoneyTone,
+	NumericCell,
+} from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -9,9 +14,11 @@ import {
 	PRODUCT_KIND_LABEL,
 	productKindFromProduct,
 } from "@/lib/domain/product-kind";
+import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
 import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Banknote, Calendar, Package, Tag } from "lucide-react";
 import { z } from "zod";
 
 export type CatalogRow = Prisma.CatalogGetPayload<{
@@ -37,8 +44,11 @@ export const columns = (
 ): ColumnDef<CatalogRow>[] => [
 	{
 		accessorKey: "year",
-		header: ({ column }) => <TableSortableHeader column={column} title="Anno" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Anno" icon={Calendar} align="right" />
+		),
 		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => <NumericCell>{row.original.year}</NumericCell>,
 	},
 	{
 		id: "kind",
@@ -46,19 +56,34 @@ export const columns = (
 			const kind = productKindFromProduct(row.product);
 			return kind ? PRODUCT_KIND_LABEL[kind] : "—";
 		},
-		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+		),
 		meta: columnMeta(ColumnClass.Derived),
+		cell: ({ row }) => {
+			const kind = productKindFromProduct(row.original.product);
+			if (!kind) return <div>—</div>;
+			return <DotBadge label={PRODUCT_KIND_LABEL[kind]} tone={PRODUCT_KIND_TONE[kind]} />;
+		},
 	},
 	{
 		accessorKey: "productCode",
-		header: ({ column }) => <TableSortableHeader column={column} title="Codice prodotto" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "price",
-		header: ({ column }) => <TableSortableHeader column={column} title="Prezzo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Prezzo" icon={Banknote} align="right" />
+		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => <div className="font-medium">{formatEur(row.original.price)}</div>,
+		cell: ({ row }) => (
+			<NumericCell>
+				<MoneyTone tone="income">{formatEur(row.original.price)}</MoneyTone>
+			</NumericCell>
+		),
 	},
 	{
 		id: "actions",
@@ -84,6 +109,7 @@ export const columns = (
 									<FormControl>
 										<Input
 											type="number"
+											className="text-right tabular-nums"
 											{...field}
 											onChange={(e) => field.onChange(parseInt(e.target.value))}
 											disabled
@@ -114,6 +140,7 @@ export const columns = (
 										<Input
 											type="text"
 											inputMode="decimal"
+											className="text-right tabular-nums"
 											{...field}
 											value={typeof field.value === "string" ? field.value : String(field.value ?? "")}
 											onChange={(e) => field.onChange(e.target.value)}

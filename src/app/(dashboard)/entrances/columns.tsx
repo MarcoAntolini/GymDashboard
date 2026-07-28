@@ -8,6 +8,7 @@ import type { EntranceRow } from "@/data-access/entrances";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatDateTimeIt } from "@/lib/format";
 import { ColumnDef } from "@tanstack/react-table";
+import { Calendar, Hash, Package, ShoppingBag, User } from "lucide-react";
 import { z } from "zod";
 
 /** Create: solo Cliente (+ data opzionale in form; default now lato server). Niente purchaseId. */
@@ -33,12 +34,16 @@ export const columns = (
 ): ColumnDef<EntranceRow>[] => [
 	{
 		accessorKey: "id",
-		header: ({ column }) => <TableSortableHeader column={column} title="ID" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID" icon={Hash} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "date",
-		header: ({ column }) => <TableSortableHeader column={column} title="Data" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Data" icon={Calendar} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatDateTimeIt(row.original.date)}</div>
@@ -48,7 +53,9 @@ export const columns = (
 		id: "client",
 		accessorFn: (row) =>
 			`${row.purchase.client.surname} ${row.purchase.client.name} (#${row.purchase.clientId})`,
-		header: ({ column }) => <TableSortableHeader column={column} title="Cliente" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Cliente" icon={User} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => {
 			const client = row.original.purchase.client;
@@ -63,7 +70,9 @@ export const columns = (
 	{
 		id: "product",
 		accessorFn: (row) => row.purchase.productCode,
-		header: ({ column }) => <TableSortableHeader column={column} title="Prodotto" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Prodotto" icon={Package} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="font-medium">{row.original.purchase.productCode}</div>
@@ -71,7 +80,9 @@ export const columns = (
 	},
 	{
 		accessorKey: "purchaseId",
-		header: ({ column }) => <TableSortableHeader column={column} title="Acquisto" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Acquisto" icon={ShoppingBag} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{

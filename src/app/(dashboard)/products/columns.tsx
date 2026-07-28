@@ -1,5 +1,6 @@
 "use client";
 
+import { DotBadge } from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -9,8 +10,10 @@ import {
 	PRODUCT_KIND_LABEL,
 	productKindFromProduct,
 } from "@/lib/domain/product-kind";
+import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { Package, Tag } from "lucide-react";
 import { z } from "zod";
 
 export type ProductRow = Prisma.ProductGetPayload<{
@@ -27,7 +30,9 @@ export const columns = (
 ): ColumnDef<ProductRow>[] => [
 	{
 		accessorKey: "code",
-		header: ({ column }) => <TableSortableHeader column={column} title="Codice prodotto" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
+		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
@@ -36,11 +41,14 @@ export const columns = (
 			const kind = productKindFromProduct(row);
 			return kind ? PRODUCT_KIND_LABEL[kind] : "—";
 		},
-		header: ({ column }) => <TableSortableHeader column={column} title="Tipo" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+		),
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
 			const kind = productKindFromProduct(row.original);
-			return <div>{kind ? PRODUCT_KIND_LABEL[kind] : "—"}</div>;
+			if (!kind) return <div>—</div>;
+			return <DotBadge label={PRODUCT_KIND_LABEL[kind]} tone={PRODUCT_KIND_TONE[kind]} />;
 		},
 	},
 	{
@@ -57,7 +65,7 @@ export const columns = (
 							name="code"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Product Code</FormLabel>
+									<FormLabel>Codice prodotto</FormLabel>
 									<FormControl>
 										<Input {...field} />
 									</FormControl>
