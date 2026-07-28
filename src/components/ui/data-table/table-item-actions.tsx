@@ -170,7 +170,10 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	}
 
 	const hasExtra = (extraMenuItems?.length ?? 0) > 0;
-	const menuDisabled = !!editBlocked && !!deleteBlocked && !hasExtra;
+	const canPin = row.getCanPin?.() ?? false;
+	const isPinned = row.getIsPinned?.() ?? false;
+	const menuDisabled =
+		!!editBlocked && !!deleteBlocked && !hasExtra && !canPin;
 
 	return (
 		<>
@@ -204,6 +207,22 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 					{!deleteBlocked && (
 						<DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>Elimina</DropdownMenuItem>
 					)}
+					{canPin ? (
+						<>
+							{(!editBlocked || !deleteBlocked || hasExtra) && (
+								<DropdownMenuSeparator />
+							)}
+							{isPinned ? (
+								<DropdownMenuItem onClick={() => row.pin(false)}>
+									Sblocca riga
+								</DropdownMenuItem>
+							) : (
+								<DropdownMenuItem onClick={() => row.pin("top")}>
+									Fissa in alto
+								</DropdownMenuItem>
+							)}
+						</>
+					) : null}
 				</DropdownMenuContent>
 			</DropdownMenu>
 

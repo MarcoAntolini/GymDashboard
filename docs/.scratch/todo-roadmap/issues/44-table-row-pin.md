@@ -1,11 +1,23 @@
-# 44 â€” Righe: pin per confronto
+# 44 ? Righe: pin per confronto
 
-**What to build:** Lâ€™operatore puÃ² fissare una o piÃ¹ righe sempre visibili durante lo scroll verticale, per confrontarle con altre righe.
+**What to build:** L?operatore può fissare una o più righe sempre visibili durante lo scroll verticale, per confrontarle con altre righe.
 
-**Blocked by:** 36 â€” Core entity tables: colonne, filtri, formatting
+**Blocked by:** 36 ? Core entity tables: colonne, filtri, formatting
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Pin/unpin di una o piÃ¹ righe
-- [ ] Righe pinnate restano visibili con scroll verticale
-- [ ] Compatibile con multi-select e paginazione (comportamento documentato se il pin Ã¨ solo sulla pagina corrente)
+- [x] Pin/unpin di una o più righe
+- [x] Righe pinnate restano visibili con scroll verticale
+- [x] Compatibile con multi-select e paginazione (comportamento documentato se il pin è solo sulla pagina corrente)
+
+## Comments
+
+- 2026-07-28 20:04 ? claimed by implement loop
+
+## Done
+
+- Pin/unpin riga da context menu e dal menu azioni riga (`Fissa in alto` / `Sblocca riga`); più righe pinnabili insieme.
+- Sticky verticale sulle celle delle righe pinnate (sotto l?header), compatibile con column pinning via `mergeCellStickyStyles`.
+- Helper puro `table-row-pinning.ts`; stato TanStack `rowPinning` con `keepPinnedRows: false`.
+- **Paginazione / filtri:** il pin è solo sulla pagina corrente ? cambio pagina, pageSize o dati azzera i pin (come la multi-select). Selezione e pin sono indipendenti.
+- Commit: (vedi git log dopo commit)

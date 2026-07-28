@@ -28,6 +28,10 @@ import {
 	moveColumnInOrder,
 } from "@/components/ui/data-table/table-column-layout";
 import { ColumnLayoutProvider } from "@/components/ui/data-table/table-column-layout-context";
+import {
+	getRowPinningStyle,
+	mergeCellStickyStyles,
+} from "@/components/ui/data-table/table-row-pinning";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ListFilters } from "@/lib/list";
@@ -41,6 +45,7 @@ import {
 	OnChangeFn,
 	PaginationState,
 	Row,
+	RowPinningState,
 	RowSelectionState,
 	SortingState,
 	VisibilityState,
@@ -120,9 +125,11 @@ function hasAppliedFilters(filters: ListFilters | undefined): boolean {
 function DataTableRow<TData>({
 	row,
 	flexFillColumnId,
+	bottomPinnedCount,
 }: {
 	row: Row<TData>;
 	flexFillColumnId: string | null;
+	bottomPinnedCount: number;
 }) {
 	const registry = useRowActionsRegistry();
 	const [menuActions, setMenuActions] = React.useState<
@@ -130,33 +137,48 @@ function DataTableRow<TData>({
 	>(undefined);
 	const [hovered, setHovered] = React.useState(false);
 	const selected = row.getIsSelected();
+	const rowPinned = row.getIsPinned();
+	const rowSticky = getRowPinningStyle(row, { bottomPinnedCount });
+	const canPin = row.getCanPin();
 
 	const cells = row.getVisibleCells().map((cell) => {
-		const pinned = cell.column.getIsPinned();
+		const colPinned = cell.column.getIsPinned();
 		const size = cell.column.getSize();
+		const sticky = mergeCellStickyStyles(
+			getColumnPinningStyle(cell.column),
+			rowSticky
+		);
 		return (
 			<TableCell
 				key={cell.id}
 				className={cn(
 					"box-border overflow-hidden",
-					pinned && "shadow-[inset_-1px_0_0] shadow-border",
+					colPinned && "shadow-[inset_-1px_0_0] shadow-border",
+					rowPinned === "top" && "shadow-[inset_0_-1px_0] shadow-border",
 					selected
 						? "bg-muted"
 						: hovered
 							? "bg-muted/50"
-							: pinned
-								? "bg-background"
-								: undefined
+							: rowPinned
+								? "bg-muted/40"
+								: colPinned
+									? "bg-background"
+									: undefined
 				)}
 				style={{
 					...getColumnWidthStyle(cell.column.id, size, flexFillColumnId),
-					...getColumnPinningStyle(cell.column),
+					...sticky,
 				}}
 			>
 				{flexRender(cell.column.columnDef.cell, cell.getContext())}
 			</TableCell>
 		);
 	});
+
+	const hasRowCrud =
+		!!menuActions?.canEdit ||
+		!!menuActions?.canDelete ||
+		(menuActions?.extraActions?.length ?? 0) > 0;
 
 	return (
 		<ContextMenu
@@ -169,6 +191,7 @@ function DataTableRow<TData>({
 				<TableRow
 					className="hover:bg-transparent data-[state=selected]:bg-transparent"
 					data-state={selected && "selected"}
+					data-pinned={rowPinned || undefined}
 					onMouseEnter={() => setHovered(true)}
 					onMouseLeave={() => setHovered(false)}
 				>
@@ -203,9 +226,21 @@ function DataTableRow<TData>({
 						Elimina
 					</ContextMenuItem>
 				) : null}
-				{!menuActions?.canEdit &&
-				!menuActions?.canDelete &&
-				!(menuActions?.extraActions?.length ?? 0) ? (
+				{canPin ? (
+					<>
+						{hasRowCrud ? <ContextMenuSeparator /> : null}
+						{rowPinned ? (
+							<ContextMenuItem onSelect={() => row.pin(false)}>
+								Sblocca riga
+							</ContextMenuItem>
+						) : (
+							<ContextMenuItem onSelect={() => row.pin("top")}>
+								Fissa in alto
+							</ContextMenuItem>
+						)}
+					</>
+				) : null}
+				{!hasRowCrud && !canPin ? (
 					<ContextMenuItem disabled>Nessuna azione</ContextMenuItem>
 				) : null}
 			</ContextMenuContent>
@@ -249,6 +284,10 @@ function DataTableInner<TData, TValue>({
 		{}
 	);
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+	const [rowPinning, setRowPinning] = React.useState<RowPinningState>({
+		top: [],
+		bottom: [],
+	});
 	const [pagination, setPagination] = React.useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 10,
@@ -360,10 +399,14 @@ function DataTableInner<TData, TValue>({
 		columnResizeMode: "onChange",
 		enableColumnResizing: true,
 		enableColumnPinning: true,
+		enableRowPinning: true,
+		/** Pin solo sulle righe della pagina corrente (server-side + client). */
+		keepPinnedRows: false,
 		getCoreRowModel: getCoreRowModel(),
 		getRowId,
 		enableRowSelection: enableSelection,
 		onRowSelectionChange: setRowSelection,
+		onRowPinningChange: setRowPinning,
 		manualSorting: isServer,
 		manualFiltering: isServer,
 		manualPagination: isServer,
@@ -395,6 +438,7 @@ function DataTableInner<TData, TValue>({
 			columnSizing,
 			pagination: isServer ? serverList.pagination : pagination,
 			rowSelection,
+			rowPinning,
 		},
 	});
 
@@ -418,17 +462,23 @@ function DataTableInner<TData, TValue>({
 
 	React.useEffect(() => {
 		setRowSelection({});
+		setRowPinning({ top: [], bottom: [] });
 	}, [pageIndex, pageSize, dataIdentity]);
 
-	const rows = table.getRowModel().rows;
+	const topRows = table.getTopRows();
+	const centerRows = table.getCenterRows();
+	const bottomRows = table.getBottomRows();
+	const bottomPinnedCount = bottomRows.length;
 	const selectedRows = table.getSelectedRowModel().rows.map((r) => r.original);
 	const colSpan = tableColumns.length;
 	const flexFillColumnId = getFlexFillColumnId(
 		table.getVisibleLeafColumns().map((column) => column.id)
 	);
-	const showLoading = isLoading && rows.length === 0 && !error;
+	const hasBodyRows =
+		topRows.length + centerRows.length + bottomRows.length > 0;
+	const showLoading = isLoading && !hasBodyRows && !error;
 	const showError = !!error;
-	const showEmpty = !showLoading && !showError && rows.length === 0;
+	const showEmpty = !showLoading && !showError && !hasBodyRows;
 
 	const defaultFilteredEmpty = (
 		<TableEmptyState
@@ -595,13 +645,32 @@ function DataTableInner<TData, TValue>({
 								</TableCell>
 							</TableRow>
 						) : (
-							rows.map((row) => (
-								<DataTableRow
-									key={row.id}
-									row={row}
-									flexFillColumnId={flexFillColumnId}
-								/>
-							))
+							<>
+								{topRows.map((row) => (
+									<DataTableRow
+										key={`pin-top-${row.id}`}
+										row={row}
+										flexFillColumnId={flexFillColumnId}
+										bottomPinnedCount={bottomPinnedCount}
+									/>
+								))}
+								{centerRows.map((row) => (
+									<DataTableRow
+										key={row.id}
+										row={row}
+										flexFillColumnId={flexFillColumnId}
+										bottomPinnedCount={bottomPinnedCount}
+									/>
+								))}
+								{bottomRows.map((row) => (
+									<DataTableRow
+										key={`pin-bottom-${row.id}`}
+										row={row}
+										flexFillColumnId={flexFillColumnId}
+										bottomPinnedCount={bottomPinnedCount}
+									/>
+								))}
+							</>
 						)}
 					</TableBody>
 				</Table>
