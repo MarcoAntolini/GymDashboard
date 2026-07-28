@@ -181,7 +181,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div
-			className="flex flex-col h-full"
+			className="flex h-full min-h-0 min-w-0 flex-col"
 			aria-busy={isLoading || undefined}
 		>
 			<TableToolbar
@@ -201,7 +201,7 @@ export function DataTable<TData, TValue>({
 						: undefined
 				}
 			/>
-			<div className="rounded-md border overflow-auto flex-1">
+			<div className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border">
 				<Table className={className}>
 					<TableHeader className="sticky top-0 bg-background z-10 [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
 						{table.getHeaderGroups().map((headerGroup) => (

@@ -97,9 +97,9 @@ export default function DashboardLayout({
 	}
 
 	return (
-		<div className="box-border flex h-full min-h-0 flex-col p-4">
+		<div className="box-border flex h-full min-h-0 min-w-0 flex-col p-4">
 			<TooltipProvider delayDuration={0}>
-				<Card className="flex min-h-0 flex-1 flex-row overflow-hidden">
+				<Card className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
 					<div className="flex min-h-0 shrink-0 flex-col items-stretch border-r">
 						<div
 							className={cn(
@@ -109,16 +109,16 @@ export default function DashboardLayout({
 						>
 							<div
 								className={cn(
-									"flex h-[52px] min-h-[52px] shrink-0 items-center justify-center",
+									"flex h-14 shrink-0 items-center justify-center py-2",
 									!isCollapsed && "px-2"
 								)}
 							>
 								<DropdownMenu>
 									<DropdownMenuTrigger
 										className={cn(
-											"flex items-center gap-2 [&>span]:line-clamp-1 [&>span]:flex [&>span]:w-full [&>span]:items-center [&>span]:gap-1 [&>span]:truncate [&_svg]:size-4 [&_svg]:shrink-0 p-2 overflow-hidden hover:bg-accent rounded-md transition-colors duration-200 ease-out cursor-pointer px-3",
+											"flex h-10 items-center gap-2 overflow-hidden rounded-md px-3 transition-colors duration-200 ease-out hover:bg-accent cursor-pointer [&>span]:line-clamp-1 [&>span]:flex [&>span]:w-full [&>span]:items-center [&>span]:gap-1 [&>span]:truncate [&_svg]:size-4 [&_svg]:shrink-0",
 											isCollapsed &&
-												"flex size-9 shrink-0 items-center justify-center p-0 [&>svg]:w-auto [&>span]:hidden"
+												"flex size-10 shrink-0 items-center justify-center p-0 px-0 [&>svg]:w-auto [&>span]:hidden"
 										)}
 									>
 										<User className="size-4" />
@@ -193,7 +193,7 @@ export default function DashboardLayout({
 							</div>
 						</div>
 					</div>
-					<div className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</div>
+					<div className="min-h-0 min-w-0 flex-1 overflow-hidden">{children}</div>
 				</Card>
 			</TooltipProvider>
 		</div>
