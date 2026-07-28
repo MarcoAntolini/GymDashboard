@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { faker } from "@faker-js/faker";
+import { faker } from "./faker";
 
 export async function mockEntranceSets(db: PrismaClient) {
   console.log("Mocking entrance sets...");

@@ -1,19 +1,22 @@
 import { PrismaClient } from "@prisma/client";
-import { faker } from "@faker-js/faker";
+import {
+	italianEquipmentDescription,
+	italianProvider,
+} from "./italian";
 
 export async function mockEquipment(db: PrismaClient) {
-  console.log("Mocking equipment...");
-  const payments = await db.payment.findMany({ where: { type: 'Equipment' } });
+	console.log("Mocking equipment...");
+	const payments = await db.payment.findMany({ where: { type: "Equipment" } });
 
-  for (const payment of payments) {
-    await db.equipment.create({
-      data: {
-        paymentId: payment.id,
-        description: faker.commerce.productName(),
-        provider: faker.company.name(),
-      },
-    });
-  }
+	for (const payment of payments) {
+		await db.equipment.create({
+			data: {
+				paymentId: payment.id,
+				description: italianEquipmentDescription(),
+				provider: italianProvider(),
+			},
+		});
+	}
 
-  console.log(`Created ${payments.length} mock equipment entries.`);
+	console.log(`Created ${payments.length} mock equipment entries.`);
 }

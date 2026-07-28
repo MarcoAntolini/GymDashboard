@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient, PaymentType } from "@prisma/client";
-import { faker } from "@faker-js/faker";
+import { faker } from "./faker";
 
 export async function mockPayments(db: PrismaClient) {
   console.log("Mocking payments...");

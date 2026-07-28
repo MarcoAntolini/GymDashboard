@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { faker } from "@faker-js/faker";
+import { faker } from "./faker";
 
 export async function mockSalaries(db: PrismaClient) {
   console.log("Mocking salaries...");

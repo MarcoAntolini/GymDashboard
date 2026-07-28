@@ -1,6 +1,6 @@
-import { faker } from "@faker-js/faker";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { snapshotFromProduct } from "@/lib/domain/purchase-access";
+import { faker } from "./faker";
 
 export async function mockPurchases(db: PrismaClient) {
 	console.log("Mocking purchases...");
@@ -16,7 +16,7 @@ export async function mockPurchases(db: PrismaClient) {
 		const client = faker.helpers.arrayElement(clients);
 		const product = shuffledProducts[i];
 		const snapshot = snapshotFromProduct(product);
-		const date = faker.date.past();
+		const date = faker.date.past({ years: 1 });
 		const catalog = await db.catalog.findUnique({
 			where: {
 				year_productCode: {

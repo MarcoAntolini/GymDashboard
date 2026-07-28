@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { faker } from "@faker-js/faker";
 import { packageResidual } from "@/lib/domain/purchase-access";
+import { faker } from "./faker";
 
 export async function mockEntrances(db: PrismaClient) {
 	console.log("Mocking entrances...");

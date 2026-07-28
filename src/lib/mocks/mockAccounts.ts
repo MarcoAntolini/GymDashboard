@@ -1,10 +1,10 @@
 import { PrismaClient, Role } from "@prisma/client";
-import { faker } from "@faker-js/faker";
 import bcrypt from "bcryptjs";
+import { faker } from "./faker";
 
 const SALT_ROUNDS = 10;
-const KNOWN_USERNAME = "username";
-const KNOWN_PASSWORD = "Password1";
+const OWNER_USERNAME = "owner";
+const OWNER_PASSWORD = "Password1";
 
 export async function mockAccounts(db: PrismaClient) {
 	console.log("Mocking accounts...");
@@ -15,32 +15,38 @@ export async function mockAccounts(db: PrismaClient) {
 		return;
 	}
 
-	const [knownEmployee, ...otherEmployees] = employees;
-	const knownPasswordHash = await bcrypt.hash(KNOWN_PASSWORD, SALT_ROUNDS);
+	const [ownerEmployee, ...otherEmployees] = employees;
+	const ownerPasswordHash = await bcrypt.hash(OWNER_PASSWORD, SALT_ROUNDS);
 
 	await db.account.create({
 		data: {
-			username: KNOWN_USERNAME,
-			password: knownPasswordHash,
-			role: Role.Admin,
+			username: OWNER_USERNAME,
+			password: ownerPasswordHash,
+			role: Role.Owner,
 			approved: true,
-			employeeId: knownEmployee.id,
+			employeeId: ownerEmployee.id,
 		},
 	});
 
 	for (const employee of otherEmployees) {
+		const role = faker.helpers.arrayElement([Role.Admin, Role.Employee]);
+		const usernameBase = faker.internet
+			.userName()
+			.toLowerCase()
+			.replace(/[^a-z0-9._]/g, "")
+			.slice(0, 20);
 		await db.account.create({
 			data: {
-				username: faker.internet.userName(),
+				username: `${usernameBase}${faker.number.int({ min: 10, max: 99 })}`,
 				password: await bcrypt.hash(faker.internet.password(), SALT_ROUNDS),
-				role: faker.helpers.arrayElement([Role.Admin, Role.Employee]),
-				approved: faker.datatype.boolean(),
+				role,
+				approved: role === Role.Admin ? true : faker.datatype.boolean(),
 				employeeId: employee.id,
 			},
 		});
 	}
 
 	console.log(
-		`Created ${employees.length} mock accounts (login: ${KNOWN_USERNAME} / ${KNOWN_PASSWORD}).`
+		`Created ${employees.length} mock accounts (login Owner: ${OWNER_USERNAME} / ${OWNER_PASSWORD}).`
 	);
 }
