@@ -19,12 +19,17 @@ import {
 	RowActionsProvider,
 	useRowActionsRegistry,
 } from "@/components/ui/data-table/table-row-actions-context";
+import { getColumnPinningStyle } from "@/components/ui/data-table/table-column-layout";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ListFilters } from "@/lib/list";
+import { cn } from "@/lib/utils";
 import {
 	ColumnDef,
 	ColumnFiltersState,
+	ColumnOrderState,
+	ColumnPinningState,
+	ColumnSizingState,
 	OnChangeFn,
 	PaginationState,
 	Row,
@@ -110,11 +115,25 @@ function DataTableRow<TData>({ row }: { row: Row<TData> }) {
 		ReturnType<typeof registry.get>
 	>(undefined);
 
-	const cells = row.getVisibleCells().map((cell) => (
-		<TableCell key={cell.id}>
-			{flexRender(cell.column.columnDef.cell, cell.getContext())}
-		</TableCell>
-	));
+	const cells = row.getVisibleCells().map((cell) => {
+		const pinned = cell.column.getIsPinned();
+		return (
+			<TableCell
+				key={cell.id}
+				className={cn(
+					pinned && "bg-background",
+					pinned && "shadow-[inset_-1px_0_0] shadow-border"
+				)}
+				style={{
+					width: cell.column.getSize(),
+					minWidth: cell.column.getSize(),
+					...getColumnPinningStyle(cell.column),
+				}}
+			>
+				{flexRender(cell.column.columnDef.cell, cell.getContext())}
+			</TableCell>
+		);
+	});
 
 	return (
 		<ContextMenu
@@ -190,6 +209,12 @@ function DataTableInner<TData, TValue>({
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([]);
+	const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>({
+		left: [],
+		right: [],
+	});
+	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({});
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 	const [pagination, setPagination] = React.useState<PaginationState>({
 		pageIndex: 0,
@@ -201,6 +226,8 @@ function DataTableInner<TData, TValue>({
 			id: "__select",
 			enableSorting: false,
 			enableHiding: false,
+			enableResizing: false,
+			enablePinning: false,
 			header: ({ table }) => (
 				<Checkbox
 					aria-label="Seleziona tutte le righe visibili"
@@ -224,18 +251,45 @@ function DataTableInner<TData, TValue>({
 				/>
 			),
 			size: 40,
+			minSize: 40,
+			maxSize: 40,
 		}),
 		[]
 	);
 
-	const tableColumns = React.useMemo(
-		() => (enableSelection ? [selectColumn, ...columns] : columns),
-		[enableSelection, selectColumn, columns]
-	);
+	const tableColumns = React.useMemo(() => {
+		const base = enableSelection ? [selectColumn, ...columns] : columns;
+		return base.map((col) => {
+			const id =
+				col.id ??
+				("accessorKey" in col && col.accessorKey != null
+					? String(col.accessorKey)
+					: undefined);
+			if (id === "actions") {
+				return {
+					...col,
+					enableResizing: false,
+					enablePinning: false,
+					size: col.size ?? 100,
+					minSize: col.minSize ?? 80,
+					maxSize: col.maxSize ?? 120,
+				};
+			}
+			return col;
+		});
+	}, [enableSelection, selectColumn, columns]);
 
 	const table = useReactTable({
 		data,
 		columns: tableColumns,
+		defaultColumn: {
+			minSize: 64,
+			size: 160,
+			maxSize: 480,
+		},
+		columnResizeMode: "onChange",
+		enableColumnResizing: true,
+		enableColumnPinning: true,
 		getCoreRowModel: getCoreRowModel(),
 		getRowId,
 		enableRowSelection: enableSelection,
@@ -254,10 +308,16 @@ function DataTableInner<TData, TValue>({
 		getFacetedRowModel: isServer ? undefined : getFacetedRowModel(),
 		getFacetedUniqueValues: isServer ? undefined : getFacetedUniqueValues(),
 		onColumnVisibilityChange: setColumnVisibility,
+		onColumnOrderChange: setColumnOrder,
+		onColumnPinningChange: setColumnPinning,
+		onColumnSizingChange: setColumnSizing,
 		state: {
 			sorting: isServer ? serverList.sorting : sorting,
 			columnFilters: isServer ? [] : columnFilters,
 			columnVisibility,
+			columnOrder,
+			columnPinning,
+			columnSizing,
 			pagination: isServer ? serverList.pagination : pagination,
 			rowSelection,
 		},
@@ -361,16 +421,51 @@ function DataTableInner<TData, TValue>({
 				/>
 			) : null}
 			<div className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border">
-				<Table className={className}>
-					<TableHeader className="sticky top-0 bg-background z-10 [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
+				<Table
+					className={cn("w-max min-w-full table-fixed", className)}
+					style={{ width: table.getTotalSize() }}
+				>
+					<TableHeader className="sticky top-0 z-20 bg-background [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="bg-opacity-25 bg-stone-600">
 								{headerGroup.headers.map((header) => {
+									const pinned = header.column.getIsPinned();
 									return (
-										<TableHead key={header.id}>
+										<TableHead
+											key={header.id}
+											colSpan={header.colSpan}
+											className={cn(
+												"relative group/col",
+												pinned && "bg-background",
+												pinned && "shadow-[inset_-1px_0_0] shadow-border"
+											)}
+											style={{
+												width: header.getSize(),
+												minWidth: header.getSize(),
+												...getColumnPinningStyle(header.column),
+												zIndex: pinned ? 3 : undefined,
+											}}
+										>
 											{header.isPlaceholder
 												? null
-												: flexRender(header.column.columnDef.header, header.getContext())}
+												: flexRender(
+														header.column.columnDef.header,
+														header.getContext()
+													)}
+											{header.column.getCanResize() ? (
+												<div
+													role="separator"
+													aria-orientation="vertical"
+													aria-label={`Ridimensiona colonna ${header.column.id}`}
+													onMouseDown={header.getResizeHandler()}
+													onTouchStart={header.getResizeHandler()}
+													className={cn(
+														"absolute right-0 top-0 z-10 h-full w-1 cursor-col-resize touch-none select-none",
+														"opacity-0 group-hover/col:opacity-100 bg-border hover:bg-primary",
+														header.column.getIsResizing() && "opacity-100 bg-primary"
+													)}
+												/>
+											) : null}
 										</TableHead>
 									);
 								})}
