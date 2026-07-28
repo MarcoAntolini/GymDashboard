@@ -22,3 +22,4 @@
 - Catena flex `min-h-0`/`min-w-0` da root layout → DesktopOnly → Card → Dashboard → DataTable.
 - Wrapper tabella: `overflow-auto contain-paint` per scroll locale sulle colonne larghe.
 - Deferral: pagina Panoramica `/` non esiste ancora (ticket 51); userà lo stesso header shell quando arriverà.
+- Commit: `c067155`.
