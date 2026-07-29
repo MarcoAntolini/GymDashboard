@@ -1,5 +1,5 @@
 /**
- * Smoke: mock IT helpers + Owner seed credentials (ticket 48).
+ * Smoke: mock IT helpers + Owner seed credentials (ticket 48) + liste nomi curate.
  * Run: node scripts/smoke-mock-italian.mjs
  */
 import assert from "node:assert/strict";
@@ -12,7 +12,6 @@ const require = createRequire(import.meta.url);
 const { fakerIT } = require("@faker-js/faker");
 
 assert.ok(fakerIT, "fakerIT locale must be available");
-assert.ok(fakerIT.person.firstName(), "Italian person names available");
 assert.ok(fakerIT.location.city(), "Italian cities available");
 
 const OWNER_USERNAME = "owner";
@@ -44,6 +43,31 @@ assert.match(accounts, /OWNER_PASSWORD\s*=\s*"Password1"/);
 
 const italian = readFileSync(join(mocksDir, "italian.ts"), "utf8");
 assert.match(italian, /ITALIAN_PROVINCES/);
+assert.match(italian, /ITALIAN_FIRST_NAMES/);
+assert.match(italian, /ITALIAN_LAST_NAMES/);
+assert.match(italian, /sanitizeItalianText/);
 assert.match(italian, /\+39/);
+assert.doesNotMatch(
+	italian,
+	/\uFFFD/,
+	"italian.ts name lists must not contain U+FFFD"
+);
+
+function sanitizeRef(value) {
+	return value.replaceAll("\uFFFD", "").normalize("NFC").trim();
+}
+
+assert.equal(sanitizeRef("Mos\uFFFD"), "Mos");
+assert.equal(sanitizeRef("Nicolò"), "Nicolò");
+
+const clients = readFileSync(join(mocksDir, "mockClients.ts"), "utf8");
+assert.match(clients, /italianFirstName/);
+assert.match(clients, /italianLastName/);
+assert.doesNotMatch(clients, /faker\.person\.(firstName|lastName)/);
+
+const employees = readFileSync(join(mocksDir, "mockEmployees.ts"), "utf8");
+assert.match(employees, /italianFirstName/);
+assert.match(employees, /italianLastName/);
+assert.doesNotMatch(employees, /faker\.person\.(firstName|lastName)/);
 
 console.log("smoke-mock-italian: ok");

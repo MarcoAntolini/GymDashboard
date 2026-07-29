@@ -1,5 +1,129 @@
 import { faker } from "./faker";
 
+/**
+ * Nomi di battesimo frequenti / contemporanei (mix generazioni).
+ * Liste curate: evita i entry corrotti `\uFFFD` del locale fakerIT.
+ */
+export const ITALIAN_FIRST_NAMES = [
+	"Alessandro",
+	"Andrea",
+	"Angela",
+	"Anna",
+	"Antonio",
+	"Beatrice",
+	"Bianca",
+	"Carlo",
+	"Caterina",
+	"Chiara",
+	"Christian",
+	"Claudia",
+	"Davide",
+	"Elena",
+	"Elisa",
+	"Emanuele",
+	"Emma",
+	"Federica",
+	"Federico",
+	"Francesca",
+	"Francesco",
+	"Gabriel",
+	"Gabriele",
+	"Giada",
+	"Giorgia",
+	"Giorgio",
+	"Giulia",
+	"Giuseppe",
+	"Greta",
+	"Ilaria",
+	"Leonardo",
+	"Lorenzo",
+	"Luca",
+	"Lucia",
+	"Marco",
+	"Maria",
+	"Martina",
+	"Matilde",
+	"Matteo",
+	"Mattia",
+	"Michele",
+	"Nicolò",
+	"Noemi",
+	"Paolo",
+	"Rebecca",
+	"Riccardo",
+	"Roberta",
+	"Roberto",
+	"Sara",
+	"Simone",
+	"Sofia",
+	"Stefano",
+	"Tommaso",
+	"Valentina",
+	"Valerio",
+	"Vittoria",
+] as const;
+
+/** Cognomi italiani comuni (UTF-8 corretto, accenti validi). */
+export const ITALIAN_LAST_NAMES = [
+	"Bianchi",
+	"Bruno",
+	"Caputo",
+	"Caruso",
+	"Colombo",
+	"Conte",
+	"Conti",
+	"Costa",
+	"De Luca",
+	"Esposito",
+	"Ferrari",
+	"Ferri",
+	"Fontana",
+	"Gallo",
+	"Galli",
+	"Giordano",
+	"Greco",
+	"Leone",
+	"Lombardi",
+	"Mancini",
+	"Mariani",
+	"Marchetti",
+	"Martini",
+	"Moretti",
+	"Neri",
+	"Ricci",
+	"Rinaldi",
+	"Rizzo",
+	"Romano",
+	"Rossi",
+	"Russo",
+	"Sala",
+	"Santoro",
+	"Serra",
+	"Valentini",
+	"Villa",
+	"Barbieri",
+	"Basile",
+	"Bernardi",
+	"Carbone",
+	"Castelli",
+	"Cattaneo",
+	"Coppola",
+	"D'Amico",
+	"De Angelis",
+	"Farina",
+	"Fiorentini",
+	"Gentile",
+	"Longo",
+	"Marino",
+	"Monti",
+	"Orlando",
+	"Pellegrini",
+	"Piras",
+	"Sanna",
+	"Testa",
+	"Vitale",
+] as const;
+
 /** Sigle province italiane (coerenza anagrafiche). */
 export const ITALIAN_PROVINCES = [
 	"AG",
@@ -157,6 +281,22 @@ const PROVIDERS = [
 	"ElettroService Nord",
 ];
 
+/**
+ * Rimuove replacement char (`U+FFFD`) e normalizza Unicode (NFC).
+ * Difesa contro dataset faker corrotti e stringhe mojibake.
+ */
+export function sanitizeItalianText(value: string): string {
+	return value.replaceAll("\uFFFD", "").normalize("NFC").trim();
+}
+
+export function italianFirstName(): string {
+	return sanitizeItalianText(faker.helpers.arrayElement(ITALIAN_FIRST_NAMES));
+}
+
+export function italianLastName(): string {
+	return sanitizeItalianText(faker.helpers.arrayElement(ITALIAN_LAST_NAMES));
+}
+
 /** Codice fiscale fittizio a 16 caratteri (formato CF, non validato). */
 export function fakeCodiceFiscale(): string {
 	const letters = () => faker.string.alpha({ length: 1, casing: "upper" });
@@ -183,6 +323,15 @@ export function italianPhone(): string {
 
 export function italianProvince(): string {
 	return faker.helpers.arrayElement(ITALIAN_PROVINCES);
+}
+
+/** Città/via da fakerIT, sanificate (no `\uFFFD` in UI). */
+export function italianCity(): string {
+	return sanitizeItalianText(faker.location.city());
+}
+
+export function italianStreet(): string {
+	return sanitizeItalianText(faker.location.street());
 }
 
 export function italianBillDescription(): string {
