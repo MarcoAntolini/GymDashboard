@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/auth";
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import {
@@ -15,6 +16,13 @@ import {
 	PAYMENT_FILTER_ALLOWLIST,
 	PAYMENT_SORT_ALLOWLIST,
 } from "@/lib/list/payments";
+import {
+	aggregateByPeriod,
+	normalizeInclusiveRange,
+	periodKeyForDate,
+	type PeriodPoint,
+	type PeriodType,
+} from "@/lib/period-aggregation";
 import { Payment, PaymentType, Prisma } from "@prisma/client";
 
 type MoneyInput = Prisma.Decimal | number | string;
@@ -227,4 +235,51 @@ export async function deletePayment({ id }: { id: number }) {
 			id
 		}
 	});
+}
+
+export type UscitePeriodPoint = PeriodPoint & {
+	totalAmount: number;
+	count: number;
+};
+
+/**
+ * Uscite (Pagamenti) aggregate per granularità di periodo:
+ * giornaliero / settimanale / mensile / annuale.
+ */
+export async function getUsciteByPeriod(
+	startDate: Date,
+	endDate: Date,
+	periodType: PeriodType
+): Promise<UscitePeriodPoint[]> {
+	await requireRole("Employee");
+	const { from, to } = normalizeInclusiveRange(startDate, endDate);
+	const rows = await db.payment.findMany({
+		where: {
+			date: {
+				gte: from,
+				lte: to,
+			},
+		},
+		select: { date: true, amount: true },
+	});
+
+	const amountSeries = aggregateByPeriod(
+		rows,
+		(row) => row.date,
+		from,
+		to,
+		periodType,
+		(row) => Number(row.amount)
+	);
+	const countByKey = new Map<string, number>();
+	for (const row of rows) {
+		const key = periodKeyForDate(row.date, periodType);
+		countByKey.set(key, (countByKey.get(key) ?? 0) + 1);
+	}
+
+	return amountSeries.map((point) => ({
+		...point,
+		totalAmount: point.value,
+		count: countByKey.get(point.key) ?? 0,
+	}));
 }

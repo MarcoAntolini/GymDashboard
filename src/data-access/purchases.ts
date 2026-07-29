@@ -3,6 +3,11 @@
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { getCatalog } from "@/data-access/catalogs";
 import { db } from "@/lib/db";
+import {
+	PRODUCT_KIND_LABEL,
+	ProductKind,
+	productKindFromSnapshot,
+} from "@/lib/domain/product-kind";
 import { throwIfRestrictViolation } from "@/lib/domain/prisma-restrict";
 import { snapshotFromProduct } from "@/lib/domain/purchase-access";
 import {
@@ -26,6 +31,10 @@ import {
 	type PeriodPoint,
 	type PeriodType,
 } from "@/lib/period-aggregation";
+import {
+	rankProductsByRevenue,
+	type ProductRankingRow,
+} from "@/lib/product-ranking";
 import { Prisma } from "@prisma/client";
 
 const PURCHASE_HAS_ENTRANCES_MESSAGE =
@@ -306,4 +315,62 @@ export async function getEntrateByPeriod(
 		totalAmount: point.value,
 		count: countByKey.get(point.key) ?? 0,
 	}));
+}
+
+export type ProductMixForPeriod = {
+	byKind: { key: ProductKind; label: string; amount: number; count: number }[];
+	ranking: ProductRankingRow[];
+};
+
+/**
+ * Mix Abbonamenti vs Pacchetti + ranking prodotti (ricavo, quantità) su intervallo date.
+ */
+export async function getProductMixForPeriod(
+	startDate: Date,
+	endDate: Date
+): Promise<ProductMixForPeriod> {
+	const { from, to } = normalizeInclusiveRange(startDate, endDate);
+	const rows = await db.purchase.findMany({
+		where: { date: { gte: from, lte: to } },
+		select: { amount: true, productCode: true, duration: true, entranceNumber: true },
+	});
+
+	const kindOrder: ProductKind[] = [ProductKind.Membership, ProductKind.EntranceSet];
+	const byKindMap = new Map<ProductKind, { amount: number; count: number }>(
+		kindOrder.map((kind) => [kind, { amount: 0, count: 0 }])
+	);
+	const rankingInput: {
+		productCode: string;
+		amount: number;
+		duration: number | null;
+		entranceNumber: number | null;
+	}[] = [];
+
+	for (const row of rows) {
+		const amount = Number(row.amount);
+		const kind = productKindFromSnapshot(row);
+		const bucket = byKindMap.get(kind) ?? { amount: 0, count: 0 };
+		bucket.amount += amount;
+		bucket.count += 1;
+		byKindMap.set(kind, bucket);
+		rankingInput.push({
+			productCode: row.productCode,
+			amount,
+			duration: row.duration,
+			entranceNumber: row.entranceNumber,
+		});
+	}
+
+	return {
+		byKind: kindOrder.map((kind) => {
+			const bucket = byKindMap.get(kind) ?? { amount: 0, count: 0 };
+			return {
+				key: kind,
+				label: PRODUCT_KIND_LABEL[kind],
+				amount: bucket.amount,
+				count: bucket.count,
+			};
+		}),
+		ranking: rankProductsByRevenue(rankingInput),
+	};
 }

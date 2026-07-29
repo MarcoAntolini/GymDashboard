@@ -10,6 +10,10 @@ import {
 	rangeForOverviewPreset,
 	type OverviewPeriodPreset,
 } from "@/lib/overview-period";
+import {
+	rankProductsByRevenue,
+	type ProductRankingRow,
+} from "@/lib/product-ranking";
 import { PaymentType } from "@prisma/client";
 
 export type OverviewBreakdownRow = {
@@ -18,6 +22,8 @@ export type OverviewBreakdownRow = {
 	amount: number;
 	count: number;
 };
+
+export type { ProductRankingRow };
 
 export type OverviewStats = {
 	preset: OverviewPeriodPreset;
@@ -30,6 +36,8 @@ export type OverviewStats = {
 	ingressiCount: number;
 	entrateByKind: OverviewBreakdownRow[];
 	usciteByType: OverviewBreakdownRow[];
+	/** Ranking prodotti per ricavo (poi quantità) nel periodo. */
+	productRanking: ProductRankingRow[];
 	/** Nessun Acquisto, Pagamento né Ingresso nel periodo. */
 	isEmpty: boolean;
 };
@@ -60,7 +68,7 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 	const [purchases, payments, ingressiCount] = await Promise.all([
 		db.purchase.findMany({
 			where: { date: dateFilter },
-			select: { amount: true, duration: true, entranceNumber: true },
+			select: { amount: true, productCode: true, duration: true, entranceNumber: true },
 		}),
 		db.payment.findMany({
 			where: { date: dateFilter },
@@ -74,6 +82,8 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 	const entrateByKindMap = new Map<ProductKind, { amount: number; count: number }>(
 		PURCHASE_KIND_ORDER.map((kind) => [kind, { amount: 0, count: 0 }])
 	);
+	const rankingInput: { productCode: string; amount: number; duration: number | null; entranceNumber: number | null }[] =
+		[];
 	let entrate = 0;
 	for (const row of purchases) {
 		const amount = Number(row.amount);
@@ -83,7 +93,14 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 		bucket.amount += amount;
 		bucket.count += 1;
 		entrateByKindMap.set(kind, bucket);
+		rankingInput.push({
+			productCode: row.productCode,
+			amount,
+			duration: row.duration,
+			entranceNumber: row.entranceNumber,
+		});
 	}
+	const productRanking = rankProductsByRevenue(rankingInput);
 
 	const usciteByTypeMap = new Map<PaymentType, { amount: number; count: number }>(
 		PAYMENT_TYPE_ORDER.map((type) => [type, { amount: 0, count: 0 }])
@@ -129,6 +146,7 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 		ingressiCount,
 		entrateByKind,
 		usciteByType,
+		productRanking,
 		isEmpty: purchases.length === 0 && payments.length === 0 && ingressiCount === 0,
 	};
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { MoneyTone, NumericCell } from "@/components/ui/domain-badge";
+import { DotBadge, MoneyTone, NumericCell } from "@/components/ui/domain-badge";
 import { Separator } from "@/components/ui/separator";
 import {
 	Table,
@@ -15,7 +15,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { TableErrorState } from "@/components/ui/data-table/table-error-state";
 import { TableLoadingState } from "@/components/ui/data-table/table-loading-state";
-import { getOverviewStats, type OverviewBreakdownRow, type OverviewStats } from "@/data-access/overview";
+import {
+	getOverviewStats,
+	type OverviewBreakdownRow,
+	type OverviewStats,
+	type ProductRankingRow,
+} from "@/data-access/overview";
+import { ProductKind } from "@/lib/domain/product-kind";
 import { formatEur } from "@/lib/format";
 import {
 	isOverviewPeriodPreset,
@@ -24,6 +30,10 @@ import {
 } from "@/lib/overview-period";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+
+function kindTone(kind: ProductKind): "info" | "primary" {
+	return kind === ProductKind.Membership ? "info" : "primary";
+}
 
 function BreakdownTable({
 	caption,
@@ -63,6 +73,52 @@ function BreakdownTable({
 					</TableBody>
 				</Table>
 			</div>
+		</div>
+	);
+}
+
+function ProductRankingTable({ rows }: { rows: ProductRankingRow[] }) {
+	return (
+		<div className="min-w-0">
+			<p className="mb-2 text-sm font-medium text-foreground">
+				Mix prodotti (ricavo e quantità)
+			</p>
+			{rows.length === 0 ? (
+				<p className="text-sm text-muted-foreground">
+					Nessun Acquisto nel periodo — il ranking prodotti è vuoto.
+				</p>
+			) : (
+				<div className="overflow-hidden rounded-md border">
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Prodotto</TableHead>
+								<TableHead>Tipo</TableHead>
+								<TableHead className="text-right">N°</TableHead>
+								<TableHead className="text-right">Ricavo</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{rows.map((row) => (
+								<TableRow key={row.productCode}>
+									<TableCell className="font-medium">{row.productCode}</TableCell>
+									<TableCell>
+										<DotBadge label={row.kindLabel} tone={kindTone(row.kind)} />
+									</TableCell>
+									<TableCell>
+										<NumericCell muted>{row.count}</NumericCell>
+									</TableCell>
+									<TableCell>
+										<NumericCell>
+											<MoneyTone tone="income">{formatEur(row.amount)}</MoneyTone>
+										</NumericCell>
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</div>
+			)}
 		</div>
 	);
 }
@@ -138,16 +194,18 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 				/>
 			</div>
 
+			<ProductRankingTable rows={stats.productRanking} />
+
 			<div className="flex flex-wrap items-center gap-2 border-t pt-4">
 				<p className="mr-2 text-sm text-muted-foreground">Vai a</p>
 				<Button asChild variant="ghost" size="sm">
 					<Link href="/entrances">Ingressi</Link>
 				</Button>
 				<Button asChild variant="ghost" size="sm">
-					<Link href="/purchases">Acquisti</Link>
+					<Link href="/purchases">Acquisti · Analisi entrate</Link>
 				</Button>
 				<Button asChild variant="ghost" size="sm">
-					<Link href="/payments">Pagamenti</Link>
+					<Link href="/payments">Pagamenti · Analisi uscite</Link>
 				</Button>
 			</div>
 		</div>

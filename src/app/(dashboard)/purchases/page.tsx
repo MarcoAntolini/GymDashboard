@@ -14,13 +14,24 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getAllProducts } from "@/data-access/products";
+import { DotBadge, MoneyTone, NumericCell } from "@/components/ui/domain-badge";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import {
 	createPurchase,
 	deletePurchase,
 	editPurchase,
 	getEntrateByPeriod,
+	getProductMixForPeriod,
 	listPurchases,
 	type EntratePeriodPoint,
+	type ProductMixForPeriod,
 } from "@/data-access/purchases";
 import { useServerList } from "@/hooks/useServerList";
 import {
@@ -96,6 +107,7 @@ export default function PurchasesPage() {
 	);
 	const [periodType, setPeriodType] = useState<PeriodType>("monthly");
 	const [analyticsData, setAnalyticsData] = useState<EntratePeriodPoint[]>([]);
+	const [productMix, setProductMix] = useState<ProductMixForPeriod | null>(null);
 	const [analyticsLoading, setAnalyticsLoading] = useState(false);
 	const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
@@ -128,8 +140,12 @@ export default function PurchasesPage() {
 			setAnalyticsLoading(true);
 			setAnalyticsError(null);
 			try {
-				const points = await getEntrateByPeriod(from, to, type);
+				const [points, mix] = await Promise.all([
+					getEntrateByPeriod(from, to, type),
+					getProductMixForPeriod(from, to),
+				]);
 				setAnalyticsData(points);
+				setProductMix(mix);
 			} catch (error) {
 				const message =
 					error instanceof Error && error.message
@@ -137,6 +153,7 @@ export default function PurchasesPage() {
 						: "Impossibile caricare l'analisi entrate.";
 				setAnalyticsError(message);
 				setAnalyticsData([]);
+				setProductMix(null);
 			} finally {
 				setAnalyticsLoading(false);
 			}
@@ -330,7 +347,7 @@ export default function PurchasesPage() {
 		{
 			title: "Analisi entrate",
 			description:
-				"Aggrega gli Acquisti (entrate da Clienti) per granularità di periodo: giornaliero, settimanale, mensile o annuale.",
+				"Aggrega gli Acquisti (entrate da Clienti) per periodo e mostra il mix Abbonamenti / Pacchetti per ricavo e quantità.",
 			icon: BarChartIcon,
 			dialogContent: (
 				<>
@@ -453,13 +470,13 @@ export default function PurchasesPage() {
 				}
 			/>
 			<Sheet open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
-				<SheetContent side="bottom" className="h-[480px]">
+				<SheetContent side="bottom" className="h-[min(90vh,720px)] overflow-y-auto">
 					<SheetHeader>
 						<SheetTitle>Analisi entrate</SheetTitle>
 						<SheetDescription>
 							{selectedDateRange
 								? `Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)} · ${PERIOD_TYPE_LABELS[periodType]}`
-								: "Importi Acquisto aggregati per tipo periodo"}
+								: "Importi Acquisto aggregati per tipo periodo + mix prodotti"}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="mt-3 flex items-center gap-3">
@@ -483,7 +500,7 @@ export default function PurchasesPage() {
 							</SelectContent>
 						</Select>
 					</div>
-					<div className="mt-4 h-[320px]">
+					<div className="mt-4 h-[280px]">
 						{analyticsLoading ? (
 							<TableLoadingState />
 						) : analyticsError ? (
@@ -533,6 +550,81 @@ export default function PurchasesPage() {
 							</ResponsiveContainer>
 						)}
 					</div>
+					{!analyticsLoading && !analyticsError && productMix ? (
+						<div className="mt-6 grid gap-6 pb-4 md:grid-cols-2">
+							<div className="min-w-0">
+								<p className="mb-2 text-sm font-medium">Abbonamenti vs Pacchetti</p>
+								<div className="overflow-hidden rounded-md border">
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>Tipo</TableHead>
+												<TableHead className="text-right">N°</TableHead>
+												<TableHead className="text-right">Ricavo</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{productMix.byKind.map((row) => (
+												<TableRow key={row.key}>
+													<TableCell>{row.label}</TableCell>
+													<TableCell>
+														<NumericCell muted>{row.count}</NumericCell>
+													</TableCell>
+													<TableCell>
+														<NumericCell>
+															<MoneyTone tone="income">{formatEur(row.amount)}</MoneyTone>
+														</NumericCell>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</div>
+							</div>
+							<div className="min-w-0">
+								<p className="mb-2 text-sm font-medium">Ranking prodotti</p>
+								{productMix.ranking.length === 0 ? (
+									<p className="text-sm text-muted-foreground">Nessun prodotto nel periodo.</p>
+								) : (
+									<div className="overflow-hidden rounded-md border">
+										<Table>
+											<TableHeader>
+												<TableRow>
+													<TableHead>Prodotto</TableHead>
+													<TableHead>Tipo</TableHead>
+													<TableHead className="text-right">N°</TableHead>
+													<TableHead className="text-right">Ricavo</TableHead>
+												</TableRow>
+											</TableHeader>
+											<TableBody>
+												{productMix.ranking.map((row) => (
+													<TableRow key={row.productCode}>
+														<TableCell className="font-medium">{row.productCode}</TableCell>
+														<TableCell>
+															<DotBadge
+																label={row.kindLabel}
+																tone={
+																	row.kind === ProductKind.Membership ? "info" : "primary"
+																}
+															/>
+														</TableCell>
+														<TableCell>
+															<NumericCell muted>{row.count}</NumericCell>
+														</TableCell>
+														<TableCell>
+															<NumericCell>
+																<MoneyTone tone="income">{formatEur(row.amount)}</MoneyTone>
+															</NumericCell>
+														</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
+									</div>
+								)}
+							</div>
+						</div>
+					) : null}
 				</SheetContent>
 			</Sheet>
 		</>

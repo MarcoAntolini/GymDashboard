@@ -2,28 +2,46 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import Dashboard, { Action } from "@/components/ui/dashboard";
+import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
+import { TableErrorState } from "@/components/ui/data-table/table-error-state";
+import { TableLoadingState } from "@/components/ui/data-table/table-loading-state";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createPayment, deletePayment, editPayment, listPayments, type PaymentRow } from "@/data-access/payments";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+	createPayment,
+	deletePayment,
+	editPayment,
+	getUsciteByPeriod,
+	listPayments,
+	type PaymentRow,
+	type UscitePeriodPoint,
+} from "@/data-access/payments";
 import { useServerList } from "@/hooks/useServerList";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
+import { formatDateIt, formatEur } from "@/lib/format";
 import {
 	PAYMENT_DEFAULT_SORT,
 	PAYMENT_FILTER_ALLOWLIST,
 	PAYMENT_SORT_ALLOWLIST,
 	PAYMENT_FILTER_LABELS,
 } from "@/lib/list/payments";
+import {
+	PERIOD_TYPE_LABELS,
+	PERIOD_TYPES,
+	type PeriodType,
+} from "@/lib/period-aggregation";
 import { cn } from "@/lib/utils";
 import { PaymentType } from "@prisma/client";
-import { formatDateIt } from "@/lib/format";
-import { CalendarIcon, PlusCircle } from "lucide-react";
-import { useCallback } from "react";
+import { BarChart as BarChartIcon, CalendarIcon, PlusCircle } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { z } from "zod";
 import { columns } from "./columns";
 
@@ -32,21 +50,21 @@ const paymentSchema = z.discriminatedUnion("type", [
 		date: z.date(),
 		amount: z.number(),
 		type: z.literal("Salary"),
-		employeeId: z.number()
+		employeeId: z.number(),
 	}),
 	z.object({
 		date: z.date(),
 		amount: z.number(),
 		type: z.literal("Bill"),
 		description: z.string(),
-		provider: z.string()
+		provider: z.string(),
 	}),
 	z.object({
 		date: z.date(),
 		amount: z.number(),
 		type: z.literal("Equipment"),
 		description: z.string(),
-		provider: z.string()
+		provider: z.string(),
 	}),
 	z.object({
 		date: z.date(),
@@ -55,9 +73,17 @@ const paymentSchema = z.discriminatedUnion("type", [
 		description: z.string(),
 		maker: z.string(),
 		startingTime: z.date(),
-		endingTime: z.date()
-	})
+		endingTime: z.date(),
+	}),
 ]);
+
+const analyticsFormSchema = z.object({
+	date: z.object({
+		from: z.date(),
+		to: z.date(),
+	}),
+	periodType: z.enum(PERIOD_TYPES),
+});
 
 export default function PaymentsPage() {
 	const list = useServerList<PaymentRow>({
@@ -67,6 +93,15 @@ export default function PaymentsPage() {
 		defaultSort: [...PAYMENT_DEFAULT_SORT],
 	});
 	const { refetch, setItems } = list;
+
+	const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+	const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(
+		null
+	);
+	const [periodType, setPeriodType] = useState<PeriodType>("monthly");
+	const [analyticsData, setAnalyticsData] = useState<UscitePeriodPoint[]>([]);
+	const [analyticsLoading, setAnalyticsLoading] = useState(false);
+	const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
 	const handleDelete = useCallback(
 		async (payment: Pick<PaymentRow, "id">) => {
@@ -108,6 +143,57 @@ export default function PaymentsPage() {
 		[refetch]
 	);
 
+	const loadUsciteAnalytics = useCallback(async (from: Date, to: Date, type: PeriodType) => {
+		setAnalyticsLoading(true);
+		setAnalyticsError(null);
+		try {
+			const points = await getUsciteByPeriod(from, to, type);
+			setAnalyticsData(points);
+		} catch (error) {
+			const message =
+				error instanceof Error && error.message
+					? error.message
+					: "Impossibile caricare l'analisi uscite.";
+			setAnalyticsError(message);
+			setAnalyticsData([]);
+		} finally {
+			setAnalyticsLoading(false);
+		}
+	}, []);
+
+	const handleAnalytics = useCallback(
+		async (values: z.infer<typeof analyticsFormSchema>) => {
+			setSelectedDateRange(values.date);
+			setPeriodType(values.periodType);
+			setIsAnalyticsOpen(true);
+			await loadUsciteAnalytics(values.date.from, values.date.to, values.periodType);
+		},
+		[loadUsciteAnalytics]
+	);
+
+	const handlePeriodTypeChange = useCallback(
+		(next: PeriodType) => {
+			setPeriodType(next);
+			if (!selectedDateRange) return;
+			void loadUsciteAnalytics(selectedDateRange.from, selectedDateRange.to, next);
+		},
+		[loadUsciteAnalytics, selectedDateRange]
+	);
+
+	const hasUscite = analyticsData.some((point) => point.totalAmount > 0 || point.count > 0);
+
+	const analyticsFormData: FormData<typeof analyticsFormSchema> = {
+		formSchema: analyticsFormSchema,
+		defaultValues: {
+			date: {
+				from: new Date(),
+				to: new Date(),
+			},
+			periodType: "monthly",
+		},
+		submitAction: handleAnalytics,
+	};
+
 	const actions: Action[] = [
 		{
 			title: "Aggiungi pagamento",
@@ -126,7 +212,10 @@ export default function PaymentsPage() {
 										<FormControl>
 											<Button
 												variant={"outline"}
-												className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+												className={cn(
+													"w-full pl-3 text-left font-normal",
+													!field.value && "text-muted-foreground"
+												)}
 											>
 												{field.value ? formatDateIt(field.value) : <span>Scegli una data</span>}
 												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -272,7 +361,10 @@ export default function PaymentsPage() {
 												render={({ field }) => (
 													<FormItem>
 														<FormLabel>Ora inizio</FormLabel>
-														<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
+														<DateTimePicker
+															field={field}
+															onChange={(date) => field.onChange(date)}
+														/>
 														<FormMessage />
 													</FormItem>
 												)}
@@ -282,7 +374,10 @@ export default function PaymentsPage() {
 												render={({ field }) => (
 													<FormItem>
 														<FormLabel>Ora fine</FormLabel>
-														<DateTimePicker field={field} onChange={(date) => field.onChange(date)} />
+														<DateTimePicker
+															field={field}
+															onChange={(date) => field.onChange(date)}
+														/>
 														<FormMessage />
 													</FormItem>
 												)}
@@ -306,59 +401,224 @@ export default function PaymentsPage() {
 					provider: z.string().optional(),
 					maker: z.string().optional(),
 					startingTime: z.date().optional(),
-					endingTime: z.date().optional()
+					endingTime: z.date().optional(),
 				}),
 				defaultValues: {
 					date: new Date(),
 					amount: 0,
-					type: "Salary" as const
+					type: "Salary" as const,
 				},
-				submitAction: handleCreatePayment
-			}
-		}
+				submitAction: handleCreatePayment,
+			},
+		},
+		{
+			title: "Analisi uscite",
+			description:
+				"Aggrega i Pagamenti (uscite tipizzate) per granularità di periodo: giornaliero, settimanale, mensile o annuale.",
+			icon: BarChartIcon,
+			dialogContent: (
+				<>
+					<FormField
+						name="periodType"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Tipo periodo</FormLabel>
+								<Select value={field.value} onValueChange={field.onChange}>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue placeholder="Seleziona granularità" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										{PERIOD_TYPES.map((type) => (
+											<SelectItem key={type} value={type}>
+												{PERIOD_TYPE_LABELS[type]}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						name="date"
+						render={({ field }) => (
+							<FormItem className="flex w-full flex-col gap-2">
+								<FormLabel>Seleziona periodo</FormLabel>
+								<Popover>
+									<PopoverTrigger asChild>
+										<FormControl>
+											<Button
+												variant={"outline"}
+												className={cn(
+													"w-[300px] justify-start text-left font-normal",
+													!field.value && "text-muted-foreground"
+												)}
+											>
+												<CalendarIcon className="mr-2 h-4 w-4" />
+												{field.value?.from ? (
+													field.value.to ? (
+														<>
+															{formatDateIt(field.value.from)} -{" "}
+															{formatDateIt(field.value.to)}
+														</>
+													) : (
+														formatDateIt(field.value.from)
+													)
+												) : (
+													<span>Seleziona un intervallo di date</span>
+												)}
+											</Button>
+										</FormControl>
+									</PopoverTrigger>
+									<PopoverContent className="w-auto p-0" align="start">
+										<Calendar
+											initialFocus
+											mode="range"
+											defaultMonth={field.value?.from}
+											selected={field.value}
+											onSelect={field.onChange}
+											numberOfMonths={2}
+										/>
+									</PopoverContent>
+								</Popover>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</>
+			),
+			formData: analyticsFormData,
+		},
 	];
 
 	return (
-		<Dashboard
-			actions={actions}
-			table={
-				<DataTable
-					columns={columns(handleDelete, handleEdit)}
-					getRowId={(row) => String(row.id)}
-					entityLabel="Pagamento"
-					bulkDeleteRow={async (row) => {
-						await deletePayment({ id: row.id });
-					}}
-					onBulkComplete={refetch}
-					data={list.items}
-					isLoading={list.isLoading}
-					error={list.error}
-					onRetry={list.refetch}
-					filters={[...PAYMENT_FILTER_ALLOWLIST]}
-					filterLabels={PAYMENT_FILTER_LABELS}
-					emptyState={
-						<TableEmptyState
-							title="Nessun pagamento"
-							hint="Usa Aggiungi pagamento per registrare il primo Pagamento in uscita."
-						/>
-					}
-					serverList={{
-						manual: true,
-						pageCount: list.pageCount,
-						rowCount: list.total,
-						sorting: list.sorting,
-						onSortingChange: list.onSortingChange,
-						pagination: list.pagination,
-						onPaginationChange: list.onPaginationChange,
-						draftFilters: list.draftFilters,
-						onDraftFilterChange: list.setDraftFilter,
-						onApplyFilters: list.applyFilters,
-						onResetFilters: list.resetFilters,
-						filtersDirty: list.filtersDirty,
-						appliedFilters: list.query.filters,
-					}}
-				/>
-			}
-		/>
+		<>
+			<Dashboard
+				actions={actions}
+				table={
+					<DataTable
+						columns={columns(handleDelete, handleEdit)}
+						getRowId={(row) => String(row.id)}
+						entityLabel="Pagamento"
+						bulkDeleteRow={async (row) => {
+							await deletePayment({ id: row.id });
+						}}
+						onBulkComplete={refetch}
+						data={list.items}
+						isLoading={list.isLoading}
+						error={list.error}
+						onRetry={list.refetch}
+						filters={[...PAYMENT_FILTER_ALLOWLIST]}
+						filterLabels={PAYMENT_FILTER_LABELS}
+						emptyState={
+							<TableEmptyState
+								title="Nessun pagamento"
+								hint="Usa Aggiungi pagamento per registrare il primo Pagamento in uscita."
+							/>
+						}
+						serverList={{
+							manual: true,
+							pageCount: list.pageCount,
+							rowCount: list.total,
+							sorting: list.sorting,
+							onSortingChange: list.onSortingChange,
+							pagination: list.pagination,
+							onPaginationChange: list.onPaginationChange,
+							draftFilters: list.draftFilters,
+							onDraftFilterChange: list.setDraftFilter,
+							onApplyFilters: list.applyFilters,
+							onResetFilters: list.resetFilters,
+							filtersDirty: list.filtersDirty,
+							appliedFilters: list.query.filters,
+						}}
+					/>
+				}
+			/>
+			<Sheet open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
+				<SheetContent side="bottom" className="h-[480px]">
+					<SheetHeader>
+						<SheetTitle>Analisi uscite</SheetTitle>
+						<SheetDescription>
+							{selectedDateRange
+								? `Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)} · ${PERIOD_TYPE_LABELS[periodType]}`
+								: "Importi Pagamento aggregati per tipo periodo"}
+						</SheetDescription>
+					</SheetHeader>
+					<div className="mt-3 flex items-center gap-3">
+						<Label htmlFor="uscite-period-type" className="shrink-0">
+							Tipo periodo
+						</Label>
+						<Select
+							value={periodType}
+							onValueChange={(value) => handlePeriodTypeChange(value as PeriodType)}
+							disabled={analyticsLoading || !selectedDateRange}
+						>
+							<SelectTrigger id="uscite-period-type" className="w-[200px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{PERIOD_TYPES.map((type) => (
+									<SelectItem key={type} value={type}>
+										{PERIOD_TYPE_LABELS[type]}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="mt-4 h-[320px]">
+						{analyticsLoading ? (
+							<TableLoadingState />
+						) : analyticsError ? (
+							<TableErrorState
+								message={analyticsError}
+								onRetry={() => {
+									if (!selectedDateRange) return;
+									void loadUsciteAnalytics(
+										selectedDateRange.from,
+										selectedDateRange.to,
+										periodType
+									);
+								}}
+							/>
+						) : !hasUscite ? (
+							<TableEmptyState
+								title="Nessuna uscita nel periodo"
+								hint="Registra un Pagamento oppure amplia l'intervallo di date."
+							/>
+						) : (
+							<ResponsiveContainer width="100%" height="100%">
+								<BarChart data={analyticsData}>
+									<CartesianGrid strokeDasharray="3 3" />
+									<XAxis dataKey="label" interval="preserveStartEnd" minTickGap={24} />
+									<YAxis
+										tickFormatter={(value: number) =>
+											new Intl.NumberFormat("it-IT", {
+												notation: "compact",
+												compactDisplay: "short",
+											}).format(value)
+										}
+									/>
+									<Tooltip
+										formatter={(value) => [
+											formatEur(typeof value === "number" ? value : Number(value ?? 0)),
+											"Uscite",
+										]}
+										labelFormatter={(label) => String(label)}
+									/>
+									<Bar
+										dataKey="totalAmount"
+										name="Uscite"
+										fill="#ef4444"
+										radius={[4, 4, 0, 0]}
+									/>
+								</BarChart>
+							</ResponsiveContainer>
+						)}
+					</div>
+				</SheetContent>
+			</Sheet>
+		</>
 	);
 }
