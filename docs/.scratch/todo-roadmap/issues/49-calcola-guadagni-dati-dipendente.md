@@ -15,3 +15,4 @@
 - Sheet “Calcola guadagni”: colonna **Dipendente** con `formatPersonLabel` (come Contratti/Timbrature/Stipendi) al posto del solo ID opaco.
 - Aggiunta colonna **CF** e filtri toolbar su Dipendente/CF con etichette IT.
 - Tipo `endingDate` allineato a `Date | null` (contratti indeterminati).
+- Commit: `6eb7adf`
