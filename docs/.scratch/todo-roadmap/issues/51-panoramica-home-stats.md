@@ -26,4 +26,5 @@ Usare skill /impeccable.
 - Landing Admin/Dipendente → `/`; nav Operazioni apre con Panoramica.
 - Strip saldi tabular (non hero-KPI cards); empty = zeri + CTA verso Acquisti/Ingressi/Pagamenti; loading/error via stati tabella condivisi.
 - Smoke: `scripts/verify-overview-home.ts` (preset + GET `/` autenticata).
+- Commit: `2f4291a`
 - Deferral: mix prodotti / analytics cassa dettagliate → ticket **52** (shape ticket 08 / PRODUCT surface notes).
