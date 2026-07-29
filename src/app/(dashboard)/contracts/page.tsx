@@ -6,6 +6,7 @@ import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
+import { MoneyTone, NumericCell } from "@/components/ui/domain-badge";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -23,6 +24,8 @@ import {
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
 import { useServerList } from "@/hooks/useServerList";
+import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { formatPersonLabel } from "@/lib/domain/labels";
 import {
 	CONTRACT_DEFAULT_SORT,
 	CONTRACT_FILTER_ALLOWLIST,
@@ -32,9 +35,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Contract, ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { formatPersonLabel } from "@/lib/domain/labels";
 import { formatDateIt, formatEur } from "@/lib/format";
-import { Calculator, Calendar as CalendarIcon, IdCard, PlusCircle, User } from "lucide-react";
+import { Banknote, Calculator, Calendar as CalendarIcon, IdCard, PlusCircle, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -408,7 +410,6 @@ export default function Contracts() {
 							data={earningsData}
 							filters={["employee", "taxCode"]}
 							filterLabels={{ employee: "Dipendente", taxCode: "CF" }}
-							className="[&_tr_td:last-child]:hidden [&_tr_th:last-child]:hidden"
 						/>
 					</div>
 				</SheetContent>
@@ -424,6 +425,7 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Dipendente" icon={User} />
 		),
+		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
 		),
@@ -434,28 +436,43 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="CF" icon={IdCard} />
 		),
+		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
 			<div className="text-muted-foreground">{row.original.employee.taxCode}</div>
 		),
 	},
 	{
 		accessorKey: "hourlyFee",
-		header: ({ column }) => <TableSortableHeader column={column} title="Compenso orario" />,
-		cell: ({ row }) => {
-			const amount = Number(row.original.hourlyFee);
-			return <div className="font-medium">{formatEur(amount)}</div>;
-		}
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Compenso orario"
+				icon={Banknote}
+				align="right"
+			/>
+		),
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<NumericCell>
+				<MoneyTone tone="expense">{formatEur(row.original.hourlyFee)}</MoneyTone>
+			</NumericCell>
+		),
 	},
 	{
 		accessorKey: "totalEarnings",
-		header: ({ column }) => <TableSortableHeader column={column} title="Guadagni totali" />,
-		cell: ({ row }) => {
-			const amount = Number(row.original.totalEarnings);
-			return <div className="font-medium">{formatEur(amount)}</div>;
-		}
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Guadagni totali"
+				icon={Calculator}
+				align="right"
+			/>
+		),
+		meta: columnMeta(ColumnClass.Derived),
+		cell: ({ row }) => (
+			<NumericCell>
+				<MoneyTone tone="expense">{formatEur(row.original.totalEarnings)}</MoneyTone>
+			</NumericCell>
+		),
 	},
-	{
-		id: "actions",
-		cell: () => null,
-	}
 ];

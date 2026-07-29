@@ -32,13 +32,20 @@ export function normalizeColumnPinning(
 	};
 }
 
-/** Colonna subito prima di `actions`: assorbe lo spazio libero a destra. */
+/** Colonna che assorbe lo spazio libero a destra (prima di `actions`, o ultima se manca). */
 export function getFlexFillColumnId(leafColumnIds: string[]): string | null {
-	const actionsIndex = leafColumnIds.indexOf("actions");
-	if (actionsIndex <= 0) return null;
-	const candidate = leafColumnIds[actionsIndex - 1];
-	if (candidate === "__select") return null;
-	return candidate;
+	const actionsIndex = leafColumnIds.indexOf(ACTIONS_COLUMN_ID);
+	if (actionsIndex > 0) {
+		const candidate = leafColumnIds[actionsIndex - 1];
+		if (candidate !== SELECT_COLUMN_ID) return candidate;
+	}
+
+	// Senza actions: ultima colonna dati assorbe lo spazio (evita redistribuzione table-fixed).
+	for (let i = leafColumnIds.length - 1; i >= 0; i--) {
+		const id = leafColumnIds[i];
+		if (id !== SELECT_COLUMN_ID && id !== ACTIONS_COLUMN_ID) return id;
+	}
+	return null;
 }
 
 /** Stili larghezza: la flex-fill cresce; le altre restano a px fissi. */
