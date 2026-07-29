@@ -7,6 +7,7 @@ import {
 	Dumbbell,
 	FileText,
 	HandCoins,
+	LayoutDashboard,
 	type LucideIcon,
 	Package,
 	ShoppingBag,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 const ICONS: Record<string, LucideIcon> = {
+	"/": LayoutDashboard,
 	"/accounts": UserCog,
 	"/employees": BriefcaseBusiness,
 	"/contracts": FileText,
@@ -82,7 +84,7 @@ export const links: NavSection[] = [
 	},
 	{
 		section: "Operazioni",
-		group: linksFor(["/clients", "/entrances"]),
+		group: linksFor(["/", "/clients", "/entrances"]),
 	},
 	{
 		section: "Listino",

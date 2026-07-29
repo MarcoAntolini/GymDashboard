@@ -18,6 +18,7 @@ const ROLE_RANK: Record<AppRole, number> = {
 };
 
 export const NAV_ROUTES: NavRoute[] = [
+	{ title: "Panoramica", href: "/", requiredRole: "Employee" },
 	{ title: "Account", href: "/accounts", requiredRole: "Admin" },
 	{ title: "Dipendenti", href: "/employees", requiredRole: "Admin" },
 	{ title: "Contratti", href: "/contracts", requiredRole: "Admin" },
@@ -36,13 +37,13 @@ export const NAV_ROUTES: NavRoute[] = [
 	{ title: "Acquisti", href: "/purchases", requiredRole: "Employee" },
 ];
 
-/** Admin/Owner operational default until Panoramica `/` (later ticket). */
-export const ADMIN_LANDING = "/accounts";
-/** Highest-frequency desk task for Dipendente. */
-export const EMPLOYEE_LANDING = "/entrances";
+/** Post-login home: Panoramica operativa (Admin/Owner e Dipendente). */
+export const ADMIN_LANDING = "/";
+/** Post-login home: stessa Panoramica; Ingressi resta in nav Operazioni. */
+export const EMPLOYEE_LANDING = "/";
 
-export function landingPathForRole(role: AppRole): string {
-	return role === "Employee" ? EMPLOYEE_LANDING : ADMIN_LANDING;
+export function landingPathForRole(_role: AppRole): string {
+	return "/";
 }
 
 /** True if `userRole` meets or exceeds `requiredRole` (Owner > Admin > Employee). */
@@ -65,7 +66,16 @@ export function assignableRoles(actorRole: AppRole): AppRole[] {
 
 export function requiredRoleForPath(pathname: string): AppRole | null {
 	const normalized = pathname.endsWith("/") && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
-	const match = NAV_ROUTES.find((route) => route.href === normalized || normalized.startsWith(`${route.href}/`));
+	// Exact `/` first — `startsWith("/" + …)` would otherwise match every path if mis-ordered.
+	if (normalized === "/") {
+		const home = NAV_ROUTES.find((route) => route.href === "/");
+		return home?.requiredRole ?? null;
+	}
+	const match = NAV_ROUTES.find(
+		(route) =>
+			route.href !== "/" &&
+			(route.href === normalized || normalized.startsWith(`${route.href}/`))
+	);
 	return match?.requiredRole ?? null;
 }
 

@@ -14,6 +14,7 @@ import { BeatLoader } from "react-spinners";
 
 function routeMatches(pathname: string, href: string): boolean {
 	const normalized = pathname.endsWith("/") && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
+	if (href === "/") return normalized === "/";
 	return normalized === href || normalized.startsWith(`${href}/`);
 }
 

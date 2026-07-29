@@ -56,7 +56,7 @@ export function LoginForm() {
 			.then(async (data) => {
 				const { success, message, role } = data;
 				if (success) {
-					const landing = isAppRole(role) ? landingPathForRole(role) : "/entrances";
+					const landing = isAppRole(role) ? landingPathForRole(role) : "/";
 					router.push(landing);
 				} else {
 					toast.error(message);
