@@ -24,5 +24,6 @@
 - Acquisti: sheet Analisi entrate arricchito con Abb vs Pacchetti + ranking prodotti (`getProductMixForPeriod`).
 - Pagamenti: sheet **Analisi uscite** (`getUsciteByPeriod`) speculare alle entrate.
 - Smoke: `scripts/verify-cassa-mix.ts`.
+- Commit: `93fc8fb`
 - Nessuna vanity KPI (solo cassa + mix operativo).
 - Deferral: frequenza bancone / fidelizzazione → ticket **53** / **54**.
