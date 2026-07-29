@@ -19,6 +19,13 @@ import {
 	PURCHASE_FILTER_ALLOWLIST,
 	PURCHASE_SORT_ALLOWLIST,
 } from "@/lib/list/purchases";
+import {
+	aggregateByPeriod,
+	normalizeInclusiveRange,
+	periodKeyForDate,
+	type PeriodPoint,
+	type PeriodType,
+} from "@/lib/period-aggregation";
 import { Prisma } from "@prisma/client";
 
 const PURCHASE_HAS_ENTRANCES_MESSAGE =
@@ -252,4 +259,51 @@ export async function deletePurchase({ id }: { id: number }) {
 	} catch (error) {
 		throwIfRestrictViolation(error, PURCHASE_HAS_ENTRANCES_MESSAGE);
 	}
+}
+
+export type EntratePeriodPoint = PeriodPoint & {
+	/** Alias esplicito per chart Entrate (importo EUR). */
+	totalAmount: number;
+	count: number;
+};
+
+/**
+ * Entrate (Acquisti) aggregate per granularità di periodo:
+ * giornaliero / settimanale / mensile / annuale.
+ */
+export async function getEntrateByPeriod(
+	startDate: Date,
+	endDate: Date,
+	periodType: PeriodType
+): Promise<EntratePeriodPoint[]> {
+	const { from, to } = normalizeInclusiveRange(startDate, endDate);
+	const rows = await db.purchase.findMany({
+		where: {
+			date: {
+				gte: from,
+				lte: to,
+			},
+		},
+		select: { date: true, amount: true },
+	});
+
+	const amountSeries = aggregateByPeriod(
+		rows,
+		(row) => row.date,
+		from,
+		to,
+		periodType,
+		(row) => Number(row.amount)
+	);
+	const countByKey = new Map<string, number>();
+	for (const row of rows) {
+		const key = periodKeyForDate(row.date, periodType);
+		countByKey.set(key, (countByKey.get(key) ?? 0) + 1);
+	}
+
+	return amountSeries.map((point) => ({
+		...point,
+		totalAmount: point.value,
+		count: countByKey.get(point.key) ?? 0,
+	}));
 }

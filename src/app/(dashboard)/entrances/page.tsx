@@ -5,8 +5,11 @@ import { Calendar } from "@/components/ui/calendar";
 import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
+import { TableErrorState } from "@/components/ui/data-table/table-error-state";
+import { TableLoadingState } from "@/components/ui/data-table/table-loading-state";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -14,11 +17,10 @@ import { getAllClients } from "@/data-access/clients";
 import {
 	deleteEntrance,
 	editEntrance,
-	getDailyEntrances,
-	getMonthlyEntrances,
-	getWeeklyEntrances,
+	getEntrancesByPeriod,
 	listEntrances,
 	registerEntrance,
+	type EntrancePeriodPoint,
 	type EntranceRow,
 } from "@/data-access/entrances";
 import { useServerList } from "@/hooks/useServerList";
@@ -28,9 +30,14 @@ import {
 	ENTRANCE_FILTER_LABELS,
 	ENTRANCE_SORT_ALLOWLIST,
 } from "@/lib/list/entrances";
-import { cn } from "@/lib/utils";
 import { formatDateIt } from "@/lib/format";
-import { BarChart as BarChartIcon, CalendarDays, CalendarIcon, Clock, PlusCircle } from "lucide-react";
+import {
+	PERIOD_TYPE_LABELS,
+	PERIOD_TYPES,
+	type PeriodType,
+} from "@/lib/period-aggregation";
+import { cn } from "@/lib/utils";
+import { BarChart as BarChartIcon, CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
@@ -42,6 +49,7 @@ const analyticsFormSchema = z.object({
 		from: z.date(),
 		to: z.date(),
 	}),
+	periodType: z.enum(PERIOD_TYPES),
 });
 
 export default function EntrancesPage() {
@@ -75,13 +83,14 @@ export default function EntrancesPage() {
 	);
 
 	const [clients, setClients] = useState<ClientOption[]>([]);
-	const [isWeeklySheetOpen, setIsWeeklySheetOpen] = useState(false);
-	const [isDailySheetOpen, setIsDailySheetOpen] = useState(false);
-	const [isMonthlySheetOpen, setIsMonthlySheetOpen] = useState(false);
-	const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(null);
-	const [dailyData, setDailyData] = useState<{ hourOfDay: string; totalEntrances: number }[]>([]);
-	const [weeklyData, setWeeklyData] = useState<{ dayOfWeek: string; totalEntrances: number }[]>([]);
-	const [monthlyData, setMonthlyData] = useState<{ month: string; totalEntrances: number }[]>([]);
+	const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+	const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(
+		null
+	);
+	const [periodType, setPeriodType] = useState<PeriodType>("weekly");
+	const [analyticsData, setAnalyticsData] = useState<EntrancePeriodPoint[]>([]);
+	const [analyticsLoading, setAnalyticsLoading] = useState(false);
+	const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
 	useEffect(() => {
 		void getAllClients().then((rows) =>
@@ -106,32 +115,47 @@ export default function EntrancesPage() {
 		[refetch]
 	);
 
-	const handleAnalytics = useCallback(
-		async (values: z.infer<typeof analyticsFormSchema>, type: "weekly" | "daily" | "monthly") => {
-			setSelectedDateRange(values.date);
-			switch (type) {
-				case "weekly": {
-					const weeklyStats = await getWeeklyEntrances(values.date.from, values.date.to);
-					setWeeklyData(weeklyStats);
-					setIsWeeklySheetOpen(true);
-					break;
-				}
-				case "daily": {
-					const dailyStats = await getDailyEntrances(values.date.from, values.date.to);
-					setDailyData(dailyStats);
-					setIsDailySheetOpen(true);
-					break;
-				}
-				case "monthly": {
-					const monthlyStats = await getMonthlyEntrances(values.date.from, values.date.to);
-					setMonthlyData(monthlyStats);
-					setIsMonthlySheetOpen(true);
-					break;
-				}
+	const loadEntranceAnalytics = useCallback(
+		async (from: Date, to: Date, type: PeriodType) => {
+			setAnalyticsLoading(true);
+			setAnalyticsError(null);
+			try {
+				const points = await getEntrancesByPeriod(from, to, type);
+				setAnalyticsData(points);
+			} catch (error) {
+				const message =
+					error instanceof Error && error.message
+						? error.message
+						: "Impossibile caricare l'analisi ingressi.";
+				setAnalyticsError(message);
+				setAnalyticsData([]);
+			} finally {
+				setAnalyticsLoading(false);
 			}
 		},
 		[]
 	);
+
+	const handleAnalytics = useCallback(
+		async (values: z.infer<typeof analyticsFormSchema>) => {
+			setSelectedDateRange(values.date);
+			setPeriodType(values.periodType);
+			setIsAnalyticsOpen(true);
+			await loadEntranceAnalytics(values.date.from, values.date.to, values.periodType);
+		},
+		[loadEntranceAnalytics]
+	);
+
+	const handlePeriodTypeChange = useCallback(
+		(next: PeriodType) => {
+			setPeriodType(next);
+			if (!selectedDateRange) return;
+			void loadEntranceAnalytics(selectedDateRange.from, selectedDateRange.to, next);
+		},
+		[loadEntranceAnalytics, selectedDateRange]
+	);
+
+	const hasEntrances = analyticsData.some((point) => point.totalEntrances > 0);
 
 	const analyticsFormData: FormData<typeof analyticsFormSchema> = {
 		formSchema: analyticsFormSchema,
@@ -140,8 +164,9 @@ export default function EntrancesPage() {
 				from: new Date(),
 				to: new Date(),
 			},
+			periodType: "weekly",
 		},
-		submitAction: (values) => handleAnalytics(values, "weekly"),
+		submitAction: handleAnalytics,
 	};
 
 	const actions: Action[] = [
@@ -200,40 +225,84 @@ export default function EntrancesPage() {
 			},
 		},
 		{
-			title: "Analisi giornaliera",
-			icon: Clock,
-			dialogContent: (
-				<DateRangePickerField onSubmit={(values) => handleAnalytics(values, "daily")} formData={analyticsFormData} />
-			),
-			formData: {
-				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "daily"),
-			},
-		},
-		{
-			title: "Analisi settimanale",
-			icon: CalendarDays,
-			dialogContent: (
-				<DateRangePickerField onSubmit={(values) => handleAnalytics(values, "weekly")} formData={analyticsFormData} />
-			),
-			formData: {
-				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "weekly"),
-			},
-		},
-		{
-			title: "Analisi mensile",
+			title: "Analisi ingressi",
+			description:
+				"Serie temporale degli Ingressi per granularità di periodo (giornaliero, settimanale, mensile, annuale).",
 			icon: BarChartIcon,
 			dialogContent: (
-				<DateRangePickerField
-					onSubmit={(values) => handleAnalytics(values, "monthly")}
-					formData={analyticsFormData}
-				/>
+				<>
+					<FormField
+						name="periodType"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Tipo periodo</FormLabel>
+								<Select value={field.value} onValueChange={field.onChange}>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue placeholder="Seleziona granularità" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										{PERIOD_TYPES.map((type) => (
+											<SelectItem key={type} value={type}>
+												{PERIOD_TYPE_LABELS[type]}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						name="date"
+						render={({ field }) => (
+							<FormItem className="w-full flex flex-col gap-2">
+								<FormLabel>Seleziona periodo</FormLabel>
+								<Popover>
+									<PopoverTrigger asChild>
+										<FormControl>
+											<Button
+												variant={"outline"}
+												className={cn(
+													"w-[300px] justify-start text-left font-normal",
+													!field.value && "text-muted-foreground"
+												)}
+											>
+												<CalendarIcon className="mr-2 h-4 w-4" />
+												{field.value?.from ? (
+													field.value.to ? (
+														<>
+															{formatDateIt(field.value.from)} -{" "}
+															{formatDateIt(field.value.to)}
+														</>
+													) : (
+														formatDateIt(field.value.from)
+													)
+												) : (
+													<span>Seleziona un intervallo di date</span>
+												)}
+											</Button>
+										</FormControl>
+									</PopoverTrigger>
+									<PopoverContent className="w-auto p-0" align="start">
+										<Calendar
+											initialFocus
+											mode="range"
+											defaultMonth={field.value?.from}
+											selected={field.value}
+											onSelect={field.onChange}
+											numberOfMonths={2}
+										/>
+									</PopoverContent>
+								</Popover>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</>
 			),
-			formData: {
-				...analyticsFormData,
-				submitAction: (values) => handleAnalytics(values, "monthly"),
-			},
+			formData: analyticsFormData,
 		},
 	];
 
@@ -280,128 +349,76 @@ export default function EntrancesPage() {
 					/>
 				}
 			/>
-			<Sheet open={isDailySheetOpen} onOpenChange={setIsDailySheetOpen}>
-				<SheetContent side="bottom" className="h-[450px]">
+			<Sheet open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
+				<SheetContent side="bottom" className="h-[480px]">
 					<SheetHeader>
-						<SheetTitle>Analisi ingressi giornaliera</SheetTitle>
+						<SheetTitle>Analisi ingressi</SheetTitle>
 						<SheetDescription>
-							{selectedDateRange &&
-								`Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)}`}
+							{selectedDateRange
+								? `Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)} · ${PERIOD_TYPE_LABELS[periodType]}`
+								: "Conteggi Ingresso aggregati per tipo periodo"}
 						</SheetDescription>
 					</SheetHeader>
-					<div className="h-[350px] mt-4">
-						<ResponsiveContainer width="100%" height="100%">
-							<BarChart data={dailyData}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="hourOfDay" />
-								<YAxis />
-								<Tooltip />
-								<Bar dataKey="totalEntrances" name="Ingressi" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-							</BarChart>
-						</ResponsiveContainer>
+					<div className="mt-3 flex items-center gap-3">
+						<Label htmlFor="ingressi-period-type" className="shrink-0">
+							Tipo periodo
+						</Label>
+						<Select
+							value={periodType}
+							onValueChange={(value) => handlePeriodTypeChange(value as PeriodType)}
+							disabled={analyticsLoading || !selectedDateRange}
+						>
+							<SelectTrigger id="ingressi-period-type" className="w-[200px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{PERIOD_TYPES.map((type) => (
+									<SelectItem key={type} value={type}>
+										{PERIOD_TYPE_LABELS[type]}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
-				</SheetContent>
-			</Sheet>
-			<Sheet open={isWeeklySheetOpen} onOpenChange={setIsWeeklySheetOpen}>
-				<SheetContent side="bottom" className="h-[450px]">
-					<SheetHeader>
-						<SheetTitle>Analisi ingressi settimanale</SheetTitle>
-						<SheetDescription>
-							{selectedDateRange &&
-								`Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)}`}
-						</SheetDescription>
-					</SheetHeader>
-					<div className="h-[350px] mt-4">
-						<ResponsiveContainer width="100%" height="100%">
-							<BarChart data={weeklyData}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="dayOfWeek" />
-								<YAxis />
-								<Tooltip />
-								<Bar dataKey="totalEntrances" name="Ingressi" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-							</BarChart>
-						</ResponsiveContainer>
-					</div>
-				</SheetContent>
-			</Sheet>
-			<Sheet open={isMonthlySheetOpen} onOpenChange={setIsMonthlySheetOpen}>
-				<SheetContent side="bottom" className="h-[450px]">
-					<SheetHeader>
-						<SheetTitle>Analisi ingressi mensile</SheetTitle>
-						<SheetDescription>
-							{selectedDateRange &&
-								`Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)}`}
-						</SheetDescription>
-					</SheetHeader>
-					<div className="h-[350px] mt-4">
-						<ResponsiveContainer width="100%" height="100%">
-							<BarChart data={monthlyData}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="month" />
-								<YAxis />
-								<Tooltip />
-								<Bar dataKey="totalEntrances" name="Ingressi" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-							</BarChart>
-						</ResponsiveContainer>
+					<div className="mt-4 h-[320px]">
+						{analyticsLoading ? (
+							<TableLoadingState />
+						) : analyticsError ? (
+							<TableErrorState
+								message={analyticsError}
+								onRetry={() => {
+									if (!selectedDateRange) return;
+									void loadEntranceAnalytics(
+										selectedDateRange.from,
+										selectedDateRange.to,
+										periodType
+									);
+								}}
+							/>
+						) : !hasEntrances ? (
+							<TableEmptyState
+								title="Nessun ingresso nel periodo"
+								hint="Registra un Ingresso oppure amplia l'intervallo di date."
+							/>
+						) : (
+							<ResponsiveContainer width="100%" height="100%">
+								<BarChart data={analyticsData}>
+									<CartesianGrid strokeDasharray="3 3" />
+									<XAxis dataKey="label" interval="preserveStartEnd" minTickGap={24} />
+									<YAxis allowDecimals={false} />
+									<Tooltip />
+									<Bar
+										dataKey="totalEntrances"
+										name="Ingressi"
+										fill="#3b82f6"
+										radius={[4, 4, 0, 0]}
+									/>
+								</BarChart>
+							</ResponsiveContainer>
+						)}
 					</div>
 				</SheetContent>
 			</Sheet>
 		</>
-	);
-}
-
-function DateRangePickerField({
-	onSubmit,
-	formData,
-}: {
-	onSubmit: (values: z.infer<typeof analyticsFormSchema>) => void;
-	formData: FormData<typeof analyticsFormSchema>;
-}) {
-	return (
-		<FormField
-			name="date"
-			render={({ field }) => (
-				<FormItem className="w-full flex flex-col gap-2">
-					<FormLabel>Seleziona periodo</FormLabel>
-					<Popover>
-						<PopoverTrigger asChild>
-							<FormControl>
-								<Button
-									variant={"outline"}
-									className={cn(
-										"w-[300px] justify-start text-left font-normal",
-										!field.value && "text-muted-foreground"
-									)}
-								>
-									<CalendarIcon className="mr-2 h-4 w-4" />
-									{field.value?.from ? (
-										field.value.to ? (
-											<>
-												{formatDateIt(field.value.from)} - {formatDateIt(field.value.to)}
-											</>
-										) : (
-											formatDateIt(field.value.from)
-										)
-									) : (
-										<span>Seleziona un intervallo di date</span>
-									)}
-								</Button>
-							</FormControl>
-						</PopoverTrigger>
-						<PopoverContent className="w-auto p-0" align="start">
-							<Calendar
-								initialFocus
-								mode="range"
-								defaultMonth={field.value?.from}
-								selected={field.value}
-								onSelect={field.onChange}
-								numberOfMonths={2}
-							/>
-						</PopoverContent>
-					</Popover>
-					<FormMessage />
-				</FormItem>
-			)}
-		/>
 	);
 }

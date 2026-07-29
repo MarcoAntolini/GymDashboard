@@ -20,6 +20,11 @@ import {
 	ENTRANCE_FILTER_ALLOWLIST,
 	ENTRANCE_SORT_ALLOWLIST,
 } from "@/lib/list/entrances";
+import {
+	aggregateByPeriod,
+	normalizeInclusiveRange,
+	type PeriodType,
+} from "@/lib/period-aggregation";
 import { Prisma } from "@prisma/client";
 
 const entranceInclude = {
@@ -241,113 +246,49 @@ export async function deleteEntrance({ id }: { id: number }) {
 	});
 }
 
-type DailyEntrances = {
-	hourOfDay: string;
-	totalEntrances: number;
-};
-type WeeklyEntrances = {
-	dayOfWeek: string;
-	totalEntrances: number;
-};
-type MonthlyEntrances = {
-	month: string;
+export type EntrancePeriodPoint = {
+	key: string;
+	label: string;
 	totalEntrances: number;
 };
 
-export async function getDailyEntrances(startDate: Date, endDate: Date): Promise<DailyEntrances[]> {
-	const entrances = await db.entrance.groupBy({
-		by: ["date"],
-		_count: {
-			date: true,
-		},
-		where: {
-			date: {
-				gte: startDate,
-				lte: endDate,
-			},
-		},
-	});
-	const totalEntrances = new Array(24).fill(0);
-	for (const entrance of entrances) {
-		const hour = entrance.date.getHours();
-		totalEntrances[hour] += entrance._count.date;
-	}
-	return Array.from({ length: 24 }, (_, hour) => ({
-		hourOfDay: `${hour.toString().padStart(2, "0")}:00`,
-		totalEntrances: totalEntrances[hour],
-	}));
-}
-
-export async function getWeeklyEntrances(startDate: Date, endDate: Date): Promise<WeeklyEntrances[]> {
-	const entrances = await db.entrance.groupBy({
-		by: ["date"],
-		_count: {
-			date: true,
-		},
-		where: {
-			date: {
-				gte: startDate,
-				lte: endDate,
-			},
-		},
-	});
-	const weekdays = [
-		"Domenica",
-		"Lunedì",
-		"Martedì",
-		"Mercoledì",
-		"Giovedì",
-		"Venerdì",
-		"Sabato",
-	];
-	const weekdayCounts = new Array(7).fill(0);
-	for (const entrance of entrances) {
-		const day = entrance.date.getDay();
-		weekdayCounts[day] += entrance._count.date;
-	}
-	return weekdays.map((day, index) => ({
-		dayOfWeek: day,
-		totalEntrances: weekdayCounts[index],
-	}));
-}
-
-export async function getMonthlyEntrances(
+/**
+ * Serie temporale Ingressi sulla granularità di periodo scelta
+ * (giornaliero / settimanale / mensile / annuale) — non distribuzione ora/weekday.
+ */
+export async function getEntrancesByPeriod(
 	startDate: Date,
-	endDate: Date
-): Promise<MonthlyEntrances[]> {
-	const entrances = await db.entrance.groupBy({
-		by: ["date"],
-		_count: {
-			date: true,
-		},
+	endDate: Date,
+	periodType: PeriodType
+): Promise<EntrancePeriodPoint[]> {
+	const { from, to } = normalizeInclusiveRange(startDate, endDate);
+	const rows = await db.entrance.findMany({
 		where: {
 			date: {
-				gte: startDate,
-				lte: endDate,
+				gte: from,
+				lte: to,
 			},
 		},
+		select: { date: true },
 	});
-	const months = [
-		"Gennaio",
-		"Febbraio",
-		"Marzo",
-		"Aprile",
-		"Maggio",
-		"Giugno",
-		"Luglio",
-		"Agosto",
-		"Settembre",
-		"Ottobre",
-		"Novembre",
-		"Dicembre",
-	];
-	const monthCounts = new Array(12).fill(0);
-	for (const entrance of entrances) {
-		const month = entrance.date.getMonth();
-		monthCounts[month] += entrance._count.date;
-	}
-	return months.map((month, index) => ({
-		month: month,
-		totalEntrances: monthCounts[index],
+	return aggregateByPeriod(rows, (row) => row.date, from, to, periodType).map((point) => ({
+		key: point.key,
+		label: point.label,
+		totalEntrances: point.value,
 	}));
+}
+
+/** @deprecated Preferisci getEntrancesByPeriod(..., "daily"). */
+export async function getDailyEntrances(startDate: Date, endDate: Date) {
+	return getEntrancesByPeriod(startDate, endDate, "daily");
+}
+
+/** @deprecated Preferisci getEntrancesByPeriod(..., "weekly"). */
+export async function getWeeklyEntrances(startDate: Date, endDate: Date) {
+	return getEntrancesByPeriod(startDate, endDate, "weekly");
+}
+
+/** @deprecated Preferisci getEntrancesByPeriod(..., "monthly"). */
+export async function getMonthlyEntrances(startDate: Date, endDate: Date) {
+	return getEntrancesByPeriod(startDate, endDate, "monthly");
 }
