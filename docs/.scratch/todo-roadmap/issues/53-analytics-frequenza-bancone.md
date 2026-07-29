@@ -4,10 +4,23 @@
 
 **Blocked by:** 52 — Analytics: cassa + mix prodotti
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Aggregati Ingressi per ora / giorno settimana / mese
-- [ ] Volume Ingressi e Acquisti per giorno nel periodo
-- [ ] UI collegata a Panoramica e/o tabella analytics relativa
+- [x] Aggregati Ingressi per ora / giorno settimana / mese
+- [x] Volume Ingressi e Acquisti per giorno nel periodo
+- [x] UI collegata a Panoramica e/o tabella analytics relativa
 
 **Source:** `docs/.scratch/analytics/issues/12-analytics-frequenza-bancone.md`
+
+## Comments
+
+- 2026-07-30 — claimed by implement loop
+
+## Done
+
+- `frequency-aggregation.ts`: aggregati Ingressi per ora / weekday ISO / mese-dell'anno + volume giornaliero Ingressi+Acquisti.
+- `getEntranceFrequencyAndBancone` in `entrances.ts`; `getOverviewStats` espone `entranceFrequency` + `banconeDaily`.
+- Panoramica `/`: sezione Frequenza Ingressi + carico bancone (chart).
+- Sheet Analisi ingressi: frequenza (3 chart) + dual-bar bancone sotto la serie PeriodType.
+- Smoke: `scripts/verify-frequency-aggregation.ts`.
+- Deferral: fidelizzazione → ticket **54**.

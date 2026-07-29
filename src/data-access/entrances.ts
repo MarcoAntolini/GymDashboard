@@ -21,6 +21,13 @@ import {
 	ENTRANCE_SORT_ALLOWLIST,
 } from "@/lib/list/entrances";
 import {
+	aggregateBanconeDaily,
+	computeEntranceFrequency,
+	type BanconeDailyPoint,
+	type EntranceFrequency,
+	type FrequencyPoint,
+} from "@/lib/frequency-aggregation";
+import {
 	aggregateByPeriod,
 	normalizeInclusiveRange,
 	type PeriodType,
@@ -47,7 +54,7 @@ function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	}
 	if (typeof raw === "string") {
 		const trimmed = raw.trim();
-		// Solo intero completo (niente prefissi parziali tipo "7" → 7).
+		// Solo intero completo (niente prefissi parziali tipo "7" â†’ 7).
 		if (!/^\d+$/.test(trimmed)) return undefined;
 		const n = Number.parseInt(trimmed, 10);
 		return Number.isFinite(n) && n > 0 ? n : undefined;
@@ -205,7 +212,7 @@ export async function registerEntrance(clientId: number, date?: Date) {
 	);
 }
 
-/** @deprecated Usa registerEntrance — creato solo per compatibilità di naming. */
+/** @deprecated Usa registerEntrance â€” creato solo per compatibilitÃ  di naming. */
 export async function createEntrance({
 	clientId,
 	date,
@@ -253,8 +260,8 @@ export type EntrancePeriodPoint = {
 };
 
 /**
- * Serie temporale Ingressi sulla granularità di periodo scelta
- * (giornaliero / settimanale / mensile / annuale) — non distribuzione ora/weekday.
+ * Serie temporale Ingressi sulla granularitÃ  di periodo scelta
+ * (giornaliero / settimanale / mensile / annuale) â€” non distribuzione ora/weekday.
  */
 export async function getEntrancesByPeriod(
 	startDate: Date,
@@ -291,4 +298,39 @@ export async function getWeeklyEntrances(startDate: Date, endDate: Date) {
 /** @deprecated Preferisci getEntrancesByPeriod(..., "monthly"). */
 export async function getMonthlyEntrances(startDate: Date, endDate: Date) {
 	return getEntrancesByPeriod(startDate, endDate, "monthly");
+}
+
+export type { BanconeDailyPoint, EntranceFrequency, FrequencyPoint };
+
+export type EntranceFrequencyBundle = EntranceFrequency & {
+	banconeDaily: BanconeDailyPoint[];
+};
+
+/**
+ * Frequenza Ingressi (ora / weekday / mese) + volume Ingressi/Acquisti per giorno.
+ * Dimensioni separate dalla serie PeriodType di getEntrancesByPeriod.
+ */
+export async function getEntranceFrequencyAndBancone(
+	startDate: Date,
+	endDate: Date
+): Promise<EntranceFrequencyBundle> {
+	const { from, to } = normalizeInclusiveRange(startDate, endDate);
+	const dateFilter = { gte: from, lte: to };
+	const [entrances, purchases] = await Promise.all([
+		db.entrance.findMany({
+			where: { date: dateFilter },
+			select: { date: true },
+		}),
+		db.purchase.findMany({
+			where: { date: dateFilter },
+			select: { date: true },
+		}),
+	]);
+	const entranceDates = entrances.map((row) => row.date);
+	const purchaseDates = purchases.map((row) => row.date);
+	const frequency = computeEntranceFrequency(entranceDates);
+	return {
+		...frequency,
+		banconeDaily: aggregateBanconeDaily(entranceDates, purchaseDates, from, to),
+	};
 }

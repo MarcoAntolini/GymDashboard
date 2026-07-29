@@ -17,9 +17,11 @@ import { getAllClients } from "@/data-access/clients";
 import {
 	deleteEntrance,
 	editEntrance,
+	getEntranceFrequencyAndBancone,
 	getEntrancesByPeriod,
 	listEntrances,
 	registerEntrance,
+	type EntranceFrequencyBundle,
 	type EntrancePeriodPoint,
 	type EntranceRow,
 } from "@/data-access/entrances";
@@ -39,7 +41,7 @@ import {
 import { cn } from "@/lib/utils";
 import { BarChart as BarChartIcon, CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { z } from "zod";
 import { ClientOption, columns, formSchema } from "./columns";
@@ -89,6 +91,7 @@ export default function EntrancesPage() {
 	);
 	const [periodType, setPeriodType] = useState<PeriodType>("weekly");
 	const [analyticsData, setAnalyticsData] = useState<EntrancePeriodPoint[]>([]);
+	const [frequencyBundle, setFrequencyBundle] = useState<EntranceFrequencyBundle | null>(null);
 	const [analyticsLoading, setAnalyticsLoading] = useState(false);
 	const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
@@ -120,8 +123,12 @@ export default function EntrancesPage() {
 			setAnalyticsLoading(true);
 			setAnalyticsError(null);
 			try {
-				const points = await getEntrancesByPeriod(from, to, type);
+				const [points, frequency] = await Promise.all([
+					getEntrancesByPeriod(from, to, type),
+					getEntranceFrequencyAndBancone(from, to),
+				]);
 				setAnalyticsData(points);
+				setFrequencyBundle(frequency);
 			} catch (error) {
 				const message =
 					error instanceof Error && error.message
@@ -129,6 +136,7 @@ export default function EntrancesPage() {
 						: "Impossibile caricare l'analisi ingressi.";
 				setAnalyticsError(message);
 				setAnalyticsData([]);
+				setFrequencyBundle(null);
 			} finally {
 				setAnalyticsLoading(false);
 			}
@@ -227,7 +235,7 @@ export default function EntrancesPage() {
 		{
 			title: "Analisi ingressi",
 			description:
-				"Serie temporale degli Ingressi per granularità di periodo (giornaliero, settimanale, mensile, annuale).",
+				"Serie temporale Ingressi, picchi di affluenza (ora / weekday / mese) e carico bancone Ingressi + Acquisti per giorno.",
 			icon: BarChartIcon,
 			dialogContent: (
 				<>
@@ -350,13 +358,13 @@ export default function EntrancesPage() {
 				}
 			/>
 			<Sheet open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
-				<SheetContent side="bottom" className="h-[480px]">
+				<SheetContent side="bottom" className="h-[min(90vh,780px)] overflow-y-auto">
 					<SheetHeader>
 						<SheetTitle>Analisi ingressi</SheetTitle>
 						<SheetDescription>
 							{selectedDateRange
 								? `Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)} · ${PERIOD_TYPE_LABELS[periodType]}`
-								: "Conteggi Ingresso aggregati per tipo periodo"}
+								: "Serie temporale, frequenza affluenza e carico bancone"}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="mt-3 flex items-center gap-3">
@@ -380,7 +388,7 @@ export default function EntrancesPage() {
 							</SelectContent>
 						</Select>
 					</div>
-					<div className="mt-4 h-[320px]">
+					<div className="mt-4 h-[240px]">
 						{analyticsLoading ? (
 							<TableLoadingState />
 						) : analyticsError ? (
@@ -417,6 +425,87 @@ export default function EntrancesPage() {
 							</ResponsiveContainer>
 						)}
 					</div>
+					{!analyticsLoading && !analyticsError && frequencyBundle ? (
+						<div className="mt-6 flex flex-col gap-6 pb-4">
+							<div>
+								<p className="mb-1 text-sm font-medium">Frequenza affluenza</p>
+								<p className="mb-3 text-sm text-muted-foreground">
+									Distribuzione Ingressi per ora, giorno della settimana e mese.
+								</p>
+								<div className="grid gap-4 md:grid-cols-3">
+									<div className="h-[180px]">
+										<p className="mb-1 text-xs font-medium text-muted-foreground">Ora</p>
+										<ResponsiveContainer width="100%" height="100%">
+											<BarChart data={frequencyBundle.byHour}>
+												<XAxis dataKey="label" interval={3} tick={{ fontSize: 10 }} />
+												<YAxis allowDecimals={false} width={28} tick={{ fontSize: 10 }} />
+												<Tooltip />
+												<Bar dataKey="count" name="Ingressi" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+											</BarChart>
+										</ResponsiveContainer>
+									</div>
+									<div className="h-[180px]">
+										<p className="mb-1 text-xs font-medium text-muted-foreground">
+											Giorno settimana
+										</p>
+										<ResponsiveContainer width="100%" height="100%">
+											<BarChart data={frequencyBundle.byWeekday}>
+												<XAxis dataKey="label" tick={{ fontSize: 10 }} />
+												<YAxis allowDecimals={false} width={28} tick={{ fontSize: 10 }} />
+												<Tooltip />
+												<Bar dataKey="count" name="Ingressi" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+											</BarChart>
+										</ResponsiveContainer>
+									</div>
+									<div className="h-[180px]">
+										<p className="mb-1 text-xs font-medium text-muted-foreground">Mese</p>
+										<ResponsiveContainer width="100%" height="100%">
+											<BarChart data={frequencyBundle.byMonth}>
+												<XAxis dataKey="label" interval={1} tick={{ fontSize: 10 }} />
+												<YAxis allowDecimals={false} width={28} tick={{ fontSize: 10 }} />
+												<Tooltip />
+												<Bar dataKey="count" name="Ingressi" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+											</BarChart>
+										</ResponsiveContainer>
+									</div>
+								</div>
+							</div>
+							<div>
+								<p className="mb-1 text-sm font-medium">Carico bancone</p>
+								<p className="mb-3 text-sm text-muted-foreground">
+									Volume Ingressi e Acquisti per giorno nel periodo scelto.
+								</p>
+								<div className="h-[220px]">
+									<ResponsiveContainer width="100%" height="100%">
+										<BarChart data={frequencyBundle.banconeDaily}>
+											<CartesianGrid strokeDasharray="3 3" />
+											<XAxis
+												dataKey="label"
+												interval="preserveStartEnd"
+												minTickGap={20}
+												tick={{ fontSize: 10 }}
+											/>
+											<YAxis allowDecimals={false} width={28} tick={{ fontSize: 10 }} />
+											<Tooltip />
+											<Legend />
+											<Bar
+												dataKey="ingressi"
+												name="Ingressi"
+												fill="#3b82f6"
+												radius={[3, 3, 0, 0]}
+											/>
+											<Bar
+												dataKey="acquisti"
+												name="Acquisti"
+												fill="#64748b"
+												radius={[3, 3, 0, 0]}
+											/>
+										</BarChart>
+									</ResponsiveContainer>
+								</div>
+							</div>
+						</div>
+					) : null}
 				</SheetContent>
 			</Sheet>
 		</>

@@ -5,6 +5,12 @@ import { db } from "@/lib/db";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { PRODUCT_KIND_LABEL, ProductKind, productKindFromSnapshot } from "@/lib/domain/product-kind";
 import {
+	aggregateBanconeDaily,
+	computeEntranceFrequency,
+	type BanconeDailyPoint,
+	type EntranceFrequency,
+} from "@/lib/frequency-aggregation";
+import {
 	isOverviewPeriodPreset,
 	overviewPeriodCaption,
 	rangeForOverviewPreset,
@@ -36,9 +42,13 @@ export type OverviewStats = {
 	ingressiCount: number;
 	entrateByKind: OverviewBreakdownRow[];
 	usciteByType: OverviewBreakdownRow[];
-	/** Ranking prodotti per ricavo (poi quantità) nel periodo. */
+	/** Ranking prodotti per ricavo (poi quantita) nel periodo. */
 	productRanking: ProductRankingRow[];
-	/** Nessun Acquisto, Pagamento né Ingresso nel periodo. */
+	/** Picchi affluenza Ingressi (ora / weekday / mese-dell'anno). */
+	entranceFrequency: EntranceFrequency;
+	/** Volume operativo Ingressi + Acquisti per giorno. */
+	banconeDaily: BanconeDailyPoint[];
+	/** Nessun Acquisto, Pagamento ne Ingresso nel periodo. */
 	isEmpty: boolean;
 };
 
@@ -65,25 +75,41 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 	const { from, to } = rangeForOverviewPreset(preset);
 	const dateFilter = { gte: from, lte: to };
 
-	const [purchases, payments, ingressiCount] = await Promise.all([
+	const [purchases, payments, entrances] = await Promise.all([
 		db.purchase.findMany({
 			where: { date: dateFilter },
-			select: { amount: true, productCode: true, duration: true, entranceNumber: true },
+			select: {
+				amount: true,
+				productCode: true,
+				duration: true,
+				entranceNumber: true,
+				date: true,
+			},
 		}),
 		db.payment.findMany({
 			where: { date: dateFilter },
 			select: { amount: true, type: true },
 		}),
-		db.entrance.count({
+		db.entrance.findMany({
 			where: { date: dateFilter },
+			select: { date: true },
 		}),
 	]);
+	const ingressiCount = entrances.length;
+	const entranceDates = entrances.map((row) => row.date);
+	const purchaseDates = purchases.map((row) => row.date);
+	const entranceFrequency = computeEntranceFrequency(entranceDates);
+	const banconeDaily = aggregateBanconeDaily(entranceDates, purchaseDates, from, to);
 
-	const entrateByKindMap = new Map<ProductKind, { amount: number; count: number }>(
+	const entrateByKindMap = new Map(
 		PURCHASE_KIND_ORDER.map((kind) => [kind, { amount: 0, count: 0 }])
 	);
-	const rankingInput: { productCode: string; amount: number; duration: number | null; entranceNumber: number | null }[] =
-		[];
+	const rankingInput: {
+		productCode: string;
+		amount: number;
+		duration: number | null;
+		entranceNumber: number | null;
+	}[] = [];
 	let entrate = 0;
 	for (const row of purchases) {
 		const amount = Number(row.amount);
@@ -102,7 +128,7 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 	}
 	const productRanking = rankProductsByRevenue(rankingInput);
 
-	const usciteByTypeMap = new Map<PaymentType, { amount: number; count: number }>(
+	const usciteByTypeMap = new Map(
 		PAYMENT_TYPE_ORDER.map((type) => [type, { amount: 0, count: 0 }])
 	);
 	let uscite = 0;
@@ -147,6 +173,8 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 		entrateByKind,
 		usciteByType,
 		productRanking,
+		entranceFrequency,
+		banconeDaily,
 		isEmpty: purchases.length === 0 && payments.length === 0 && ingressiCount === 0,
 	};
 }

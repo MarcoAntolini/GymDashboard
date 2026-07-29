@@ -22,6 +22,7 @@ import {
 	type ProductRankingRow,
 } from "@/data-access/overview";
 import { ProductKind } from "@/lib/domain/product-kind";
+import type { BanconeDailyPoint, FrequencyPoint } from "@/lib/frequency-aggregation";
 import { formatEur } from "@/lib/format";
 import {
 	isOverviewPeriodPreset,
@@ -30,6 +31,16 @@ import {
 } from "@/lib/overview-period";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import {
+	Bar,
+	BarChart,
+	CartesianGrid,
+	Legend,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from "recharts";
 
 function kindTone(kind: ProductKind): "info" | "primary" {
 	return kind === ProductKind.Membership ? "info" : "primary";
@@ -123,6 +134,92 @@ function ProductRankingTable({ rows }: { rows: ProductRankingRow[] }) {
 	);
 }
 
+function FrequencyBarChart({
+	caption,
+	rows,
+	compactLabels,
+}: {
+	caption: string;
+	rows: FrequencyPoint[];
+	compactLabels?: boolean;
+}) {
+	const hasData = rows.some((row) => row.count > 0);
+	return (
+		<div className="min-w-0">
+			<p className="mb-2 text-sm font-medium text-foreground">{caption}</p>
+			{!hasData ? (
+				<p className="text-sm text-muted-foreground">Nessun Ingresso nel periodo.</p>
+			) : (
+				<div className="h-[200px]">
+					<ResponsiveContainer width="100%" height="100%">
+						<BarChart data={rows}>
+							<CartesianGrid strokeDasharray="3 3" />
+							<XAxis
+								dataKey="label"
+								interval={compactLabels ? 2 : 0}
+								tick={{ fontSize: 11 }}
+								minTickGap={8}
+							/>
+							<YAxis allowDecimals={false} width={32} tick={{ fontSize: 11 }} />
+							<Tooltip />
+							<Bar dataKey="count" name="Ingressi" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+						</BarChart>
+					</ResponsiveContainer>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function BanconeDailyChart({ rows }: { rows: BanconeDailyPoint[] }) {
+	const hasData = rows.some((row) => row.ingressi > 0 || row.acquisti > 0);
+	const chartData = rows.map((row) => ({
+		...row,
+		axisLabel: row.label.replace(/\s+\d{4}$/, ""),
+	}));
+	return (
+		<div className="min-w-0">
+			<p className="mb-2 text-sm font-medium text-foreground">
+				Carico bancone (Ingressi e Acquisti per giorno)
+			</p>
+			{!hasData ? (
+				<p className="text-sm text-muted-foreground">
+					Nessun Ingresso né Acquisto nel periodo.
+				</p>
+			) : (
+				<div className="h-[240px]">
+					<ResponsiveContainer width="100%" height="100%">
+						<BarChart data={chartData}>
+							<CartesianGrid strokeDasharray="3 3" />
+							<XAxis
+								dataKey="axisLabel"
+								interval="preserveStartEnd"
+								minTickGap={20}
+								tick={{ fontSize: 11 }}
+							/>
+							<YAxis allowDecimals={false} width={32} tick={{ fontSize: 11 }} />
+							<Tooltip />
+							<Legend />
+							<Bar
+								dataKey="ingressi"
+								name="Ingressi"
+								fill="#3b82f6"
+								radius={[3, 3, 0, 0]}
+							/>
+							<Bar
+								dataKey="acquisti"
+								name="Acquisti"
+								fill="#64748b"
+								radius={[3, 3, 0, 0]}
+							/>
+						</BarChart>
+					</ResponsiveContainer>
+				</div>
+			)}
+		</div>
+	);
+}
+
 function OverviewBody({ stats }: { stats: OverviewStats }) {
 	return (
 		<div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
@@ -196,10 +293,35 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 
 			<ProductRankingTable rows={stats.productRanking} />
 
+			<section className="flex flex-col gap-6 border-t pt-6">
+				<div>
+					<p className="text-sm font-medium text-foreground">Frequenza Ingressi</p>
+					<p className="text-sm text-muted-foreground">
+						Picchi di affluenza per ora, giorno della settimana e mese.
+					</p>
+				</div>
+				<div className="grid gap-6 md:grid-cols-2">
+					<FrequencyBarChart
+						caption="Per ora del giorno"
+						rows={stats.entranceFrequency.byHour}
+						compactLabels
+					/>
+					<FrequencyBarChart
+						caption="Per giorno della settimana"
+						rows={stats.entranceFrequency.byWeekday}
+					/>
+				</div>
+				<FrequencyBarChart
+					caption="Per mese dell'anno"
+					rows={stats.entranceFrequency.byMonth}
+				/>
+				<BanconeDailyChart rows={stats.banconeDaily} />
+			</section>
+
 			<div className="flex flex-wrap items-center gap-2 border-t pt-4">
 				<p className="mr-2 text-sm text-muted-foreground">Vai a</p>
 				<Button asChild variant="ghost" size="sm">
-					<Link href="/entrances">Ingressi</Link>
+					<Link href="/entrances">Ingressi · Analisi frequenza</Link>
 				</Button>
 				<Button asChild variant="ghost" size="sm">
 					<Link href="/purchases">Acquisti · Analisi entrate</Link>
