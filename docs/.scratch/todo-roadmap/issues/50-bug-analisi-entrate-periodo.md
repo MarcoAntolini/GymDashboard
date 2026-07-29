@@ -21,4 +21,5 @@
 - `getEntrateByPeriod` su Acquisti: importi (e conteggi) aggregati per tipo periodo; UI **Analisi entrate** su `/purchases` con select periodo, chart, loading/error/empty e re-fetch al cambio tipo.
 - Allineata anche l’analisi Ingressi (`getEntrancesByPeriod` + UI unificata): prima confondeva “giornaliero/settimanale/mensile” con distribuzione ora/weekday/mese-anno (fuori scope frequenza → ticket 53).
 - Smoke: `scripts/verify-period-aggregation.ts` (ok).
+- Commit: `6ad0fa6`
 - Deferral: Panoramica home Entrate/Uscite resta ticket 51 (riusa gli helper periodo).
