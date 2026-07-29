@@ -388,22 +388,29 @@ export default function Contracts() {
 				}
 			/>
 			<Sheet open={isEarningsSheetOpen} onOpenChange={() => setIsEarningsSheetOpen(false)}>
-				<SheetContent side="bottom">
-					<SheetHeader className="mb-6">
+				<SheetContent
+					side="bottom"
+					className="flex h-[85vh] max-h-[85vh] flex-col gap-4 overflow-hidden"
+				>
+					<SheetHeader className="shrink-0 space-y-1 pr-8">
 						<SheetTitle>
 							{selectedDateRange
 								? `Guadagni dipendenti: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)}`
 								: "Guadagni dipendenti"}
 						</SheetTitle>
-						<SheetDescription></SheetDescription>
+						<SheetDescription className="sr-only">
+							Risultati del calcolo guadagni per i Dipendenti nel periodo selezionato.
+						</SheetDescription>
 					</SheetHeader>
-					<DataTable
-						columns={earningsColumns()}
-						data={earningsData}
-						filters={["employee", "taxCode"]}
-						filterLabels={{ employee: "Dipendente", taxCode: "CF" }}
-						className="[&_tr_td:last-child]:hidden [&_tr_th:last-child]:hidden"
-					/>
+					<div className="min-h-0 min-w-0 flex-1">
+						<DataTable
+							columns={earningsColumns()}
+							data={earningsData}
+							filters={["employee", "taxCode"]}
+							filterLabels={{ employee: "Dipendente", taxCode: "CF" }}
+							className="[&_tr_td:last-child]:hidden [&_tr_th:last-child]:hidden"
+						/>
+					</div>
 				</SheetContent>
 			</Sheet>
 		</>
