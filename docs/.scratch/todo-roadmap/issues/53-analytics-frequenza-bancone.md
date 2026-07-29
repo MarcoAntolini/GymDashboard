@@ -23,4 +23,5 @@
 - Panoramica `/`: sezione Frequenza Ingressi + carico bancone (chart).
 - Sheet Analisi ingressi: frequenza (3 chart) + dual-bar bancone sotto la serie PeriodType.
 - Smoke: `scripts/verify-frequency-aggregation.ts`.
+- Commit: `2b08f8e`.
 - Deferral: fidelizzazione → ticket **54**.
