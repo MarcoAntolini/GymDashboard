@@ -32,8 +32,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Contract, ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { formatPersonLabel } from "@/lib/domain/labels";
 import { formatDateIt, formatEur } from "@/lib/format";
-import { Calculator, Calendar as CalendarIcon, PlusCircle } from "lucide-react";
+import { Calculator, Calendar as CalendarIcon, IdCard, PlusCircle, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -399,7 +400,8 @@ export default function Contracts() {
 					<DataTable
 						columns={earningsColumns()}
 						data={earningsData}
-						filters={["employeeId"]}
+						filters={["employee", "taxCode"]}
+						filterLabels={{ employee: "Dipendente", taxCode: "CF" }}
 						className="[&_tr_td:last-child]:hidden [&_tr_th:last-child]:hidden"
 					/>
 				</SheetContent>
@@ -410,28 +412,25 @@ export default function Contracts() {
 
 const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 	{
-		accessorKey: "employeeId",
-		header: ({ column }) => <TableSortableHeader column={column} title="ID Dipendente" />,
-		cell: ({ row }) => {
-			return <div>{row.original.employeeId.toString().padStart(4, "0")}</div>;
-		}
+		id: "employee",
+		accessorFn: (row) => formatPersonLabel(row.employee),
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dipendente" icon={User} />
+		),
+		cell: ({ row }) => (
+			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
+		),
 	},
-	// {
-	// 	accessorKey: "startingDate",
-	// 	header: ({ column }) => <TableSortableHeader column={column} title="Starting Date" />,
-	// 	cell: ({ row }) => {
-	// 		const date = new Date(row.getValue("startingDate"));
-	// 		return <div className="font-medium">{date.toLocaleDateString()}</div>;
-	// 	}
-	// },
-	// {
-	// 	accessorKey: "endingDate",
-	// 	header: ({ column }) => <TableSortableHeader column={column} title="Ending Date" />,
-	// 	cell: ({ row }) => {
-	// 		const date = new Date(row.getValue("endingDate"));
-	// 		return <div className="font-medium">{date.toLocaleDateString()}</div>;
-	// 	}
-	// },
+	{
+		id: "taxCode",
+		accessorFn: (row) => row.employee.taxCode,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="CF" icon={IdCard} />
+		),
+		cell: ({ row }) => (
+			<div className="text-muted-foreground">{row.original.employee.taxCode}</div>
+		),
+	},
 	{
 		accessorKey: "hourlyFee",
 		header: ({ column }) => <TableSortableHeader column={column} title="Compenso orario" />,
@@ -450,6 +449,6 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 	},
 	{
 		id: "actions",
-		cell: ({ row }) => {}
+		cell: () => null,
 	}
 ];

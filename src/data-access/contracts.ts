@@ -241,10 +241,17 @@ export async function deleteContract({ employeeId, startingDate }: { employeeId:
 	});
 }
 
+/** Anagrafica Dipendente utile in “Calcola guadagni” (non solo ID opaco). */
+export type EarningsEmployee = Pick<
+	Prisma.EmployeeGetPayload<object>,
+	"id" | "name" | "surname" | "taxCode"
+>;
+
 export type EmployeesEarningsInPeriod = {
 	employeeId: number;
+	employee: EarningsEmployee;
 	startingDate: Date;
-	endingDate: Date;
+	endingDate: Date | null;
 	hourlyFee: number;
 	totalEarnings: number;
 };
@@ -269,65 +276,69 @@ export async function getEmployeesEarningsInPeriod({
 			}
 		}
 	});
-	return (await db.contract
-		.findMany({
-			where: {
-				OR: [
-					{
-						startingDate: {
-							gte: startingDate,
-							lte: endingDate
-						}
+	const contracts = await db.contract.findMany({
+		where: {
+			OR: [
+				{
+					startingDate: {
+						gte: startingDate,
+						lte: endingDate
+					}
+				},
+				{
+					endingDate: {
+						gte: startingDate,
+						lte: endingDate
+					}
+				},
+				{
+					startingDate: {
+						lte: startingDate
 					},
-					{
-						endingDate: {
-							gte: startingDate,
-							lte: endingDate
-						}
-					},
-					{
-						startingDate: {
-							lte: startingDate
-						},
-						OR: [
-							{
-								endingDate: {
-									gte: endingDate
-								}
-							},
-							{
-								endingDate: null
+					OR: [
+						{
+							endingDate: {
+								gte: endingDate
 							}
-						]
-					}
-				]
-			}
-		})
-		.then((contracts) => {
-			return contracts.map((contract) => {
-				let totalHours = 0;
-				for (const clocking of clockings) {
-					if (clocking.employeeId === contract.employeeId) {
-						if (
-							clocking.entranceTime >= contract.startingDate &&
-							(contract.endingDate === null || clocking.entranceTime <= contract.endingDate)
-						) {
-							totalHours +=
-								((clocking.exitTime != null ? clocking.exitTime.getTime() : Date.now()) -
-									clocking.entranceTime.getTime()) /
-								1000 /
-								3600;
+						},
+						{
+							endingDate: null
 						}
-					}
+					]
 				}
-				const hourlyFee = Number(contract.hourlyFee);
-				return {
-					employeeId: contract.employeeId,
-					startingDate: contract.startingDate,
-					endingDate: contract.endingDate,
-					hourlyFee,
-					totalEarnings: hourlyFee * totalHours
-				};
-			});
-		})) as EmployeesEarningsInPeriod[];
+			]
+		},
+		include: {
+			employee: {
+				select: { id: true, name: true, surname: true, taxCode: true }
+			}
+		}
+	});
+
+	return contracts.map((contract) => {
+		let totalHours = 0;
+		for (const clocking of clockings) {
+			if (clocking.employeeId === contract.employeeId) {
+				if (
+					clocking.entranceTime >= contract.startingDate &&
+					(contract.endingDate === null || clocking.entranceTime <= contract.endingDate)
+				) {
+					totalHours +=
+						((clocking.exitTime != null ? clocking.exitTime.getTime() : Date.now()) -
+							clocking.entranceTime.getTime()) /
+						1000 /
+						3600;
+				}
+			}
+		}
+		const hourlyFee = Number(contract.hourlyFee);
+		return {
+			employeeId: contract.employeeId,
+			employee: contract.employee,
+			startingDate: contract.startingDate,
+			endingDate: contract.endingDate,
+			hourlyFee,
+			totalEarnings: hourlyFee * totalHours
+		};
+	});
 }
