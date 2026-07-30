@@ -75,6 +75,45 @@ async function main() {
 			"year filter exact match"
 		);
 		assert("product" in sample, "include product");
+
+		const byMembership = await listCatalogs({
+			filters: { kind: "Membership" },
+			page: 1,
+			pageSize: 10,
+		});
+		assert(
+			byMembership.items.every((m) => m.product.membership != null),
+			"kind Membership filter matches"
+		);
+
+		const byEntranceSet = await listCatalogs({
+			filters: { kind: "EntranceSet" },
+			page: 1,
+			pageSize: 10,
+		});
+		assert(
+			byEntranceSet.items.every((m) => m.product.entranceSet != null),
+			"kind EntranceSet filter matches"
+		);
+
+		const byBothKinds = await listCatalogs({
+			filters: { kind: ["Membership", "EntranceSet"] },
+			page: 1,
+			pageSize: 10,
+		});
+		assert(
+			byBothKinds.items.every(
+				(m) => m.product.membership != null || m.product.entranceSet != null
+			),
+			"kind multi-select filter matches"
+		);
+
+		const badKind = await listCatalogs({
+			filters: { kind: "NotAKind" },
+			page: 1,
+			pageSize: 10,
+		});
+		assert(badKind.total === page1.total, "invalid kind ignored in WHERE");
 	}
 
 	const badSort = await listCatalogs({

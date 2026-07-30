@@ -8,13 +8,18 @@ export const BILL_SORT_ALLOWLIST = [
 ] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
-export const BILL_FILTER_ALLOWLIST = ["provider", "paymentId"] as const;
+export const BILL_FILTER_ALLOWLIST = [
+	"provider",
+	"description",
+	"paymentId",
+] as const;
 
 export const BILL_FILTER_LABELS: Record<
 	(typeof BILL_FILTER_ALLOWLIST)[number],
 	string
 > = {
 	provider: "Fornitore",
+	description: "Descrizione",
 	paymentId: "ID Pagamento",
 };
 

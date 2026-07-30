@@ -47,6 +47,12 @@ function buildBillWhere(filters: ListFilters): Prisma.BillWhereInput {
 		if (value) where.provider = { contains: value };
 	}
 
+	const description = filters.description;
+	if (typeof description === "string") {
+		const value = description.trim();
+		if (value) where.description = { contains: value };
+	}
+
 	return where;
 }
 

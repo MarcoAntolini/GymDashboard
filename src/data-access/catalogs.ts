@@ -1,6 +1,7 @@
 "use server";
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { ProductKind } from "@/lib/domain/product-kind";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
@@ -16,6 +17,8 @@ import {
 	CATALOG_SORT_ALLOWLIST,
 } from "@/lib/list/catalogs";
 import { Prisma } from "@prisma/client";
+
+const PRODUCT_KINDS = new Set<string>(Object.values(ProductKind));
 
 const catalogInclude = {
 	product: {
@@ -50,6 +53,35 @@ function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	return undefined;
 }
 
+function parseProductKindFilter(
+	raw: ListFilters[string]
+): ProductKind | ProductKind[] | undefined {
+	const collect = (entry: unknown): ProductKind | undefined => {
+		if (typeof entry !== "string") return undefined;
+		const value = entry.trim();
+		if (!value || !PRODUCT_KINDS.has(value)) return undefined;
+		return value as ProductKind;
+	};
+
+	if (Array.isArray(raw)) {
+		const kinds = [
+			...new Set(
+				raw.map(collect).filter((kind): kind is ProductKind => kind !== undefined)
+			),
+		];
+		if (kinds.length === 0) return undefined;
+		return kinds.length === 1 ? kinds[0]! : kinds;
+	}
+
+	return collect(raw);
+}
+
+function productWhereForKind(kind: ProductKind): Prisma.ProductWhereInput {
+	return kind === ProductKind.Membership
+		? { membership: { isNot: null } }
+		: { entranceSet: { isNot: null } };
+}
+
 function buildCatalogWhere(filters: ListFilters): Prisma.CatalogWhereInput {
 	const where: Prisma.CatalogWhereInput = {};
 
@@ -60,6 +92,13 @@ function buildCatalogWhere(filters: ListFilters): Prisma.CatalogWhereInput {
 	if (typeof productCode === "string") {
 		const value = productCode.trim();
 		if (value) where.productCode = { contains: value };
+	}
+
+	const kind = parseProductKindFilter(filters.kind);
+	if (kind !== undefined) {
+		where.product = Array.isArray(kind)
+			? { OR: kind.map(productWhereForKind) }
+			: productWhereForKind(kind);
 	}
 
 	return where;

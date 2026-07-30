@@ -21,6 +21,7 @@ import {
 } from "@/lib/domain/product-kind";
 import {
 	CATALOG_DEFAULT_SORT,
+	CATALOG_FACETED_FILTERS,
 	CATALOG_FILTER_ALLOWLIST,
 	CATALOG_FILTER_LABELS,
 	CATALOG_SORT_ALLOWLIST,
@@ -229,6 +230,7 @@ export default function CatalogsPage() {
 					onRetry={list.refetch}
 					filters={[...CATALOG_FILTER_ALLOWLIST]}
 					filterLabels={CATALOG_FILTER_LABELS}
+					facetedFilters={CATALOG_FACETED_FILTERS}
 					emptyState={
 						<TableEmptyState
 							title="Nessuna voce di listino"

@@ -8,13 +8,18 @@ export const EQUIPMENT_SORT_ALLOWLIST = [
 ] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
-export const EQUIPMENT_FILTER_ALLOWLIST = ["provider", "paymentId"] as const;
+export const EQUIPMENT_FILTER_ALLOWLIST = [
+	"provider",
+	"description",
+	"paymentId",
+] as const;
 
 export const EQUIPMENT_FILTER_LABELS: Record<
 	(typeof EQUIPMENT_FILTER_ALLOWLIST)[number],
 	string
 > = {
 	provider: "Fornitore",
+	description: "Descrizione",
 	paymentId: "ID Pagamento",
 };
 
