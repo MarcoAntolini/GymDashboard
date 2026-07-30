@@ -1,4 +1,6 @@
 export type {
+	ListFacetedFilter,
+	ListFacetedFilterOption,
 	ListFilterValue,
 	ListFilters,
 	ListQuery,

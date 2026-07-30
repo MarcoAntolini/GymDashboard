@@ -28,6 +28,7 @@ import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel } from "@/lib/domain/labels";
 import {
 	CONTRACT_DEFAULT_SORT,
+	CONTRACT_FACETED_FILTERS,
 	CONTRACT_FILTER_ALLOWLIST,
 	CONTRACT_SORT_ALLOWLIST,
 	CONTRACT_FILTER_LABELS,
@@ -364,6 +365,7 @@ export default function Contracts() {
 						error={list.error}
 						onRetry={list.refetch}
 						filters={[...CONTRACT_FILTER_ALLOWLIST]}
+						facetedFilters={CONTRACT_FACETED_FILTERS}
 						filterLabels={CONTRACT_FILTER_LABELS}
 						emptyState={
 							<TableEmptyState

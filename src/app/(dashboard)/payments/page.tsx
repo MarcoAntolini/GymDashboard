@@ -28,6 +28,7 @@ import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { formatDateIt, formatEur } from "@/lib/format";
 import {
 	PAYMENT_DEFAULT_SORT,
+	PAYMENT_FACETED_FILTERS,
 	PAYMENT_FILTER_ALLOWLIST,
 	PAYMENT_SORT_ALLOWLIST,
 	PAYMENT_FILTER_LABELS,
@@ -511,6 +512,7 @@ export default function PaymentsPage() {
 						error={list.error}
 						onRetry={list.refetch}
 						filters={[...PAYMENT_FILTER_ALLOWLIST]}
+						facetedFilters={PAYMENT_FACETED_FILTERS}
 						filterLabels={PAYMENT_FILTER_LABELS}
 						emptyState={
 							<TableEmptyState

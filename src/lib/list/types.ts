@@ -21,6 +21,19 @@ export type ListFilterValue = string | string[] | number | boolean | null | unde
 
 export type ListFilters = Record<string, ListFilterValue>;
 
+/** Opzione per filtri faceted (enum/boolean) in toolbar. */
+export type ListFacetedFilterOption = {
+	label: string;
+	value: string;
+};
+
+/** Definizione filtro a valori chiusi (multi-select). */
+export type ListFacetedFilter = {
+	key: string;
+	title?: string;
+	options: ListFacetedFilterOption[];
+};
+
 /** Query normalizzata inviata al data-access `list*`. */
 export type ListQuery = {
 	filters: ListFilters;

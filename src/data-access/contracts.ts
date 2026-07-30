@@ -48,11 +48,27 @@ function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	return undefined;
 }
 
-function parseContractTypeFilter(raw: ListFilters[string]): ContractType | undefined {
-	if (typeof raw !== "string") return undefined;
-	const value = raw.trim();
-	if (!value || !CONTRACT_TYPES.has(value)) return undefined;
-	return value as ContractType;
+function parseContractTypeFilter(
+	raw: ListFilters[string]
+): ContractType | ContractType[] | undefined {
+	const collect = (entry: unknown): ContractType | undefined => {
+		if (typeof entry !== "string") return undefined;
+		const value = entry.trim();
+		if (!value || !CONTRACT_TYPES.has(value)) return undefined;
+		return value as ContractType;
+	};
+
+	if (Array.isArray(raw)) {
+		const types = [
+			...new Set(
+				raw.map(collect).filter((type): type is ContractType => type !== undefined)
+			),
+		];
+		if (types.length === 0) return undefined;
+		return types.length === 1 ? types[0]! : types;
+	}
+
+	return collect(raw);
 }
 
 function buildContractWhere(filters: ListFilters): Prisma.ContractWhereInput {
@@ -62,7 +78,9 @@ function buildContractWhere(filters: ListFilters): Prisma.ContractWhereInput {
 	if (employeeId !== undefined) where.employeeId = employeeId;
 
 	const type = parseContractTypeFilter(filters.type);
-	if (type !== undefined) where.type = type;
+	if (type !== undefined) {
+		where.type = Array.isArray(type) ? { in: type } : type;
+	}
 
 	const employee = filters.employee;
 	if (typeof employee === "string") {

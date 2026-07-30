@@ -39,8 +39,9 @@ import {
 } from "@/components/ui/data-table/table-row-pinning";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { HighlightValueCell } from "@/components/ui/highlight-text";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { ListFilters } from "@/lib/list";
+import type { ListFacetedFilter, ListFilters } from "@/lib/list";
 import { cn } from "@/lib/utils";
 import {
 	ColumnDef,
@@ -79,7 +80,7 @@ export type DataTableServerListProps = {
 	onPaginationChange: OnChangeFn<PaginationState>;
 	/** Draft filters (keystroke); applicati solo su Filtra. */
 	draftFilters: ListFilters;
-	onDraftFilterChange: (key: string, value: string | undefined) => void;
+	onDraftFilterChange: (key: string, value: string | string[] | undefined) => void;
 	onApplyFilters: () => void;
 	onResetFilters: () => void;
 	filtersDirty?: boolean;
@@ -92,7 +93,8 @@ interface DataTableProps<TData, TValue> {
 	data: TData[];
 	/** Chiavi filtro toolbar (native o join mappati lato server). */
 	filters: string[];
-	facetedFilters?: string[];
+	/** Filtri enum/boolean a multi-select (esclusi automaticamente dalle textbox). */
+	facetedFilters?: ListFacetedFilter[];
 	/** Override placeholder per chiave filtro. */
 	filterLabels?: Record<string, string>;
 	/** Empty dataset (zero record, senza filtri applicati). */
@@ -604,7 +606,7 @@ function DataTableInner<TData, TValue>({
 			<TableToolbar
 				table={table}
 				filters={filters}
-				facetedFilters={isServer ? undefined : facetedFilters}
+				facetedFilters={facetedFilters}
 				filterLabels={filterLabels}
 				serverList={
 					isServer

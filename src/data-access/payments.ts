@@ -71,11 +71,27 @@ function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	return undefined;
 }
 
-function parsePaymentTypeFilter(raw: ListFilters[string]): PaymentType | undefined {
-	if (typeof raw !== "string") return undefined;
-	const value = raw.trim();
-	if (!value || !PAYMENT_TYPES.has(value)) return undefined;
-	return value as PaymentType;
+function parsePaymentTypeFilter(
+	raw: ListFilters[string]
+): PaymentType | PaymentType[] | undefined {
+	const collect = (entry: unknown): PaymentType | undefined => {
+		if (typeof entry !== "string") return undefined;
+		const value = entry.trim();
+		if (!value || !PAYMENT_TYPES.has(value)) return undefined;
+		return value as PaymentType;
+	};
+
+	if (Array.isArray(raw)) {
+		const types = [
+			...new Set(
+				raw.map(collect).filter((type): type is PaymentType => type !== undefined)
+			),
+		];
+		if (types.length === 0) return undefined;
+		return types.length === 1 ? types[0]! : types;
+	}
+
+	return collect(raw);
 }
 
 function buildPaymentWhere(filters: ListFilters): Prisma.PaymentWhereInput {
@@ -85,7 +101,9 @@ function buildPaymentWhere(filters: ListFilters): Prisma.PaymentWhereInput {
 	if (id !== undefined) where.id = id;
 
 	const type = parsePaymentTypeFilter(filters.type);
-	if (type !== undefined) where.type = type;
+	if (type !== undefined) {
+		where.type = Array.isArray(type) ? { in: type } : type;
+	}
 
 	return where;
 }

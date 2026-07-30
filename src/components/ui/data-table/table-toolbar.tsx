@@ -7,14 +7,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { columnLabel } from "@/lib/domain/column-labels";
-import type { ListFilters } from "@/lib/list";
+import type { ListFacetedFilter, ListFilters } from "@/lib/list";
 import { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
-import { TableFacetedFilter } from "./table-faceted-filter";
+import {
+	TableFacetedFilter,
+} from "./table-faceted-filter";
+
+export type DataTableFacetedFilter = ListFacetedFilter;
 
 export type TableToolbarServerListProps = {
 	draftFilters: ListFilters;
-	onDraftFilterChange: (key: string, value: string | undefined) => void;
+	onDraftFilterChange: (key: string, value: string | string[] | undefined) => void;
 	onApplyFilters: () => void;
 	onResetFilters: () => void;
 	filtersDirty?: boolean;
@@ -22,9 +26,10 @@ export type TableToolbarServerListProps = {
 
 interface TableToolbarProps<TData> {
 	table: Table<TData>;
-	/** Chiavi filtro (accessor / id colonna / chiave server-list). */
+	/** Chiavi filtro testo (accessor / id colonna / chiave server-list). */
 	filters: string[];
-	facetedFilters?: string[];
+	/** Filtri a valori chiusi (enum/boolean) — multi-select. */
+	facetedFilters?: ListFacetedFilter[];
 	/** Override placeholder per chiave filtro (es. purchaseId → "ID Acquisto"). */
 	filterLabels?: Record<string, string>;
 	/** Se presente: draft + Conferma/Filtra (niente query a ogni keystroke). */
@@ -37,6 +42,13 @@ function filterPlaceholder(filter: string, labels?: Record<string, string>): str
 	return columnLabel(filter);
 }
 
+function draftFacetValue(raw: ListFilters[string]): string[] {
+	if (typeof raw === "string" && raw) return [raw];
+	if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === "string");
+	if (typeof raw === "boolean") return [String(raw)];
+	return [];
+}
+
 export default function TableToolbar<TData>({
 	table,
 	filters,
@@ -45,6 +57,8 @@ export default function TableToolbar<TData>({
 	serverList,
 }: TableToolbarProps<TData>) {
 	const isServer = !!serverList;
+	const facetedKeys = new Set(facetedFilters?.map((f) => f.key) ?? []);
+	const textFilters = filters.filter((key) => !facetedKeys.has(key));
 	const isFiltered = isServer
 		? Object.keys(serverList.draftFilters).length > 0 ||
 			(serverList.filtersDirty ?? false)
@@ -53,7 +67,7 @@ export default function TableToolbar<TData>({
 	return (
 		<div className="flex items-center justify-between pb-4">
 			<div className="flex items-center gap-4 flex-wrap">
-				{filters.map((filter) => (
+				{textFilters.map((filter) => (
 					<Input
 						key={filter}
 						placeholder={filterPlaceholder(filter, filterLabels)}
@@ -83,21 +97,33 @@ export default function TableToolbar<TData>({
 						className="max-w-sm w-auto"
 					/>
 				))}
-				{!isServer &&
-					facetedFilters &&
-					facetedFilters.map((filter) => (
+				{facetedFilters?.map((filter) => {
+					const title =
+						filter.title ??
+						filterLabels?.[filter.key] ??
+						columnLabel(filter.key);
+					if (isServer) {
+						return (
+							<TableFacetedFilter
+								key={filter.key}
+								title={title}
+								options={filter.options}
+								value={draftFacetValue(serverList.draftFilters[filter.key])}
+								onValueChange={(next) =>
+									serverList.onDraftFilterChange(filter.key, next)
+								}
+							/>
+						);
+					}
+					return (
 						<TableFacetedFilter
-							key={filter}
-							column={table.getColumn(filter)}
-							title={columnLabel(filter)}
-							options={Array.from(
-								new Set(table.getCoreRowModel().flatRows.map((row) => row.getValue(filter)))
-							).map((value) => ({
-								value: value as string,
-								label: String(value),
-							}))}
+							key={filter.key}
+							column={table.getColumn(filter.key)}
+							title={title}
+							options={filter.options}
 						/>
-					))}
+					);
+				})}
 				{isServer && (
 					<Button
 						type="button"

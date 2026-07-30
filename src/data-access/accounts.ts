@@ -26,11 +26,39 @@ import { Account, Prisma, Role } from "@prisma/client";
 
 function parseApprovedFilter(raw: ListFilters[string]): boolean | undefined {
 	if (typeof raw === "boolean") return raw;
+	if (Array.isArray(raw)) {
+		const parsed = [
+			...new Set(
+				raw
+					.map((entry) => parseApprovedFilter(entry))
+					.filter((entry): entry is boolean => entry !== undefined)
+			),
+		];
+		return parsed.length === 1 ? parsed[0] : undefined;
+	}
 	if (typeof raw !== "string") return undefined;
 	const value = raw.trim().toLowerCase();
 	if (value === "true" || value === "1" || value === "si" || value === "sì") return true;
 	if (value === "false" || value === "0" || value === "no") return false;
 	return undefined;
+}
+
+function parseRoleFilter(raw: ListFilters[string]): Role | Role[] | undefined {
+	const collect = (entry: unknown): Role | undefined => {
+		if (typeof entry !== "string") return undefined;
+		const value = entry.trim();
+		return value && isAppRole(value) ? value : undefined;
+	};
+
+	if (Array.isArray(raw)) {
+		const roles = [
+			...new Set(raw.map(collect).filter((role): role is Role => role !== undefined)),
+		];
+		if (roles.length === 0) return undefined;
+		return roles.length === 1 ? roles[0]! : roles;
+	}
+
+	return collect(raw);
 }
 
 function buildAccountWhere(filters: ListFilters): Prisma.AccountWhereInput {
@@ -42,12 +70,9 @@ function buildAccountWhere(filters: ListFilters): Prisma.AccountWhereInput {
 		if (value) where.username = { contains: value };
 	}
 
-	const role = filters.role;
-	if (typeof role === "string") {
-		const value = role.trim();
-		if (value && isAppRole(value)) {
-			where.role = value;
-		}
+	const role = parseRoleFilter(filters.role);
+	if (role !== undefined) {
+		where.role = Array.isArray(role) ? { in: role } : role;
 	}
 
 	const approved = parseApprovedFilter(filters.approved);

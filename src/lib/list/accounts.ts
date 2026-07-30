@@ -1,4 +1,6 @@
-import type { ListSort } from "@/lib/list";
+import { ROLE_LABEL } from "@/lib/domain/labels";
+import type { ListFacetedFilter, ListSort } from "@/lib/list";
+import { Role } from "@prisma/client";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
 export const ACCOUNT_SORT_ALLOWLIST = ["employeeId", "username"] as const;
@@ -18,8 +20,27 @@ export const ACCOUNT_FILTER_LABELS: Record<
 	employee: "Dipendente",
 	username: "Nome utente",
 	role: "Ruolo",
-	approved: "Approvazione (si/no)",
+	approved: "Approvazione",
 };
+
+export const ACCOUNT_FACETED_FILTERS: ListFacetedFilter[] = [
+	{
+		key: "role",
+		title: "Ruolo",
+		options: (Object.keys(ROLE_LABEL) as Role[]).map((value) => ({
+			value,
+			label: ROLE_LABEL[value],
+		})),
+	},
+	{
+		key: "approved",
+		title: "Approvazione",
+		options: [
+			{ value: "true", label: "Approvato" },
+			{ value: "false", label: "Non approvato" },
+		],
+	},
+];
 
 export const ACCOUNT_DEFAULT_SORT: readonly ListSort[] = [
 	{ id: "username", desc: false },

@@ -22,6 +22,7 @@ import { useEntityData } from "@/hooks/useEntityData";
 import { useServerList } from "@/hooks/useServerList";
 import {
 	ACCOUNT_DEFAULT_SORT,
+	ACCOUNT_FACETED_FILTERS,
 	ACCOUNT_FILTER_ALLOWLIST,
 	ACCOUNT_SORT_ALLOWLIST,
 	ACCOUNT_FILTER_LABELS,
@@ -314,6 +315,7 @@ export default function Accounts() {
 					error={list.error}
 					onRetry={list.refetch}
 					filters={[...ACCOUNT_FILTER_ALLOWLIST]}
+					facetedFilters={ACCOUNT_FACETED_FILTERS}
 					filterLabels={ACCOUNT_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState

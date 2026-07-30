@@ -15,18 +15,39 @@ import { cn } from "@/lib/utils";
 import { Column } from "@tanstack/react-table";
 import { Check, Filter } from "lucide-react";
 
+export type FacetedFilterOption = {
+	label: string;
+	value: string;
+};
+
 interface TableFacetedFilterProps<TData, TValue> {
 	column?: Column<TData, TValue>;
 	title?: string;
-	options: {
-		label: string;
-		value: string;
-	}[];
+	options: FacetedFilterOption[];
+	/** Controlled (server-list draft). Se assente → legge/scrive sulla column. */
+	value?: string[];
+	onValueChange?: (value: string[] | undefined) => void;
 }
 
-export function TableFacetedFilter<TData, TValue>({ column, title, options }: TableFacetedFilterProps<TData, TValue>) {
-	const facets = column?.getFacetedUniqueValues() as Map<string, number>;
-	const selectedValues = new Set(column?.getFilterValue() as string[]);
+export function TableFacetedFilter<TData, TValue>({
+	column,
+	title,
+	options,
+	value,
+	onValueChange,
+}: TableFacetedFilterProps<TData, TValue>) {
+	const facets = column?.getFacetedUniqueValues() as Map<string, number> | undefined;
+	const selectedValues = new Set(
+		value ?? ((column?.getFilterValue() as string[] | undefined) ?? [])
+	);
+
+	const commit = (next: string[] | undefined) => {
+		if (onValueChange) {
+			onValueChange(next?.length ? next : undefined);
+			return;
+		}
+		column?.setFilterValue(next?.length ? next : undefined);
+	};
 
 	return (
 		<Popover>
@@ -38,7 +59,7 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 				>
 					<Filter className="mr-2 h-4 w-4" />
 					{title}
-					{selectedValues?.size > 0 && (
+					{selectedValues.size > 0 && (
 						<>
 							<Separator
 								orientation="vertical"
@@ -91,30 +112,32 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 									<CommandItem
 										key={option.value}
 										onSelect={() => {
+											const next = new Set(selectedValues);
 											if (isSelected) {
-												selectedValues.delete(option.value);
+												next.delete(option.value);
 											} else {
-												selectedValues.add(option.value);
+												next.add(option.value);
 											}
-											const filterValues = Array.from(selectedValues);
-											column?.setFilterValue(filterValues.length ? filterValues : undefined);
+											const filterValues = Array.from(next);
+											commit(filterValues.length ? filterValues : undefined);
 										}}
 									>
 										<div
 											className={cn(
 												"mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-												isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+												isSelected
+													? "bg-primary text-primary-foreground"
+													: "opacity-50 [&_svg]:invisible"
 											)}
 										>
 											<Check className={cn("h-4 w-4")} />
 										</div>
-										{/* {option.icon && <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />} */}
 										<span>{option.label}</span>
-										{facets?.get(option.value) && (
+										{facets?.get(option.value) ? (
 											<span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
 												{facets.get(option.value)}
 											</span>
-										)}
+										) : null}
 									</CommandItem>
 								);
 							})}
@@ -124,7 +147,7 @@ export function TableFacetedFilter<TData, TValue>({ column, title, options }: Ta
 								<CommandSeparator />
 								<CommandGroup>
 									<CommandItem
-										onSelect={() => column?.setFilterValue(undefined)}
+										onSelect={() => commit(undefined)}
 										className="justify-center text-center"
 									>
 										Cancella filtri
