@@ -23,7 +23,7 @@ import { PAYMENT_TYPE_TONE } from "@/lib/domain/visual";
 import { formatDateIt, formatDateTimeIt, formatEur } from "@/lib/format";
 import { PaymentType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Banknote, Calendar, Hash, Tag } from "lucide-react";
+import { Banknote, Calendar, FileText, Hash, Tag } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -164,7 +164,9 @@ export const columns = (
 	{
 		id: "specialization",
 		accessorFn: (row) => specializationSummary(row),
-		header: ({ column }) => <TableSortableHeader column={column} title="Dettaglio" />,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Dettaglio" icon={FileText} />
+		),
 		meta: columnMeta(ColumnClass.Join),
 		enableSorting: false,
 		cell: ({ row }) => {

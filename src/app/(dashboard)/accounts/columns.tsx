@@ -20,6 +20,7 @@ import { ROLE_TONE } from "@/lib/domain/visual";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import {
+	AtSign,
 	BadgeCheck,
 	Clock,
 	Eye,
@@ -110,7 +111,9 @@ export const columns = (
 		},
 		{
 			accessorKey: "username",
-			header: ({ column }) => <TableSortableHeader column={column} title="Nome utente" />,
+			header: ({ column }) => (
+				<TableSortableHeader column={column} title="Nome utente" icon={AtSign} />
+			),
 			meta: columnMeta(ColumnClass.Native),
 		},
 		{
