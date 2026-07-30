@@ -159,9 +159,7 @@ export function TableSortableHeader<TData, TValue>({
 							) : (
 								<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0" />
 							)
-						) : (
-							<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground/70" />
-						)}
+						) : null}
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align={align === "right" ? "end" : "start"}>
