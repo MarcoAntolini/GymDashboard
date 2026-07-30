@@ -24,3 +24,4 @@
 - Panoramica `/`: sezione Fidelizzazione (conteggi + tabella a rischio).
 - Smoke: `scripts/verify-fidelity-proxy.ts`.
 - Nessun ML / LTV predittivo.
+- Commit: `4c906d0`.
