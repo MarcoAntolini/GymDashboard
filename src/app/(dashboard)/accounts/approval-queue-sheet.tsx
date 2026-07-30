@@ -159,6 +159,7 @@ export function ApprovalQueueToolbarButton({
 											<Button
 												type="button"
 												size="sm"
+												variant="success"
 												className="flex-1"
 												disabled={busy}
 												onClick={() => handleApprove(account.employeeId)}
