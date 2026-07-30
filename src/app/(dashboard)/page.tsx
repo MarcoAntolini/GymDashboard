@@ -318,6 +318,89 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 				<BanconeDailyChart rows={stats.banconeDaily} />
 			</section>
 
+			<section className="flex flex-col gap-4 border-t pt-6">
+				<div>
+					<p className="text-sm font-medium text-foreground">Fidelizzazione (proxy OLTP)</p>
+					<p className="text-sm text-muted-foreground">
+						Indicatori da Acquisti e Ingressi — niente modelli predittivi.
+					</p>
+				</div>
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+					<div>
+						<p className="text-xs font-medium text-muted-foreground">Clienti attivi</p>
+						<p className="mt-1 text-lg font-medium tabular-nums text-foreground">
+							{stats.fidelity.activeClientsCount}
+						</p>
+						<p className="text-xs text-muted-foreground">{stats.fidelity.activeDefinition}</p>
+					</div>
+					<div>
+						<p className="text-xs font-medium text-muted-foreground">Riacquisti / rinnovi</p>
+						<p className="mt-1 text-lg font-medium tabular-nums text-foreground">
+							{stats.fidelity.renewalsCount}
+						</p>
+						<p className="text-xs text-muted-foreground">
+							{stats.fidelity.renewalDefinition} ({stats.fidelity.renewingClientsCount}{" "}
+							clienti).
+						</p>
+					</div>
+					<div>
+						<p className="text-xs font-medium text-muted-foreground">
+							A rischio (N={stats.fidelity.atRiskDays} gg)
+						</p>
+						<p className="mt-1 text-lg font-medium tabular-nums text-foreground">
+							{stats.fidelity.atRiskCount}
+						</p>
+						<p className="text-xs text-muted-foreground">{stats.fidelity.atRiskDefinition}</p>
+					</div>
+				</div>
+				{stats.fidelity.atRisk.length === 0 ? (
+					<p className="text-sm text-muted-foreground">
+						Nessun Cliente a rischio con le soglie documentate.
+					</p>
+				) : (
+					<div className="min-w-0">
+						<p className="mb-2 text-sm font-medium text-foreground">Clienti a rischio</p>
+						<div className="overflow-hidden rounded-md border">
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Cliente</TableHead>
+										<TableHead className="text-right">Gg senza Ingresso</TableHead>
+										<TableHead>Titolo</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{stats.fidelity.atRisk.map((row) => (
+										<TableRow key={row.clientId}>
+											<TableCell className="font-medium">
+												{row.surname} {row.name}
+											</TableCell>
+											<TableCell>
+												<NumericCell muted>
+													{row.daysSinceLastEntrance == null
+														? "Mai"
+														: row.daysSinceLastEntrance}
+												</NumericCell>
+											</TableCell>
+											<TableCell>
+												<DotBadge
+													label={
+														row.titleStatus === "valid"
+															? "Valido"
+															: "Scaduto di recente"
+													}
+													tone={row.titleStatus === "valid" ? "warning" : "info"}
+												/>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</div>
+				)}
+			</section>
+
 			<div className="flex flex-wrap items-center gap-2 border-t pt-4">
 				<p className="mr-2 text-sm text-muted-foreground">Vai a</p>
 				<Button asChild variant="ghost" size="sm">
@@ -328,6 +411,9 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 				</Button>
 				<Button asChild variant="ghost" size="sm">
 					<Link href="/payments">Pagamenti · Analisi uscite</Link>
+				</Button>
+				<Button asChild variant="ghost" size="sm">
+					<Link href="/clients">Clienti</Link>
 				</Button>
 			</div>
 		</div>

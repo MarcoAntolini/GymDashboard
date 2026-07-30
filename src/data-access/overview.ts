@@ -5,6 +5,14 @@ import { db } from "@/lib/db";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { PRODUCT_KIND_LABEL, ProductKind, productKindFromSnapshot } from "@/lib/domain/product-kind";
 import {
+	computeFidelityProxy,
+	FIDELITY_ACTIVE_DEFINITION,
+	FIDELITY_AT_RISK_DEFINITION,
+	FIDELITY_RENEWAL_DEFINITION,
+	type FidelityAtRiskRow,
+	type FidelityProxyResult,
+} from "@/lib/fidelity-proxy";
+import {
 	aggregateBanconeDaily,
 	computeEntranceFrequency,
 	type BanconeDailyPoint,
@@ -29,7 +37,13 @@ export type OverviewBreakdownRow = {
 	count: number;
 };
 
-export type { ProductRankingRow };
+export type { ProductRankingRow, FidelityAtRiskRow };
+
+export type OverviewFidelity = FidelityProxyResult & {
+	activeDefinition: string;
+	renewalDefinition: string;
+	atRiskDefinition: string;
+};
 
 export type OverviewStats = {
 	preset: OverviewPeriodPreset;
@@ -48,6 +62,8 @@ export type OverviewStats = {
 	entranceFrequency: EntranceFrequency;
 	/** Volume operativo Ingressi + Acquisti per giorno. */
 	banconeDaily: BanconeDailyPoint[];
+	/** Proxy fidelizzazione OLTP (attivi / riacquisti / a rischio). */
+	fidelity: OverviewFidelity;
 	/** Nessun Acquisto, Pagamento ne Ingresso nel periodo. */
 	isEmpty: boolean;
 };
@@ -75,31 +91,82 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 	const { from, to } = rangeForOverviewPreset(preset);
 	const dateFilter = { gte: from, lte: to };
 
-	const [purchases, payments, entrances] = await Promise.all([
-		db.purchase.findMany({
-			where: { date: dateFilter },
-			select: {
-				amount: true,
-				productCode: true,
-				duration: true,
-				entranceNumber: true,
-				date: true,
-			},
-		}),
-		db.payment.findMany({
-			where: { date: dateFilter },
-			select: { amount: true, type: true },
-		}),
-		db.entrance.findMany({
-			where: { date: dateFilter },
-			select: { date: true },
-		}),
-	]);
+	const [purchases, payments, entrances, fidelityPurchases, fidelityEntrances, clients] =
+		await Promise.all([
+			db.purchase.findMany({
+				where: { date: dateFilter },
+				select: {
+					amount: true,
+					productCode: true,
+					duration: true,
+					entranceNumber: true,
+					date: true,
+				},
+			}),
+			db.payment.findMany({
+				where: { date: dateFilter },
+				select: { amount: true, type: true },
+			}),
+			db.entrance.findMany({
+				where: { date: dateFilter },
+				select: { date: true },
+			}),
+			db.purchase.findMany({
+				select: {
+					id: true,
+					clientId: true,
+					date: true,
+					duration: true,
+					entranceNumber: true,
+					_count: { select: { entrance: true } },
+				},
+			}),
+			db.entrance.findMany({
+				select: {
+					date: true,
+					purchaseId: true,
+					purchase: { select: { clientId: true } },
+				},
+			}),
+			db.client.findMany({
+				select: { id: true, name: true, surname: true },
+			}),
+		]);
 	const ingressiCount = entrances.length;
 	const entranceDates = entrances.map((row) => row.date);
 	const purchaseDates = purchases.map((row) => row.date);
 	const entranceFrequency = computeEntranceFrequency(entranceDates);
 	const banconeDaily = aggregateBanconeDaily(entranceDates, purchaseDates, from, to);
+
+	const entrancesByPurchaseId = new Map<number, Date[]>();
+	const fidelityEntranceInputs = fidelityEntrances.map((row) => {
+		const list = entrancesByPurchaseId.get(row.purchaseId) ?? [];
+		list.push(row.date);
+		entrancesByPurchaseId.set(row.purchaseId, list);
+		return { clientId: row.purchase.clientId, date: row.date };
+	});
+	const fidelityProxy = computeFidelityProxy({
+		clients,
+		purchases: fidelityPurchases.map((row) => ({
+			id: row.id,
+			clientId: row.clientId,
+			date: row.date,
+			duration: row.duration,
+			entranceNumber: row.entranceNumber,
+			entrancesLinked: row._count.entrance,
+		})),
+		entrances: fidelityEntranceInputs,
+		entrancesByPurchaseId,
+		from,
+		to,
+		asOf: to,
+	});
+	const fidelity: OverviewFidelity = {
+		...fidelityProxy,
+		activeDefinition: FIDELITY_ACTIVE_DEFINITION,
+		renewalDefinition: FIDELITY_RENEWAL_DEFINITION,
+		atRiskDefinition: FIDELITY_AT_RISK_DEFINITION,
+	};
 
 	const entrateByKindMap = new Map(
 		PURCHASE_KIND_ORDER.map((kind) => [kind, { amount: 0, count: 0 }])
@@ -175,6 +242,7 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 		productRanking,
 		entranceFrequency,
 		banconeDaily,
+		fidelity,
 		isEmpty: purchases.length === 0 && payments.length === 0 && ingressiCount === 0,
 	};
 }

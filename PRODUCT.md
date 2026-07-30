@@ -51,4 +51,4 @@ Supportare light/dark via tema di sistema già presente. Preferire contrasto leg
 
 ## Surface notes
 
-**Panoramica (`/`):** home post-login (Admin e Dipendente). Strip cassa (Entrate/Uscite/Saldo/Ingressi) + ripartizioni + mix prodotti; densità operativa, niente hero-KPI. Navbar: sezione Operazioni prima (Panoramica in cima).
+**Panoramica (`/`):** home post-login (Admin e Dipendente). Strip cassa (Entrate/Uscite/Saldo/Ingressi) + ripartizioni + mix prodotti + frequenza/bancone + proxy fidelizzazione (attivi / riacquisti / a rischio); densità operativa, niente hero-KPI. Navbar: sezione Operazioni prima (Panoramica in cima).
