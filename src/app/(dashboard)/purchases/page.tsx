@@ -46,6 +46,7 @@ import {
 } from "@/lib/period-aggregation";
 import {
 	PURCHASE_DEFAULT_SORT,
+	PURCHASE_FACETED_FILTERS,
 	PURCHASE_FILTER_ALLOWLIST,
 	PURCHASE_FILTER_LABELS,
 	PURCHASE_SORT_ALLOWLIST,
@@ -444,6 +445,7 @@ export default function PurchasesPage() {
 						error={list.error}
 						onRetry={list.refetch}
 						filters={[...PURCHASE_FILTER_ALLOWLIST]}
+						facetedFilters={PURCHASE_FACETED_FILTERS}
 						filterLabels={PURCHASE_FILTER_LABELS}
 						emptyState={
 							<TableEmptyState

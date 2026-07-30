@@ -98,6 +98,23 @@ function buildPurchaseWhere(filters: ListFilters): Prisma.PurchaseWhereInput {
 		}
 	}
 
+	const rawTypes = Array.isArray(filters.type)
+		? filters.type
+		: typeof filters.type === "string"
+			? [filters.type]
+			: [];
+	const selectedTypes = new Set(
+		rawTypes.filter(
+			(value): value is ProductKind =>
+				value === ProductKind.Membership || value === ProductKind.EntranceSet
+		)
+	);
+	if (selectedTypes.size === 1) {
+		where.duration = selectedTypes.has(ProductKind.Membership)
+			? { not: null }
+			: null;
+	}
+
 	if (and.length) where.AND = and;
 	return where;
 }
