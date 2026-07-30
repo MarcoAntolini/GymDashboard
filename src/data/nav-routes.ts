@@ -39,7 +39,7 @@ export const NAV_ROUTES: NavRoute[] = [
 
 /** Post-login home: Panoramica operativa (Admin/Owner e Dipendente). */
 export const ADMIN_LANDING = "/";
-/** Post-login home: stessa Panoramica; Ingressi resta in nav Operazioni. */
+/** Post-login home: stessa Panoramica; Ingressi resta in nav Accessi. */
 export const EMPLOYEE_LANDING = "/";
 
 export function landingPathForRole(_role: AppRole): string {

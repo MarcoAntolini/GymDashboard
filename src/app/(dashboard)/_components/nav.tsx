@@ -76,16 +76,11 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 			<nav aria-label="Navigazione principale">
 				{visibleSections.map((section, sectionIndex) => (
 					<div
-						key={section.section}
+						key={section.section || section.group[0]?.href || sectionIndex}
+						role="group"
+						aria-label={section.section || undefined}
 						className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2"
 					>
-						{isCollapsed ? (
-							<span className="sr-only">{section.section}</span>
-						) : (
-							<p className="px-3 pb-1 pt-1 text-xs font-medium tracking-wide text-muted-foreground">
-								{section.section}
-							</p>
-						)}
 						{section.group.map((link) => {
 							const isActive = routeMatches(pathname, link.href);
 							const variant = isActive ? "default" : "ghost";

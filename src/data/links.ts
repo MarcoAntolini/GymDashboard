@@ -74,17 +74,20 @@ function linksFor(hrefs: string[]): LinkItem[] {
 }
 
 /**
- * Operational IA groups. Employee loses Personale (Admin+); remaining order
- * still starts with Operazioni.
+ * Operational IA groups. Panoramica leads alone; Employee loses Personale (Admin+).
  */
 export const links: NavSection[] = [
+	{
+		section: "",
+		group: linksFor(["/"]),
+	},
 	{
 		section: "Personale",
 		group: linksFor(["/accounts", "/employees", "/contracts", "/clockings"]),
 	},
 	{
-		section: "Operazioni",
-		group: linksFor(["/", "/clients", "/entrances"]),
+		section: "Accessi",
+		group: linksFor(["/clients", "/entrances"]),
 	},
 	{
 		section: "Listino",
