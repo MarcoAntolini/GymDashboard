@@ -16,7 +16,13 @@ import {
 	updateOwnEmployeeProfile,
 } from "@/data-access/profile";
 import { Loader2, UserRound } from "lucide-react";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import {
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	useTransition,
+} from "react";
 import { toast } from "sonner";
 
 type OwnProfile = Awaited<ReturnType<typeof getOwnProfile>>;
@@ -40,6 +46,10 @@ export function ProfileSheet({
 	const [loading, setLoading] = useState(false);
 	const [isPending, startTransition] = useTransition();
 	const [photoBusy, setPhotoBusy] = useState(false);
+	const [selectedFileName, setSelectedFileName] = useState<string | null>(
+		null
+	);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const [taxCode, setTaxCode] = useState("");
 	const [name, setName] = useState("");
@@ -80,6 +90,7 @@ export function ProfileSheet({
 			setCurrentPassword("");
 			setNewPassword("");
 			setConfirmPassword("");
+			setSelectedFileName(null);
 		} catch (error) {
 			const message =
 				error instanceof Error && error.message
@@ -183,6 +194,7 @@ export function ProfileSheet({
 
 	const onPhotoSelected = async (file: File | undefined) => {
 		if (!file) return;
+		setSelectedFileName(file.name);
 		setPhotoBusy(true);
 		try {
 			const body = new FormData();
@@ -243,16 +255,32 @@ export function ProfileSheet({
 									)}
 								</div>
 								<div className="flex flex-col gap-2">
-									<Input
+									<input
+										ref={fileInputRef}
 										type="file"
 										accept="image/jpeg,image/png,image/webp"
 										disabled={photoBusy || isPending}
+										className="hidden"
 										onChange={(e) =>
 											void onPhotoSelected(e.target.files?.[0])
 										}
 									/>
+									<div className="flex min-w-0 items-center gap-2">
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											disabled={photoBusy || isPending}
+											onClick={() => fileInputRef.current?.click()}
+										>
+											Scegli file
+										</Button>
+										<span className="truncate text-sm text-muted-foreground">
+											{selectedFileName ?? "Nessun file selezionato"}
+										</span>
+									</div>
 									<p className="text-xs text-muted-foreground">
-										JPG, PNG o WebP — max 2 MB. Storage locale sul progetto.
+										JPG, PNG o WebP — max 2 MB.
 									</p>
 								</div>
 							</div>
