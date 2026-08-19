@@ -1,6 +1,6 @@
 /**
- * Ranking prodotti da Acquisti (ricavo + quantità) — mix Abbonamenti / Pacchetti.
- * Usa snapshot su Acquisto (duration / entranceNumber), non il Listino corrente.
+ * Ranking prodotti da Vendite (ricavo + quantità) — mix Abbonamenti / Pacchetti.
+ * Usa snapshot su Vendita (duration / entranceNumber), non il Listino corrente.
  */
 import {
 	PRODUCT_KIND_LABEL,
@@ -8,7 +8,7 @@ import {
 	productKindFromSnapshot,
 } from "@/lib/domain/product-kind";
 
-export type PurchaseForRanking = {
+export type SaleForRanking = {
 	productCode: string;
 	amount: number;
 	duration: number | null;
@@ -23,10 +23,10 @@ export type ProductRankingRow = {
 	count: number;
 };
 
-export function rankProductsByRevenue(purchases: PurchaseForRanking[]): ProductRankingRow[] {
+export function rankProductsByRevenue(sales: SaleForRanking[]): ProductRankingRow[] {
 	const map = new Map<string, ProductRankingRow>();
 
-	for (const row of purchases) {
+	for (const row of sales) {
 		const kind = productKindFromSnapshot(row);
 		const existing = map.get(row.productCode);
 		if (existing) {

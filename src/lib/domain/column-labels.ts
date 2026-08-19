@@ -42,7 +42,7 @@ export const COLUMN_LABELS: Record<string, string> = {
 	maker: "Produttore",
 	startingTime: "Ora inizio",
 	endingTime: "Ora fine",
-	purchaseId: "ID Acquisto",
+	saleId: "ID Vendita",
 	catalogYear: "Anno listino",
 	residualEntrances: "Ingressi residui",
 	productKind: "Tipo prodotto",

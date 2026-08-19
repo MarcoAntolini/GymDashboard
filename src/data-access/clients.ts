@@ -18,8 +18,8 @@ import {
 } from "@/lib/list/clients";
 import { Client, Prisma } from "@prisma/client";
 
-const CLIENT_HAS_PURCHASES_MESSAGE =
-	"Impossibile eliminare il Cliente: esistono Acquisti collegati (vincolo Restrict).";
+const CLIENT_HAS_SALES_MESSAGE =
+	"Impossibile eliminare il Cliente: esistono Vendite collegate (vincolo Restrict).";
 
 function buildClientWhere(filters: ListFilters): Prisma.ClientWhereInput {
 	const where: Prisma.ClientWhereInput = {};
@@ -146,6 +146,6 @@ export async function deleteClient({ id }: { id: number }) {
 			},
 		});
 	} catch (error) {
-		throwIfRestrictViolation(error, CLIENT_HAS_PURCHASES_MESSAGE);
+		throwIfRestrictViolation(error, CLIENT_HAS_SALES_MESSAGE);
 	}
 }

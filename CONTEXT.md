@@ -54,25 +54,25 @@ _Avoid_: Entrance set, carnet (sinonimo informale ammissibile in UI)
 Prezzo di un Prodotto per un dato anno.
 _Avoid_: Catalogo prezzi (sinonimo); Catalog (nome tecnico codice)
 
-**Acquisto**:
+**Vendita**:
 Evento in cui un Cliente compra un Prodotto in una data; importo, durata (se Abbonamento) e numero ingressi (se Pacchetto) sono snapshot alla vendita e costituiscono il titolo che giustifica gli Ingressi collegati. Modifiche successive al Prodotto non alterano i titoli già venduti.
-_Avoid_: Ordine, vendita (nel modello: Acquisto lato cliente); TitoloAccesso (non introdotto: coinciderebbe 1:1 con Acquisto)
+_Avoid_: Ordine, Acquisto (termine deprecato); TitoloAccesso (non introdotto: coinciderebbe 1:1 con Vendita)
 
 ### Accesso in palestra
 
 **Ingresso**:
-Evento di entrata in palestra in un istante, giustificato da un Acquisto; può ripetersi più volte nello stesso giorno.
+Evento di entrata in palestra in un istante, giustificato da una Vendita; può ripetersi più volte nello stesso giorno.
 _Avoid_: Check-in, entrata cliente (sinonimi; preferire Ingresso)
 
 **Ingressi rimanenti**:
-Residuo di un Acquisto di Pacchetto: `Acquisto.numero_ingressi` (snapshot alla vendita) meno gli Ingressi già collegati a quell’Acquisto; non è un attributo del Cliente né il valore corrente del Prodotto.
+Residuo di una Vendita di Pacchetto: `Vendita.numero_ingressi` (snapshot alla vendita) meno gli Ingressi già collegati a quella Vendita; non è un attributo del Cliente né il valore corrente del Prodotto.
 _Avoid_: Credito ingressi, saldo (ambigui con cassa); contatore globale su Cliente
 
 ### Movimenti economici in uscita
 
 **Pagamento**:
 Uscita economica della palestra, specializzata per tipo (Stipendio, Bolletta, Attrezzatura, Intervento).
-_Avoid_: Spesa, movement (usare Pagamento per le uscite; Acquisto per le entrate da clienti)
+_Avoid_: Spesa, movement (usare Pagamento per le uscite; Vendita per le entrate da clienti)
 
 **Stipendio**:
 Pagamento erogato a un Dipendente.
@@ -83,7 +83,7 @@ Pagamento verso un fornitore di utenza/servizio ricorrente, con descrizione e fo
 _Avoid_: Utenza (troppo generico)
 
 **Attrezzatura**:
-Pagamento per acquisto di attrezzatura da un fornitore (etichetta testuale; non anagrafica fornitori; non è magazzino/inventario pezzi).
+Pagamento per attrezzatura da un fornitore (etichetta testuale; non anagrafica fornitori; non è magazzino/inventario pezzi).
 _Avoid_: Equipment inventory, macchinario (come giacenza)
 
 **Intervento**:

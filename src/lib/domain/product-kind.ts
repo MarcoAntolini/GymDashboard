@@ -1,4 +1,4 @@
-/** Tipo prodotto in UI (non persistito su Acquisto — derivato da specializzazione / snapshot). */
+/** Tipo prodotto in UI (non persistito su Vendita — derivato da specializzazione / snapshot). */
 export const ProductKind = {
 	Membership: "Membership",
 	EntranceSet: "EntranceSet",
@@ -11,11 +11,11 @@ export const PRODUCT_KIND_LABEL: Record<ProductKind, string> = {
 	EntranceSet: "Pacchetto ingressi",
 };
 
-export function productKindFromSnapshot(purchase: {
+export function productKindFromSnapshot(sale: {
 	duration: number | null;
 	entranceNumber: number | null;
 }): ProductKind {
-	return purchase.duration != null ? ProductKind.Membership : ProductKind.EntranceSet;
+	return sale.duration != null ? ProductKind.Membership : ProductKind.EntranceSet;
 }
 
 /** Tipo derivato dalla specializzazione Prodotto (membership XOR entranceSet). */

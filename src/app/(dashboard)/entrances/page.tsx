@@ -181,7 +181,7 @@ export default function EntrancesPage() {
 		{
 			title: "Registra ingresso",
 			description:
-				"L'Acquisto giustificatore è scelto automaticamente: priorità ad un Abbonamento valido alla data, altrimenti al Pacchetto con residuo (FIFO). Se nessun Acquisto copre la data, la registrazione fallisce con un messaggio chiaro.",
+				"La Vendita giustificatrice è scelta automaticamente: priorità ad un Abbonamento valido alla data, altrimenti al Pacchetto con residuo (FIFO). Se nessuna Vendita copre la data, la registrazione fallisce con un messaggio chiaro.",
 			icon: PlusCircle,
 			dialogContent: (
 				<>
@@ -235,7 +235,7 @@ export default function EntrancesPage() {
 		{
 			title: "Analisi ingressi",
 			description:
-				"Serie temporale Ingressi, picchi di affluenza (ora / weekday / mese) e carico bancone Ingressi + Acquisti per giorno.",
+				"Serie temporale Ingressi, picchi di affluenza (ora / weekday / mese) e carico bancone Ingressi + Vendite per giorno.",
 			icon: BarChartIcon,
 			dialogContent: (
 				<>
@@ -473,7 +473,7 @@ export default function EntrancesPage() {
 							<div>
 								<p className="mb-1 text-sm font-medium">Carico bancone</p>
 								<p className="mb-3 text-sm text-muted-foreground">
-									Volume Ingressi e Acquisti per giorno nel periodo scelto.
+									Volume Ingressi e Vendite per giorno nel periodo scelto.
 								</p>
 								<div className="h-[220px]">
 									<ResponsiveContainer width="100%" height="100%">
@@ -495,8 +495,8 @@ export default function EntrancesPage() {
 												radius={[3, 3, 0, 0]}
 											/>
 											<Bar
-												dataKey="acquisti"
-												name="Acquisti"
+												dataKey="vendite"
+												name="Vendite"
 												fill="#64748b"
 												radius={[3, 3, 0, 0]}
 											/>

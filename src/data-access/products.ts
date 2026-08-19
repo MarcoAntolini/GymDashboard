@@ -19,7 +19,7 @@ import {
 import { Prisma, Product } from "@prisma/client";
 
 const PRODUCT_HAS_DEPENDENTS_MESSAGE =
-	"Impossibile eliminare il Prodotto: esistono Acquisti o voci di Listino collegati (vincolo Restrict).";
+	"Impossibile eliminare il Prodotto: esistono Vendite o voci di Listino collegate (vincolo Restrict).";
 
 const productInclude = {
 	membership: true,

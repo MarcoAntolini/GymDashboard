@@ -3,9 +3,12 @@
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import {
-	selectJustifyingPurchaseId,
-	type JustifyingPurchaseCandidate,
+	NO_JUSTIFYING_SALE_ERROR,
+	selectJustifyingSaleId,
+	type JustifyingSaleCandidate,
 } from "@/lib/entrance-justification";
+
+export { NO_JUSTIFYING_SALE_ERROR };
 import {
 	buildListResult,
 	normalizeListQuery,
@@ -35,7 +38,7 @@ import {
 import { Prisma } from "@prisma/client";
 
 const entranceInclude = {
-	purchase: {
+	sale: {
 		include: {
 			client: true,
 			prodotto: {
@@ -69,15 +72,15 @@ function buildEntranceWhere(filters: ListFilters): Prisma.EntranceWhereInput {
 	const id = parsePositiveIntFilter(filters.id);
 	if (id !== undefined) where.id = id;
 
-	const purchaseId = parsePositiveIntFilter(filters.purchaseId);
-	if (purchaseId !== undefined) where.purchaseId = purchaseId;
+	const saleId = parsePositiveIntFilter(filters.saleId);
+	if (saleId !== undefined) where.saleId = saleId;
 
 	const client = filters.client;
 	if (typeof client === "string") {
 		const value = client.trim();
 		if (value) {
 			and.push({
-				purchase: {
+				sale: {
 					client: {
 						OR: [
 							{ surname: { contains: value } },
@@ -94,7 +97,7 @@ function buildEntranceWhere(filters: ListFilters): Prisma.EntranceWhereInput {
 		const value = product.trim();
 		if (value) {
 			and.push({
-				purchase: { productCode: { contains: value } },
+				sale: { productCode: { contains: value } },
 			});
 		}
 	}
@@ -116,15 +119,15 @@ function buildEntranceOrderBy(
 			case "date":
 				orderBy.push({ date: dir });
 				break;
-			case "purchaseId":
-				orderBy.push({ purchaseId: dir });
+			case "saleId":
+				orderBy.push({ saleId: dir });
 				break;
 			case "client":
-				orderBy.push({ purchase: { client: { surname: dir } } });
-				orderBy.push({ purchase: { client: { name: dir } } });
+				orderBy.push({ sale: { client: { surname: dir } } });
+				orderBy.push({ sale: { client: { name: dir } } });
 				break;
 			case "product":
-				orderBy.push({ purchase: { productCode: dir } });
+				orderBy.push({ sale: { productCode: dir } });
 				break;
 			default:
 				break;
@@ -165,8 +168,8 @@ export async function listEntrances(
 }
 
 /**
- * Registra un Ingresso per il Cliente: in una sola transazione sceglie l'Acquisto
- * giustificatore (tie-break dominio) e inserisce con purchaseId.
+ * Registra un Ingresso per il Cliente: in una sola transazione sceglie la Vendita
+ * giustificatrice (tie-break dominio) e inserisce con saleId.
  */
 export async function registerEntrance(clientId: number, date?: Date) {
 	assertMutationPayload(
@@ -178,19 +181,19 @@ export async function registerEntrance(clientId: number, date?: Date) {
 
 	return await db.$transaction(
 		async (tx) => {
-			// Lock sulle righe Acquisto del Cliente (mitiga race sul residuo pacchetto).
+			// Lock sulle righe Vendita del Cliente (mitiga race sul residuo pacchetto).
 			await tx.$queryRaw`
-				SELECT id FROM acquisti WHERE id_cliente = ${clientId} FOR UPDATE
+				SELECT id FROM vendite WHERE id_cliente = ${clientId} FOR UPDATE
 			`;
 
-			const purchases = await tx.purchase.findMany({
+			const sales = await tx.sale.findMany({
 				where: { clientId },
 				include: {
 					_count: { select: { entrance: true } },
 				},
 			});
 
-			const candidates: JustifyingPurchaseCandidate[] = purchases.map((p) => ({
+			const candidates: JustifyingSaleCandidate[] = sales.map((p) => ({
 				id: p.id,
 				date: p.date,
 				duration: p.duration,
@@ -198,11 +201,11 @@ export async function registerEntrance(clientId: number, date?: Date) {
 				entrancesLinked: p._count.entrance,
 			}));
 
-			const purchaseId = selectJustifyingPurchaseId(candidates, at);
+			const saleId = selectJustifyingSaleId(candidates, at);
 
 			return await tx.entrance.create({
 				data: {
-					purchaseId,
+					saleId,
 					date: at,
 				},
 				include: entranceInclude,
@@ -307,7 +310,7 @@ export type EntranceFrequencyBundle = EntranceFrequency & {
 };
 
 /**
- * Frequenza Ingressi (ora / weekday / mese) + volume Ingressi/Acquisti per giorno.
+ * Frequenza Ingressi (ora / weekday / mese) + volume Ingressi/Vendite per giorno.
  * Dimensioni separate dalla serie PeriodType di getEntrancesByPeriod.
  */
 export async function getEntranceFrequencyAndBancone(
@@ -316,21 +319,21 @@ export async function getEntranceFrequencyAndBancone(
 ): Promise<EntranceFrequencyBundle> {
 	const { from, to } = normalizeInclusiveRange(startDate, endDate);
 	const dateFilter = { gte: from, lte: to };
-	const [entrances, purchases] = await Promise.all([
+	const [entrances, sales] = await Promise.all([
 		db.entrance.findMany({
 			where: { date: dateFilter },
 			select: { date: true },
 		}),
-		db.purchase.findMany({
+		db.sale.findMany({
 			where: { date: dateFilter },
 			select: { date: true },
 		}),
 	]);
 	const entranceDates = entrances.map((row) => row.date);
-	const purchaseDates = purchases.map((row) => row.date);
+	const saleDates = sales.map((row) => row.date);
 	const frequency = computeEntranceFrequency(entranceDates);
 	return {
 		...frequency,
-		banconeDaily: aggregateBanconeDaily(entranceDates, purchaseDates, from, to),
+		banconeDaily: aggregateBanconeDaily(entranceDates, saleDates, from, to),
 	};
 }

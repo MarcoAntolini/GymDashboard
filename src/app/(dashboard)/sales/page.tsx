@@ -24,15 +24,15 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import {
-	createPurchase,
-	deletePurchase,
-	editPurchase,
+	createSale,
+	deleteSale,
+	editSale,
 	getEntrateByPeriod,
 	getProductMixForPeriod,
-	listPurchases,
+	listSales,
 	type EntratePeriodPoint,
 	type ProductMixForPeriod,
-} from "@/data-access/purchases";
+} from "@/data-access/sales";
 import { useServerList } from "@/hooks/useServerList";
 import {
 	PRODUCT_KIND_LABEL,
@@ -45,19 +45,19 @@ import {
 	type PeriodType,
 } from "@/lib/period-aggregation";
 import {
-	PURCHASE_DEFAULT_SORT,
-	PURCHASE_FACETED_FILTERS,
-	PURCHASE_FILTER_ALLOWLIST,
-	PURCHASE_FILTER_LABELS,
-	PURCHASE_SORT_ALLOWLIST,
-} from "@/lib/list/purchases";
+	SALE_DEFAULT_SORT,
+	SALE_FACETED_FILTERS,
+	SALE_FILTER_ALLOWLIST,
+	SALE_FILTER_LABELS,
+	SALE_SORT_ALLOWLIST,
+} from "@/lib/list/sales";
 import { cn } from "@/lib/utils";
 import { BarChart as BarChartIcon, CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { z } from "zod";
 import { CatalogAmountDefault } from "./catalog-amount-default";
-import { columns, formSchema, ProductWithSpec, PurchaseRow } from "./columns";
+import { columns, formSchema, ProductWithSpec, SaleRow } from "./columns";
 
 const analyticsFormSchema = z.object({
 	date: z.object({
@@ -67,31 +67,31 @@ const analyticsFormSchema = z.object({
 	periodType: z.enum(PERIOD_TYPES),
 });
 
-export default function PurchasesPage() {
-	const list = useServerList<PurchaseRow>({
-		list: listPurchases,
-		sortAllowlist: PURCHASE_SORT_ALLOWLIST,
-		filterAllowlist: PURCHASE_FILTER_ALLOWLIST,
-		defaultSort: [...PURCHASE_DEFAULT_SORT],
+export default function SalesPage() {
+	const list = useServerList<SaleRow>({
+		list: listSales,
+		sortAllowlist: SALE_SORT_ALLOWLIST,
+		filterAllowlist: SALE_FILTER_ALLOWLIST,
+		defaultSort: [...SALE_DEFAULT_SORT],
 	});
 	const { refetch, setItems } = list;
 
 	const handleDelete = useCallback(
-		async (purchase: Pick<PurchaseRow, "id">) => {
-			await deletePurchase(purchase);
+		async (sale: Pick<SaleRow, "id">) => {
+			await deleteSale(sale);
 			refetch();
 		},
 		[refetch]
 	);
 
 	const handleEdit = useCallback(
-		async (purchase: PurchaseRow) => {
-			const updated = await editPurchase({
-				id: purchase.id,
-				clientId: purchase.clientId,
-				date: purchase.date,
-				amount: purchase.amount,
-				productCode: purchase.productCode,
+		async (sale: SaleRow) => {
+			const updated = await editSale({
+				id: sale.id,
+				clientId: sale.clientId,
+				date: sale.date,
+				amount: sale.amount,
+				productCode: sale.productCode,
 			});
 			setItems((prev) =>
 				prev.map((item) => (item.id === updated.id ? updated : item))
@@ -128,9 +128,9 @@ export default function PurchasesPage() {
 		[products, selectedType]
 	);
 
-	const handleCreatePurchase = useCallback(
+	const handleCreateSale = useCallback(
 		async (values: z.infer<typeof formSchema>) => {
-			await createPurchase(values);
+			await createSale(values);
 			refetch();
 		},
 		[refetch]
@@ -197,7 +197,7 @@ export default function PurchasesPage() {
 
 	const actions: Action[] = [
 		{
-			title: "Aggiungi acquisto",
+			title: "Aggiungi vendita",
 			description:
 				"Importo, durata e N ingressi sono snapshot al momento della vendita. L'importo proposto viene dal Listino dell'anno della data (modificabile prima del salvataggio).",
 			icon: PlusCircle,
@@ -254,7 +254,7 @@ export default function PurchasesPage() {
 							</FormItem>
 						)}
 					/>
-					{/* Tipo: solo filtro UI locale — non è FormField / non va nel payload Acquisto */}
+					{/* Tipo: solo filtro UI locale — non è FormField / non va nel payload Vendita */}
 					<div className="space-y-2">
 						<Label>Tipo</Label>
 						<Select
@@ -342,13 +342,13 @@ export default function PurchasesPage() {
 					amount: "",
 					productCode: "",
 				},
-				submitAction: handleCreatePurchase,
+				submitAction: handleCreateSale,
 			} as FormData<typeof formSchema>,
 		},
 		{
 			title: "Analisi entrate",
 			description:
-				"Aggrega gli Acquisti (entrate da Clienti) per periodo e mostra il mix Abbonamenti / Pacchetti per ricavo e quantità.",
+				"Aggrega le Vendite (entrate da Clienti) per periodo e mostra il mix Abbonamenti / Pacchetti per ricavo e quantità.",
 			icon: BarChartIcon,
 			dialogContent: (
 				<>
@@ -435,22 +435,22 @@ export default function PurchasesPage() {
 					<DataTable
 						columns={columns(handleDelete, handleEdit, products)}
 						getRowId={(row) => String(row.id)}
-						entityLabel="Acquisto"
+						entityLabel="Vendita"
 						bulkDeleteRow={async (row) => {
-							await deletePurchase({ id: row.id });
+							await deleteSale({ id: row.id });
 						}}
 						onBulkComplete={refetch}
 						data={list.items}
 						isLoading={list.isLoading}
 						error={list.error}
 						onRetry={list.refetch}
-						filters={[...PURCHASE_FILTER_ALLOWLIST]}
-						facetedFilters={PURCHASE_FACETED_FILTERS}
-						filterLabels={PURCHASE_FILTER_LABELS}
+						filters={[...SALE_FILTER_ALLOWLIST]}
+						facetedFilters={SALE_FACETED_FILTERS}
+						filterLabels={SALE_FILTER_LABELS}
 						emptyState={
 							<TableEmptyState
-								title="Nessun acquisto"
-								hint="Usa Aggiungi acquisto per registrare il primo Acquisto."
+								title="Nessuna vendita"
+								hint="Usa Aggiungi vendita per registrare la prima Vendita."
 							/>
 						}
 						serverList={{
@@ -478,7 +478,7 @@ export default function PurchasesPage() {
 						<SheetDescription>
 							{selectedDateRange
 								? `Periodo: ${formatDateIt(selectedDateRange.from)} - ${formatDateIt(selectedDateRange.to)} · ${PERIOD_TYPE_LABELS[periodType]}`
-								: "Importi Acquisto aggregati per tipo periodo + mix prodotti"}
+								: "Importi Vendita aggregati per tipo periodo + mix prodotti"}
 						</SheetDescription>
 					</SheetHeader>
 					<div className="mt-3 flex items-center gap-3">
@@ -520,7 +520,7 @@ export default function PurchasesPage() {
 						) : !hasEntrate ? (
 							<TableEmptyState
 								title="Nessuna entrata nel periodo"
-								hint="Registra un Acquisto oppure amplia l'intervallo di date."
+								hint="Registra una Vendita oppure amplia l'intervallo di date."
 							/>
 						) : (
 							<ResponsiveContainer width="100%" height="100%">

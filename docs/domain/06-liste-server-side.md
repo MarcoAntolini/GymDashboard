@@ -92,8 +92,8 @@ Indicizzare ciò che finisce spesso in `WHERE` / `ORDER BY` delle liste (regola 
 | Area | WHERE / ORDER BY tipici | Candidato |
 |---|---|---|
 | Clienti | CF, cognome/nome, città/provincia, data iscrizione | `taxCode` (unique già PK-like); `(surname, name)`; opz. `city`/`province` se filtrate spesso |
-| Ingressi | data desc, client via acquisto | `Entrance.date`; FK `purchaseId` |
-| Acquisti | data, clientId, productCode | `(clientId, date)`; `date` |
+| Ingressi | data desc, client via vendita | `Entrance.date`; FK `saleId` |
+| Vendite | data, clientId, productCode | `(clientId, date)`; `date` |
 | Dipendenti / Account | cognome, username, approved | `(surname, name)`; `Account.approved` (coda) |
 | Contratti / Timbrature | employeeId + date/time range | `(employeeId, startingDate)`; `(employeeId, entranceTime)` |
 | Pagamenti / Bollette / … | data, type | `Payment.date`, `Payment.type` |

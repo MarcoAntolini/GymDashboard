@@ -18,7 +18,7 @@ export type BanconeDailyPoint = {
 	key: string;
 	label: string;
 	ingressi: number;
-	acquisti: number;
+	vendite: number;
 };
 
 const WEEKDAY_LABELS = [
@@ -104,12 +104,12 @@ export function aggregateByMonthOfYear(dates: Date[]): FrequencyPoint[] {
 }
 
 /**
- * Volume operativo giornaliero: Ingressi e Acquisti nello stesso intervallo
+ * Volume operativo giornaliero: Ingressi e Vendite nello stesso intervallo
  * (serie continua con zeri).
  */
 export function aggregateBanconeDaily(
 	entranceDates: Date[],
-	purchaseDates: Date[],
+	saleDates: Date[],
 	from: Date,
 	to: Date
 ): BanconeDailyPoint[] {
@@ -121,19 +121,19 @@ export function aggregateBanconeDaily(
 		range.to,
 		"daily"
 	);
-	const acquistiSeries = aggregateByPeriod(
-		purchaseDates.map((date) => ({ date })),
+	const venditeSeries = aggregateByPeriod(
+		saleDates.map((date) => ({ date })),
 		(e) => e.date,
 		range.from,
 		range.to,
 		"daily"
 	);
-	const acquistiByKey = new Map(acquistiSeries.map((p) => [p.key, p.value]));
+	const venditeByKey = new Map(venditeSeries.map((p) => [p.key, p.value]));
 	return ingressiSeries.map((point) => ({
 		key: point.key,
 		label: point.label,
 		ingressi: point.value,
-		acquisti: acquistiByKey.get(point.key) ?? 0,
+		vendite: venditeByKey.get(point.key) ?? 0,
 	}));
 }
 

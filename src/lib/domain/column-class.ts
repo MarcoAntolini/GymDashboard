@@ -9,7 +9,7 @@ export const ColumnClass = {
 	Join: "join",
 	/** Calcolo o aggregato (es. tipo prodotto, residuo pacchetto). Non persistito sulla tabella sbagliata. */
 	Derived: "derived",
-	/** Fatto memorizzato alla vendita / evento (es. importo/durata/N su Acquisto). */
+	/** Fatto memorizzato alla vendita / evento (es. importo/durata/N su Vendita). */
 	Snapshot: "snapshot",
 } as const;
 

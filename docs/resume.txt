@@ -136,7 +136,7 @@ Explanation: Removes a specific salary record from the database.
 
 Create Client:
 MySQL: INSERT INTO clienti (taxCode, name, surname, birthDate, street, houseNumber, city, province, phoneNumber, email, enrollmentDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-Explanation: Inserts a new client record with personal and membership information. Ingressi rimanenti are derived per Acquisto (package residual), not stored on Client.
+Explanation: Inserts a new client record with personal and membership information. Ingressi rimanenti are derived per Vendita (package residual), not stored on Client.
 
 Get All Clients:
 MySQL: SELECT * FROM clienti;
@@ -150,26 +150,26 @@ Edit Client:
 MySQL: UPDATE clienti SET taxCode = ?, name = ?, surname = ?, birthDate = ?, street = ?, houseNumber = ?, city = ?, province = ?, phoneNumber = ?, email = ?, enrollmentDate = ? WHERE id = ?;
 Explanation: Updates a client's information for a specific client ID. Does not persist residual entrances on Client.
 
-7. Purchases
+7. Sales
 
-Create Purchase:
-MySQL: INSERT INTO acquisti (clientId, date, amount, type, productCode) VALUES (?, ?, ?, ?, ?);
-Explanation: Records a new purchase made by a client.
+Create Sale:
+MySQL: INSERT INTO vendite (clientId, date, amount, type, productCode) VALUES (?, ?, ?, ?, ?);
+Explanation: Records a new sale made by a client.
 
-Get All Purchases:
-MySQL: SELECT a.*, c.*, p.* FROM acquisti a JOIN clienti c ON a.clientId = c.id JOIN prodotti p ON a.productCode = p.code;
-Explanation: Retrieves all purchase records with associated client and product information.
+Get All Sales:
+MySQL: SELECT a.*, c.*, p.* FROM vendite a JOIN clienti c ON a.clientId = c.id JOIN prodotti p ON a.productCode = p.code;
+Explanation: Retrieves all sale records with associated client and product information.
 
-Get Purchase:
-MySQL: SELECT a.*, c.*, p.* FROM acquisti a JOIN clienti c ON a.clientId = c.id JOIN prodotti p ON a.productCode = p.code WHERE a.clientId = ? AND a.date = ?;
-Explanation: Retrieves a specific purchase record with associated client and product information.
+Get Sale:
+MySQL: SELECT a.*, c.*, p.* FROM vendite a JOIN clienti c ON a.clientId = c.id JOIN prodotti p ON a.productCode = p.code WHERE a.clientId = ? AND a.date = ?;
+Explanation: Retrieves a specific sale record with associated client and product information.
 
-Edit Purchase:
-MySQL: UPDATE acquisti SET amount = ?, type = ?, productCode = ? WHERE clientId = ? AND date = ?;
-Explanation: Updates the details of a specific purchase record.
+Edit Sale:
+MySQL: UPDATE vendite SET amount = ?, type = ?, productCode = ? WHERE clientId = ? AND date = ?;
+Explanation: Updates the details of a specific sale record.
 
-Delete Purchase:
-MySQL: DELETE FROM acquisti WHERE clientId = ? AND date = ?;
-Explanation: Removes a specific purchase record from the database.
+Delete Sale:
+MySQL: DELETE FROM vendite WHERE clientId = ? AND date = ?;
+Explanation: Removes a specific sale record from the database.
 
-These database operations cover the core functionality of the gym management system, including managing accounts, employees, contracts, clockings, salaries, clients, and purchases. The MySQL queries provide a direct representation of the data manipulation performed by the Prisma ORM in the application.
+These database operations cover the core functionality of the gym management system, including managing accounts, employees, contracts, clockings, salaries, clients, and sales. The MySQL queries provide a direct representation of the data manipulation performed by the Prisma ORM in the application.

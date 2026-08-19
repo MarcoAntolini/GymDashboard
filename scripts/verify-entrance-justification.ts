@@ -4,9 +4,9 @@
  */
 
 import {
-	NO_JUSTIFYING_PURCHASE_ERROR,
-	selectJustifyingPurchaseId,
-	type JustifyingPurchaseCandidate,
+	NO_JUSTIFYING_SALE_ERROR,
+	selectJustifyingSaleId,
+	type JustifyingSaleCandidate,
 } from "../src/lib/entrance-justification";
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -22,7 +22,7 @@ function run() {
 
 	// 1) Membership preferred over package with residual
 	{
-		const id = selectJustifyingPurchaseId(
+		const id = selectJustifyingSaleId(
 			[
 				{
 					id: 10,
@@ -47,7 +47,7 @@ function run() {
 
 	// 2) Among valid memberships → max (date, id)
 	{
-		const id = selectJustifyingPurchaseId(
+		const id = selectJustifyingSaleId(
 			[
 				{
 					id: 1,
@@ -79,7 +79,7 @@ function run() {
 
 	// 3) Package FIFO → min (date, id) with residual > 0
 	{
-		const id = selectJustifyingPurchaseId(
+		const id = selectJustifyingSaleId(
 			[
 				{
 					id: 50,
@@ -120,7 +120,7 @@ function run() {
 	{
 		let thrown = false;
 		try {
-			selectJustifyingPurchaseId(
+			selectJustifyingSaleId(
 				[
 					{
 						id: 7,
@@ -140,15 +140,15 @@ function run() {
 				at
 			);
 		} catch (e) {
-			thrown = e instanceof Error && e.message === NO_JUSTIFYING_PURCHASE_ERROR;
+			thrown = e instanceof Error && e.message === NO_JUSTIFYING_SALE_ERROR;
 		}
-		assert(thrown, "expected NO_JUSTIFYING_PURCHASE_ERROR");
+		assert(thrown, "expected NO_JUSTIFYING_SALE_ERROR");
 		console.log("ok: reject residuo 0 / membership scaduto");
 	}
 
 	// 5) Half-open window: t = t0 + D is NOT covered
 	{
-		const purchase: JustifyingPurchaseCandidate = {
+		const sale: JustifyingSaleCandidate = {
 			id: 9,
 			date: day("2026-07-01"),
 			duration: 14,
@@ -158,19 +158,19 @@ function run() {
 		const endExclusive = day("2026-07-15"); // 01 + 14 days
 		let thrown = false;
 		try {
-			selectJustifyingPurchaseId([purchase], endExclusive);
+			selectJustifyingSaleId([sale], endExclusive);
 		} catch (e) {
-			thrown = e instanceof Error && e.message === NO_JUSTIFYING_PURCHASE_ERROR;
+			thrown = e instanceof Error && e.message === NO_JUSTIFYING_SALE_ERROR;
 		}
 		assert(thrown, "half-open: end exclusive should reject");
-		const inside = selectJustifyingPurchaseId([purchase], day("2026-07-14"));
+		const inside = selectJustifyingSaleId([sale], day("2026-07-14"));
 		assert(inside === 9, "half-open: last day inside window");
 		console.log("ok: half-open membership window");
 	}
 
 	// 6) Same-date packages → min id
 	{
-		const id = selectJustifyingPurchaseId(
+		const id = selectJustifyingSaleId(
 			[
 				{
 					id: 12,

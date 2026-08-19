@@ -124,7 +124,7 @@ No dedicated shadow scale in tokens. Separation is mostly **borders** (`border`)
 - **Data surfaces:** TanStack data tables with toolbar filters, faceted filters, pagination — density over card grids. Category/status cells use `DomainBadge` (soft tint + Lucide icon).
 - **Feedback:** Sonner toasts (`richColors`); loading via spinners on nav fetch.
 - **Theming:** `next-themes` class strategy (`light` / `dark` / system).
-- **Money direction:** `MoneyTone` — green for Entrate/Acquisti, red for Uscite/Pagamenti, signed for Saldo.
+- **Money direction:** `MoneyTone` — green for Entrate/Vendite, red for Uscite/Pagamenti, signed for Saldo.
 
 Reuse `@/components/ui/*` before adding one-offs.
 
@@ -133,7 +133,7 @@ Reuse `@/components/ui/*` before adding one-offs.
 **Do**
 
 - Keep orange primary for primary actions and focus; keep neutrals for chrome.
-- Use domain Italian labels already in nav (Ingressi, Acquisti, Pagamenti, …).
+- Use domain Italian labels already in nav (Ingressi, Vendite, Pagamenti, …).
 - Prefer table + form patterns for CRUD.
 - Preserve light/dark token pairs when adding surfaces.
 

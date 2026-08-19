@@ -1,21 +1,21 @@
 import { PrismaClient } from "@prisma/client";
-import { packageResidual } from "@/lib/domain/purchase-access";
+import { packageResidual } from "@/lib/domain/sale-access";
 import { faker } from "./faker";
 
 export async function mockEntrances(db: PrismaClient) {
 	console.log("Mocking entrances...");
-	const purchases = await db.purchase.findMany({
+	const sales = await db.sale.findMany({
 		where: { entranceNumber: { not: null } },
 		include: { _count: { select: { entrance: true } } },
 	});
 
-	if (purchases.length === 0) {
-		console.log("No package purchases found; skipping entrances.");
+	if (sales.length === 0) {
+		console.log("No package sales found; skipping entrances.");
 		return;
 	}
 
 	const residualById = new Map(
-		purchases.map((p) => [
+		sales.map((p) => [
 			p.id,
 			packageResidual(p, p._count.entrance) ?? 0,
 		])
@@ -25,17 +25,17 @@ export async function mockEntrances(db: PrismaClient) {
 	const attempts = 200;
 
 	for (let i = 0; i < attempts; i++) {
-		const available = purchases.filter((p) => (residualById.get(p.id) ?? 0) > 0);
+		const available = sales.filter((p) => (residualById.get(p.id) ?? 0) > 0);
 		if (available.length === 0) break;
 
-		const purchase = faker.helpers.arrayElement(available);
+		const sale = faker.helpers.arrayElement(available);
 		await db.entrance.create({
 			data: {
-				purchaseId: purchase.id,
+				saleId: sale.id,
 				date: faker.date.recent(),
 			},
 		});
-		residualById.set(purchase.id, (residualById.get(purchase.id) ?? 1) - 1);
+		residualById.set(sale.id, (residualById.get(sale.id) ?? 1) - 1);
 		created++;
 	}
 

@@ -29,7 +29,7 @@ Indirizzo composto → attributi aplanati (`via`, `civico`, `città`, `provincia
 
 ### Identificatori eventi
 
-Acquisto e Ingresso usano **PK surrogate** (`id`), non `(cliente, data)`:
+Vendita e Ingresso usano **PK surrogate** (`id`), non `(cliente, data)`:
 
 - collisioni se due eventi condividono lo stesso timestamp (o arrotondamento);
 - pattern visite (`03-modello-er.md`): non forzare `{partecipanti + data}` come PK se le FD non lo richiedono.
@@ -40,52 +40,52 @@ Contratto e Timbratura restano deboli con PK esterna composta (stabile e suffici
 
 | Candidato | Decisione | Motivazione |
 |---|---|---|
-| `Cliente.ingressi_rimanenti` | **Eliminato** | Derivabile; contatore globale senza allocazione per-acquisto → anomalie di aggiornamento; non in 3NF rispetto alle FD di consumo |
-| Contatore residuo su Acquisto pacchetto | **Non introdotto** (decisione stabile) | Residuo = `Acquisto.numero_ingressi − COUNT(ingressi.id_acquisto)`; denormalizzare solo se tavola volumi reale lo impone (`06`) |
+| `Cliente.ingressi_rimanenti` | **Eliminato** | Derivabile; contatore globale senza allocazione per-vendita → anomalie di aggiornamento; non in 3NF rispetto alle FD di consumo |
+| Contatore residuo su Vendita pacchetto | **Non introdotto** (decisione stabile) | Residuo = `Vendita.numero_ingressi − COUNT(ingressi.id_vendita)`; denormalizzare solo se tavola volumi reale lo impone (`06`) |
 | Entità `fornitori` | **Non introdotta** | `fornitore` resta stringa su bollette/attrezzature; report per nome ok; identità canonica fuori scope |
 | `PERSONA` come superclasse | **Non nello schema** | Variante didattica in relazione; vedi `02-schema-er.md` |
-| `clientId` su Ingresso | **Non introdotto** | FD `id_acquisto → id_cliente`; tenere entrambi sarebbe ridondanza di associazione (ciclo Cliente–Acquisto–Ingresso) |
-| `tipo` su Acquisto / Listino | **Eliminato** | Determinato dalla specializzazione del Prodotto (`codice → tipo`) — violazione 3NF se lasciato |
+| `clientId` su Ingresso | **Non introdotto** | FD `id_vendita → id_cliente`; tenere entrambi sarebbe ridondanza di associazione (ciclo Cliente–Vendita–Ingresso) |
+| `tipo` su Vendita / Listino | **Eliminato** | Determinato dalla specializzazione del Prodotto (`codice → tipo`) — violazione 3NF se lasciato |
 
 ### Residuo pacchetto (definizione formale)
 
-Per un Acquisto `A` di Pacchetto con snapshot `A.numero_ingressi = N` (fissato alla vendita; **non** il valore corrente in `pacchetti_ingressi`):
+Per una Vendita `A` di Pacchetto con snapshot `A.numero_ingressi = N` (fissato alla vendita; **non** il valore corrente in `pacchetti_ingressi`):
 
 ```
-residuo(A) = N − |{ I ∈ ingressi | I.id_acquisto = A.id }|
+residuo(A) = N − |{ I ∈ ingressi | I.id_vendita = A.id }|
 ```
 
 Un ingresso su pacchetto è ammesso solo se `residuo(A) > 0` prima dell’insert (nella stessa transazione del insert).
 
 ### Validità abbonamento e tie-break (definizione formale)
 
-Per un Acquisto `A` di Abbonamento con snapshot `A.durata = D` giorni (fissato alla vendita; **non** il valore corrente in `abbonamenti`) e `A.data = t0`, la finestra di validità è `[t0, t0 + D giorni)`.  
+Per una Vendita `A` di Abbonamento con snapshot `A.durata = D` giorni (fissato alla vendita; **non** il valore corrente in `abbonamenti`) e `A.data = t0`, la finestra di validità è `[t0, t0 + D giorni)`.  
 Un Ingresso con `data = t` può essere giustificato da `A` se `t ∈ [t0, t0 + D)`.
 
 Algoritmo di scelta (regola 9 in `02-schema-er.md`), deterministico:
 
-1. Sia `M` l’insieme degli Acquisti di Abbonamento del Cliente validi in `t`. Se `M ≠ ∅`, scegli `arg max` su `(data, id)` (più recente; poi id maggiore).
-2. Altrimenti sia `P` l’insieme degli Acquisti di Pacchetto del Cliente con `residuo > 0`. Se `P ≠ ∅`, scegli `arg min` su `(data, id)` (FIFO; poi id minore).
+1. Sia `M` l’insieme delle Vendite di Abbonamento del Cliente valide in `t`. Se `M ≠ ∅`, scegli `arg max` su `(data, id)` (più recente; poi id maggiore).
+2. Altrimenti sia `P` l’insieme delle Vendite di Pacchetto del Cliente con `residuo > 0`. Se `P ≠ ∅`, scegli `arg min` su `(data, id)` (FIFO; poi id minore).
 3. Altrimenti rifiuta.
 
 ### Contratti non sovrapposti
 
 Due contratti `C1`, `C2` dello stesso `id_dipendente` sono illegali se gli intervalli semiaperti si intersecano, con `data_fine` NULL = +∞. Enforcement in applicazione (prima di insert/update); eventuale trigger MySQL. La sola PK `(id_dipendente, data_inizio)` non basta.
 
-### Importo acquisto vs listino (snapshot)
+### Importo vendita vs listino (snapshot)
 
-`acquisti.importo` **non** è ridondanza da eliminare rispetto a `listini.prezzo`:
+`vendite.importo` **non** è ridondanza da eliminare rispetto a `listini.prezzo`:
 
 - il listino è il prezzo corrente/per anno;
-- l’acquisto fissa l’importo **al momento della vendita** (requisito di storicizzazione, `03-modello-er.md` — tempo e snapshot).
+- l’vendita fissa l’importo **al momento della vendita** (requisito di storicizzazione, `03-modello-er.md` — tempo e snapshot).
 
-All’inserimento l’applicazione propone di default il prezzo di `listini` per `(YEAR(data), codice_prodotto)`; scostamenti solo per sconto/deroga. Nessuna FK Acquisto→Listino (il listino dell’anno può mancare o essere aggiornato dopo).
+All’inserimento l’applicazione propone di default il prezzo di `listini` per `(YEAR(data), codice_prodotto)`; scostamenti solo per sconto/deroga. Nessuna FK Vendita→Listino (il listino dell’anno può mancare o essere aggiornato dopo).
 
-### Durata / N ingressi su Acquisto (snapshot)
+### Durata / N ingressi su Vendita (snapshot)
 
-`acquisti.durata` e `acquisti.numero_ingressi` sono lo **snapshot** dei parametri di accesso alla vendita (uno dei due valorizzato secondo la specializzazione del Prodotto):
+`vendite.durata` e `vendite.numero_ingressi` sono lo **snapshot** dei parametri di accesso alla vendita (uno dei due valorizzato secondo la specializzazione del Prodotto):
 
-- giustificazione Ingressi e residuo pacchetto leggono **solo** questi campi sull’Acquisto;
+- giustificazione Ingressi e residuo pacchetto leggono **solo** questi campi sulla Vendita;
 - aggiornare `abbonamenti.durata` / `pacchetti_ingressi.numero_ingressi` non altera titoli già venduti.
 
 ## Tavola volumi (ordine di grandezza)
@@ -94,12 +94,12 @@ All’inserimento l’applicazione propone di default il prezzo di `listini` per
 |---|---|
 | clienti / dipendenti | 10²–10³ |
 | prodotti / listini | 10¹ |
-| acquisti | 10³–10⁴ |
+| vendite | 10³–10⁴ |
 | ingressi | 10⁴–10⁵ (operazione più frequente) |
 | pagamenti + figlie | 10²–10³ |
 | contratti / timbrature | 10³–10⁴ |
 
-Operazione dominante in scrittura: registrazione Ingresso (I, alta frequenza) — navigazione Acquisto → specializzazione Prodotto → eventuale COUNT ingressi.
+Operazione dominante in scrittura: registrazione Ingresso (I, alta frequenza) — navigazione Vendita → specializzazione Prodotto → eventuale COUNT ingressi.
 
 ## Mapping E/R → relazioni
 
@@ -120,8 +120,8 @@ Notazione: PK sottolineata; FK indicate.
 | `abbonamenti` | **codice_prodotto** → prodotti, durata | |
 | `pacchetti_ingressi` | **codice_prodotto** → prodotti, numero_ingressi | |
 | `listini` | **anno**, **codice_prodotto** → prodotti, prezzo | PK senza tipo |
-| `acquisti` | **id**, id_cliente → clienti, data, importo, codice_prodotto → prodotti, durata?, numero_ingressi? | snapshot durata/N alla vendita; onDelete Client/Product: **Restrict** |
-| `ingressi` | **id**, data, id_acquisto → acquisti | onDelete Purchase: **Restrict** |
+| `vendite` | **id**, id_cliente → clienti, data, importo, codice_prodotto → prodotti, durata?, numero_ingressi? | snapshot durata/N alla vendita; onDelete Client/Product: **Restrict** |
+| `ingressi` | **id**, data, id_vendita → vendite | onDelete Sale: **Restrict** |
 
 Soldi (`importo`, `prezzo`, `costo_orario`): tipo **Decimal** (non Float) — evita errori di rappresentazione su moneta.
 
@@ -129,16 +129,16 @@ Soldi (`importo`, `prezzo`, `costo_orario`): tipo **Decimal** (non Float) — ev
 
 | FK | onDelete | Motivo |
 |---|---|---|
-| acquisti → prodotti | Restrict | non cancellare storia di cassa con il prodotto |
-| acquisti → clienti | Restrict | non cancellare il cliente se ha movimenti di cassa / titoli usati |
-| ingressi → acquisti | Restrict | non cancellare un acquisto già usato come giustificazione |
+| vendite → prodotti | Restrict | non cancellare storia di cassa con il prodotto |
+| vendite → clienti | Restrict | non cancellare il cliente se ha movimenti di cassa / titoli usati |
+| ingressi → vendite | Restrict | non cancellare una vendita già usata come giustificazione |
 | figlie pagamento → pagamenti | Cascade | figlia non ha senso senza padre |
 | contratti/timbrature → dipendenti | Cascade | ciclo di vita dipendente |
 | account → dipendenti | Cascade | |
 
-**Perché non Cascade su Cliente→Acquisto:** con `ingressi → acquisti` Restrict, un `DELETE` cliente in cascata sugli acquisti **fallirebbe** (o lascerebbe stati ambigui) non appena esistono ingressi. Restrict su entrambi i lati rende esplicita la regola: la storia non si cancella “di passaggio”.
+**Perché non Cascade su Cliente→Vendita:** con `ingressi → vendite` Restrict, un `DELETE` cliente in cascata sulle vendite **fallirebbe** (o lascerebbe stati ambigui) non appena esistono ingressi. Restrict su entrambi i lati rende esplicita la regola: la storia non si cancella “di passaggio”.
 
-Procedura amministrativa (fuori DDL): esportare/archiviare, poi cancellare ingressi → acquisti → cliente solo se policy di privacy lo richiede — mai un cascade silenzioso.
+Procedura amministrativa (fuori DDL): esportare/archiviare, poi cancellare ingressi → vendite → cliente solo se policy di privacy lo richiede — mai un cascade silenzioso.
 
 ## Transazione: registrazione Ingresso
 
@@ -149,13 +149,13 @@ Use case multi-step (letture + scrittura) → **una sola transazione**. Non basa
 Passi (pseudo):
 
 1. `BEGIN` (isolamento consigliato: `REPEATABLE READ` o almeno `READ COMMITTED`; InnoDB).
-2. Caricare i candidati Acquisto del Cliente (Abbonamento / Pacchetto) rilevanti per `t = now()` (o timestamp richiesto).
-3. Per i pacchetti, calcolare `residuo` con `COUNT` degli ingressi per `id_acquisto` **nella stessa transazione** (lock sulle righe Acquisto o gap lock sul predicato — mitigare phantom: due ingressi concorrenti sullo stesso pacchetto non devono entrambi vedere `residuo = 1`).
+2. Caricare i candidati Vendita del Cliente (Abbonamento / Pacchetto) rilevanti per `t = now()` (o timestamp richiesto).
+3. Per i pacchetti, calcolare `residuo` con `COUNT` degli ingressi per `id_vendita` **nella stessa transazione** (lock sulle righe Vendita o gap lock sul predicato — mitigare phantom: due ingressi concorrenti sullo stesso pacchetto non devono entrambi vedere `residuo = 1`).
 4. Applicare il tie-break (sezione sopra); se nessun candidato → `ROLLBACK` / errore applicativo.
-5. `INSERT` in `ingressi` con `id_acquisto` scelto.
+5. `INSERT` in `ingressi` con `id_vendita` scelto.
 6. `COMMIT`.
 
-Anomalie da evitare: lost update / phantom sul conteggio residuo; dirty read di acquisti non committed. Transazione **corta** (niente I/O UI dentro il `BEGIN`…`COMMIT`).
+Anomalie da evitare: lost update / phantom sul conteggio residuo; dirty read di vendite non committed. Transazione **corta** (niente I/O UI dentro il `BEGIN`…`COMMIT`).
 
 Test minimo: due client concorrenti che registrano ingresso sullo stesso pacchetto con residuo 1 → esattamente un successo e un rifiuto.
 
@@ -167,17 +167,17 @@ Test minimo: due client concorrenti che registrano ingresso sullo stesso pacchet
 - FD: chiave → prezzo
 - **3NF / BCNF** (niente `tipo`: sarebbe `codice_prodotto → tipo` transitiva sulla chiave composta)
 
-### `acquisti(id, id_cliente, data, importo, codice_prodotto)`
+### `vendite(id, id_cliente, data, importo, codice_prodotto)`
 
 - Chiave: `{id}`
 - FD: id → tutti; nessun `tipo` ridondante
 - `importo` non dipende funzionalmente da `(anno listino, codice)` nello schema memorizzato: è fatto storico (può discostarsi dal listino per sconto)
 - **3NF / BCNF**
 
-### `ingressi(id, data, id_acquisto)`
+### `ingressi(id, data, id_vendita)`
 
 - Chiave: `{id}`
-- FD: id → data, id_acquisto; id_acquisto → id_cliente (via join, non attributo locale)
+- FD: id → data, id_vendita; id_vendita → id_cliente (via join, non attributo locale)
 - **3NF / BCNF**
 
 ### Consumo pacchetto
@@ -189,15 +189,15 @@ La FD “residuo” non è un attributo memorizzato; nessun rischio di anomalia 
 `gym-dashboard/prisma/schema.prisma` deve rispecchiare le relazioni sopra. Breaking rispetto allo schema precedente:
 
 1. Drop `clienti.ingressi_rimanenti`
-2. Drop `acquisti.tipo`, `listini.tipo`; PK listini = `(anno, codice_prodotto)`
-3. `acquisti` / `ingressi`: PK surrogata `id`; `ingressi` perde `id_cliente`, guadagna `id_acquisto` obbligatorio
+2. Drop `vendite.tipo`, `listini.tipo`; PK listini = `(anno, codice_prodotto)`
+3. `vendite` / `ingressi`: PK surrogata `id`; `ingressi` perde `id_cliente`, guadagna `id_vendita` obbligatorio
 4. `Float` → `Decimal` su importi/prezzi/costo orario
-5. `acquisti` → `prodotti` e `acquisti` → `clienti`: `onDelete: Restrict`; `ingressi` → `acquisti`: `Restrict`
-6. Enum `PurchaseType` resta utile in applicazione per filtri UI derivati dal join a Membership/EntranceSet, non come colonna denormalizzata su Acquisto/Listino
+5. `vendite` → `prodotti` e `vendite` → `clienti`: `onDelete: Restrict`; `ingressi` → `vendite`: `Restrict`
+6. Enum `SaleType` resta utile in applicazione per filtri UI derivati dal join a Membership/EntranceSet, non come colonna denormalizzata su Vendita/Listino
 
 **Migrazione dati** (passata successiva, non in questo step):
 
-- backfill `ingressi.id_acquisto` scegliendo acquisto giustificatore per cliente/data (euristica = regola 9 / tie-break);
+- backfill `ingressi.id_vendita` scegliendo la vendita giustificatrice per cliente/data (euristica = regola 9 / tie-break);
 - drop colonne obsolete;
 - riscrivere CRUD ingresso (transazione + tie-break; niente decremento su Cliente).
 

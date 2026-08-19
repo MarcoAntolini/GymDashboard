@@ -1,9 +1,9 @@
 /**
- * Regole di accesso basate sullo snapshot Acquisto (durata / N ingressi alla vendita).
+ * Regole di accesso basate sullo snapshot Vendita (durata / N ingressi alla vendita).
  * Non leggere mai Membership.duration / EntranceSet.entranceNumber per giustificare Ingressi.
  */
 
-export type PurchaseAccessSnapshot = {
+export type SaleAccessSnapshot = {
 	date: Date;
 	duration: number | null;
 	entranceNumber: number | null;
@@ -11,38 +11,38 @@ export type PurchaseAccessSnapshot = {
 
 /** Residuo pacchetto: snapshot N − ingressi già collegati. */
 export function packageResidual(
-	purchase: Pick<PurchaseAccessSnapshot, "entranceNumber">,
+	sale: Pick<SaleAccessSnapshot, "entranceNumber">,
 	entrancesLinked: number
 ): number | null {
-	if (purchase.entranceNumber == null) return null;
-	return purchase.entranceNumber - entrancesLinked;
+	if (sale.entranceNumber == null) return null;
+	return sale.entranceNumber - entrancesLinked;
 }
 
-/** True se l'Acquisto è un Abbonamento (ha durata snapshot). */
-export function isMembershipPurchase(
-	purchase: Pick<PurchaseAccessSnapshot, "duration" | "entranceNumber">
+/** True se la Vendita è un Abbonamento (ha durata snapshot). */
+export function isMembershipSale(
+	sale: Pick<SaleAccessSnapshot, "duration" | "entranceNumber">
 ): boolean {
-	return purchase.duration != null;
+	return sale.duration != null;
 }
 
-/** True se l'Acquisto è un Pacchetto (ha N ingressi snapshot). */
-export function isEntranceSetPurchase(
-	purchase: Pick<PurchaseAccessSnapshot, "duration" | "entranceNumber">
+/** True se la Vendita è un Pacchetto (ha N ingressi snapshot). */
+export function isEntranceSetSale(
+	sale: Pick<SaleAccessSnapshot, "duration" | "entranceNumber">
 ): boolean {
-	return purchase.entranceNumber != null;
+	return sale.entranceNumber != null;
 }
 
 /**
- * Finestra di validità abbonamento: [dataAcquisto, dataAcquisto + durata giorni).
- * Usa solo lo snapshot `duration` sull'Acquisto.
+ * Finestra di validità abbonamento: [dataVendita, dataVendita + durata giorni).
+ * Usa solo lo snapshot `duration` sulla Vendita.
  */
 export function membershipCoversAt(
-	purchase: Pick<PurchaseAccessSnapshot, "date" | "duration">,
+	sale: Pick<SaleAccessSnapshot, "date" | "duration">,
 	at: Date
 ): boolean {
-	if (purchase.duration == null) return false;
-	const start = purchase.date.getTime();
-	const end = start + purchase.duration * 24 * 60 * 60 * 1000;
+	if (sale.duration == null) return false;
+	const start = sale.date.getTime();
+	const end = start + sale.duration * 24 * 60 * 60 * 1000;
 	const t = at.getTime();
 	return t >= start && t < end;
 }

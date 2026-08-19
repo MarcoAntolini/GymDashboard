@@ -39,11 +39,11 @@ async function main() {
 
 	const live = rangeForOverviewPreset("current_month", new Date());
 	const [pCount, payCount, eCount] = await Promise.all([
-		db.purchase.count({ where: { date: { gte: live.from, lte: live.to } } }),
+		db.sale.count({ where: { date: { gte: live.from, lte: live.to } } }),
 		db.payment.count({ where: { date: { gte: live.from, lte: live.to } } }),
 		db.entrance.count({ where: { date: { gte: live.from, lte: live.to } } }),
 	]);
-	console.log("period counts purchases/payments/entrances", pCount, payCount, eCount);
+	console.log("period counts sales/payments/entrances", pCount, payCount, eCount);
 	await db.$disconnect();
 	console.log("verify-overview-home: ok");
 }

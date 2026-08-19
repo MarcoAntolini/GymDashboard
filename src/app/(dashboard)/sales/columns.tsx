@@ -31,7 +31,7 @@ export type ProductWithSpec = Prisma.ProductGetPayload<{
 	include: { membership: true; entranceSet: true };
 }>;
 
-export type PurchaseRow = Prisma.PurchaseGetPayload<{
+export type SaleRow = Prisma.SaleGetPayload<{
 	include: {
 		client: true;
 		prodotto: { include: { membership: true; entranceSet: true } };
@@ -49,10 +49,10 @@ export const formSchema = z.object({
 });
 
 export const columns = (
-	handleDelete: (purchase: Pick<PurchaseRow, "id">) => Promise<void>,
-	handleEdit: (purchase: PurchaseRow) => Promise<void>,
+	handleDelete: (sale: Pick<SaleRow, "id">) => Promise<void>,
+	handleEdit: (sale: SaleRow) => Promise<void>,
 	products: ProductWithSpec[]
-): ColumnDef<PurchaseRow>[] => [
+): ColumnDef<SaleRow>[] => [
 	{
 		id: "client",
 		accessorFn: (row) =>
@@ -166,7 +166,7 @@ export const columns = (
 	{
 		id: "actions",
 		cell: ({ row }) => (
-			<PurchaseRowActions
+			<SaleRowActions
 				row={row}
 				products={products}
 				handleDelete={handleDelete}
@@ -176,20 +176,20 @@ export const columns = (
 	},
 ];
 
-function PurchaseRowActions({
+function SaleRowActions({
 	row,
 	products,
 	handleDelete,
 	handleEdit,
 }: {
-	row: Row<PurchaseRow>;
+	row: Row<SaleRow>;
 	products: ProductWithSpec[];
-	handleDelete: (purchase: Pick<PurchaseRow, "id">) => Promise<void>;
-	handleEdit: (purchase: PurchaseRow) => Promise<void>;
+	handleDelete: (sale: Pick<SaleRow, "id">) => Promise<void>;
+	handleEdit: (sale: SaleRow) => Promise<void>;
 }) {
-	const purchase = row.original;
+	const sale = row.original;
 	const [selectedType, setSelectedType] = useState<ProductKind>(() =>
-		productKindFromSnapshot(purchase)
+		productKindFromSnapshot(sale)
 	);
 	const filteredProducts = useMemo(
 		() =>
@@ -204,13 +204,13 @@ function PurchaseRowActions({
 			row={{
 				...row,
 				original: {
-					...purchase,
-					amount: String(purchase.amount),
+					...sale,
+					amount: String(sale.amount),
 				},
 			}}
 			formSchema={formSchema}
-			entityLabel="Acquisto"
-			deleteDescription="Se l'Acquisto ha Ingressi collegati, l'eliminazione viene rifiutata (vincolo Restrict)."
+			entityLabel="Vendita"
+			deleteDescription="Se la Vendita ha Ingressi collegati, l'eliminazione viene rifiutata (vincolo Restrict)."
 			editFormContent={
 				<>
 					<FormField
@@ -326,14 +326,14 @@ function PurchaseRowActions({
 			}
 			editAction={async ({ values }) => {
 				await handleEdit({
-					...purchase,
+					...sale,
 					clientId: values.clientId,
 					date: values.date,
-					amount: values.amount as unknown as PurchaseRow["amount"],
+					amount: values.amount as unknown as SaleRow["amount"],
 					productCode: values.productCode,
 				});
 			}}
-			deleteAction={() => handleDelete({ id: purchase.id })}
+			deleteAction={() => handleDelete({ id: sale.id })}
 		/>
 	);
 }

@@ -1,18 +1,18 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import { snapshotFromProduct } from "@/lib/domain/purchase-access";
+import { snapshotFromProduct } from "@/lib/domain/sale-access";
 import { faker } from "./faker";
 
-export async function mockPurchases(db: PrismaClient) {
-	console.log("Mocking purchases...");
+export async function mockSales(db: PrismaClient) {
+	console.log("Mocking sales...");
 	const clients = await db.client.findMany();
 	const products = await db.product.findMany({
 		include: { membership: true, entranceSet: true },
 	});
 
-	const purchasesToCreate = Math.min(20, products.length);
+	const salesToCreate = Math.min(20, products.length);
 	const shuffledProducts = faker.helpers.shuffle([...products]);
 
-	for (let i = 0; i < purchasesToCreate; i++) {
+	for (let i = 0; i < salesToCreate; i++) {
 		const client = faker.helpers.arrayElement(clients);
 		const product = shuffledProducts[i];
 		const snapshot = snapshotFromProduct(product);
@@ -30,7 +30,7 @@ export async function mockPurchases(db: PrismaClient) {
 			new Prisma.Decimal(faker.number.float({ min: 10, max: 500, fractionDigits: 2 }));
 
 		try {
-			await db.purchase.create({
+			await db.sale.create({
 				data: {
 					clientId: client.id,
 					date,
@@ -40,11 +40,11 @@ export async function mockPurchases(db: PrismaClient) {
 					entranceNumber: snapshot.entranceNumber,
 				},
 			});
-			console.log(`Created purchase ${i + 1} of ${purchasesToCreate}`);
+			console.log(`Created sale ${i + 1} of ${salesToCreate}`);
 		} catch (error) {
-			console.error(`Error creating purchase for product ${product.code}:`, error);
+			console.error(`Error creating sale for product ${product.code}:`, error);
 		}
 	}
 
-	console.log(`Finished creating mock purchases.`);
+	console.log(`Finished creating mock sales.`);
 }

@@ -37,7 +37,7 @@ const ICONS: Record<string, LucideIcon> = {
 	"/entrance-sets": Package,
 	"/catalogs": BookOpen,
 	"/payments": Wallet,
-	"/purchases": ShoppingCart,
+	"/sales": ShoppingCart,
 };
 
 const ADMIN_HREFS = new Set(["/accounts", "/employees", "/contracts", "/clockings", "/salaries"]);
@@ -95,7 +95,7 @@ export const links: NavSection[] = [
 	},
 	{
 		section: "Movimenti",
-		group: linksFor(["/purchases", "/payments"]),
+		group: linksFor(["/sales", "/payments"]),
 	},
 	{
 		section: "Uscite",

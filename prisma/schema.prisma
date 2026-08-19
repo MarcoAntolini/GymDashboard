@@ -142,24 +142,24 @@ model Client {
   email          String
   enrollmentDate DateTime @default(now()) @map("data_iscrizione")
 
-  purchase Purchase[]
+  sales Sale[]
 
   @@id([id])
   @@map("clienti")
 }
 
 model Entrance {
-  id         Int      @default(autoincrement())
-  date       DateTime @default(now()) @map("data")
-  purchaseId Int      @map("id_acquisto")
+  id     Int      @default(autoincrement())
+  date   DateTime @default(now()) @map("data")
+  saleId Int      @map("id_vendita")
 
-  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Restrict)
 
   @@id([id])
   @@map("ingressi")
 }
 
-model Purchase {
+model Sale {
   id             Int      @default(autoincrement())
   clientId       Int      @map("id_cliente")
   date           DateTime @default(now()) @map("data")
@@ -175,14 +175,14 @@ model Purchase {
   entrance Entrance[]
 
   @@id([id])
-  @@map("acquisti")
+  @@map("vendite")
 }
 
 model Product {
   code String @map("codice")
 
   membership  Membership?
-  purchases   Purchase[]
+  sales       Sale[]
   catalog     Catalog[]
   entranceSet EntranceSet?
 
@@ -233,7 +233,7 @@ enum PaymentType {
   Intervention @map("Intervento")
 }
 
-enum PurchaseType {
+enum SaleType {
   Membership  @map("Abbonamento")
   EntranceSet @map("Pacchetto ingressi")
 }

@@ -10,7 +10,7 @@ web
 
 ## Users
 
-**Primary — Dipendente (ruolo Account `Employee`):** opera al bancone o in ufficio durante la giornata. Compiti tipici: registrare **Ingressi** di un **Cliente**, inserire **Acquisti** (Abbonamento o Pacchetto ingressi), consultare **Listino** / **Prodotti**, registrare **Pagamenti** in uscita (Bolletta, Attrezzatura, Intervento). Contesto: alta frequenza su Ingressi, poca tolleranza per frizione UI.
+**Primary — Dipendente (ruolo Account `Employee`):** opera al bancone o in ufficio durante la giornata. Compiti tipici: registrare **Ingressi** di un **Cliente**, inserire **Vendite** (Abbonamento o Pacchetto ingressi), consultare **Listino** / **Prodotti**, registrare **Pagamenti** in uscita (Bolletta, Attrezzatura, Intervento). Contesto: alta frequenza su Ingressi, poca tolleranza per frizione UI.
 
 **Secondary — Amministratore (ruolo Account `Admin`):** stesso shell dashboard con privilegi completi. In più: **Account** (Approvazione), anagrafica **Dipendenti**, **Contratti**, **Timbrature**, **Stipendi**. Contesto: amministrazione e controllo, non marketing.
 
@@ -18,17 +18,17 @@ Entrambi accedono solo con **Account** approvato legato a un **Dipendente**. Non
 
 ## Product Purpose
 
-GymDashboard è un gestionale **OLTP** per una palestra: anagrafica (**Cliente**, **Dipendente**), listino (**Prodotto** → Abbonamento / Pacchetto ingressi, **Listino** annuale), operazioni quotidiane (**Ingresso**, **Acquisto**), uscite tipizzate (**Pagamento**: Stipendio, Bolletta, Attrezzatura, Intervento), e supporto al personale (**Contratto**, **Timbratura**, **Account** / Approvazione).
+GymDashboard è un gestionale **OLTP** per una palestra: anagrafica (**Cliente**, **Dipendente**), listino (**Prodotto** → Abbonamento / Pacchetto ingressi, **Listino** annuale), operazioni quotidiane (**Ingresso**, **Vendita**), uscite tipizzate (**Pagamento**: Stipendio, Bolletta, Attrezzatura, Intervento), e supporto al personale (**Contratto**, **Timbratura**, **Account** / Approvazione).
 
 Successo = registrare e consultare questi eventi in modo affidabile e veloce (tabelle, filtri, form), non convincere visitatori o vendere un SaaS.
 
 ## Positioning
 
-Un’unica dashboard operativa dove Ingressi, Acquisti e Pagamenti restano allineati al modello di dominio della palestra — non una vetrina, non un report vanity.
+Un’unica dashboard operativa dove Ingressi, Vendite e Pagamenti restano allineati al modello di dominio della palestra — non una vetrina, non un report vanity.
 
 ## Brand Personality
 
-Operativo, sobrio, diretto. Voce da strumento di lavoro: etichette di dominio (Ingresso, Acquisto, Pagamento), non copy da landing. Emozione desiderata: controllo e chiarezza sotto pressione operativa.
+Operativo, sobrio, diretto. Voce da strumento di lavoro: etichette di dominio (Ingresso, Vendita, Pagamento), non copy da landing. Emozione desiderata: controllo e chiarezza sotto pressione operativa.
 
 ## Anti-references
 
@@ -39,7 +39,7 @@ Operativo, sobrio, diretto. Voce da strumento di lavoro: etichette di dominio (I
 
 ## Design Principles
 
-1. **Design serves the task** — ogni schermata ottimizza un’operazione OLTP (registra Ingresso, inserisci Acquisto, filtra Pagamenti), non impressiona.
+1. **Design serves the task** — ogni schermata ottimizza un’operazione OLTP (registra Ingresso, inserisci Vendita, filtra Pagamenti), non impressiona.
 2. **Dominio italiano prima** — etichette e copy usano i termini di `CONTEXT.md`; evitare sinonimi che confondono il modello.
 3. **Ruoli espliciti** — Amministratore vede tutto; Dipendente solo le sezioni operative consentite; non nascondere lo stato di Approvazione Account.
 4. **Densità utile** — tabelle, toolbar e form battono card decorative e empty-state teatrali.
@@ -51,4 +51,4 @@ Supportare light/dark via tema di sistema già presente. Preferire contrasto leg
 
 ## Surface notes
 
-**Panoramica (`/`):** home post-login (Admin e Dipendente). Strip cassa (Entrate/Uscite/Saldo/Ingressi) + ripartizioni + mix prodotti + frequenza/bancone + proxy fidelizzazione (attivi / riacquisti / a rischio); densità operativa, niente hero-KPI. Navbar: sezione Operazioni prima (Panoramica in cima).
+**Panoramica (`/`):** home post-login (Admin e Dipendente). Strip cassa (Entrate/Uscite/Saldo/Ingressi) + ripartizioni + mix prodotti + frequenza/bancone + proxy fidelizzazione (attivi / rinnovi / a rischio); densità operativa, niente hero-KPI. Navbar: sezione Operazioni prima (Panoramica in cima).

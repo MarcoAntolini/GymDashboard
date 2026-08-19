@@ -34,7 +34,7 @@ export const NAV_ROUTES: NavRoute[] = [
 	{ title: "Pacchetti ingressi", href: "/entrance-sets", requiredRole: "Employee" },
 	{ title: "Listino annuale", href: "/catalogs", requiredRole: "Employee" },
 	{ title: "Pagamenti", href: "/payments", requiredRole: "Employee" },
-	{ title: "Acquisti", href: "/purchases", requiredRole: "Employee" },
+	{ title: "Vendite", href: "/sales", requiredRole: "Employee" },
 ];
 
 /** Post-login home: Panoramica operativa (Admin/Owner e Dipendente). */

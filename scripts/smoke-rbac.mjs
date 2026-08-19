@@ -46,7 +46,7 @@ const NAV_ROUTES = [
 	{ href: "/entrance-sets", requiredRole: "Employee" },
 	{ href: "/catalogs", requiredRole: "Employee" },
 	{ href: "/payments", requiredRole: "Employee" },
-	{ href: "/purchases", requiredRole: "Employee" },
+	{ href: "/sales", requiredRole: "Employee" },
 ];
 
 function requiredRoleForPath(pathname) {

@@ -43,7 +43,7 @@ Costo ricerca ≈ altezza dell’albero (nodi letti). Split/catenation mantengon
 ## GymDashboard — candidati tipici
 
 - Cliente: codice/CF (lookup)
-- Contratto/acquisto: `id_cliente`, date validità
+- Contratto/vendita: `id_cliente`, date validità
 - Ingresso/timbratura: `id_cliente` / `id_dipendente` + timestamp
 - Movimenti economici: data, tipo
 - Listino: tipo prodotto, anno (se richiesto dai filtri della proposta)

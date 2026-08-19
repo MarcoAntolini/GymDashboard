@@ -13,7 +13,7 @@ import { mockInterventions } from "./mocks/mockInterventions";
 import { mockMemberships } from "./mocks/mockMemberships";
 import { mockPayments } from "./mocks/mockPayments";
 import { mockProducts } from "./mocks/mockProducts";
-import { mockPurchases } from "./mocks/mockPurchases";
+import { mockSales } from "./mocks/mockSales";
 import { mockSalaries } from "./mocks/mockSalaries";
 
 export async function mockAllData() {
@@ -24,14 +24,14 @@ export async function mockAllData() {
 
 	await clearAllData();
 
-	// Prodotti/specializzazioni/Listino → Clienti → Acquisti → Ingressi (purchaseId reali).
+	// Prodotti/specializzazioni/Listino → Clienti → Vendite → Ingressi (saleId reali).
 	const mockFunctions = [
 		mockProducts,
 		mockMemberships,
 		mockEntranceSets,
 		mockCatalogs,
 		mockClients,
-		mockPurchases,
+		mockSales,
 		mockEntrances,
 		mockEmployees,
 		mockContracts,
@@ -61,7 +61,7 @@ async function clearAllData() {
 
 	const tableOrder = [
 		"ingressi",
-		"acquisti",
+		"vendite",
 		"listini",
 		"abbonamenti",
 		"pacchetti_ingressi",

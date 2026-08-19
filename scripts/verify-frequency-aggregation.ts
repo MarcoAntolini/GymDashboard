@@ -58,7 +58,7 @@ function d(iso: string) {
 	assert.equal(points[0]?.count, 0);
 }
 
-// Bancone giornaliero: Ingressi + Acquisti allineati, zeri inclusi.
+// Bancone giornaliero: Ingressi + Vendite allineati, zeri inclusi.
 {
 	const daily = aggregateBanconeDaily(
 		[d("2024-01-01T09:00:00"), d("2024-01-01T11:00:00"), d("2024-01-03T09:00:00")],
@@ -68,11 +68,11 @@ function d(iso: string) {
 	);
 	assert.equal(daily.length, 3);
 	assert.equal(daily[0]?.ingressi, 2);
-	assert.equal(daily[0]?.acquisti, 1);
+	assert.equal(daily[0]?.vendite, 1);
 	assert.equal(daily[1]?.ingressi, 0);
-	assert.equal(daily[1]?.acquisti, 1);
+	assert.equal(daily[1]?.vendite, 1);
 	assert.equal(daily[2]?.ingressi, 1);
-	assert.equal(daily[2]?.acquisti, 0);
+	assert.equal(daily[2]?.vendite, 0);
 }
 
 {

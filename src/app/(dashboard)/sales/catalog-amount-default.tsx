@@ -36,13 +36,13 @@ export function CatalogAmountDefault() {
 			if (cancelled) return;
 			if (!catalog) {
 				setHint(
-					`Nessuna voce Listino per «${productCode}» nell'anno ${year}. Imposta l'importo manualmente (snapshot sull'Acquisto).`
+					`Nessuna voce Listino per «${productCode}» nell'anno ${year}. Imposta l'importo manualmente (snapshot sulla Vendita).`
 				);
 				return;
 			}
 			setValue("amount", Number(catalog.price).toFixed(2), { shouldValidate: true });
 			setHint(
-				`Prezzo proposto dal Listino ${year} per «${productCode}». Resta snapshot sull'Acquisto anche se il Listino cambia dopo.`
+				`Prezzo proposto dal Listino ${year} per «${productCode}». Resta snapshot sulla Vendita anche se il Listino cambia dopo.`
 			);
 		}
 

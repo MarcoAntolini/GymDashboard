@@ -1,14 +1,14 @@
 /**
  * Proxy OLTP di fidelizzazione (niente ML / LTV predittivo).
- * Usa solo snapshot Acquisto (durata / N) + Ingressi collegati.
+ * Usa solo snapshot Vendita (durata / N) + Ingressi collegati.
  */
 import {
-	isEntranceSetPurchase,
-	isMembershipPurchase,
+	isEntranceSetSale,
+	isMembershipSale,
 	membershipCoversAt,
 	packageResidual,
-	type PurchaseAccessSnapshot,
-} from "@/lib/domain/purchase-access";
+	type SaleAccessSnapshot,
+} from "@/lib/domain/sale-access";
 import { differenceInCalendarDays } from "date-fns";
 
 /** Giorni senza Ingresso oltre i quali un Cliente con titolo valido/scaduto di recente è “a rischio”. */
@@ -21,11 +21,11 @@ export const FIDELITY_ACTIVE_DEFINITION =
 	"Cliente con almeno un Ingresso nel periodo selezionato.";
 
 export const FIDELITY_RENEWAL_DEFINITION =
-	"Acquisto nel periodo da un Cliente che aveva già almeno un Acquisto precedente.";
+	"Vendita nel periodo da un Cliente che aveva già almeno una Vendita precedente.";
 
 export const FIDELITY_AT_RISK_DEFINITION = `Nessun Ingresso da almeno ${FIDELITY_AT_RISK_DAYS} giorni, con titolo ancora valido (snapshot durata/N) oppure scaduto/esaurito negli ultimi ${FIDELITY_RECENTLY_EXPIRED_DAYS} giorni.`;
 
-export type FidelityPurchaseInput = PurchaseAccessSnapshot & {
+export type FidelitySaleInput = SaleAccessSnapshot & {
 	id: number;
 	clientId: number;
 	entrancesLinked: number;
@@ -61,9 +61,9 @@ export type FidelityProxyResult = {
 	atRisk: FidelityAtRiskRow[];
 };
 
-function membershipEndExclusive(purchase: Pick<PurchaseAccessSnapshot, "date" | "duration">): Date | null {
-	if (purchase.duration == null) return null;
-	return new Date(purchase.date.getTime() + purchase.duration * 24 * 60 * 60 * 1000);
+function membershipEndExclusive(sale: Pick<SaleAccessSnapshot, "date" | "duration">): Date | null {
+	if (sale.duration == null) return null;
+	return new Date(sale.date.getTime() + sale.duration * 24 * 60 * 60 * 1000);
 }
 
 function inInclusiveRange(date: Date, from: Date, to: Date): boolean {
@@ -71,13 +71,13 @@ function inInclusiveRange(date: Date, from: Date, to: Date): boolean {
 	return t >= from.getTime() && t <= to.getTime();
 }
 
-function hasValidTitleAt(purchases: FidelityPurchaseInput[], at: Date): boolean {
-	return purchases.some((purchase) => {
-		if (isMembershipPurchase(purchase) && membershipCoversAt(purchase, at)) {
+function hasValidTitleAt(sales: FidelitySaleInput[], at: Date): boolean {
+	return sales.some((sale) => {
+		if (isMembershipSale(sale) && membershipCoversAt(sale, at)) {
 			return true;
 		}
-		if (isEntranceSetPurchase(purchase)) {
-			const residual = packageResidual(purchase, purchase.entrancesLinked);
+		if (isEntranceSetSale(sale)) {
+			const residual = packageResidual(sale, sale.entrancesLinked);
 			return residual != null && residual > 0;
 		}
 		return false;
@@ -86,14 +86,14 @@ function hasValidTitleAt(purchases: FidelityPurchaseInput[], at: Date): boolean 
 
 /** Abbonamento scaduto di recente: fine esclusiva in (at − N, at]. */
 function hasRecentlyExpiredMembership(
-	purchases: FidelityPurchaseInput[],
+	sales: FidelitySaleInput[],
 	at: Date,
 	withinDays: number
 ): boolean {
 	const windowStart = new Date(at.getTime() - withinDays * 24 * 60 * 60 * 1000);
-	return purchases.some((purchase) => {
-		if (!isMembershipPurchase(purchase)) return false;
-		const end = membershipEndExclusive(purchase);
+	return sales.some((sale) => {
+		if (!isMembershipSale(sale)) return false;
+		const end = membershipEndExclusive(sale);
 		if (end == null) return false;
 		return end.getTime() <= at.getTime() && end.getTime() > windowStart.getTime();
 	});
@@ -104,17 +104,17 @@ function hasRecentlyExpiredMembership(
  * cade negli ultimi `withinDays` rispetto a `at`.
  */
 function hasRecentlyExhaustedPackage(
-	purchases: FidelityPurchaseInput[],
-	entrancesByPurchaseId: Map<number, Date[]>,
+	sales: FidelitySaleInput[],
+	entrancesBySaleId: Map<number, Date[]>,
 	at: Date,
 	withinDays: number
 ): boolean {
 	const windowStart = new Date(at.getTime() - withinDays * 24 * 60 * 60 * 1000);
-	return purchases.some((purchase) => {
-		if (!isEntranceSetPurchase(purchase)) return false;
-		const residual = packageResidual(purchase, purchase.entrancesLinked);
+	return sales.some((sale) => {
+		if (!isEntranceSetSale(sale)) return false;
+		const residual = packageResidual(sale, sale.entrancesLinked);
 		if (residual == null || residual > 0) return false;
-		const dates = entrancesByPurchaseId.get(purchase.id) ?? [];
+		const dates = entrancesBySaleId.get(sale.id) ?? [];
 		if (dates.length === 0) return false;
 		const last = dates.reduce((max, cur) =>
 			cur.getTime() > max.getTime() ? cur : max
@@ -139,19 +139,19 @@ export function countActiveClients(
 }
 
 /**
- * Riacquisti/rinnovi: Acquisti in [from, to] di Clienti con almeno un Acquisto precedente
+ * Rinnovi: Vendite in [from, to] di Clienti con almeno una Vendita precedente
  * (data strettamente precedente).
  */
 export function countRenewals(
-	purchases: Pick<FidelityPurchaseInput, "clientId" | "date">[],
+	sales: Pick<FidelitySaleInput, "clientId" | "date">[],
 	from: Date,
 	to: Date
 ): { renewalsCount: number; renewingClientsCount: number } {
 	const byClient = new Map<number, Date[]>();
-	for (const purchase of purchases) {
-		const list = byClient.get(purchase.clientId) ?? [];
-		list.push(purchase.date);
-		byClient.set(purchase.clientId, list);
+	for (const sale of sales) {
+		const list = byClient.get(sale.clientId) ?? [];
+		list.push(sale.date);
+		byClient.set(sale.clientId, list);
 	}
 	for (const list of byClient.values()) {
 		list.sort((a, b) => a.getTime() - b.getTime());
@@ -159,34 +159,34 @@ export function countRenewals(
 
 	let renewalsCount = 0;
 	const renewingClients = new Set<number>();
-	for (const purchase of purchases) {
-		if (!inInclusiveRange(purchase.date, from, to)) continue;
-		const dates = byClient.get(purchase.clientId) ?? [];
-		const hasPrior = dates.some((d) => d.getTime() < purchase.date.getTime());
+	for (const sale of sales) {
+		if (!inInclusiveRange(sale.date, from, to)) continue;
+		const dates = byClient.get(sale.clientId) ?? [];
+		const hasPrior = dates.some((d) => d.getTime() < sale.date.getTime());
 		if (!hasPrior) continue;
 		renewalsCount += 1;
-		renewingClients.add(purchase.clientId);
+		renewingClients.add(sale.clientId);
 	}
 	return { renewalsCount, renewingClientsCount: renewingClients.size };
 }
 
 export function listAtRiskClients(args: {
 	clients: FidelityClientInput[];
-	purchases: FidelityPurchaseInput[];
+	sales: FidelitySaleInput[];
 	entrances: FidelityEntranceInput[];
-	/** Date Ingresso per id Acquisto (per esaurimento pacchetto recente). */
-	entrancesByPurchaseId: Map<number, Date[]>;
+	/** Date Ingresso per id Vendita (per esaurimento pacchetto recente). */
+	entrancesBySaleId: Map<number, Date[]>;
 	asOf: Date;
 	atRiskDays?: number;
 	recentlyExpiredDays?: number;
 }): FidelityAtRiskRow[] {
 	const atRiskDays = args.atRiskDays ?? FIDELITY_AT_RISK_DAYS;
 	const recentlyExpiredDays = args.recentlyExpiredDays ?? FIDELITY_RECENTLY_EXPIRED_DAYS;
-	const purchasesByClient = new Map<number, FidelityPurchaseInput[]>();
-	for (const purchase of args.purchases) {
-		const list = purchasesByClient.get(purchase.clientId) ?? [];
-		list.push(purchase);
-		purchasesByClient.set(purchase.clientId, list);
+	const salesByClient = new Map<number, FidelitySaleInput[]>();
+	for (const sale of args.sales) {
+		const list = salesByClient.get(sale.clientId) ?? [];
+		list.push(sale);
+		salesByClient.set(sale.clientId, list);
 	}
 
 	const lastEntranceByClient = new Map<number, Date>();
@@ -199,30 +199,30 @@ export function listAtRiskClients(args: {
 
 	const rows: FidelityAtRiskRow[] = [];
 	for (const client of args.clients) {
-		const purchases = purchasesByClient.get(client.id) ?? [];
-		if (purchases.length === 0) continue;
+		const sales = salesByClient.get(client.id) ?? [];
+		if (sales.length === 0) continue;
 
 		const lastEntrance = lastEntranceByClient.get(client.id) ?? null;
 		let silentTooLong: boolean;
 		if (lastEntrance == null) {
-			const earliestPurchase = purchases.reduce((min, p) =>
+			const earliestSale = sales.reduce((min, p) =>
 				p.date.getTime() < min.getTime() ? p.date : min
-			, purchases[0]!.date);
+			, sales[0]!.date);
 			silentTooLong =
-				differenceInCalendarDays(args.asOf, earliestPurchase) >= atRiskDays;
+				differenceInCalendarDays(args.asOf, earliestSale) >= atRiskDays;
 		} else {
 			silentTooLong =
 				differenceInCalendarDays(args.asOf, lastEntrance) >= atRiskDays;
 		}
 		if (!silentTooLong) continue;
 
-		const valid = hasValidTitleAt(purchases, args.asOf);
+		const valid = hasValidTitleAt(sales, args.asOf);
 		const recentlyExpired =
 			!valid &&
-			(hasRecentlyExpiredMembership(purchases, args.asOf, recentlyExpiredDays) ||
+			(hasRecentlyExpiredMembership(sales, args.asOf, recentlyExpiredDays) ||
 				hasRecentlyExhaustedPackage(
-					purchases,
-					args.entrancesByPurchaseId,
+					sales,
+					args.entrancesBySaleId,
 					args.asOf,
 					recentlyExpiredDays
 				));
@@ -252,9 +252,9 @@ export function listAtRiskClients(args: {
 
 export function computeFidelityProxy(args: {
 	clients: FidelityClientInput[];
-	purchases: FidelityPurchaseInput[];
+	sales: FidelitySaleInput[];
 	entrances: FidelityEntranceInput[];
-	entrancesByPurchaseId: Map<number, Date[]>;
+	entrancesBySaleId: Map<number, Date[]>;
 	from: Date;
 	to: Date;
 	asOf?: Date;
@@ -266,15 +266,15 @@ export function computeFidelityProxy(args: {
 	const asOf = args.asOf ?? args.to;
 	const activeClientsCount = countActiveClients(args.entrances, args.from, args.to);
 	const { renewalsCount, renewingClientsCount } = countRenewals(
-		args.purchases,
+		args.sales,
 		args.from,
 		args.to
 	);
 	const atRisk = listAtRiskClients({
 		clients: args.clients,
-		purchases: args.purchases,
+		sales: args.sales,
 		entrances: args.entrances,
-		entrancesByPurchaseId: args.entrancesByPurchaseId,
+		entrancesBySaleId: args.entrancesBySaleId,
 		asOf,
 		atRiskDays,
 		recentlyExpiredDays,

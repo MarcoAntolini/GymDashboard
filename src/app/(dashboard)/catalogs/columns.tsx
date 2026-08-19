@@ -98,7 +98,7 @@ export const columns = (
 				}}
 				formSchema={formSchema}
 				entityLabel="Voce di listino"
-				editDescription="Anno e codice prodotto identificano la voce. Il prezzo è quello del Listino per quell'anno (usato come proposta sull'Acquisto)."
+				editDescription="Anno e codice prodotto identificano la voce. Il prezzo è quello del Listino per quell'anno (usato come proposta sulla Vendita)."
 				editFormContent={
 					<>
 						<FormField

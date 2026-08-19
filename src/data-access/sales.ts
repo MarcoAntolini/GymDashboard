@@ -9,7 +9,7 @@ import {
 	productKindFromSnapshot,
 } from "@/lib/domain/product-kind";
 import { throwIfRestrictViolation } from "@/lib/domain/prisma-restrict";
-import { snapshotFromProduct } from "@/lib/domain/purchase-access";
+import { snapshotFromProduct } from "@/lib/domain/sale-access";
 import {
 	buildListResult,
 	normalizeListQuery,
@@ -20,10 +20,10 @@ import {
 	type ListSort,
 } from "@/lib/list";
 import {
-	PURCHASE_DEFAULT_SORT,
-	PURCHASE_FILTER_ALLOWLIST,
-	PURCHASE_SORT_ALLOWLIST,
-} from "@/lib/list/purchases";
+	SALE_DEFAULT_SORT,
+	SALE_FILTER_ALLOWLIST,
+	SALE_SORT_ALLOWLIST,
+} from "@/lib/list/sales";
 import {
 	aggregateByPeriod,
 	normalizeInclusiveRange,
@@ -37,18 +37,18 @@ import {
 } from "@/lib/product-ranking";
 import { Prisma } from "@prisma/client";
 
-const PURCHASE_HAS_ENTRANCES_MESSAGE =
-	"Impossibile eliminare l'Acquisto: esistono Ingressi collegati (vincolo Restrict).";
+const SALE_HAS_ENTRANCES_MESSAGE =
+	"Impossibile eliminare la Vendita: esistono Ingressi collegati (vincolo Restrict).";
 
-const purchaseInclude = {
+const saleInclude = {
 	client: true,
 	prodotto: {
 		include: { membership: true, entranceSet: true },
 	},
 } as const;
 
-export type PurchaseListRow = Prisma.PurchaseGetPayload<{
-	include: typeof purchaseInclude;
+export type SaleListRow = Prisma.SaleGetPayload<{
+	include: typeof saleInclude;
 }>;
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
@@ -65,9 +65,9 @@ function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	return undefined;
 }
 
-function buildPurchaseWhere(filters: ListFilters): Prisma.PurchaseWhereInput {
-	const where: Prisma.PurchaseWhereInput = {};
-	const and: Prisma.PurchaseWhereInput[] = [];
+function buildSaleWhere(filters: ListFilters): Prisma.SaleWhereInput {
+	const where: Prisma.SaleWhereInput = {};
+	const and: Prisma.SaleWhereInput[] = [];
 
 	const id = parsePositiveIntFilter(filters.id);
 	if (id !== undefined) where.id = id;
@@ -119,10 +119,10 @@ function buildPurchaseWhere(filters: ListFilters): Prisma.PurchaseWhereInput {
 	return where;
 }
 
-function buildPurchaseOrderBy(
+function buildSaleOrderBy(
 	sort: ListSort[]
-): Prisma.PurchaseOrderByWithRelationInput[] {
-	const orderBy: Prisma.PurchaseOrderByWithRelationInput[] = [];
+): Prisma.SaleOrderByWithRelationInput[] {
+	const orderBy: Prisma.SaleOrderByWithRelationInput[] = [];
 	for (const entry of sort) {
 		const dir = entry.desc ? ("desc" as const) : ("asc" as const);
 		switch (entry.id) {
@@ -162,33 +162,33 @@ function buildPurchaseOrderBy(
 }
 
 /**
- * Lista Acquisti server-side: filtri su Conferma, sort + paginazione via DB.
+ * Lista Vendite server-side: filtri su Conferma, sort + paginazione via DB.
  */
-export async function listPurchases(
+export async function listSales(
 	input: ListQueryInput = {}
-): Promise<ListResult<PurchaseListRow>> {
+): Promise<ListResult<SaleListRow>> {
 	const query = normalizeListQuery(input, {
-		sortAllowlist: PURCHASE_SORT_ALLOWLIST,
-		filterAllowlist: PURCHASE_FILTER_ALLOWLIST,
-		defaultSort: [...PURCHASE_DEFAULT_SORT],
+		sortAllowlist: SALE_SORT_ALLOWLIST,
+		filterAllowlist: SALE_FILTER_ALLOWLIST,
+		defaultSort: [...SALE_DEFAULT_SORT],
 	});
-	const where = buildPurchaseWhere(query.filters);
+	const where = buildSaleWhere(query.filters);
 	const { skip, take } = toPrismaPage(query);
-	const orderBy = buildPurchaseOrderBy(query.sort);
+	const orderBy = buildSaleOrderBy(query.sort);
 	const [total, items] = await Promise.all([
-		db.purchase.count({ where }),
-		db.purchase.findMany({
+		db.sale.count({ where }),
+		db.sale.findMany({
 			where,
 			skip,
 			take,
 			orderBy,
-			include: purchaseInclude,
+			include: saleInclude,
 		}),
 	]);
 	return buildListResult(items, total, query);
 }
 
-type PurchaseWriteInput = {
+type SaleWriteInput = {
 	clientId: number;
 	date: Date;
 	amount: Prisma.Decimal | number | string;
@@ -206,7 +206,7 @@ async function resolveSnapshot(productCode: string) {
 	return snapshotFromProduct(product);
 }
 
-function isEmptyAmount(amount: PurchaseWriteInput["amount"] | null | undefined) {
+function isEmptyAmount(amount: SaleWriteInput["amount"] | null | undefined) {
 	if (amount == null) return true;
 	if (typeof amount === "string") return amount.trim() === "";
 	return false;
@@ -215,7 +215,7 @@ function isEmptyAmount(amount: PurchaseWriteInput["amount"] | null | undefined) 
 async function resolveAmount(
 	date: Date,
 	productCode: string,
-	amount: PurchaseWriteInput["amount"] | null | undefined
+	amount: SaleWriteInput["amount"] | null | undefined
 ): Promise<Prisma.Decimal> {
 	if (!isEmptyAmount(amount)) {
 		return new Prisma.Decimal(amount as string | number | Prisma.Decimal);
@@ -229,12 +229,12 @@ async function resolveAmount(
 	return new Prisma.Decimal(catalog.price);
 }
 
-export async function createPurchase(input: PurchaseWriteInput) {
-	assertMutationPayload("purchase", "create", input);
+export async function createSale(input: SaleWriteInput) {
+	assertMutationPayload("sale", "create", input);
 	const { clientId, date, amount, productCode } = input;
 	const snapshot = await resolveSnapshot(productCode);
 	const resolvedAmount = await resolveAmount(date, productCode, amount);
-	return await db.purchase.create({
+	return await db.sale.create({
 		data: {
 			clientId,
 			date,
@@ -243,28 +243,28 @@ export async function createPurchase(input: PurchaseWriteInput) {
 			duration: snapshot.duration,
 			entranceNumber: snapshot.entranceNumber,
 		},
-		include: purchaseInclude,
+		include: saleInclude,
 	});
 }
 
-export async function getAllPurchases() {
-	return await db.purchase.findMany({
-		include: purchaseInclude,
+export async function getAllSales() {
+	return await db.sale.findMany({
+		include: saleInclude,
 	});
 }
 
-export async function getPurchase(id: number) {
-	return await db.purchase.findUnique({
+export async function getSale(id: number) {
+	return await db.sale.findUnique({
 		where: { id },
-		include: purchaseInclude,
+		include: saleInclude,
 	});
 }
 
-export async function editPurchase(input: PurchaseWriteInput & { id: number }) {
-	assertMutationPayload("purchase", "update", input);
+export async function editSale(input: SaleWriteInput & { id: number }) {
+	assertMutationPayload("sale", "update", input);
 	const { id, clientId, date, amount, productCode } = input;
 	const snapshot = await resolveSnapshot(productCode);
-	return await db.purchase.update({
+	return await db.sale.update({
 		where: { id },
 		data: {
 			clientId,
@@ -275,15 +275,15 @@ export async function editPurchase(input: PurchaseWriteInput & { id: number }) {
 			duration: snapshot.duration,
 			entranceNumber: snapshot.entranceNumber,
 		},
-		include: purchaseInclude,
+		include: saleInclude,
 	});
 }
 
-export async function deletePurchase({ id }: { id: number }) {
+export async function deleteSale({ id }: { id: number }) {
 	try {
-		return await db.purchase.delete({ where: { id } });
+		return await db.sale.delete({ where: { id } });
 	} catch (error) {
-		throwIfRestrictViolation(error, PURCHASE_HAS_ENTRANCES_MESSAGE);
+		throwIfRestrictViolation(error, SALE_HAS_ENTRANCES_MESSAGE);
 	}
 }
 
@@ -294,7 +294,7 @@ export type EntratePeriodPoint = PeriodPoint & {
 };
 
 /**
- * Entrate (Acquisti) aggregate per granularità di periodo:
+ * Entrate (Vendite) aggregate per granularità di periodo:
  * giornaliero / settimanale / mensile / annuale.
  */
 export async function getEntrateByPeriod(
@@ -303,7 +303,7 @@ export async function getEntrateByPeriod(
 	periodType: PeriodType
 ): Promise<EntratePeriodPoint[]> {
 	const { from, to } = normalizeInclusiveRange(startDate, endDate);
-	const rows = await db.purchase.findMany({
+	const rows = await db.sale.findMany({
 		where: {
 			date: {
 				gte: from,
@@ -347,7 +347,7 @@ export async function getProductMixForPeriod(
 	endDate: Date
 ): Promise<ProductMixForPeriod> {
 	const { from, to } = normalizeInclusiveRange(startDate, endDate);
-	const rows = await db.purchase.findMany({
+	const rows = await db.sale.findMany({
 		where: { date: { gte: from, lte: to } },
 		select: { amount: true, productCode: true, duration: true, entranceNumber: true },
 	});

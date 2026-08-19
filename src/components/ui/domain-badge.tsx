@@ -87,7 +87,7 @@ export function DomainBadge({
 	);
 }
 
-/** Colore importi: entrate (Acquisti) vs uscite (Pagamenti) vs saldo firmato. */
+/** Colore importi: entrate (Vendite) vs uscite (Pagamenti) vs saldo firmato. */
 export function MoneyTone({
 	tone,
 	amount,

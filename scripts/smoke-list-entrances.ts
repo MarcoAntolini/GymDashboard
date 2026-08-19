@@ -49,15 +49,15 @@ async function main() {
 
 	if (page1.items[0]) {
 		const sample = page1.items[0];
-		const byPurchase = await listEntrances({
-			filters: { purchaseId: String(sample.purchaseId) },
+		const bySale = await listEntrances({
+			filters: { saleId: String(sample.saleId) },
 			page: 1,
 			pageSize: 10,
 		});
-		assert(byPurchase.total > 0, "purchaseId filter finds rows");
+		assert(bySale.total > 0, "saleId filter finds rows");
 		assert(
-			byPurchase.items.every((e) => e.purchaseId === sample.purchaseId),
-			"purchaseId filter matches Acquisto column"
+			bySale.items.every((e) => e.saleId === sample.saleId),
+			"saleId filter matches Vendita column"
 		);
 
 		const byEntranceId = await listEntrances({
@@ -68,14 +68,14 @@ async function main() {
 		assert(byEntranceId.total === 1, "id filter → single entrance");
 		assert(byEntranceId.items[0]?.id === sample.id, "id filter exact");
 
-		const entranceIdAsPurchase = await listEntrances({
-			filters: { purchaseId: String(sample.id) },
+		const entranceIdAsSale = await listEntrances({
+			filters: { saleId: String(sample.id) },
 			page: 1,
 			pageSize: 10,
 		});
 		assert(
-			entranceIdAsPurchase.items.every((e) => e.purchaseId === sample.id),
-			"purchaseId does not silently match entrance id"
+			entranceIdAsSale.items.every((e) => e.saleId === sample.id),
+			"saleId does not silently match entrance id"
 		);
 	}
 
@@ -118,7 +118,7 @@ async function main() {
 		total: page1.total,
 		pageCount: page1.pageCount,
 		sample: page1.items[0]
-			? `${page1.items[0].purchase.client.surname} @ ${page1.items[0].date.toISOString()}`
+			? `${page1.items[0].sale.client.surname} @ ${page1.items[0].date.toISOString()}`
 			: "(empty)",
 	});
 }

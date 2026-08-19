@@ -38,7 +38,7 @@ Anagrafica completa: `create` + `update`. `remainingEntrances` → **immutable**
 `startingDate` su update è locator PK (non riassegnabile come cambio identità).  
 `endingDate`: vedi casi limite.
 
-### Acquisto
+### Vendita
 
 | Campo | Policy |
 |---|---|
@@ -52,7 +52,7 @@ Anagrafica completa: `create` + `update`. `remainingEntrances` → **immutable**
 | Campo | Policy |
 |---|---|
 | `clientId`, `date` | create (`date` anche update) |
-| `purchaseId` | **immutable** (scelto da giustificazione) |
+| `saleId` | **immutable** (scelto da giustificazione) |
 | join / `packageResidual` | strip / immutable |
 
 ### Listino / Prodotto / Abbonamento / Pacchetto
@@ -71,9 +71,9 @@ Salary/Bill/Equipment/Intervention: campi propri; `payment`/`employee` strip.
 
 ## Casi limite
 
-### 1. Cambio `productCode` su Acquisto esistente
+### 1. Cambio `productCode` su Vendita esistente
 
-Ammesso. `duration` / `entranceNumber` **non** si editano a mano: `editPurchase` ricalcola lo snapshot dal Prodotto corrente (`resolveSnapshot`). Inviare `duration`/`entranceNumber` nel payload → reject.
+Ammesso. `duration` / `entranceNumber` **non** si editano a mano: `editSale` ricalcola lo snapshot dal Prodotto corrente (`resolveSnapshot`). Inviare `duration`/`entranceNumber` nel payload → reject.
 
 ### 2. `endingDate` Contratto indeterminato vs determinato
 

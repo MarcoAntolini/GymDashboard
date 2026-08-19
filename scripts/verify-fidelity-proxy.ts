@@ -9,7 +9,7 @@ import {
 	countRenewals,
 	FIDELITY_AT_RISK_DAYS,
 	listAtRiskClients,
-	type FidelityPurchaseInput,
+	type FidelitySaleInput,
 } from "../src/lib/fidelity-proxy";
 
 function d(iso: string) {
@@ -31,13 +31,13 @@ function d(iso: string) {
 	assert.equal(count, 2);
 }
 
-// Riacquisti: secondo Acquisto nel periodo conta; primo no.
+// Rinnovi: secondo Vendita nel periodo conta; primo no.
 {
 	const { renewalsCount, renewingClientsCount } = countRenewals(
 		[
 			{ clientId: 1, date: d("2024-01-01") },
 			{ clientId: 1, date: d("2024-03-15") },
-			{ clientId: 2, date: d("2024-03-10") }, // primo acquisto
+			{ clientId: 2, date: d("2024-03-10") }, // prima vendita
 			{ clientId: 3, date: d("2023-06-01") },
 			{ clientId: 3, date: d("2024-03-20") },
 		],
@@ -48,13 +48,13 @@ function d(iso: string) {
 	assert.equal(renewingClientsCount, 2);
 }
 
-const membershipPurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPurchaseInput, "id" | "clientId" | "date" | "duration">): FidelityPurchaseInput => ({
+const membershipSale = (over: Partial<FidelitySaleInput> & Pick<FidelitySaleInput, "id" | "clientId" | "date" | "duration">): FidelitySaleInput => ({
 	entranceNumber: null,
 	entrancesLinked: 0,
 	...over,
 });
 
-const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPurchaseInput, "id" | "clientId" | "date" | "entranceNumber" | "entrancesLinked">): FidelityPurchaseInput => ({
+const packageSale = (over: Partial<FidelitySaleInput> & Pick<FidelitySaleInput, "id" | "clientId" | "date" | "entranceNumber" | "entrancesLinked">): FidelitySaleInput => ({
 	duration: null,
 	...over,
 });
@@ -62,8 +62,8 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 // A rischio: abbonamento valido, nessun Ingresso da ≥ N giorni.
 {
 	const asOf = d("2024-03-30T12:00:00");
-	const purchases = [
-		membershipPurchase({
+	const sales = [
+		membershipSale({
 			id: 1,
 			clientId: 10,
 			date: d("2024-03-01"),
@@ -72,9 +72,9 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 	];
 	const atRisk = listAtRiskClients({
 		clients: [{ id: 10, name: "Anna", surname: "Bianchi" }],
-		purchases,
+		sales,
 		entrances: [{ clientId: 10, date: d("2024-03-01T09:00:00") }],
-		entrancesByPurchaseId: new Map(),
+		entrancesBySaleId: new Map(),
 		asOf,
 		atRiskDays: FIDELITY_AT_RISK_DAYS,
 	});
@@ -88,8 +88,8 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 	const asOf = d("2024-03-30T12:00:00");
 	const atRisk = listAtRiskClients({
 		clients: [{ id: 11, name: "Luca", surname: "Verdi" }],
-		purchases: [
-			membershipPurchase({
+		sales: [
+			membershipSale({
 				id: 2,
 				clientId: 11,
 				date: d("2024-03-01"),
@@ -97,7 +97,7 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 			}),
 		],
 		entrances: [{ clientId: 11, date: d("2024-03-28T09:00:00") }],
-		entrancesByPurchaseId: new Map(),
+		entrancesBySaleId: new Map(),
 		asOf,
 	});
 	assert.equal(atRisk.length, 0);
@@ -108,8 +108,8 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 	const asOf = d("2024-03-30T12:00:00");
 	const atRisk = listAtRiskClients({
 		clients: [{ id: 12, name: "Mia", surname: "Neri" }],
-		purchases: [
-			membershipPurchase({
+		sales: [
+			membershipSale({
 				id: 3,
 				clientId: 12,
 				date: d("2024-02-20"),
@@ -117,7 +117,7 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 			}),
 		],
 		entrances: [{ clientId: 12, date: d("2024-02-21T09:00:00") }],
-		entrancesByPurchaseId: new Map(),
+		entrancesBySaleId: new Map(),
 		asOf,
 	});
 	assert.equal(atRisk.length, 1);
@@ -127,12 +127,12 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 // A rischio: pacchetto esaurito di recente (ultimo ingresso nel window).
 {
 	const asOf = d("2024-03-30T12:00:00");
-	const purchaseId = 4;
+	const saleId = 4;
 	const atRisk = listAtRiskClients({
 		clients: [{ id: 13, name: "Leo", surname: "Rossi" }],
-		purchases: [
-			packagePurchase({
-				id: purchaseId,
+		sales: [
+			packageSale({
+				id: saleId,
 				clientId: 13,
 				date: d("2024-01-01"),
 				entranceNumber: 2,
@@ -143,8 +143,8 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 			{ clientId: 13, date: d("2024-01-05T09:00:00") },
 			{ clientId: 13, date: d("2024-03-25T09:00:00") },
 		],
-		entrancesByPurchaseId: new Map([
-			[purchaseId, [d("2024-01-05T09:00:00"), d("2024-03-25T09:00:00")]],
+		entrancesBySaleId: new Map([
+			[saleId, [d("2024-01-05T09:00:00"), d("2024-03-25T09:00:00")]],
 		]),
 		asOf,
 	});
@@ -155,12 +155,12 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 // Pacchetto esaurito + silenzio ≥ N → a rischio recently_expired.
 {
 	const asOf = d("2024-03-30T12:00:00");
-	const purchaseId = 5;
+	const saleId = 5;
 	const atRisk = listAtRiskClients({
 		clients: [{ id: 14, name: "Eva", surname: "Blu" }],
-		purchases: [
-			packagePurchase({
-				id: purchaseId,
+		sales: [
+			packageSale({
+				id: saleId,
 				clientId: 14,
 				date: d("2024-01-01"),
 				entranceNumber: 1,
@@ -168,7 +168,7 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 			}),
 		],
 		entrances: [{ clientId: 14, date: d("2024-03-10T09:00:00") }],
-		entrancesByPurchaseId: new Map([[purchaseId, [d("2024-03-10T09:00:00")]]]),
+		entrancesBySaleId: new Map([[saleId, [d("2024-03-10T09:00:00")]]]),
 		asOf,
 	});
 	assert.equal(atRisk.length, 1);
@@ -184,16 +184,16 @@ const packagePurchase = (over: Partial<FidelityPurchaseInput> & Pick<FidelityPur
 			{ id: 1, name: "A", surname: "A" },
 			{ id: 2, name: "B", surname: "B" },
 		],
-		purchases: [
-			membershipPurchase({ id: 1, clientId: 1, date: d("2024-01-01"), duration: 90 }),
-			membershipPurchase({ id: 2, clientId: 1, date: d("2024-03-10"), duration: 30 }),
-			membershipPurchase({ id: 3, clientId: 2, date: d("2024-03-05"), duration: 60 }),
+		sales: [
+			membershipSale({ id: 1, clientId: 1, date: d("2024-01-01"), duration: 90 }),
+			membershipSale({ id: 2, clientId: 1, date: d("2024-03-10"), duration: 30 }),
+			membershipSale({ id: 3, clientId: 2, date: d("2024-03-05"), duration: 60 }),
 		],
 		entrances: [
 			{ clientId: 1, date: d("2024-03-12T10:00:00") },
 			{ clientId: 2, date: d("2024-03-06T10:00:00") },
 		],
-		entrancesByPurchaseId: new Map(),
+		entrancesBySaleId: new Map(),
 		from,
 		to,
 		asOf: d("2024-03-31"),

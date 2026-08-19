@@ -4,7 +4,7 @@ import type { ListSort } from "@/lib/list";
 export const ENTRANCE_SORT_ALLOWLIST = [
 	"id",
 	"date",
-	"purchaseId",
+	"saleId",
 	"client",
 	"product",
 ] as const;
@@ -12,18 +12,18 @@ export const ENTRANCE_SORT_ALLOWLIST = [
 /** Chiavi filtro ammesse (Conferma/Filtra). */
 export const ENTRANCE_FILTER_ALLOWLIST = [
 	"id",
-	"purchaseId",
+	"saleId",
 	"client",
 	"product",
 ] as const;
 
-/** Placeholder toolbar (evita confusione ID ingresso vs ID acquisto). */
+/** Placeholder toolbar (evita confusione ID ingresso vs ID vendita). */
 export const ENTRANCE_FILTER_LABELS: Record<
 	(typeof ENTRANCE_FILTER_ALLOWLIST)[number],
 	string
 > = {
 	id: "ID Ingresso",
-	purchaseId: "ID Acquisto",
+	saleId: "ID Vendita",
 	client: "Cliente",
 	product: "Prodotto",
 };

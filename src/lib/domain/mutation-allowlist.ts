@@ -32,7 +32,7 @@ export type EntityMutationKey =
 	| "membership"
 	| "entranceSet"
 	| "catalog"
-	| "purchase"
+	| "sale"
 	| "entrance"
 	| "payment"
 	| "salary"
@@ -116,7 +116,7 @@ export const MUTATION_ALLOWLIST = {
 		type: { immutable: true },
 		product: { strip: true },
 	},
-	purchase: {
+	sale: {
 		id: { update: true },
 		clientId: { create: true, update: true },
 		date: { create: true, update: true },
@@ -134,11 +134,11 @@ export const MUTATION_ALLOWLIST = {
 		id: { update: true },
 		clientId: { create: true },
 		date: { create: true, update: true },
-		purchaseId: { immutable: true },
+		saleId: { immutable: true },
 		client: { strip: true },
 		product: { strip: true },
 		prodotto: { strip: true },
-		purchase: { strip: true },
+		sale: { strip: true },
 		packageResidual: { immutable: true },
 	},
 	payment: {

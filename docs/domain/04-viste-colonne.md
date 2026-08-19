@@ -8,8 +8,8 @@ Policy operativa per liste/dettaglio CRUD: ogni colonna esposta ha una **classe*
 |---|---|---|
 | `native` | Attributo della relazione dell’entità della vista | `Cliente.nome`, `Ingresso.data` |
 | `join` | Dato di un’altra tabella, proiezione per leggibilità | Cliente su lista Ingressi |
-| `derived` | Calcolo/aggregato/query (non colonna persistita “falsa”) | Tipo prodotto; Ingressi rimanenti su Acquisto |
-| `snapshot` | Fatto memorizzato all’evento (storico) | `Acquisto.importo`, `durata`, `numero_ingressi` |
+| `derived` | Calcolo/aggregato/query (non colonna persistita “falsa”) | Tipo prodotto; Ingressi rimanenti su Vendita |
+| `snapshot` | Fatto memorizzato all’evento (storico) | `Vendita.importo`, `durata`, `numero_ingressi` |
 
 In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 
@@ -23,23 +23,23 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 |---|---|---|
 | ID, CF, Nome, Cognome, Nascita, Città, Provincia, Iscrizione | `Client.*` | native |
 | Via, Civico, Telefono, Email | `Client.*` (form) | native |
-| Ingressi rimanenti | — | **vietato** come attributo Cliente; è `derived` per-Acquisto |
+| Ingressi rimanenti | — | **vietato** come attributo Cliente; è `derived` per-Vendita |
 
-### Acquisto (`/purchases`)
+### Vendita (`/sales`)
 
 | Colonna UI | Origine | Classe |
 |---|---|---|
 | ID (implicito), Client ID / Cliente, Data, Product Code | FK / scalar | native / **join** (etichetta Cliente) |
-| Amount / Importo | `Purchase.amount` | **snapshot** |
-| Durata, N ingressi | `Purchase.duration`, `entranceNumber` | **snapshot** |
+| Amount / Importo | `Sale.amount` | **snapshot** |
+| Durata, N ingressi | `Sale.duration`, `entranceNumber` | **snapshot** |
 | Type | `productKindFromSnapshot` | **derived** (XOR snapshot; non colonna DB) |
 
 ### Ingresso (`/entrances`)
 
 | Colonna UI | Origine | Classe |
 |---|---|---|
-| ID, Date, Acquisto (`purchaseId`) | `Entrance.*` | native |
-| Cliente, Prodotto | via `purchase.client` / `purchase.productCode` | **join** |
+| ID, Date, Vendita (`saleId`) | `Entrance.*` | native |
+| Cliente, Prodotto | via `sale.client` / `sale.productCode` | **join** |
 | Residuo pacchetto | `packageResidual` | **derived** (non in lista; usato in giustificazione) |
 
 ### Prodotto (`/products`)
@@ -86,12 +86,12 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 | Reperto | Esito |
 |---|---|
 | `remainingEntrances` su Cliente | Assente da schema/app (ticket 03). Riferimenti stale in `docs/resume.txt` rimossi. |
-| `tipo` su Acquisto/Listino | Assente da schema; UI `Type`/`kind` = **derived**. |
-| Snapshot Acquisto | `amount`, `duration`, `entranceNumber` persistiti; etichette UI + `meta.columnClass`. |
+| `tipo` su Vendita/Listino | Assente da schema; UI `Type`/`kind` = **derived**. |
+| Snapshot Vendita | `amount`, `duration`, `entranceNumber` persistiti; etichette UI + `meta.columnClass`. |
 | Join Ingressi | Cliente/Prodotto esposti. |
-| Join Acquisti | Etichetta Cliente esposta (oltre a `clientId`). |
+| Join Vendite | Etichetta Cliente esposta (oltre a `clientId`). |
 | Join ISA (stipendi/bollette/…) | Include + colonne join in lista (ticket 36). |
-| Residuo pacchetto in lista | Non mostrato; resta aggregato in domain (`purchase-access`) — ok. |
+| Residuo pacchetto in lista | Non mostrato; resta aggregato in domain (`sale-access`) — ok. |
 | DTO formali con classificazione | Nessun DTO “falso”; distinzione via `meta.columnClass` + questa matrice. |
 
-Allineamento esplicito: snapshot Acquisto = ticket 02/05; filtri su join/derivati (liste server-side) = ticket 19+ — stessa policy, infrastruttura distinta.
+Allineamento esplicito: snapshot Vendita = ticket 02/05; filtri su join/derivati (liste server-side) = ticket 19+ — stessa policy, infrastruttura distinta.

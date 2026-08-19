@@ -7,7 +7,7 @@ export async function mockCatalogs(db: PrismaClient) {
 		include: { membership: true, entranceSet: true },
 	});
 
-	// Anni recenti così Acquisti trovano prezzo Listino (filtri/analytics).
+	// Anni recenti così Vendite trovano prezzo Listino (filtri/analytics).
 	const currentYear = new Date().getFullYear();
 	const years = [currentYear - 1, currentYear];
 

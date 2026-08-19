@@ -148,6 +148,6 @@ Partenza dai concetti principali, espansione “a macchia d’olio” (caso part
 1. Partire da `docs/proposta.txt` + `docs/relazione.txt` come requisiti grezzi.
 2. Costruire glossario (Cliente, Dipendente, Amministratore, Abbonamento, PacchettoEntrate, Contratto, Ingresso, Timbratura, MovimentoEconomico, …).
 3. Schema scheletro: Cliente / Dipendente / ProdottoListino / Movimento.
-4. Raffinare con generalizzazioni (es. Abbonamento vs Pacchetto), associazioni (acquisto, ingresso, stipendio), attributi e cardinalità.
+4. Raffinare con generalizzazioni (es. Abbonamento vs Pacchetto), associazioni (vendita, ingresso, stipendio), attributi e cardinalità.
 5. Tabella operazioni con frequenze stimate (ingresso quotidiano ≫ inserimento listino).
 6. Verificare qualità prima della progettazione logica.

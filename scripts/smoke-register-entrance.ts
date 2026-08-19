@@ -4,7 +4,7 @@
  */
 import { PrismaClient, Prisma } from "@prisma/client";
 import {
-	NO_JUSTIFYING_PURCHASE_ERROR,
+	NO_JUSTIFYING_SALE_ERROR,
 	registerEntrance,
 } from "../src/data-access/entrances";
 
@@ -15,11 +15,11 @@ async function cleanup(tag: string) {
 		where: { taxCode: { startsWith: tag } },
 	});
 	for (const c of clients) {
-		const purchases = await db.purchase.findMany({ where: { clientId: c.id } });
-		for (const p of purchases) {
-			await db.entrance.deleteMany({ where: { purchaseId: p.id } });
+		const sales = await db.sale.findMany({ where: { clientId: c.id } });
+		for (const p of sales) {
+			await db.entrance.deleteMany({ where: { saleId: p.id } });
 		}
-		await db.purchase.deleteMany({ where: { clientId: c.id } });
+		await db.sale.deleteMany({ where: { clientId: c.id } });
 		await db.client.delete({ where: { id: c.id } });
 	}
 }
@@ -69,7 +69,7 @@ async function main() {
 
 	const at = new Date("2026-07-20T12:00:00.000Z");
 
-	const pkg = await db.purchase.create({
+	const pkg = await db.sale.create({
 		data: {
 			clientId: client.id,
 			date: new Date("2026-07-01T12:00:00.000Z"),
@@ -80,7 +80,7 @@ async function main() {
 		},
 	});
 
-	const mem = await db.purchase.create({
+	const mem = await db.sale.create({
 		data: {
 			clientId: client.id,
 			date: new Date("2026-07-10T12:00:00.000Z"),
@@ -92,17 +92,17 @@ async function main() {
 	});
 
 	const e1 = await registerEntrance(client.id, at);
-	if (e1.purchaseId !== mem.id) {
-		throw new Error(`expected membership purchase ${mem.id}, got ${e1.purchaseId}`);
+	if (e1.saleId !== mem.id) {
+		throw new Error(`expected membership sale ${mem.id}, got ${e1.saleId}`);
 	}
 	console.log("ok: membership preferred");
 
 	await db.entrance.delete({ where: { id: e1.id } });
-	await db.purchase.delete({ where: { id: mem.id } });
+	await db.sale.delete({ where: { id: mem.id } });
 
 	const e2 = await registerEntrance(client.id, at);
-	if (e2.purchaseId !== pkg.id) {
-		throw new Error(`expected package ${pkg.id}, got ${e2.purchaseId}`);
+	if (e2.saleId !== pkg.id) {
+		throw new Error(`expected package ${pkg.id}, got ${e2.saleId}`);
 	}
 	console.log("ok: package FIFO when no membership");
 
@@ -111,11 +111,11 @@ async function main() {
 		await registerEntrance(client.id, at);
 	} catch (e) {
 		rejected =
-			e instanceof Error && e.message.includes("Nessun acquisto giustifica");
+			e instanceof Error && e.message.includes("Nessuna vendita giustifica");
 	}
 	if (!rejected) throw new Error("expected reject at residual 0");
 	console.log("ok: reject residuo 0");
-	console.log("message constant:", NO_JUSTIFYING_PURCHASE_ERROR);
+	console.log("message constant:", NO_JUSTIFYING_SALE_ERROR);
 
 	await cleanup(TAG);
 	console.log("\nDB smoke registerEntrance passed.");

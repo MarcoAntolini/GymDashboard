@@ -1,23 +1,23 @@
 /**
- * Smoke: lista Acquisti server-side (ticket 22) — richiede DB.
- * Run: npx tsx scripts/smoke-list-purchases.ts
+ * Smoke: lista Vendite server-side (ticket 22) — richiede DB.
+ * Run: npx tsx scripts/smoke-list-sales.ts
  */
-import { listPurchases } from "../src/data-access/purchases";
+import { listSales } from "../src/data-access/sales";
 import {
-	PURCHASE_DEFAULT_SORT,
-	PURCHASE_FILTER_ALLOWLIST,
-	PURCHASE_SORT_ALLOWLIST,
-} from "../src/lib/list/purchases";
+	SALE_DEFAULT_SORT,
+	SALE_FILTER_ALLOWLIST,
+	SALE_SORT_ALLOWLIST,
+} from "../src/lib/list/sales";
 
 function assert(cond: unknown, msg: string): asserts cond {
 	if (!cond) throw new Error(msg);
 }
 
 async function main() {
-	const page1 = await listPurchases({
+	const page1 = await listSales({
 		page: 1,
 		pageSize: 10,
-		sort: [...PURCHASE_DEFAULT_SORT],
+		sort: [...SALE_DEFAULT_SORT],
 	});
 
 	assert(page1.page === 1, "page echo");
@@ -33,7 +33,7 @@ async function main() {
 		"default sort date desc"
 	);
 
-	const filtered = await listPurchases({
+	const filtered = await listSales({
 		filters: { client: "__no_such_client_zzz__" },
 		page: 1,
 		pageSize: 10,
@@ -42,14 +42,14 @@ async function main() {
 	assert(filtered.items.length === 0, "unmatched filter → no items");
 	assert(
 		Object.keys(filtered.filters).every((k) =>
-			(PURCHASE_FILTER_ALLOWLIST as readonly string[]).includes(k)
+			(SALE_FILTER_ALLOWLIST as readonly string[]).includes(k)
 		),
 		"filters allowlist"
 	);
 
 	if (page1.items[0]) {
 		const sample = page1.items[0];
-		const byClientId = await listPurchases({
+		const byClientId = await listSales({
 			filters: { clientId: String(sample.clientId) },
 			page: 1,
 			pageSize: 10,
@@ -60,15 +60,15 @@ async function main() {
 			"clientId filter matches Cliente column"
 		);
 
-		const byPurchaseId = await listPurchases({
+		const bySaleId = await listSales({
 			filters: { id: String(sample.id) },
 			page: 1,
 			pageSize: 10,
 		});
-		assert(byPurchaseId.total === 1, "id filter → single purchase");
-		assert(byPurchaseId.items[0]?.id === sample.id, "id filter exact");
+		assert(bySaleId.total === 1, "id filter → single sale");
+		assert(bySaleId.items[0]?.id === sample.id, "id filter exact");
 
-		const byProduct = await listPurchases({
+		const byProduct = await listSales({
 			filters: { productCode: sample.productCode },
 			page: 1,
 			pageSize: 10,
@@ -79,38 +79,38 @@ async function main() {
 			"productCode filter matches"
 		);
 
-		const clientIdAsPurchaseId = await listPurchases({
+		const clientIdAsSaleId = await listSales({
 			filters: { id: String(sample.clientId) },
 			page: 1,
 			pageSize: 10,
 		});
 		assert(
-			clientIdAsPurchaseId.items.every((p) => p.id === sample.clientId),
+			clientIdAsSaleId.items.every((p) => p.id === sample.clientId),
 			"id does not silently match clientId"
 		);
 	}
 
-	const badSort = await listPurchases({
+	const badSort = await listSales({
 		sort: [{ id: "dropTable", desc: true }],
 		page: 1,
 		pageSize: 10,
 	});
 	assert(
 		badSort.sort.every((s) =>
-			(PURCHASE_SORT_ALLOWLIST as readonly string[]).includes(s.id)
+			(SALE_SORT_ALLOWLIST as readonly string[]).includes(s.id)
 		),
 		"sort allowlist strips injection"
 	);
 	assert(badSort.sort[0]?.id === "date", "fallback to default sort");
 
-	const byClient = await listPurchases({
+	const byClient = await listSales({
 		sort: [{ id: "client", desc: false }],
 		page: 1,
 		pageSize: 10,
 	});
 	assert(byClient.sort[0]?.id === "client", "join sort client accepted");
 
-	const byAmount = await listPurchases({
+	const byAmount = await listSales({
 		sort: [{ id: "amount", desc: true }],
 		page: 1,
 		pageSize: 10,
@@ -118,10 +118,10 @@ async function main() {
 	assert(byAmount.sort[0]?.id === "amount", "snapshot sort amount accepted");
 
 	if (page1.total > 10) {
-		const page2 = await listPurchases({
+		const page2 = await listSales({
 			page: 2,
 			pageSize: 10,
-			sort: [...PURCHASE_DEFAULT_SORT],
+			sort: [...SALE_DEFAULT_SORT],
 		});
 		assert(page2.page === 2, "page 2");
 		assert(page2.items.length > 0, "page 2 has rows when total > 10");
@@ -132,7 +132,7 @@ async function main() {
 		);
 	}
 
-	console.log("smoke-list-purchases: OK", {
+	console.log("smoke-list-sales: OK", {
 		total: page1.total,
 		pageCount: page1.pageCount,
 		sample: page1.items[0]

@@ -6,7 +6,7 @@ L'amministratore potrà visualizzare e gestire tutti i dati del sistema.
 Per quanto riguarda i clienti sarà possibile:
 [x] inserire un nuovo cliente, modificarne i dati o eliminarlo
 [ ] visualizzare i dati di un cliente o di tutti i clienti
-[ ] registrare l'acquisto di un abbonamento o di un pacchetto entrate
+[ ] registrare la vendita di un abbonamento o di un pacchetto entrate
 [ ] visualizzare i dati relativi agli abbonamenti e ai pacchetti entrate di un cliente
 [ ] registrare l'entrata in palestra di un cliente
 

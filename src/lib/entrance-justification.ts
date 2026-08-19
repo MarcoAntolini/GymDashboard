@@ -1,28 +1,28 @@
 /**
- * Scelta dell'Acquisto giustificatore per un Ingresso (regola 9 / 03-schema-logico.md).
- * Usa solo snapshot su Acquisto (durata / N) + COUNT ingressi già collegati.
+ * Scelta della Vendita giustificatrice per un Ingresso (regola 9 / 03-schema-logico.md).
+ * Usa solo snapshot su Vendita (durata / N) + COUNT ingressi già collegati.
  */
 
 import {
-	isEntranceSetPurchase,
-	isMembershipPurchase,
+	isEntranceSetSale,
+	isMembershipSale,
 	membershipCoversAt,
 	packageResidual,
-	type PurchaseAccessSnapshot,
-} from "@/lib/domain/purchase-access";
+	type SaleAccessSnapshot,
+} from "@/lib/domain/sale-access";
 
-export const NO_JUSTIFYING_PURCHASE_ERROR =
-	"Nessun acquisto giustifica l'ingresso: abbonamento non valido o pacchetto esaurito.";
+export const NO_JUSTIFYING_SALE_ERROR =
+	"Nessuna vendita giustifica l'ingresso: abbonamento non valido o pacchetto esaurito.";
 
-export type JustifyingPurchaseCandidate = PurchaseAccessSnapshot & {
+export type JustifyingSaleCandidate = SaleAccessSnapshot & {
 	id: number;
-	/** COUNT(ingressi) già collegati a questo Acquisto (nella stessa transazione). */
+	/** COUNT(ingressi) già collegati a questa Vendita (nella stessa transazione). */
 	entrancesLinked: number;
 };
 
 function compareDateIdMax(
-	a: Pick<JustifyingPurchaseCandidate, "date" | "id">,
-	b: Pick<JustifyingPurchaseCandidate, "date" | "id">
+	a: Pick<JustifyingSaleCandidate, "date" | "id">,
+	b: Pick<JustifyingSaleCandidate, "date" | "id">
 ): number {
 	const byDate = a.date.getTime() - b.date.getTime();
 	if (byDate !== 0) return byDate;
@@ -30,18 +30,18 @@ function compareDateIdMax(
 }
 
 /**
- * Restituisce l'id Acquisto giustificatore per `at`, oppure lancia NO_JUSTIFYING_PURCHASE_ERROR.
+ * Restituisce l'id della Vendita giustificatrice per `at`, oppure lancia NO_JUSTIFYING_SALE_ERROR.
  *
  * 1. Abbonamenti validi in `at` → arg max (date, id)
  * 2. Altrimenti pacchetti con residuo > 0 → arg min (date, id) (FIFO)
  * 3. Altrimenti rifiuta
  */
-export function selectJustifyingPurchaseId(
-	purchases: JustifyingPurchaseCandidate[],
+export function selectJustifyingSaleId(
+	sales: JustifyingSaleCandidate[],
 	at: Date
 ): number {
-	const memberships = purchases.filter(
-		(p) => isMembershipPurchase(p) && membershipCoversAt(p, at)
+	const memberships = sales.filter(
+		(p) => isMembershipSale(p) && membershipCoversAt(p, at)
 	);
 	if (memberships.length > 0) {
 		return memberships.reduce((best, p) =>
@@ -49,8 +49,8 @@ export function selectJustifyingPurchaseId(
 		).id;
 	}
 
-	const packages = purchases.filter((p) => {
-		if (!isEntranceSetPurchase(p)) return false;
+	const packages = sales.filter((p) => {
+		if (!isEntranceSetSale(p)) return false;
 		const residual = packageResidual(p, p.entrancesLinked);
 		return residual != null && residual > 0;
 	});
@@ -60,5 +60,5 @@ export function selectJustifyingPurchaseId(
 		).id;
 	}
 
-	throw new Error(NO_JUSTIFYING_PURCHASE_ERROR);
+	throw new Error(NO_JUSTIFYING_SALE_ERROR);
 }

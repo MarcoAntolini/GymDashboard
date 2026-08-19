@@ -12,13 +12,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Calendar, Hash, Package, ShoppingBag, User } from "lucide-react";
 import { z } from "zod";
 
-/** Create: solo Cliente (+ data opzionale in form; default now lato server). Niente purchaseId. */
+/** Create: solo Cliente (+ data opzionale in form; default now lato server). Niente saleId. */
 export const formSchema = z.object({
 	clientId: z.number().int().positive(),
 	date: z.date(),
 });
 
-/** Edit: solo data (Acquisto/Cliente restano quelli della giustificazione originale). */
+/** Edit: solo data (Vendita/Cliente restano quelli della giustificazione originale). */
 export const editFormSchema = z.object({
 	date: z.date(),
 });
@@ -53,13 +53,13 @@ export const columns = (
 	{
 		id: "client",
 		accessorFn: (row) =>
-			`${row.purchase.client.surname} ${row.purchase.client.name} (#${row.purchase.clientId})`,
+			`${row.sale.client.surname} ${row.sale.client.name} (#${row.sale.clientId})`,
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Cliente" icon={User} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => {
-			const client = row.original.purchase.client;
+			const client = row.original.sale.client;
 			return (
 				<div className="font-medium">
 					<HighlightText
@@ -73,7 +73,7 @@ export const columns = (
 	},
 	{
 		id: "product",
-		accessorFn: (row) => row.purchase.productCode,
+		accessorFn: (row) => row.sale.productCode,
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Prodotto" icon={Package} />
 		),
@@ -81,16 +81,16 @@ export const columns = (
 		cell: ({ row }) => (
 			<div className="font-medium">
 				<HighlightText
-					text={row.original.purchase.productCode}
+					text={row.original.sale.productCode}
 					filterKeys="product"
 				/>
 			</div>
 		),
 	},
 	{
-		accessorKey: "purchaseId",
+		accessorKey: "saleId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Acquisto" icon={ShoppingBag} />
+			<TableSortableHeader column={column} title="Vendita" icon={ShoppingBag} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
@@ -101,7 +101,7 @@ export const columns = (
 				row={row}
 				formSchema={editFormSchema}
 				entityLabel="Ingresso"
-				editDescription="Puoi correggere solo la data. Cliente e Acquisto restano quelli scelti alla registrazione (giustificazione automatica)."
+				editDescription="Puoi correggere solo la data. Cliente e Vendita restano quelli scelti alla registrazione (giustificazione automatica)."
 				editFormContent={
 					<>
 						<FormField
@@ -115,9 +115,9 @@ export const columns = (
 							)}
 						/>
 						<FormItem>
-							<FormLabel>Acquisto</FormLabel>
+							<FormLabel>Vendita</FormLabel>
 							<p className="text-sm text-muted-foreground">
-								#{row.original.purchaseId} — {row.original.purchase.productCode} (bloccato)
+								#{row.original.saleId} — {row.original.sale.productCode} (bloccato)
 							</p>
 						</FormItem>
 					</>

@@ -79,6 +79,6 @@ FK: CodAgenzia REFERENCES AGENZIE
 - [ ] Ogni relazione in 1NF
 - [ ] PK dichiarata, NOT NULL
 - [ ] Chiavi alternative → UNIQUE
-- [ ] FK per ogni legame basato su valori (cliente↔contratto, listino↔acquisto, …)
+- [ ] FK per ogni legame basato su valori (cliente↔contratto, listino↔vendita, …)
 - [ ] Vincoli di dominio/tupla documentati (anche se poi in CHECK/trigger/app)
 - [ ] Politica NULL esplicita (niente sentinel date/stipendi)

@@ -96,7 +96,7 @@ function ProductRankingTable({ rows }: { rows: ProductRankingRow[] }) {
 			</p>
 			{rows.length === 0 ? (
 				<p className="text-sm text-muted-foreground">
-					Nessun Acquisto nel periodo — il ranking prodotti è vuoto.
+					Nessuna Vendita nel periodo — il ranking prodotti è vuoto.
 				</p>
 			) : (
 				<div className="overflow-hidden rounded-md border">
@@ -172,7 +172,7 @@ function FrequencyBarChart({
 }
 
 function BanconeDailyChart({ rows }: { rows: BanconeDailyPoint[] }) {
-	const hasData = rows.some((row) => row.ingressi > 0 || row.acquisti > 0);
+	const hasData = rows.some((row) => row.ingressi > 0 || row.vendite > 0);
 	const chartData = rows.map((row) => ({
 		...row,
 		axisLabel: row.label.replace(/\s+\d{4}$/, ""),
@@ -180,11 +180,11 @@ function BanconeDailyChart({ rows }: { rows: BanconeDailyPoint[] }) {
 	return (
 		<div className="min-w-0">
 			<p className="mb-2 text-sm font-medium text-foreground">
-				Carico bancone (Ingressi e Acquisti per giorno)
+				Carico bancone (Ingressi e Vendite per giorno)
 			</p>
 			{!hasData ? (
 				<p className="text-sm text-muted-foreground">
-					Nessun Ingresso né Acquisto nel periodo.
+					Nessun Ingresso né Vendita nel periodo.
 				</p>
 			) : (
 				<div className="h-[240px]">
@@ -207,8 +207,8 @@ function BanconeDailyChart({ rows }: { rows: BanconeDailyPoint[] }) {
 								radius={[3, 3, 0, 0]}
 							/>
 							<Bar
-								dataKey="acquisti"
-								name="Acquisti"
+								dataKey="vendite"
+								name="Vendite"
 								fill="#64748b"
 								radius={[3, 3, 0, 0]}
 							/>
@@ -231,7 +231,7 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 					<p className="mt-1 text-lg font-medium">
 						<MoneyTone tone="income">{formatEur(stats.entrate)}</MoneyTone>
 					</p>
-					<p className="text-xs text-muted-foreground">Acquisti</p>
+					<p className="text-xs text-muted-foreground">Vendite</p>
 				</div>
 				<div>
 					<p className="text-xs font-medium text-muted-foreground">Uscite</p>
@@ -261,11 +261,11 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 			{stats.isEmpty ? (
 				<TableEmptyState
 					title="Nessun movimento in questo periodo"
-					hint="Registra un Acquisto, un Ingresso o un Pagamento per vedere i totali qui."
+					hint="Registra una Vendita, un Ingresso o un Pagamento per vedere i totali qui."
 					action={
 						<div className="flex flex-wrap items-center justify-center gap-2">
 							<Button asChild variant="outline" size="sm">
-								<Link href="/purchases">Acquisti</Link>
+								<Link href="/sales">Vendite</Link>
 							</Button>
 							<Button asChild variant="outline" size="sm">
 								<Link href="/entrances">Ingressi</Link>
@@ -280,7 +280,7 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 
 			<div className="grid gap-6 md:grid-cols-2">
 				<BreakdownTable
-					caption="Ripartizione Entrate (Acquisti)"
+					caption="Ripartizione Entrate (Vendite)"
 					rows={stats.entrateByKind}
 					tone="income"
 				/>
@@ -322,7 +322,7 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 				<div>
 					<p className="text-sm font-medium text-foreground">Fidelizzazione (proxy OLTP)</p>
 					<p className="text-sm text-muted-foreground">
-						Indicatori da Acquisti e Ingressi — niente modelli predittivi.
+						Indicatori da Vendite e Ingressi — niente modelli predittivi.
 					</p>
 				</div>
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -334,7 +334,7 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 						<p className="text-xs text-muted-foreground">{stats.fidelity.activeDefinition}</p>
 					</div>
 					<div>
-						<p className="text-xs font-medium text-muted-foreground">Riacquisti / rinnovi</p>
+						<p className="text-xs font-medium text-muted-foreground">Rinnovi</p>
 						<p className="mt-1 text-lg font-medium tabular-nums text-foreground">
 							{stats.fidelity.renewalsCount}
 						</p>
@@ -407,7 +407,7 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 					<Link href="/entrances">Ingressi · Analisi frequenza</Link>
 				</Button>
 				<Button asChild variant="ghost" size="sm">
-					<Link href="/purchases">Acquisti · Analisi entrate</Link>
+					<Link href="/sales">Vendite · Analisi entrate</Link>
 				</Button>
 				<Button asChild variant="ghost" size="sm">
 					<Link href="/payments">Pagamenti · Analisi uscite</Link>

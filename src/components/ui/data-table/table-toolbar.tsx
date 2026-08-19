@@ -30,7 +30,7 @@ interface TableToolbarProps<TData> {
 	filters: string[];
 	/** Filtri a valori chiusi (enum/boolean) — multi-select. */
 	facetedFilters?: ListFacetedFilter[];
-	/** Override placeholder per chiave filtro (es. purchaseId → "ID Acquisto"). */
+	/** Override placeholder per chiave filtro (es. saleId → "ID Vendita"). */
 	filterLabels?: Record<string, string>;
 	/** Se presente: draft + Conferma/Filtra (niente query a ogni keystroke). */
 	serverList?: TableToolbarServerListProps;

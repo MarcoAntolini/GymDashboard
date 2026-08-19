@@ -26,9 +26,9 @@ function expectReject(fn: () => void, label: string) {
 }
 
 function run() {
-	// Allowed purchase update
+	// Allowed sale update
 	{
-		const picked = assertMutationPayload("purchase", "update", {
+		const picked = assertMutationPayload("sale", "update", {
 			id: 1,
 			clientId: 2,
 			date: new Date(),
@@ -39,13 +39,13 @@ function run() {
 		assert(picked.id === 1, "id kept");
 		assert(picked.clientId === 2, "clientId kept");
 		assert(!("client" in picked), "join stripped");
-		console.log("ok: purchase update strips join");
+		console.log("ok: sale update strips join");
 	}
 
 	// Snapshot immutable
 	expectReject(
 		() =>
-			assertMutationPayload("purchase", "update", {
+			assertMutationPayload("sale", "update", {
 				id: 1,
 				clientId: 2,
 				date: new Date(),
@@ -53,30 +53,30 @@ function run() {
 				productCode: "M1",
 				duration: 30,
 			}),
-		"purchase.duration"
+		"sale.duration"
 	);
 
 	expectReject(
 		() =>
-			assertMutationPayload("purchase", "create", {
+			assertMutationPayload("sale", "create", {
 				clientId: 1,
 				date: new Date(),
 				amount: "10",
 				productCode: "M1",
 				entranceNumber: 10,
 			}),
-		"purchase.entranceNumber"
+		"sale.entranceNumber"
 	);
 
-	// Entrance: purchaseId immutable
+	// Entrance: saleId immutable
 	expectReject(
 		() =>
 			assertMutationPayload("entrance", "create", {
 				clientId: 1,
 				date: new Date(),
-				purchaseId: 99,
+				saleId: 99,
 			}),
-		"entrance.purchaseId"
+		"entrance.saleId"
 	);
 
 	// Derived type on catalog
