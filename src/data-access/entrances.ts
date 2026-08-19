@@ -3,12 +3,9 @@
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import {
-	NO_JUSTIFYING_SALE_ERROR,
 	selectJustifyingSaleId,
 	type JustifyingSaleCandidate,
 } from "@/lib/entrance-justification";
-
-export { NO_JUSTIFYING_SALE_ERROR };
 import {
 	buildListResult,
 	normalizeListQuery,
