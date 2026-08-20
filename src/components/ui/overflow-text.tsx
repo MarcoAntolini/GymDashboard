@@ -1,100 +1,133 @@
 "use client";
 
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import * as React from "react";
+import { createPortal } from "react-dom";
 
-function contentWidth(node: HTMLElement | null): number {
-	if (!node) return 0;
-	return Math.ceil(node.scrollWidth);
+let measureCanvas: HTMLCanvasElement | null = null;
+
+function measureTextWidth(text: string, font: string, letterSpacing: string): number {
+	measureCanvas ??= document.createElement("canvas");
+	const ctx = measureCanvas.getContext("2d");
+	if (!ctx) return 0;
+	ctx.font = font;
+	try {
+		ctx.letterSpacing =
+			letterSpacing && letterSpacing !== "normal" ? letterSpacing : "0px";
+	} catch {
+		/* letterSpacing sul canvas non è ovunque supportato */
+	}
+	return ctx.measureText(text).width;
 }
 
 /**
- * Una sola riga con ellipsis. Se il contenuto sfora, un Popover mostra il testo
- * completo con a capo (`whitespace-pre-wrap` + `break-words`).
+ * `scrollWidth` con `text-overflow: ellipsis` in Chrome è spesso uguale a
+ * `clientWidth` (falso negativo). Date/orari in un `div` interno cadono sempre lì.
+ * Misuriamo la stringa con il font effettivo contro la larghezza visibile.
+ */
+function isOverflowing(el: HTMLElement): boolean {
+	const text = (el.innerText ?? "").replace(/\s+/g, " ").trim();
+	if (!text) return false;
+	const available = el.clientWidth;
+	if (available <= 0) return false;
+	if (el.scrollWidth > available + 1) return true;
+	const styled =
+		(el.querySelector(":scope > *") as HTMLElement | null) ?? el;
+	const cs = getComputedStyle(styled);
+	const textWidth = measureTextWidth(text, cs.font, cs.letterSpacing);
+	return textWidth > available + 1;
+}
+
+/**
+ * Una sola riga con ellipsis. Se il contenuto sfora, un tooltip (portal su body)
+ * mostra il testo completo — non usa Radix Tooltip, che si chiude sullo scroll
+ * della tabella (`overflow: auto` + listener in capture).
  */
 export function OverflowText({
 	children,
 	className,
-	popoverClassName,
+	tooltipClassName,
 }: {
 	children: React.ReactNode;
 	className?: string;
-	popoverClassName?: string;
+	tooltipClassName?: string;
 }) {
 	const visibleRef = React.useRef<HTMLDivElement>(null);
-	const sizerRef = React.useRef<HTMLDivElement>(null);
-	const [overflowing, setOverflowing] = React.useState(false);
+	const [open, setOpen] = React.useState(false);
 	const [fullText, setFullText] = React.useState("");
+	const [pos, setPos] = React.useState<{
+		top: number;
+		left: number;
+		side: "top" | "bottom";
+	}>({ top: 0, left: 0, side: "top" });
 
-	const measure = React.useCallback(() => {
-		const visible = visibleRef.current;
-		const sizer = sizerRef.current;
-		if (!visible || !sizer) return;
-		const next = contentWidth(sizer) > Math.ceil(visible.clientWidth) + 1;
-		setOverflowing(next);
-		const text = (sizer.innerText ?? "").trim();
+	const close = React.useCallback(() => setOpen(false), []);
+
+	const tryOpen = React.useCallback(() => {
+		const el = visibleRef.current;
+		if (!el) return;
+		const text = (el.innerText ?? "").replace(/\s+/g, " ").trim();
+		if (!text || !isOverflowing(el)) {
+			setOpen(false);
+			return;
+		}
+		const rect = el.getBoundingClientRect();
+		const side: "top" | "bottom" = rect.top > 88 ? "top" : "bottom";
 		setFullText(text);
+		setPos({
+			left: Math.max(8, rect.left),
+			top: side === "top" ? rect.top - 6 : rect.bottom + 6,
+			side,
+		});
+		setOpen(true);
 	}, []);
 
-	React.useLayoutEffect(() => {
-		measure();
-		const visible = visibleRef.current;
-		if (!visible) return;
-		const observer = new ResizeObserver(() => measure());
-		observer.observe(visible);
-		return () => observer.disconnect();
-	}, [measure, children]);
-
-	const line = (
-		<div
-			ref={visibleRef}
-			className={cn(
-				"min-w-0 w-full truncate [&>*]:min-w-0 [&>*]:max-w-full [&>div]:truncate",
-				className
-			)}
-		>
-			{children}
-		</div>
-	);
+	React.useEffect(() => {
+		if (!open) return;
+		const onKey = (event: KeyboardEvent) => {
+			if (event.key === "Escape") close();
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [open, close]);
 
 	return (
-		<div className="relative flex h-full min-w-0 w-full max-w-full items-center">
+		<div
+			className="relative flex h-full min-w-0 w-full max-w-full items-center"
+			onMouseEnter={tryOpen}
+			onMouseLeave={close}
+		>
 			<div
-				ref={sizerRef}
-				aria-hidden
-				className="pointer-events-none invisible absolute left-0 top-0 h-px w-max max-w-none overflow-hidden whitespace-nowrap [&_*]:max-w-none"
+				ref={visibleRef}
+				className={cn(
+					"min-w-0 w-full truncate [&>*]:min-w-0 [&>*]:max-w-full [&>div]:truncate",
+					className
+				)}
 			>
 				{children}
 			</div>
-			{overflowing && fullText ? (
-				<Popover>
-					<PopoverTrigger asChild>
-						<button
-							type="button"
-							className="min-w-0 w-full rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-							aria-label="Mostra testo completo"
+			{open && fullText
+				? createPortal(
+						<div
+							role="tooltip"
+							className={cn(
+								"pointer-events-none z-50 max-h-64 max-w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-md border bg-popover px-3 py-1.5 text-left text-sm font-normal text-popover-foreground shadow-md whitespace-pre-wrap break-words",
+								"motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95",
+								tooltipClassName
+							)}
+							style={{
+								position: "fixed",
+								top: pos.top,
+								left: pos.left,
+								transform:
+									pos.side === "top" ? "translateY(-100%)" : undefined,
+							}}
 						>
-							{line}
-						</button>
-					</PopoverTrigger>
-					<PopoverContent
-						align="start"
-						className={cn(
-							"w-80 max-w-[min(20rem,calc(100vw-2rem))] p-3",
-							popoverClassName
-						)}
-					>
-						<p className="whitespace-pre-wrap break-all text-sm">{fullText}</p>
-					</PopoverContent>
-				</Popover>
-			) : (
-				line
-			)}
+							{fullText}
+						</div>,
+						document.body
+					)
+				: null}
 		</div>
 	);
 }
