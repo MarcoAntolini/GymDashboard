@@ -9,7 +9,6 @@ import {
 	FIDELITY_ACTIVE_DEFINITION,
 	FIDELITY_AT_RISK_DEFINITION,
 	FIDELITY_RENEWAL_DEFINITION,
-	type FidelityAtRiskRow,
 	type FidelityProxyResult,
 } from "@/lib/fidelity-proxy";
 import {
@@ -36,8 +35,6 @@ export type OverviewBreakdownRow = {
 	amount: number;
 	count: number;
 };
-
-export type { ProductRankingRow, FidelityAtRiskRow };
 
 export type OverviewFidelity = FidelityProxyResult & {
 	activeDefinition: string;

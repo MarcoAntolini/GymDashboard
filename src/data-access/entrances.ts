@@ -300,8 +300,6 @@ export async function getMonthlyEntrances(startDate: Date, endDate: Date) {
 	return getEntrancesByPeriod(startDate, endDate, "monthly");
 }
 
-export type { BanconeDailyPoint, EntranceFrequency, FrequencyPoint };
-
 export type EntranceFrequencyBundle = EntranceFrequency & {
 	banconeDaily: BanconeDailyPoint[];
 };

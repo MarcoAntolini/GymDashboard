@@ -19,10 +19,10 @@ import {
 	getOverviewStats,
 	type OverviewBreakdownRow,
 	type OverviewStats,
-	type ProductRankingRow,
 } from "@/data-access/overview";
 import { ProductKind } from "@/lib/domain/product-kind";
 import type { BanconeDailyPoint, FrequencyPoint } from "@/lib/frequency-aggregation";
+import type { ProductRankingRow } from "@/lib/product-ranking";
 import { formatEur } from "@/lib/format";
 import {
 	isOverviewPeriodPreset,
