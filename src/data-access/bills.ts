@@ -1,6 +1,7 @@
 "use server";
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { toClient, type ClientOf } from "@/lib/client-payload";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
@@ -19,7 +20,7 @@ import { Bill, Prisma } from "@prisma/client";
 
 const billInclude = { payment: true } as const;
 
-export type BillRow = Prisma.BillGetPayload<{ include: typeof billInclude }>;
+export type BillRow = ClientOf<Prisma.BillGetPayload<{ include: typeof billInclude }>>;
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -106,37 +107,43 @@ export async function createBill(input: {
 }
 
 export async function getAllBills() {
-	return await db.bill.findMany({
-		include: {
-			payment: true,
-		},
-	});
+	return toClient(
+		await db.bill.findMany({
+			include: {
+				payment: true,
+			},
+		})
+	);
 }
 
 export async function getBill(paymentId: number) {
-	return await db.bill.findUnique({
-		where: {
-			paymentId,
-		},
-		include: {
-			payment: true,
-		},
-	});
+	return toClient(
+		await db.bill.findUnique({
+			where: {
+				paymentId,
+			},
+			include: {
+				payment: true,
+			},
+		})
+	);
 }
 
 export async function editBill(input: Bill): Promise<BillRow> {
 	assertMutationPayload("bill", "update", input);
 	const { paymentId, description, provider } = input;
-	return await db.bill.update({
-		where: {
-			paymentId,
-		},
-		data: {
-			description,
-			provider,
-		},
-		include: billInclude,
-	});
+	return toClient(
+		await db.bill.update({
+			where: {
+				paymentId,
+			},
+			data: {
+				description,
+				provider,
+			},
+			include: billInclude,
+		})
+	);
 }
 
 export async function deleteBill({ paymentId }: { paymentId: number }) {

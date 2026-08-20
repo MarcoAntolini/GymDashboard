@@ -1,6 +1,7 @@
 "use server";
 
 import { requireRole } from "@/lib/auth";
+import { toClient, type ClientOf } from "@/lib/client-payload";
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import {
@@ -53,9 +54,11 @@ const paymentListInclude = {
 	intervention: true,
 } as const;
 
-export type PaymentRow = Prisma.PaymentGetPayload<{
-	include: typeof paymentListInclude;
-}>;
+export type PaymentRow = ClientOf<
+	Prisma.PaymentGetPayload<{
+		include: typeof paymentListInclude;
+	}>
+>;
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -190,32 +193,36 @@ export async function createPayment(data: PaymentData) {
 			break;
 	}
 
-	return payment;
+	return toClient(payment);
 }
 
 export async function getAllPayments() {
-	return await db.payment.findMany({
-		include: {
-			intervention: true,
-			equipment: true,
-			bill: true,
-			salary: true
-		}
-	});
+	return toClient(
+		await db.payment.findMany({
+			include: {
+				intervention: true,
+				equipment: true,
+				bill: true,
+				salary: true,
+			},
+		})
+	);
 }
 
 export async function getPayment(id: number) {
-	return await db.payment.findUnique({
-		where: {
-			id
-		},
-		include: {
-			intervention: true,
-			equipment: true,
-			bill: true,
-			salary: true
-		}
-	});
+	return toClient(
+		await db.payment.findUnique({
+			where: {
+				id,
+			},
+			include: {
+				intervention: true,
+				equipment: true,
+				bill: true,
+				salary: true,
+			},
+		})
+	);
 }
 
 export async function editPayment(input: Omit<Payment, "amount"> & { amount: MoneyInput }) {
@@ -230,29 +237,33 @@ export async function editPayment(input: Omit<Payment, "amount"> & { amount: Mon
 			"Il tipo del Pagamento non è modificabile: crea un nuovo Pagamento per la specializzazione desiderata."
 		);
 	}
-	return await db.payment.update({
-		where: {
-			id
-		},
-		data: {
-			date,
-			amount: new Prisma.Decimal(amount),
-		},
-		include: {
-			intervention: true,
-			equipment: true,
-			bill: true,
-			salary: true
-		}
-	});
+	return toClient(
+		await db.payment.update({
+			where: {
+				id,
+			},
+			data: {
+				date,
+				amount: new Prisma.Decimal(amount),
+			},
+			include: {
+				intervention: true,
+				equipment: true,
+				bill: true,
+				salary: true,
+			},
+		})
+	);
 }
 
 export async function deletePayment({ id }: { id: number }) {
-	return await db.payment.delete({
-		where: {
-			id
-		}
-	});
+	return toClient(
+		await db.payment.delete({
+			where: {
+				id,
+			},
+		})
+	);
 }
 
 export type UscitePeriodPoint = PeriodPoint & {

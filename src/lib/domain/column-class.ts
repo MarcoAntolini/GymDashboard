@@ -22,6 +22,8 @@ export type ViewColumnMeta = {
 declare module "@tanstack/react-table" {
 	interface ColumnMeta<TData, TValue> {
 		columnClass?: ColumnClass;
+		/** Cella con controlli (es. mostra/nascondi password): niente wrap OverflowText sulla cella intera. */
+		noCellOverflow?: boolean;
 	}
 }
 

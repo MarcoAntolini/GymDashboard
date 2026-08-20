@@ -1,3 +1,4 @@
+import { toClient, type ClientOf } from "@/lib/client-payload";
 import {
 	DEFAULT_PAGE_SIZE,
 	PAGE_SIZE_OPTIONS,
@@ -96,10 +97,10 @@ export function buildListResult<T>(
 	items: T[],
 	total: number,
 	query: ListQuery
-): ListResult<T> {
+): ListResult<ClientOf<T>> {
 	const pageCount = pageCountFromTotal(total, query.pageSize);
 	return {
-		items,
+		items: toClient(items),
 		total,
 		page: query.page,
 		pageSize: query.pageSize,

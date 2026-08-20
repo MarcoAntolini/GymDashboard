@@ -13,6 +13,7 @@ import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { SaleListRow } from "@/data-access/sales";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
@@ -31,12 +32,7 @@ export type ProductWithSpec = Prisma.ProductGetPayload<{
 	include: { membership: true; entranceSet: true };
 }>;
 
-export type SaleRow = Prisma.SaleGetPayload<{
-	include: {
-		client: true;
-		prodotto: { include: { membership: true; entranceSet: true } };
-	};
-}>;
+export type SaleRow = SaleListRow;
 
 export const formSchema = z.object({
 	clientId: z.number().int().positive(),

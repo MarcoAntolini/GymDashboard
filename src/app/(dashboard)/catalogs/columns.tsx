@@ -9,6 +9,7 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { CatalogListRow } from "@/data-access/catalogs";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
@@ -16,18 +17,11 @@ import {
 } from "@/lib/domain/product-kind";
 import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
-import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Banknote, Calendar, Package, Tag } from "lucide-react";
 import { z } from "zod";
 
-export type CatalogRow = Prisma.CatalogGetPayload<{
-	include: {
-		product: {
-			include: { membership: true; entranceSet: true };
-		};
-	};
-}>;
+export type CatalogRow = CatalogListRow;
 
 export const formSchema = z.object({
 	year: z.number().int().positive("L'anno deve essere un intero positivo"),

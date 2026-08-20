@@ -1,6 +1,7 @@
 "use server";
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { toClient, type ClientOf } from "@/lib/client-payload";
 import { db } from "@/lib/db";
 import {
 	selectJustifyingSaleId,
@@ -45,7 +46,9 @@ const entranceInclude = {
 	},
 } as const;
 
-export type EntranceRow = Prisma.EntranceGetPayload<{ include: typeof entranceInclude }>;
+export type EntranceRow = ClientOf<
+	Prisma.EntranceGetPayload<{ include: typeof entranceInclude }>
+>;
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -176,39 +179,41 @@ export async function registerEntrance(clientId: number, date?: Date) {
 	);
 	const at = date ?? new Date();
 
-	return await db.$transaction(
-		async (tx) => {
-			// Lock sulle righe Vendita del Cliente (mitiga race sul residuo pacchetto).
-			await tx.$queryRaw`
-				SELECT id FROM vendite WHERE id_cliente = ${clientId} FOR UPDATE
-			`;
+	return toClient(
+		await db.$transaction(
+			async (tx) => {
+				// Lock sulle righe Vendita del Cliente (mitiga race sul residuo pacchetto).
+				await tx.$queryRaw`
+					SELECT id FROM vendite WHERE id_cliente = ${clientId} FOR UPDATE
+				`;
 
-			const sales = await tx.sale.findMany({
-				where: { clientId },
-				include: {
-					_count: { select: { entrance: true } },
-				},
-			});
+				const sales = await tx.sale.findMany({
+					where: { clientId },
+					include: {
+						_count: { select: { entrance: true } },
+					},
+				});
 
-			const candidates: JustifyingSaleCandidate[] = sales.map((p) => ({
-				id: p.id,
-				date: p.date,
-				duration: p.duration,
-				entranceNumber: p.entranceNumber,
-				entrancesLinked: p._count.entrance,
-			}));
+				const candidates: JustifyingSaleCandidate[] = sales.map((p) => ({
+					id: p.id,
+					date: p.date,
+					duration: p.duration,
+					entranceNumber: p.entranceNumber,
+					entrancesLinked: p._count.entrance,
+				}));
 
-			const saleId = selectJustifyingSaleId(candidates, at);
+				const saleId = selectJustifyingSaleId(candidates, at);
 
-			return await tx.entrance.create({
-				data: {
-					saleId,
-					date: at,
-				},
-				include: entranceInclude,
-			});
-		},
-		{ isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+				return await tx.entrance.create({
+					data: {
+						saleId,
+						date: at,
+					},
+					include: entranceInclude,
+				});
+			},
+			{ isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+		)
 	);
 }
 
@@ -224,27 +229,33 @@ export async function createEntrance({
 }
 
 export async function getAllEntrances(): Promise<EntranceRow[]> {
-	return await db.entrance.findMany({
-		include: entranceInclude,
-		orderBy: { date: "desc" },
-	});
+	return toClient(
+		await db.entrance.findMany({
+			include: entranceInclude,
+			orderBy: { date: "desc" },
+		})
+	);
 }
 
 export async function getEntrance(id: number) {
-	return await db.entrance.findUnique({
-		where: { id },
-		include: entranceInclude,
-	});
+	return toClient(
+		await db.entrance.findUnique({
+			where: { id },
+			include: entranceInclude,
+		})
+	);
 }
 
 export async function editEntrance(input: { id: number; date: Date }) {
 	assertMutationPayload("entrance", "update", input);
 	const { id, date } = input;
-	return await db.entrance.update({
-		where: { id },
-		data: { date },
-		include: entranceInclude,
-	});
+	return toClient(
+		await db.entrance.update({
+			where: { id },
+			data: { date },
+			include: entranceInclude,
+		})
+	);
 }
 
 export async function deleteEntrance({ id }: { id: number }) {

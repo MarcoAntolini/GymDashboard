@@ -2,6 +2,7 @@
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { requireRole } from "@/lib/auth";
+import { toClient, type ClientOf } from "@/lib/client-payload";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
@@ -23,7 +24,7 @@ const salaryInclude = {
 	employee: true,
 } as const;
 
-export type SalaryRow = Prisma.SalaryGetPayload<{ include: typeof salaryInclude }>;
+export type SalaryRow = ClientOf<Prisma.SalaryGetPayload<{ include: typeof salaryInclude }>>;
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -111,40 +112,46 @@ export async function createSalary(input: { paymentId: number; employeeId: numbe
 
 export async function getAllSalaries() {
 	await requireRole("Admin");
-	return await db.salary.findMany({
-		include: {
-			payment: true,
-			employee: true,
-		},
-	});
+	return toClient(
+		await db.salary.findMany({
+			include: {
+				payment: true,
+				employee: true,
+			},
+		})
+	);
 }
 
 export async function getSalary(paymentId: number) {
 	await requireRole("Admin");
-	return await db.salary.findUnique({
-		where: {
-			paymentId,
-		},
-		include: {
-			payment: true,
-			employee: true,
-		},
-	});
+	return toClient(
+		await db.salary.findUnique({
+			where: {
+				paymentId,
+			},
+			include: {
+				payment: true,
+				employee: true,
+			},
+		})
+	);
 }
 
 export async function editSalary(input: Salary): Promise<SalaryRow> {
 	await requireRole("Admin");
 	assertMutationPayload("salary", "update", input);
 	const { paymentId, employeeId } = input;
-	return await db.salary.update({
-		where: {
-			paymentId,
-		},
-		data: {
-			employeeId,
-		},
-		include: salaryInclude,
-	});
+	return toClient(
+		await db.salary.update({
+			where: {
+				paymentId,
+			},
+			data: {
+				employeeId,
+			},
+			include: salaryInclude,
+		})
+	);
 }
 
 export async function deleteSalary({ paymentId }: { paymentId: number }) {

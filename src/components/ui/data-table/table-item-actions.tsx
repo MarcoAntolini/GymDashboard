@@ -181,7 +181,8 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 				<DropdownMenuTrigger asChild>
 					<Button
 						variant="ghost"
-						className="h-7 w-7 p-0"
+						size="icon"
+						className="size-7 shrink-0 p-0"
 						disabled={menuDisabled}
 					>
 						<span className="sr-only">Apri menu</span>

@@ -1,6 +1,7 @@
 "use server";
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { toClient, type ClientOf } from "@/lib/client-payload";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
@@ -19,9 +20,11 @@ import { Intervention, Prisma } from "@prisma/client";
 
 const interventionInclude = { payment: true } as const;
 
-export type InterventionRow = Prisma.InterventionGetPayload<{
-	include: typeof interventionInclude;
-}>;
+export type InterventionRow = ClientOf<
+	Prisma.InterventionGetPayload<{
+		include: typeof interventionInclude;
+	}>
+>;
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -114,22 +117,26 @@ export async function createIntervention(input: {
 }
 
 export async function getAllInterventions() {
-	return await db.intervention.findMany({
-		include: {
-			payment: true,
-		},
-	});
+	return toClient(
+		await db.intervention.findMany({
+			include: {
+				payment: true,
+			},
+		})
+	);
 }
 
 export async function getIntervention(paymentId: number) {
-	return await db.intervention.findUnique({
-		where: {
-			paymentId,
-		},
-		include: {
-			payment: true,
-		},
-	});
+	return toClient(
+		await db.intervention.findUnique({
+			where: {
+				paymentId,
+			},
+			include: {
+				payment: true,
+			},
+		})
+	);
 }
 
 export async function editIntervention(
@@ -137,18 +144,20 @@ export async function editIntervention(
 ): Promise<InterventionRow> {
 	assertMutationPayload("intervention", "update", input);
 	const { paymentId, description, maker, startingTime, endingTime } = input;
-	return await db.intervention.update({
-		where: {
-			paymentId,
-		},
-		data: {
-			description,
-			maker,
-			startingTime,
-			endingTime,
-		},
-		include: interventionInclude,
-	});
+	return toClient(
+		await db.intervention.update({
+			where: {
+				paymentId,
+			},
+			data: {
+				description,
+				maker,
+				startingTime,
+				endingTime,
+			},
+			include: interventionInclude,
+		})
+	);
 }
 
 export async function deleteIntervention({ paymentId }: { paymentId: number }) {

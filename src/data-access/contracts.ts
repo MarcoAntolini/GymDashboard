@@ -7,6 +7,7 @@ import {
 	type ContractInterval
 } from "@/lib/contract-intervals";
 import { requireRole } from "@/lib/auth";
+import { toClient, type ClientOf } from "@/lib/client-payload";
 import { resolveContractEndingDate } from "@/lib/contract-term";
 import { db } from "@/lib/db";
 import {
@@ -26,9 +27,11 @@ import { Contract, ContractType, Prisma } from "@prisma/client";
 
 const contractInclude = { employee: true } as const;
 
-export type ContractRow = Prisma.ContractGetPayload<{
-	include: typeof contractInclude;
-}>;
+export type ContractRow = ClientOf<
+	Prisma.ContractGetPayload<{
+		include: typeof contractInclude;
+	}>
+>;
 
 type MoneyInput = Prisma.Decimal | number | string;
 
@@ -186,32 +189,36 @@ export async function createContract(input: {
 		endingDate: resolvedEndingDate
 	});
 
-	return await db.contract.create({
-		data: {
-			employeeId,
-			type,
-			hourlyFee: new Prisma.Decimal(hourlyFee),
-			startingDate,
-			endingDate: resolvedEndingDate
-		}
-	});
+	return toClient(
+		await db.contract.create({
+			data: {
+				employeeId,
+				type,
+				hourlyFee: new Prisma.Decimal(hourlyFee),
+				startingDate,
+				endingDate: resolvedEndingDate,
+			},
+		})
+	);
 }
 
 export async function getAllContracts() {
 	await requireRole("Admin");
-	return await db.contract.findMany();
+	return toClient(await db.contract.findMany());
 }
 
 export async function getContract(employeeId: number, startingDate: Date) {
 	await requireRole("Admin");
-	return await db.contract.findUnique({
-		where: {
-			employeeId_startingDate: {
-				employeeId,
-				startingDate
-			}
-		}
-	});
+	return toClient(
+		await db.contract.findUnique({
+			where: {
+				employeeId_startingDate: {
+					employeeId,
+					startingDate,
+				},
+			},
+		})
+	);
 }
 
 export async function editContract(input: Omit<Contract, "hourlyFee"> & { hourlyFee: MoneyInput }) {
@@ -231,32 +238,36 @@ export async function editContract(input: Omit<Contract, "hourlyFee"> & { hourly
 		excludeStartingDate: startingDate
 	});
 
-	return await db.contract.update({
-		where: {
-			employeeId_startingDate: {
-				employeeId,
-				startingDate
-			}
-		},
-		data: {
-			type,
-			hourlyFee: new Prisma.Decimal(hourlyFee),
-			endingDate: resolvedEndingDate
-		},
-		include: contractInclude,
-	});
+	return toClient(
+		await db.contract.update({
+			where: {
+				employeeId_startingDate: {
+					employeeId,
+					startingDate,
+				},
+			},
+			data: {
+				type,
+				hourlyFee: new Prisma.Decimal(hourlyFee),
+				endingDate: resolvedEndingDate,
+			},
+			include: contractInclude,
+		})
+	);
 }
 
 export async function deleteContract({ employeeId, startingDate }: { employeeId: number; startingDate: Date }) {
 	await requireRole("Admin");
-	return await db.contract.delete({
-		where: {
-			employeeId_startingDate: {
-				employeeId,
-				startingDate
-			}
-		}
-	});
+	return toClient(
+		await db.contract.delete({
+			where: {
+				employeeId_startingDate: {
+					employeeId,
+					startingDate,
+				},
+			},
+		})
+	);
 }
 
 /** Anagrafica Dipendente utile in “Calcola guadagni” (non solo ID opaco). */

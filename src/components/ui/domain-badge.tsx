@@ -45,7 +45,7 @@ export function DotBadge({
 	return (
 		<span
 			className={cn(
-				"inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-background px-2 py-0.5 text-xs font-medium text-foreground",
+				"inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border border-border bg-background px-2 py-0.5 text-xs font-medium text-foreground",
 				className
 			)}
 		>
@@ -76,7 +76,7 @@ export function DomainBadge({
 	return (
 		<span
 			className={cn(
-				"inline-flex max-w-full items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium",
+				"inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium",
 				SOFT_TONE[tone],
 				className
 			)}
@@ -128,7 +128,7 @@ export function NumericCell({
 	return (
 		<div
 			className={cn(
-				"text-right tabular-nums font-medium",
+				"min-w-0 text-right tabular-nums font-medium",
 				muted && "text-muted-foreground font-normal",
 				className
 			)}

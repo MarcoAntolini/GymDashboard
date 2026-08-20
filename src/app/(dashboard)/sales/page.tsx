@@ -7,6 +7,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { TableErrorState } from "@/components/ui/data-table/table-error-state";
 import { TableLoadingState } from "@/components/ui/data-table/table-loading-state";
+import { OverflowText } from "@/components/ui/overflow-text";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -557,18 +558,20 @@ export default function SalesPage() {
 							<div className="min-w-0">
 								<p className="mb-2 text-sm font-medium">Abbonamenti vs Pacchetti</p>
 								<div className="overflow-hidden rounded-md border">
-									<Table>
+									<Table className="table-fixed">
 										<TableHeader>
 											<TableRow>
 												<TableHead>Tipo</TableHead>
-												<TableHead className="text-right">N°</TableHead>
-												<TableHead className="text-right">Ricavo</TableHead>
+												<TableHead className="w-16 text-right">N°</TableHead>
+												<TableHead className="w-28 text-right">Ricavo</TableHead>
 											</TableRow>
 										</TableHeader>
 										<TableBody>
 											{productMix.byKind.map((row) => (
 												<TableRow key={row.key}>
-													<TableCell>{row.label}</TableCell>
+													<TableCell className="h-12 max-h-12 overflow-hidden py-0">
+														<OverflowText>{row.label}</OverflowText>
+													</TableCell>
 													<TableCell>
 														<NumericCell muted>{row.count}</NumericCell>
 													</TableCell>
@@ -589,26 +592,30 @@ export default function SalesPage() {
 									<p className="text-sm text-muted-foreground">Nessun prodotto nel periodo.</p>
 								) : (
 									<div className="overflow-hidden rounded-md border">
-										<Table>
+										<Table className="table-fixed">
 											<TableHeader>
 												<TableRow>
 													<TableHead>Prodotto</TableHead>
-													<TableHead>Tipo</TableHead>
-													<TableHead className="text-right">N°</TableHead>
-													<TableHead className="text-right">Ricavo</TableHead>
+													<TableHead className="w-36">Tipo</TableHead>
+													<TableHead className="w-16 text-right">N°</TableHead>
+													<TableHead className="w-28 text-right">Ricavo</TableHead>
 												</TableRow>
 											</TableHeader>
 											<TableBody>
 												{productMix.ranking.map((row) => (
 													<TableRow key={row.productCode}>
-														<TableCell className="font-medium">{row.productCode}</TableCell>
-														<TableCell>
-															<DotBadge
-																label={row.kindLabel}
-																tone={
-																	row.kind === ProductKind.Membership ? "info" : "primary"
-																}
-															/>
+														<TableCell className="h-12 max-h-12 overflow-hidden py-0 font-medium">
+															<OverflowText>{row.productCode}</OverflowText>
+														</TableCell>
+														<TableCell className="h-12 max-h-12 overflow-hidden py-0">
+															<OverflowText>
+																<DotBadge
+																	label={row.kindLabel}
+																	tone={
+																		row.kind === ProductKind.Membership ? "info" : "primary"
+																	}
+																/>
+															</OverflowText>
 														</TableCell>
 														<TableCell>
 															<NumericCell muted>{row.count}</NumericCell>

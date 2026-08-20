@@ -1,6 +1,7 @@
 "use server";
 
 import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
+import { toClient, type ClientOf } from "@/lib/client-payload";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
@@ -19,9 +20,11 @@ import { Equipment, Prisma } from "@prisma/client";
 
 const equipmentInclude = { payment: true } as const;
 
-export type EquipmentRow = Prisma.EquipmentGetPayload<{
-	include: typeof equipmentInclude;
-}>;
+export type EquipmentRow = ClientOf<
+	Prisma.EquipmentGetPayload<{
+		include: typeof equipmentInclude;
+	}>
+>;
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -108,37 +111,43 @@ export async function createEquipment(input: {
 }
 
 export async function getAllEquipment() {
-	return await db.equipment.findMany({
-		include: {
-			payment: true,
-		},
-	});
+	return toClient(
+		await db.equipment.findMany({
+			include: {
+				payment: true,
+			},
+		})
+	);
 }
 
 export async function getEquipment(paymentId: number) {
-	return await db.equipment.findUnique({
-		where: {
-			paymentId,
-		},
-		include: {
-			payment: true,
-		},
-	});
+	return toClient(
+		await db.equipment.findUnique({
+			where: {
+				paymentId,
+			},
+			include: {
+				payment: true,
+			},
+		})
+	);
 }
 
 export async function editEquipment(input: Equipment): Promise<EquipmentRow> {
 	assertMutationPayload("equipment", "update", input);
 	const { paymentId, description, provider } = input;
-	return await db.equipment.update({
-		where: {
-			paymentId,
-		},
-		data: {
-			description,
-			provider,
-		},
-		include: equipmentInclude,
-	});
+	return toClient(
+		await db.equipment.update({
+			where: {
+				paymentId,
+			},
+			data: {
+				description,
+				provider,
+			},
+			include: equipmentInclude,
+		})
+	);
 }
 
 export async function deleteEquipment({ paymentId }: { paymentId: number }) {

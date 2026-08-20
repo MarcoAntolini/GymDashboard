@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import { TableErrorState } from "@/components/ui/data-table/table-error-state";
 import { TableLoadingState } from "@/components/ui/data-table/table-loading-state";
+import { OverflowText } from "@/components/ui/overflow-text";
 import {
 	getOverviewStats,
 	type OverviewBreakdownRow,
@@ -59,18 +60,20 @@ function BreakdownTable({
 		<div className="min-w-0">
 			<p className="mb-2 text-sm font-medium text-foreground">{caption}</p>
 			<div className="overflow-hidden rounded-md border">
-				<Table>
+				<Table className="table-fixed">
 					<TableHeader>
 						<TableRow>
 							<TableHead>Tipo</TableHead>
-							<TableHead className="text-right">N°</TableHead>
-							<TableHead className="text-right">Importo</TableHead>
+							<TableHead className="w-16 text-right">N°</TableHead>
+							<TableHead className="w-28 text-right">Importo</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{rows.map((row) => (
 							<TableRow key={row.key}>
-								<TableCell>{row.label}</TableCell>
+								<TableCell className="h-12 max-h-12 overflow-hidden py-0">
+									<OverflowText>{row.label}</OverflowText>
+								</TableCell>
 								<TableCell>
 									<NumericCell muted>{row.count}</NumericCell>
 								</TableCell>
@@ -100,21 +103,25 @@ function ProductRankingTable({ rows }: { rows: ProductRankingRow[] }) {
 				</p>
 			) : (
 				<div className="overflow-hidden rounded-md border">
-					<Table>
+					<Table className="table-fixed">
 						<TableHeader>
 							<TableRow>
 								<TableHead>Prodotto</TableHead>
-								<TableHead>Tipo</TableHead>
-								<TableHead className="text-right">N°</TableHead>
-								<TableHead className="text-right">Ricavo</TableHead>
+								<TableHead className="w-36">Tipo</TableHead>
+								<TableHead className="w-16 text-right">N°</TableHead>
+								<TableHead className="w-28 text-right">Ricavo</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{rows.map((row) => (
 								<TableRow key={row.productCode}>
-									<TableCell className="font-medium">{row.productCode}</TableCell>
-									<TableCell>
-										<DotBadge label={row.kindLabel} tone={kindTone(row.kind)} />
+									<TableCell className="h-12 max-h-12 overflow-hidden py-0 font-medium">
+										<OverflowText>{row.productCode}</OverflowText>
+									</TableCell>
+									<TableCell className="h-12 max-h-12 overflow-hidden py-0">
+										<OverflowText>
+											<DotBadge label={row.kindLabel} tone={kindTone(row.kind)} />
+										</OverflowText>
 									</TableCell>
 									<TableCell>
 										<NumericCell muted>{row.count}</NumericCell>
@@ -361,36 +368,40 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 					<div className="min-w-0">
 						<p className="mb-2 text-sm font-medium text-foreground">Clienti a rischio</p>
 						<div className="overflow-hidden rounded-md border">
-							<Table>
+							<Table className="table-fixed">
 								<TableHeader>
 									<TableRow>
 										<TableHead>Cliente</TableHead>
-										<TableHead className="text-right">Gg senza Ingresso</TableHead>
-										<TableHead>Titolo</TableHead>
+										<TableHead className="w-36 text-right">Gg senza Ingresso</TableHead>
+										<TableHead className="w-40">Titolo</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{stats.fidelity.atRisk.map((row) => (
 										<TableRow key={row.clientId}>
-											<TableCell className="font-medium">
-												{row.surname} {row.name}
+											<TableCell className="h-12 max-h-12 overflow-hidden py-0 font-medium">
+												<OverflowText>
+													{row.surname} {row.name}
+												</OverflowText>
 											</TableCell>
-											<TableCell>
+											<TableCell className="h-12 max-h-12 overflow-hidden py-0">
 												<NumericCell muted>
 													{row.daysSinceLastEntrance == null
 														? "Mai"
 														: row.daysSinceLastEntrance}
 												</NumericCell>
 											</TableCell>
-											<TableCell>
-												<DotBadge
-													label={
-														row.titleStatus === "valid"
-															? "Valido"
-															: "Scaduto di recente"
-													}
-													tone={row.titleStatus === "valid" ? "warning" : "info"}
-												/>
+											<TableCell className="h-12 max-h-12 overflow-hidden py-0">
+												<OverflowText>
+													<DotBadge
+														label={
+															row.titleStatus === "valid"
+																? "Valido"
+																: "Scaduto di recente"
+														}
+														tone={row.titleStatus === "valid" ? "warning" : "info"}
+													/>
+												</OverflowText>
 											</TableCell>
 										</TableRow>
 									))}

@@ -11,6 +11,7 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
+import { OverflowText } from "@/components/ui/overflow-text";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { AccountRow } from "@/data-access/accounts";
 import { assignableRoles, canManageRole, isAppRole, type AppRole } from "@/data/nav-routes";
@@ -39,20 +40,29 @@ function MaskedPasswordCell({ password }: { password: string }) {
 	const [revealed, setRevealed] = useState(false);
 
 	return (
-		<div className="flex items-center gap-1.5">
-			<span className="font-mono text-sm tracking-wider tabular-nums">
-				{revealed ? password : PASSWORD_MASK}
-			</span>
+		<div className="flex min-w-0 w-full items-center gap-1.5">
+			<div className="min-w-0 flex-1">
+				<OverflowText className="font-mono text-sm tracking-wider tabular-nums">
+					{revealed ? password : PASSWORD_MASK}
+				</OverflowText>
+			</div>
 			<Button
 				type="button"
 				variant="ghost"
 				size="icon"
-				className="h-7 w-7 shrink-0 text-muted-foreground"
+				className="size-6 shrink-0 p-0 text-muted-foreground"
 				aria-label={revealed ? "Nascondi password" : "Mostra password"}
 				aria-pressed={revealed}
-				onClick={() => setRevealed((open) => !open)}
+				onClick={(event) => {
+					event.stopPropagation();
+					setRevealed((open) => !open);
+				}}
 			>
-				{revealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+				{revealed ? (
+					<EyeOff className="size-3.5" />
+				) : (
+					<Eye className="size-3.5" />
+				)}
 			</Button>
 		</div>
 	);
@@ -121,7 +131,7 @@ export const columns = (
 			header: ({ column }) => (
 				<TableSortableHeader column={column} title="Password" icon={KeyRound} />
 			),
-			meta: columnMeta(ColumnClass.Native),
+			meta: { ...columnMeta(ColumnClass.Native), noCellOverflow: true },
 			enableSorting: false,
 			cell: ({ row }) => <MaskedPasswordCell password={row.original.password} />,
 		},

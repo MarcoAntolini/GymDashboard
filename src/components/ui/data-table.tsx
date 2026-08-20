@@ -22,6 +22,7 @@ import {
 import {
 	ACTIONS_COLUMN_ID,
 	ACTIONS_COLUMN_SIZE,
+	SELECT_COLUMN_ID,
 	ensureActionsTrailing,
 	getColumnPinningStyle,
 	getColumnWidthStyle,
@@ -39,6 +40,7 @@ import {
 } from "@/components/ui/data-table/table-row-pinning";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { HighlightValueCell } from "@/components/ui/highlight-text";
+import { OverflowText } from "@/components/ui/overflow-text";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ListFacetedFilter, ListFilters } from "@/lib/list";
@@ -140,7 +142,7 @@ function withDefaultSearchHighlightCell<TData, TValue>(
 		("accessorKey" in col && col.accessorKey != null
 			? String(col.accessorKey)
 			: undefined);
-	if (!id || id === ACTIONS_COLUMN_ID || id === "__select") return col;
+	if (!id || id === ACTIONS_COLUMN_ID || id === SELECT_COLUMN_ID) return col;
 	return {
 		...col,
 		cell: ({ getValue }) => (
@@ -175,11 +177,16 @@ function DataTableRow<TData>({
 			getColumnPinningStyle(cell.column),
 			rowSticky
 		);
+		const skipOverflow =
+			cell.column.id === ACTIONS_COLUMN_ID ||
+			cell.column.id === SELECT_COLUMN_ID ||
+			cell.column.columnDef.meta?.noCellOverflow === true;
+		const rendered = flexRender(cell.column.columnDef.cell, cell.getContext());
 		return (
 			<TableCell
 				key={cell.id}
 				className={cn(
-					"box-border overflow-hidden",
+					"box-border h-12 max-h-12 overflow-hidden whitespace-nowrap py-0",
 					colPinned && "shadow-[inset_-1px_0_0] shadow-border",
 					rowPinned === "top" && "shadow-[inset_0_-1px_0] shadow-border",
 					selected
@@ -197,7 +204,13 @@ function DataTableRow<TData>({
 					...sticky,
 				}}
 			>
-				{flexRender(cell.column.columnDef.cell, cell.getContext())}
+				{skipOverflow ? (
+					<div className="flex h-full min-w-0 max-w-full items-center overflow-hidden">
+						{rendered}
+					</div>
+				) : (
+					<OverflowText>{rendered}</OverflowText>
+				)}
 			</TableCell>
 		);
 	});
