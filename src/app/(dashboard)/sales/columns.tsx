@@ -4,6 +4,7 @@ import {
 	DotBadge,
 	MoneyTone,
 	NumericCell,
+	RemainingEntrancesBadge,
 } from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
@@ -24,7 +25,7 @@ import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { formatDateIt, formatEur } from "@/lib/format";
 import { Prisma } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { Banknote, Calendar, Hash, Package, Tag, Timer, User } from "lucide-react";
+import { Banknote, Calendar, Hash, Package, Tag, Ticket, Timer, User } from "lucide-react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 
@@ -158,6 +159,28 @@ export const columns = (
 			const n = row.getValue("entranceNumber") as number | null;
 			return <NumericCell muted>{n != null ? n : "—"}</NumericCell>;
 		},
+	},
+	{
+		id: "remainingEntrances",
+		accessorKey: "remainingEntrances",
+		enableSorting: false,
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Ingressi rimanenti"
+				icon={Ticket}
+				align="right"
+			/>
+		),
+		meta: columnMeta(ColumnClass.Derived),
+		cell: ({ row }) => (
+			<NumericCell>
+				<RemainingEntrancesBadge
+					remaining={row.original.remainingEntrances}
+					snapshotN={row.original.entranceNumber}
+				/>
+			</NumericCell>
+		),
 	},
 	{
 		id: "actions",

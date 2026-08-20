@@ -45,6 +45,7 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { toast } from "sonner";
 import { z } from "zod";
 import { ClientOption, columns, formSchema } from "./columns";
+import { EntranceJustificationPreview } from "./entrance-justification-preview";
 
 const analyticsFormSchema = z.object({
 	date: z.object({
@@ -221,6 +222,7 @@ export default function EntrancesPage() {
 							</FormItem>
 						)}
 					/>
+					<EntranceJustificationPreview />
 				</>
 			),
 			formData: {

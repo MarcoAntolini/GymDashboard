@@ -10,7 +10,7 @@ import {
 	productKindFromSnapshot,
 } from "@/lib/domain/product-kind";
 import { throwIfRestrictViolation } from "@/lib/domain/prisma-restrict";
-import { snapshotFromProduct } from "@/lib/domain/sale-access";
+import { packageResidual, snapshotFromProduct } from "@/lib/domain/sale-access";
 import {
 	buildListResult,
 	normalizeListQuery,
@@ -46,13 +46,22 @@ const saleInclude = {
 	prodotto: {
 		include: { membership: true, entranceSet: true },
 	},
+	_count: { select: { entrance: true } },
 } as const;
 
-export type SaleListRow = ClientOf<
-	Prisma.SaleGetPayload<{
-		include: typeof saleInclude;
-	}>
->;
+type SaleRecord = Prisma.SaleGetPayload<{ include: typeof saleInclude }>;
+
+export type SaleListRow = ClientOf<Omit<SaleRecord, "_count">> & {
+	remainingEntrances: number | null;
+};
+
+function toSaleListRow(sale: SaleRecord): SaleListRow {
+	const { _count, ...rest } = sale;
+	return {
+		...toClient(rest),
+		remainingEntrances: packageResidual(sale, _count.entrance),
+	};
+}
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -188,7 +197,7 @@ export async function listSales(
 			include: saleInclude,
 		}),
 	]);
-	return buildListResult(items, total, query);
+	return buildListResult(items.map(toSaleListRow), total, query);
 }
 
 type SaleWriteInput = {
@@ -237,7 +246,7 @@ export async function createSale(input: SaleWriteInput) {
 	const { clientId, date, amount, productCode } = input;
 	const snapshot = await resolveSnapshot(productCode);
 	const resolvedAmount = await resolveAmount(date, productCode, amount);
-	return toClient(
+	return toSaleListRow(
 		await db.sale.create({
 			data: {
 				clientId,
@@ -253,27 +262,25 @@ export async function createSale(input: SaleWriteInput) {
 }
 
 export async function getAllSales() {
-	return toClient(
-		await db.sale.findMany({
-			include: saleInclude,
-		})
-	);
+	const rows = await db.sale.findMany({
+		include: saleInclude,
+	});
+	return rows.map(toSaleListRow);
 }
 
 export async function getSale(id: number) {
-	return toClient(
-		await db.sale.findUnique({
-			where: { id },
-			include: saleInclude,
-		})
-	);
+	const row = await db.sale.findUnique({
+		where: { id },
+		include: saleInclude,
+	});
+	return row ? toSaleListRow(row) : null;
 }
 
 export async function editSale(input: SaleWriteInput & { id: number }) {
 	assertMutationPayload("sale", "update", input);
 	const { id, clientId, date, amount, productCode } = input;
 	const snapshot = await resolveSnapshot(productCode);
-	return toClient(
+	return toSaleListRow(
 		await db.sale.update({
 			where: { id },
 			data: {
@@ -281,7 +288,6 @@ export async function editSale(input: SaleWriteInput & { id: number }) {
 				date,
 				amount: new Prisma.Decimal(amount),
 				productCode,
-				// Re-snapshot se cambia il prodotto; durata/N non sono campi editabili a mano.
 				duration: snapshot.duration,
 				entranceNumber: snapshot.entranceNumber,
 			},

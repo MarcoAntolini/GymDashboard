@@ -4,9 +4,21 @@ import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { toClient, type ClientOf } from "@/lib/client-payload";
 import { db } from "@/lib/db";
 import {
+	NO_JUSTIFYING_SALE_ERROR,
 	selectJustifyingSaleId,
 	type JustifyingSaleCandidate,
 } from "@/lib/entrance-justification";
+
+export { NO_JUSTIFYING_SALE_ERROR };
+import {
+	packageResidual,
+	packageResidualAfterNext,
+} from "@/lib/domain/sale-access";
+import {
+	PRODUCT_KIND_LABEL,
+	productKindFromSnapshot,
+	type ProductKind,
+} from "@/lib/domain/product-kind";
 import {
 	buildListResult,
 	normalizeListQuery,
@@ -215,6 +227,69 @@ export async function registerEntrance(clientId: number, date?: Date) {
 			{ isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
 		)
 	);
+}
+
+export type EntranceJustificationPreview =
+	| {
+			ok: true;
+			saleId: number;
+			productCode: string;
+			kind: ProductKind;
+			kindLabel: string;
+			remainingBefore: number | null;
+			remainingAfter: number | null;
+	  }
+	| {
+			ok: false;
+			message: string;
+	  };
+
+export async function previewEntranceJustification(
+	clientId: number,
+	date: Date
+): Promise<EntranceJustificationPreview> {
+	if (!Number.isInteger(clientId) || clientId <= 0) {
+		return { ok: false, message: "Seleziona un cliente." };
+	}
+
+	const sales = await db.sale.findMany({
+		where: { clientId },
+		include: {
+			_count: { select: { entrance: true } },
+		},
+	});
+
+	const candidates: JustifyingSaleCandidate[] = sales.map((sale) => ({
+		id: sale.id,
+		date: sale.date,
+		duration: sale.duration,
+		entranceNumber: sale.entranceNumber,
+		entrancesLinked: sale._count.entrance,
+	}));
+
+	try {
+		const saleId = selectJustifyingSaleId(candidates, date);
+		const sale = sales.find((row) => row.id === saleId);
+		if (!sale) {
+			return { ok: false, message: NO_JUSTIFYING_SALE_ERROR };
+		}
+		const kind = productKindFromSnapshot(sale);
+		return {
+			ok: true,
+			saleId: sale.id,
+			productCode: sale.productCode,
+			kind,
+			kindLabel: PRODUCT_KIND_LABEL[kind],
+			remainingBefore: packageResidual(sale, sale._count.entrance),
+			remainingAfter: packageResidualAfterNext(sale, sale._count.entrance),
+		};
+	} catch (error) {
+		const message =
+			error instanceof Error && error.message
+				? error.message
+				: NO_JUSTIFYING_SALE_ERROR;
+		return { ok: false, message };
+	}
 }
 
 /** @deprecated Usa registerEntrance â€” creato solo per compatibilitÃ  di naming. */

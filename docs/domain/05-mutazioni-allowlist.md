@@ -44,6 +44,7 @@ Anagrafica completa: `create` + `update`. `remainingEntrances` → **immutable**
 |---|---|
 | `clientId`, `date`, `amount`, `productCode` | create + update |
 | `duration`, `entranceNumber` | **immutable** (snapshot server) |
+| `remainingEntrances` | **strip** (derived lettura) |
 | `type` / `kind` | **immutable** (derived) |
 | `client`, `prodotto` | strip |
 

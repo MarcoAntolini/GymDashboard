@@ -18,6 +18,16 @@ export function packageResidual(
 	return sale.entranceNumber - entrancesLinked;
 }
 
+/** Residuo dopo un Ingresso in più su quella Vendita (null se Abbonamento). */
+export function packageResidualAfterNext(
+	sale: Pick<SaleAccessSnapshot, "entranceNumber">,
+	entrancesLinked: number
+): number | null {
+	const remaining = packageResidual(sale, entrancesLinked);
+	if (remaining == null) return null;
+	return remaining - 1;
+}
+
 /** True se la Vendita è un Abbonamento (ha durata snapshot). */
 export function isMembershipSale(
 	sale: Pick<SaleAccessSnapshot, "duration" | "entranceNumber">

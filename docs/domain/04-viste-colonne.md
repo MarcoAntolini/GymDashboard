@@ -32,6 +32,7 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 | ID (implicito), Client ID / Cliente, Data, Product Code | FK / scalar | native / **join** (etichetta Cliente) |
 | Amount / Importo | `Sale.amount` | **snapshot** |
 | Durata, N ingressi | `Sale.duration`, `entranceNumber` | **snapshot** |
+| Ingressi rimanenti | `packageResidual(snapshot N, COUNT ingressi)` | **derived** (sola lettura; `null` se Abbonamento) |
 | Type | `productKindFromSnapshot` | **derived** (XOR snapshot; non colonna DB) |
 
 ### Ingresso (`/entrances`)
@@ -40,7 +41,7 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 |---|---|---|
 | ID, Date, Vendita (`saleId`) | `Entrance.*` | native |
 | Cliente, Prodotto | via `sale.client` / `sale.productCode` | **join** |
-| Residuo pacchetto | `packageResidual` | **derived** (non in lista; usato in giustificazione) |
+| Residuo pacchetto | `packageResidual` | **derived** (anteprima in form registrazione: residuo *dopo* l’Ingresso; non colonna lista) |
 
 ### Prodotto (`/products`)
 
@@ -91,7 +92,7 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 | Join Ingressi | Cliente/Prodotto esposti. |
 | Join Vendite | Etichetta Cliente esposta (oltre a `clientId`). |
 | Join ISA (stipendi/bollette/…) | Include + colonne join in lista (ticket 36). |
-| Residuo pacchetto in lista | Non mostrato; resta aggregato in domain (`sale-access`) — ok. |
+| Residuo pacchetto in lista | Mostrato su Vendite come `remainingEntrances` (derived, sola lettura). Non su Cliente. |
 | DTO formali con classificazione | Nessun DTO “falso”; distinzione via `meta.columnClass` + questa matrice. |
 
 Allineamento esplicito: snapshot Vendita = ticket 02/05; filtri su join/derivati (liste server-side) = ticket 19+ — stessa policy, infrastruttura distinta.

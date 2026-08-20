@@ -45,6 +45,7 @@ export const COLUMN_LABELS: Record<string, string> = {
 	saleId: "ID Vendita",
 	catalogYear: "Anno listino",
 	residualEntrances: "Ingressi residui",
+	remainingEntrances: "Ingressi rimanenti",
 	productKind: "Tipo prodotto",
 	code: "Codice",
 	client: "Cliente",

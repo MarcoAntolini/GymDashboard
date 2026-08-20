@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Ban, Minus, Ticket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -112,6 +113,40 @@ export function MoneyTone({
 		<span className={cn("tabular-nums", MONEY_TONE[resolved], className)}>
 			{children}
 		</span>
+	);
+}
+
+const REMAINING_ENTRANCES_LOW = 2;
+
+function remainingEntrancesTone(remaining: number): SemanticTone {
+	if (remaining <= REMAINING_ENTRANCES_LOW) return "warning";
+	return "success";
+}
+
+/** Stato residuo Pacchetto (derived, sola lettura). Abbonamento → non applicabile. */
+export function RemainingEntrancesBadge({
+	remaining,
+	snapshotN,
+}: {
+	remaining: number | null;
+	snapshotN?: number | null;
+}) {
+	if (remaining == null) {
+		return (
+			<DomainBadge label="Non applicabile" tone="muted" icon={Minus} />
+		);
+	}
+	if (remaining <= 0) {
+		return <DomainBadge label="Esaurito" tone="destructive" icon={Ban} />;
+	}
+	const label =
+		snapshotN != null ? `${remaining} / ${snapshotN}` : `${remaining} rimanenti`;
+	return (
+		<DomainBadge
+			label={label}
+			tone={remainingEntrancesTone(remaining)}
+			icon={Ticket}
+		/>
 	);
 }
 

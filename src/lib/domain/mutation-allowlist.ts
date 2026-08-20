@@ -126,6 +126,7 @@ export const MUTATION_ALLOWLIST = {
 		entranceNumber: { immutable: true },
 		type: { immutable: true },
 		kind: { immutable: true },
+		remainingEntrances: { strip: true },
 		client: { strip: true },
 		prodotto: { strip: true },
 		product: { strip: true },
