@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
 			expires: new Date(payload.exp * 1000),
 		});
 		return res;
-	} catch {
+	} catch (error) {
+		console.error("[auth/login]", error);
 		return NextResponse.json({ message: "Richiesta non valida", success: false }, { status: 400 });
 	}
 }
