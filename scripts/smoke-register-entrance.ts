@@ -3,10 +3,8 @@
  * Eseguire: npx tsx scripts/smoke-register-entrance.ts
  */
 import { PrismaClient, Prisma } from "@prisma/client";
-import {
-	NO_JUSTIFYING_SALE_ERROR,
-	registerEntrance,
-} from "../src/data-access/entrances";
+import { registerEntrance } from "../src/data-access/entrances";
+import { NO_JUSTIFYING_SALE_ERROR } from "../src/lib/entrance-justification";
 
 const db = new PrismaClient();
 

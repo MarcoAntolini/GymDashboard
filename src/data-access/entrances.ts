@@ -8,8 +8,6 @@ import {
 	selectJustifyingSaleId,
 	type JustifyingSaleCandidate,
 } from "@/lib/entrance-justification";
-
-export { NO_JUSTIFYING_SALE_ERROR };
 import {
 	packageResidual,
 	packageResidualAfterNext,

@@ -4,10 +4,8 @@
  * Eseguire: npx tsx --env-file=.env scripts/smoke-entrance-flow.ts
  */
 import { PrismaClient, Prisma } from "@prisma/client";
-import {
-	NO_JUSTIFYING_SALE_ERROR,
-	registerEntrance,
-} from "../src/data-access/entrances";
+import { registerEntrance } from "../src/data-access/entrances";
+import { NO_JUSTIFYING_SALE_ERROR } from "../src/lib/entrance-justification";
 import { deleteSale } from "../src/data-access/sales";
 import { deleteProduct } from "../src/data-access/products";
 import { deleteClient } from "../src/data-access/clients";

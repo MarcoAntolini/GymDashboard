@@ -29,7 +29,8 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 
 | Colonna UI | Origine | Classe |
 |---|---|---|
-| ID (implicito), Client ID / Cliente, Data, Product Code | FK / scalar | native / **join** (etichetta Cliente) |
+| ID, Data, Product Code | `Sale.*` | native |
+| Cliente (etichetta; ID cliente in `#`) | `sale.client` | **join** |
 | Amount / Importo | `Sale.amount` | **snapshot** |
 | Durata, N ingressi | `Sale.duration`, `entranceNumber` | **snapshot** |
 | Ingressi rimanenti | `packageResidual(snapshot N, COUNT ingressi)` | **derived** (sola lettura; `null` se Abbonamento) |

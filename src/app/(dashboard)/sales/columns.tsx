@@ -51,6 +51,18 @@ export const columns = (
 	products: ProductWithSpec[]
 ): ColumnDef<SaleRow>[] => [
 	{
+		accessorKey: "id",
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID" icon={Hash} />
+		),
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<div className="text-muted-foreground">
+				<HighlightText text={String(row.original.id)} filterKeys="id" />
+			</div>
+		),
+	},
+	{
 		id: "client",
 		accessorFn: (row) =>
 			`${row.client.surname} ${row.client.name} (#${row.clientId})`,
