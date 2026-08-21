@@ -4,38 +4,60 @@ import { cn } from "@/lib/utils";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
-let measureCanvas: HTMLCanvasElement | null = null;
+function contentBoxWidth(el: HTMLElement): number {
+	const cs = getComputedStyle(el);
+	const rect = el.getBoundingClientRect();
+	return (
+		rect.width -
+		parseFloat(cs.paddingLeft) -
+		parseFloat(cs.paddingRight) -
+		parseFloat(cs.borderLeftWidth) -
+		parseFloat(cs.borderRightWidth)
+	);
+}
 
-function measureTextWidth(text: string, font: string, letterSpacing: string): number {
-	measureCanvas ??= document.createElement("canvas");
-	const ctx = measureCanvas.getContext("2d");
-	if (!ctx) return 0;
-	ctx.font = font;
-	try {
-		ctx.letterSpacing =
-			letterSpacing && letterSpacing !== "normal" ? letterSpacing : "0px";
-	} catch {
-		/* letterSpacing sul canvas non è ovunque supportato */
-	}
-	return ctx.measureText(text).width;
+/** Stesso motore di layout del testo visibile (canvas/kerning divergono dalle date). */
+function measureRenderedTextWidth(text: string, sample: HTMLElement): number {
+	const cs = getComputedStyle(sample);
+	const probe = document.createElement("span");
+	probe.textContent = text;
+	probe.setAttribute("aria-hidden", "true");
+	Object.assign(probe.style, {
+		position: "absolute",
+		visibility: "hidden",
+		whiteSpace: "nowrap",
+		top: "0",
+		left: "0",
+		font: cs.font,
+		letterSpacing: cs.letterSpacing,
+		wordSpacing: cs.wordSpacing,
+		textTransform: cs.textTransform,
+		fontKerning: cs.fontKerning,
+		fontFeatureSettings: cs.fontFeatureSettings,
+		fontVariationSettings: cs.fontVariationSettings,
+	});
+	document.body.appendChild(probe);
+	const width = probe.getBoundingClientRect().width;
+	probe.remove();
+	return width;
 }
 
 /**
- * `scrollWidth` con `text-overflow: ellipsis` in Chrome è spesso uguale a
- * `clientWidth` (falso negativo). Date/orari in un `div` interno cadono sempre lì.
- * Misuriamo la stringa con il font effettivo contro la larghezza visibile.
+ * `scrollWidth`/`clientWidth` sono interi: con `text-overflow: ellipsis` Chrome
+ * dipinge i puntini già con overflow subpixel (tipico date/orari), mentre
+ * `scrollWidth === clientWidth`. Una soglia `+1` allargava quel buco.
  */
 function isOverflowing(el: HTMLElement): boolean {
 	const text = (el.innerText ?? "").replace(/\s+/g, " ").trim();
 	if (!text) return false;
-	const available = el.clientWidth;
-	if (available <= 0) return false;
-	if (el.scrollWidth > available + 1) return true;
-	const styled =
+	const clipEl =
 		(el.querySelector(":scope > *") as HTMLElement | null) ?? el;
-	const cs = getComputedStyle(styled);
-	const textWidth = measureTextWidth(text, cs.font, cs.letterSpacing);
-	return textWidth > available + 1;
+	const available = contentBoxWidth(clipEl);
+	if (available <= 0) return false;
+	if (el.scrollWidth > el.clientWidth) return true;
+	if (clipEl !== el && clipEl.scrollWidth > clipEl.clientWidth) return true;
+	const textWidth = measureRenderedTextWidth(text, clipEl);
+	return textWidth > available - 1;
 }
 
 /**
