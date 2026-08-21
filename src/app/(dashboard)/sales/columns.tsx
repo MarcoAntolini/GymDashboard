@@ -101,7 +101,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}
-				title="Importo (snapshot)"
+				title="Importo"
 				icon={Banknote}
 				align="right"
 			/>
@@ -141,7 +141,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}
-				title="Durata (snapshot)"
+				title="Durata"
 				icon={Timer}
 				align="right"
 			/>
@@ -161,7 +161,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}
-				title="N ingressi (snapshot)"
+				title="N ingressi"
 				icon={Hash}
 				align="right"
 			/>
