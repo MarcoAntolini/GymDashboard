@@ -1,13 +1,14 @@
+import type { AppRole } from "@/data/nav-routes";
 import type { SemanticTone } from "@/components/ui/domain-badge";
 import type { ProductKind } from "@/lib/domain/product-kind";
-import type { ContractType, PaymentType, Role } from "@prisma/client";
+import { ContractType, PaymentType } from "@prisma/client";
 
 /** Dot tone per categorie di dominio (chip outline+dot). */
 export const PAYMENT_TYPE_TONE: Record<PaymentType, SemanticTone> = {
-	Salary: "info",
-	Bill: "warning",
-	Equipment: "primary",
-	Intervention: "muted",
+	[PaymentType.Salary]: "info",
+	[PaymentType.Bill]: "warning",
+	[PaymentType.Equipment]: "primary",
+	[PaymentType.Intervention]: "muted",
 };
 
 export const PRODUCT_KIND_TONE: Record<ProductKind, SemanticTone> = {
@@ -15,13 +16,13 @@ export const PRODUCT_KIND_TONE: Record<ProductKind, SemanticTone> = {
 	EntranceSet: "info",
 };
 
-export const ROLE_TONE: Record<Role, SemanticTone> = {
+export const ROLE_TONE: Record<AppRole, SemanticTone> = {
 	Owner: "warning",
 	Admin: "info",
 	Employee: "muted",
 };
 
 export const CONTRACT_TYPE_TONE: Record<ContractType, SemanticTone> = {
-	FixedTerm: "warning",
-	OpenEnded: "success",
+	[ContractType.FixedTerm]: "warning",
+	[ContractType.OpenEnded]: "success",
 };

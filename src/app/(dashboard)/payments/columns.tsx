@@ -29,19 +29,19 @@ export const formSchema = z.object({
 
 function specializationSummary(payment: PaymentRow): string {
 	switch (payment.type) {
-		case "Salary":
+		case PaymentType.Salary:
 			return payment.salary
 				? `Dipendente #${payment.salary.employeeId}`
 				: "Specializzazione assente";
-		case "Bill":
+		case PaymentType.Bill:
 			return payment.bill
 				? `${payment.bill.provider} — ${payment.bill.description}`
 				: "Specializzazione assente";
-		case "Equipment":
+		case PaymentType.Equipment:
 			return payment.equipment
 				? `${payment.equipment.provider} — ${payment.equipment.description}`
 				: "Specializzazione assente";
-		case "Intervention":
+		case PaymentType.Intervention:
 			return payment.intervention
 				? `${payment.intervention.maker} — ${payment.intervention.description}`
 				: "Specializzazione assente";
@@ -52,7 +52,7 @@ function specializationSummary(payment: PaymentRow): string {
 
 function PaymentSpecializationDetails({ payment }: { payment: PaymentRow }) {
 	switch (payment.type) {
-		case "Salary":
+		case PaymentType.Salary:
 			return (
 				<FormItem>
 					<FormLabel>Specializzazione — Stipendio</FormLabel>
@@ -63,7 +63,7 @@ function PaymentSpecializationDetails({ payment }: { payment: PaymentRow }) {
 					</p>
 				</FormItem>
 			);
-		case "Bill":
+		case PaymentType.Bill:
 			return (
 				<FormItem>
 					<FormLabel>Specializzazione — Bolletta</FormLabel>
@@ -77,7 +77,7 @@ function PaymentSpecializationDetails({ payment }: { payment: PaymentRow }) {
 					)}
 				</FormItem>
 			);
-		case "Equipment":
+		case PaymentType.Equipment:
 			return (
 				<FormItem>
 					<FormLabel>Specializzazione — Attrezzatura</FormLabel>
@@ -91,7 +91,7 @@ function PaymentSpecializationDetails({ payment }: { payment: PaymentRow }) {
 					)}
 				</FormItem>
 			);
-		case "Intervention":
+		case PaymentType.Intervention:
 			return (
 				<FormItem>
 					<FormLabel>Specializzazione — Intervento</FormLabel>

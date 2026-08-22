@@ -1,6 +1,6 @@
 "use server";
 
-import { isAppRole } from "@/data/nav-routes";
+import { toAppRole, toPrismaRole } from "@/lib/domain/roles";
 import {
 	assertRoleHierarchy,
 	getOptionalSession,
@@ -47,7 +47,8 @@ function parseRoleFilter(raw: ListFilters[string]): Role | Role[] | undefined {
 	const collect = (entry: unknown): Role | undefined => {
 		if (typeof entry !== "string") return undefined;
 		const value = entry.trim();
-		return value && isAppRole(value) ? value : undefined;
+		const appRole = toAppRole(value);
+		return appRole ? toPrismaRole(appRole) : undefined;
 	};
 
 	if (Array.isArray(raw)) {
@@ -178,13 +179,14 @@ export async function approveAccount({ employeeId }: { employeeId: number }) {
 		where: { employeeId },
 		select: { role: true, approved: true },
 	});
-	if (!target || !isAppRole(target.role)) {
+	const targetRole = toAppRole(target?.role);
+	if (!target || !targetRole) {
 		throw new Error("Account non trovato");
 	}
 	if (target.approved) {
 		throw new Error("L'account e' gia' approvato");
 	}
-	assertRoleHierarchy(actor.role, target.role);
+	assertRoleHierarchy(actor.role, targetRole);
 	assertMutationPayload("account", "update", { employeeId, approved: true });
 	return await db.account.update({
 		where: { employeeId },
@@ -202,13 +204,14 @@ export async function rejectPendingAccount({ employeeId }: { employeeId: number 
 		where: { employeeId },
 		select: { role: true, approved: true },
 	});
-	if (!target || !isAppRole(target.role)) {
+	const targetRole = toAppRole(target?.role);
+	if (!target || !targetRole) {
 		throw new Error("Account non trovato");
 	}
 	if (target.approved) {
 		throw new Error("Non puoi rifiutare un account gia' approvato");
 	}
-	assertRoleHierarchy(actor.role, target.role);
+	assertRoleHierarchy(actor.role, targetRole);
 	return await db.account.delete({
 		where: { employeeId },
 	});
@@ -253,7 +256,8 @@ export async function editAccount(input: {
 	const actor = await requireAdminActor();
 	const { employeeId, role, approved } = input;
 
-	if (!isAppRole(role)) {
+	const nextRole = toAppRole(role);
+	if (!nextRole) {
 		throw new Error("Ruolo non valido");
 	}
 
@@ -261,18 +265,19 @@ export async function editAccount(input: {
 		where: { employeeId },
 		select: { role: true },
 	});
-	if (!target || !isAppRole(target.role)) {
+	const targetRole = toAppRole(target?.role);
+	if (!target || !targetRole) {
 		throw new Error("Account non trovato");
 	}
 
-	assertRoleHierarchy(actor.role, target.role, role);
+	assertRoleHierarchy(actor.role, targetRole, nextRole);
 
 	return await db.account.update({
 		where: {
 			employeeId,
 		},
 		data: {
-			role,
+			role: toPrismaRole(nextRole),
 			approved,
 		},
 		include: accountInclude,
@@ -285,10 +290,11 @@ export async function deleteAccount({ employeeId }: { employeeId: number }) {
 		where: { employeeId },
 		select: { role: true },
 	});
-	if (!target || !isAppRole(target.role)) {
+	const targetRole = toAppRole(target?.role);
+	if (!target || !targetRole) {
 		throw new Error("Account non trovato");
 	}
-	assertRoleHierarchy(actor.role, target.role);
+	assertRoleHierarchy(actor.role, targetRole);
 	return await db.account.delete({
 		where: {
 			employeeId,

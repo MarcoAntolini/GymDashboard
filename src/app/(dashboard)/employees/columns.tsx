@@ -17,7 +17,7 @@ export const formSchema = z.object({
 	surname: z.string().min(1, "Il cognome è obbligatorio"),
 	taxCode: z.string().length(16, "Il codice fiscale deve essere di 16 caratteri"),
 	birthDate: z.date({
-		required_error: "La data di nascita è obbligatoria",
+		error: "La data di nascita è obbligatoria",
 	}),
 	street: z.string().min(1, "La via è obbligatoria"),
 	houseNumber: z.string().min(1, "Il civico è obbligatorio"),

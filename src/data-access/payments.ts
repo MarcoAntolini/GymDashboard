@@ -33,11 +33,11 @@ type PaymentData = {
 	amount: MoneyInput;
 	type: PaymentType;
 } & (
-	| { type: "Salary"; employeeId: number }
-	| { type: "Bill"; description: string; provider: string }
-	| { type: "Equipment"; description: string; provider: string }
+	| { type: typeof PaymentType.Salary; employeeId: number }
+	| { type: typeof PaymentType.Bill; description: string; provider: string }
+	| { type: typeof PaymentType.Equipment; description: string; provider: string }
 	| {
-			type: "Intervention";
+			type: typeof PaymentType.Intervention;
 			description: string;
 			maker: string;
 			startingTime: Date;
@@ -154,7 +154,7 @@ export async function createPayment(data: PaymentData) {
 		}
 	});
 	switch (type) {
-		case "Salary":
+		case PaymentType.Salary:
 			await db.salary.create({
 				data: {
 					paymentId: payment.id,
@@ -162,7 +162,7 @@ export async function createPayment(data: PaymentData) {
 				}
 			});
 			break;
-		case "Bill":
+		case PaymentType.Bill:
 			await db.bill.create({
 				data: {
 					paymentId: payment.id,
@@ -171,7 +171,7 @@ export async function createPayment(data: PaymentData) {
 				}
 			});
 			break;
-		case "Equipment":
+		case PaymentType.Equipment:
 			await db.equipment.create({
 				data: {
 					paymentId: payment.id,
@@ -180,7 +180,7 @@ export async function createPayment(data: PaymentData) {
 				}
 			});
 			break;
-		case "Intervention":
+		case PaymentType.Intervention:
 			await db.intervention.create({
 				data: {
 					paymentId: payment.id,

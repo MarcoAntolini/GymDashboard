@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PaymentType, PrismaClient } from "@prisma/client";
 import { faker } from "./faker";
 import {
 	italianInterventionDescription,
@@ -8,7 +8,7 @@ import {
 export async function mockInterventions(db: PrismaClient) {
 	console.log("Mocking interventions...");
 	const payments = await db.payment.findMany({
-		where: { type: "Intervention" },
+		where: { type: PaymentType.Intervention },
 	});
 
 	for (const payment of payments) {

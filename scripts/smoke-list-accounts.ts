@@ -2,6 +2,7 @@
  * Smoke: lista Account server-side (ticket 28) — richiede DB.
  * Run: npx tsx scripts/smoke-list-accounts.ts
  */
+import { Role } from "@prisma/client";
 import { listAccounts } from "../src/data-access/accounts";
 import {
 	ACCOUNT_DEFAULT_SORT,
@@ -81,7 +82,7 @@ async function main() {
 		pageSize: 10,
 	});
 	assert(
-		byRole.items.every((a) => a.role === "Employee"),
+		byRole.items.every((a) => a.role === Role.Employee),
 		"role exact filter"
 	);
 

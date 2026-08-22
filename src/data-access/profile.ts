@@ -1,6 +1,7 @@
 "use server";
 
-import { isAppRole, roleAllows } from "@/data/nav-routes";
+import { roleAllows } from "@/data/nav-routes";
+import { toAppRole } from "@/lib/domain/roles";
 import {
 	FORBIDDEN_MESSAGE,
 	UNAUTHENTICATED_MESSAGE,
@@ -33,7 +34,7 @@ async function loadOwnApprovedAccount(username: string) {
 		where: { username },
 		include: { employee: true },
 	});
-	if (!account?.approved || !isAppRole(account.role) || !account.employee) {
+	if (!account?.approved || !account.employee || !toAppRole(account.role)) {
 		throw new Error(UNAUTHENTICATED_MESSAGE);
 	}
 	return account;
@@ -43,11 +44,15 @@ async function loadOwnApprovedAccount(username: string) {
 export async function getOwnProfile() {
 	const actor = await requireSession();
 	const account = await loadOwnApprovedAccount(actor.username);
+	const role = toAppRole(account.role);
+	if (!role) {
+		throw new Error(UNAUTHENTICATED_MESSAGE);
+	}
 	const employee = account.employee!;
-	const canEditIdentity = roleAllows(account.role, "Admin");
+	const canEditIdentity = roleAllows(role, "Admin");
 	return {
 		username: account.username,
-		role: account.role,
+		role,
 		canEditIdentity,
 		employee: {
 			id: employee.id,
@@ -85,8 +90,12 @@ export async function updateOwnEmployeeProfile(input: {
 }) {
 	const actor = await requireSession();
 	const account = await loadOwnApprovedAccount(actor.username);
+	const role = toAppRole(account.role);
+	if (!role) {
+		throw new Error(UNAUTHENTICATED_MESSAGE);
+	}
 	const employeeId = account.employeeId;
-	const canEditIdentity = roleAllows(account.role, "Admin");
+	const canEditIdentity = roleAllows(role, "Admin");
 
 	const contacts = {
 		id: employeeId,
@@ -188,6 +197,10 @@ export async function updateOwnCredentials(input: {
 	}
 
 	const account = await loadOwnApprovedAccount(actor.username);
+	const role = toAppRole(account.role);
+	if (!role) {
+		throw new Error(UNAUTHENTICATED_MESSAGE);
+	}
 
 	if (newPassword) {
 		if (!input.currentPassword) {
@@ -233,7 +246,7 @@ export async function updateOwnCredentials(input: {
 		const now = Math.floor(Date.now() / 1000);
 		const { payloadB64, payload } = createSessionValue(
 			sessionUsername,
-			account.role,
+			role,
 			now
 		);
 		const value = await signSessionValue(payloadB64);

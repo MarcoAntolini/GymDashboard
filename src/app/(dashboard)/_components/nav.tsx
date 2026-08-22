@@ -6,7 +6,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { links, roleAllows } from "@/data/links";
 import { requiredRoleForPath, type AppRole } from "@/data/nav-routes";
 import { cn } from "@/lib/utils";
-import { Role } from "@prisma/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,7 +20,7 @@ function routeMatches(pathname: string, href: string): boolean {
 export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 	const router = useRouter();
 	const pathname = usePathname();
-	const [userRole, setUserRole] = useState<Role>();
+	const [userRole, setUserRole] = useState<AppRole>();
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
@@ -36,7 +35,7 @@ export function Nav({ isCollapsed }: { isCollapsed: boolean }) {
 					return;
 				}
 				const role = me.role as AppRole;
-				setUserRole(role as Role);
+				setUserRole(role);
 				const needed = requiredRoleForPath(pathname);
 				if (needed && !roleAllows(role, needed)) {
 					router.replace(`/forbidden?from=${encodeURIComponent(pathname)}`);

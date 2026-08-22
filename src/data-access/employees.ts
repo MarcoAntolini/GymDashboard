@@ -1,6 +1,6 @@
 "use server";
 
-import { isAppRole } from "@/data/nav-routes";
+import { toAppRole } from "@/lib/domain/roles";
 import {
 	assertRoleHierarchy,
 	getOptionalSession,
@@ -178,10 +178,11 @@ export async function editEmployee(input: {
 	const editingSelf = actorAccount?.employeeId === id;
 
 	if (!editingSelf && target.account) {
-		if (!isAppRole(target.account.role)) {
+		const targetRole = toAppRole(target.account.role);
+		if (!targetRole) {
 			throw new Error("Account non valido");
 		}
-		assertRoleHierarchy(actor.role, target.account.role);
+		assertRoleHierarchy(actor.role, targetRole);
 	}
 
 	return await db.employee.update({

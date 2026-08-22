@@ -1,5 +1,5 @@
 import { getAccountSafe } from "@/data-access/accounts";
-import { isAppRole } from "@/data/nav-routes";
+import { toAppRole } from "@/lib/domain/roles";
 import {
 	createSessionValue,
 	getSessionCookieName,
@@ -21,7 +21,8 @@ export async function GET() {
 	}
 
 	const account = await getAccountSafe(payload.u);
-	if (!account || !account.approved || !isAppRole(account.role)) {
+	const role = toAppRole(account?.role);
+	if (!account || !account.approved || !role) {
 		const res = NextResponse.json({ message: "Non autenticato" }, { status: 401 });
 		res.cookies.delete(getSessionCookieName());
 		return res;
@@ -29,17 +30,17 @@ export async function GET() {
 
 	const body = {
 		username: payload.u,
-		role: account.role,
+		role,
 		employeeId: account.employee?.id ?? null,
 		approved: account.approved,
 	};
 
-	if (payload.r === account.role) {
+	if (payload.r === role) {
 		return NextResponse.json(body, { status: 200 });
 	}
 
 	const now = Math.floor(Date.now() / 1000);
-	const { payloadB64, payload: refreshed } = createSessionValue(payload.u, account.role, now);
+	const { payloadB64, payload: refreshed } = createSessionValue(payload.u, role, now);
 	const value = await signSessionValue(payloadB64);
 	const res = NextResponse.json(body, { status: 200 });
 	res.cookies.set(getSessionCookieName(), value, {

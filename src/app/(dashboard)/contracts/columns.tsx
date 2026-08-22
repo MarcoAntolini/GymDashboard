@@ -174,10 +174,10 @@ export const columns = (
 										</FormControl>
 										<SelectContent>
 											<SelectItem value={ContractType.FixedTerm}>
-												{CONTRACT_TYPE_LABEL.FixedTerm}
+												{CONTRACT_TYPE_LABEL[ContractType.FixedTerm]}
 											</SelectItem>
 											<SelectItem value={ContractType.OpenEnded}>
-												{CONTRACT_TYPE_LABEL.OpenEnded}
+												{CONTRACT_TYPE_LABEL[ContractType.OpenEnded]}
 											</SelectItem>
 										</SelectContent>
 									</Select>

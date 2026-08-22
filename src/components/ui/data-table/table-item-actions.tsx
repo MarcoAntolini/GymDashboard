@@ -103,7 +103,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	const registry = useOptionalRowActionsRegistry();
 
 	const form = useForm<z.infer<TFormSchema>>({
-		resolver: zodResolver(formSchema),
+		resolver: zodResolver(formSchema) as never,
 		defaultValues: {
 			...row.original,
 		},
@@ -252,7 +252,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 					</SheetHeader>
 					<Form {...form}>
 						<form
-							onSubmit={form.handleSubmit(onEditSubmit)}
+							onSubmit={form.handleSubmit(onEditSubmit as never)}
 							className="mt-6 flex flex-1 flex-col gap-6"
 						>
 							<div className="flex flex-col gap-4">{editFormContent}</div>

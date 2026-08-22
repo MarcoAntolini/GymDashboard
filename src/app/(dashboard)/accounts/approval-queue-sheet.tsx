@@ -14,6 +14,7 @@ import {
 	rejectPendingAccount,
 } from "@/data-access/accounts";
 import { canManageRole, roleAllows, roleLabelIt, type AppRole } from "@/data/nav-routes";
+import { toAppRole } from "@/lib/domain/roles";
 import { Check, Loader2, UserCheck, X } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -41,7 +42,10 @@ export function ApprovalQueueToolbarButton({
 		setLoading(true);
 		try {
 			const rows = await getPendingAccounts();
-			setPending(rows.filter((row) => canManageRole(actorRole, row.role as AppRole)));
+			setPending(rows.filter((row) => {
+				const targetRole = toAppRole(row.role);
+				return targetRole != null && canManageRole(actorRole, targetRole);
+			}));
 		} catch (error) {
 			const message =
 				error instanceof Error && error.message
@@ -152,7 +156,7 @@ export function ApprovalQueueToolbarButton({
 										<div className="min-w-0">
 											<p className="truncate font-medium">{account.username}</p>
 											<p className="truncate text-sm text-muted-foreground">
-												{employeeLabel} · {roleLabelIt(account.role as AppRole)}
+												{employeeLabel} · {roleLabelIt(toAppRole(account.role) ?? "Employee")}
 											</p>
 										</div>
 										<div className="flex gap-2">

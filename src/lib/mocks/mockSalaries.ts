@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PaymentType, PrismaClient } from "@prisma/client";
 import { faker } from "./faker";
 
 export async function mockSalaries(db: PrismaClient) {
   console.log("Mocking salaries...");
   const employees = await db.employee.findMany();
-  const payments = await db.payment.findMany({ where: { type: 'Salary' } });
+  const payments = await db.payment.findMany({ where: { type: PaymentType.Salary } });
 
   for (const payment of payments) {
     await db.salary.create({

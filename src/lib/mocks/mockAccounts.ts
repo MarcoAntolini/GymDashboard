@@ -31,7 +31,7 @@ export async function mockAccounts(db: PrismaClient) {
 	for (const employee of otherEmployees) {
 		const role = faker.helpers.arrayElement([Role.Admin, Role.Employee]);
 		const usernameBase = faker.internet
-			.userName()
+			.username()
 			.toLowerCase()
 			.replace(/[^a-z0-9._]/g, "")
 			.slice(0, 20);

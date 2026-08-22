@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PaymentType, PrismaClient } from "@prisma/client";
 import {
 	italianBillDescription,
 	italianProvider,
@@ -6,7 +6,7 @@ import {
 
 export async function mockBills(db: PrismaClient) {
 	console.log("Mocking bills...");
-	const payments = await db.payment.findMany({ where: { type: "Bill" } });
+	const payments = await db.payment.findMany({ where: { type: PaymentType.Bill } });
 
 	for (const payment of payments) {
 		await db.bill.create({

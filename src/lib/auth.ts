@@ -1,9 +1,9 @@
 import {
 	canManageRole,
-	isAppRole,
 	roleAllows,
 	type AppRole,
 } from "@/data/nav-routes";
+import { toAppRole } from "@/lib/domain/roles";
 import { db } from "@/lib/db";
 import { getSessionCookieName, verifySessionValue, type SessionRole } from "@/lib/session";
 import { cookies } from "next/headers";
@@ -57,10 +57,14 @@ async function loadApprovedActor(actor: SessionActor): Promise<SessionActor> {
 		where: { username: actor.username },
 		select: { role: true, approved: true },
 	});
-	if (!account?.approved || !isAppRole(account.role)) {
+	if (!account?.approved) {
 		throw new Error(UNAUTHENTICATED_MESSAGE);
 	}
-	return { username: actor.username, role: account.role };
+	const role = toAppRole(account.role);
+	if (!role) {
+		throw new Error(UNAUTHENTICATED_MESSAGE);
+	}
+	return { username: actor.username, role };
 }
 
 /**

@@ -14,9 +14,10 @@ import { Input } from "@/components/ui/input";
 import { OverflowText } from "@/components/ui/overflow-text";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { AccountRow } from "@/data-access/accounts";
-import { assignableRoles, canManageRole, isAppRole, type AppRole } from "@/data/nav-routes";
+import { assignableRoles, canManageRole, type AppRole } from "@/data/nav-routes";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel, ROLE_LABEL } from "@/lib/domain/labels";
+import { toAppRole } from "@/lib/domain/roles";
 import { ROLE_TONE } from "@/lib/domain/visual";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -140,12 +141,15 @@ export const columns = (
 			),
 			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
-			cell: ({ row }) => (
-				<DotBadge
-					label={ROLE_LABEL[row.original.role]}
-					tone={ROLE_TONE[row.original.role]}
-				/>
-			),
+			cell: ({ row }) => {
+				const appRole = toAppRole(row.original.role);
+				return (
+					<DotBadge
+						label={appRole ? ROLE_LABEL[appRole] : "—"}
+						tone={appRole ? ROLE_TONE[appRole] : "muted"}
+					/>
+				);
+			},
 			filterFn: (row, id, value) => {
 				return value.includes(row.getValue(id));
 			},
@@ -170,7 +174,7 @@ export const columns = (
 		{
 			id: "actions",
 			cell: ({ row }) => {
-				const targetRole = isAppRole(row.original.role) ? row.original.role : null;
+				const targetRole = toAppRole(row.original.role);
 				const manageable = targetRole != null && canManageRole(actorRole, targetRole);
 
 				return (

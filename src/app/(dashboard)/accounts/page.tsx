@@ -17,7 +17,8 @@ import {
 	type AccountRow,
 } from "@/data-access/accounts";
 import { getEmployeesWithoutAccount } from "@/data-access/employees";
-import { canManageRole, isAppRole, type AppRole } from "@/data/nav-routes";
+import { canManageRole, type AppRole } from "@/data/nav-routes";
+import { toAppRole } from "@/lib/domain/roles";
 import { useEntityData } from "@/hooks/useEntityData";
 import { useServerList } from "@/hooks/useServerList";
 import {
@@ -71,7 +72,7 @@ export default function Accounts() {
 				const res = await fetch("/api/auth/me");
 				const me = res.ok ? await res.json() : null;
 				if (cancelled) return;
-				if (isAppRole(me?.role)) setActorRole(me.role);
+				if (toAppRole(me?.role)) setActorRole(toAppRole(me.role)!);
 			} catch {
 				/* nav/layout already redirects unauthenticated */
 			}
@@ -114,13 +115,13 @@ export default function Accounts() {
 				isAvailable: (rows) =>
 					rows.some((row) => {
 						if (row.approved) return false;
-						const targetRole = isAppRole(row.role) ? row.role : null;
+						const targetRole = toAppRole(row.role);
 						return targetRole != null && canManageRole(actorRole, targetRole);
 					}),
 				filterRows: (rows) =>
 					rows.filter((row) => {
 						if (row.approved) return false;
-						const targetRole = isAppRole(row.role) ? row.role : null;
+						const targetRole = toAppRole(row.role);
 						return targetRole != null && canManageRole(actorRole, targetRole);
 					}),
 				run: async (row) => {

@@ -1,21 +1,22 @@
-import { ContractType, PaymentType, Role } from "@prisma/client";
+import type { AppRole } from "@/data/nav-routes";
+import { ContractType, PaymentType } from "@prisma/client";
 
 /** Etichette IT per tipi Pagamento (CONTEXT.md). */
 export const PAYMENT_TYPE_LABEL: Record<PaymentType, string> = {
-	Salary: "Stipendio",
-	Bill: "Bolletta",
-	Equipment: "Attrezzatura",
-	Intervention: "Intervento",
+	[PaymentType.Salary]: "Stipendio",
+	[PaymentType.Bill]: "Bolletta",
+	[PaymentType.Equipment]: "Attrezzatura",
+	[PaymentType.Intervention]: "Intervento",
 };
 
 /** Etichette IT per tipi Contratto. */
 export const CONTRACT_TYPE_LABEL: Record<ContractType, string> = {
-	FixedTerm: "Tempo determinato",
-	OpenEnded: "Tempo indeterminato",
+	[ContractType.FixedTerm]: "Tempo determinato",
+	[ContractType.OpenEnded]: "Tempo indeterminato",
 };
 
-/** Etichette IT per ruoli Account. */
-export const ROLE_LABEL: Record<Role, string> = {
+/** Etichette IT per ruoli Account (chiavi UI/sessione, non valori DB Prisma 7). */
+export const ROLE_LABEL: Record<AppRole, string> = {
 	Owner: "Proprietario",
 	Admin: "Amministratore",
 	Employee: "Dipendente",

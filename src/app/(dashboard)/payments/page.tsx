@@ -50,27 +50,27 @@ const paymentSchema = z.discriminatedUnion("type", [
 	z.object({
 		date: z.date(),
 		amount: z.number(),
-		type: z.literal("Salary"),
+		type: z.literal(PaymentType.Salary),
 		employeeId: z.number(),
 	}),
 	z.object({
 		date: z.date(),
 		amount: z.number(),
-		type: z.literal("Bill"),
+		type: z.literal(PaymentType.Bill),
 		description: z.string(),
 		provider: z.string(),
 	}),
 	z.object({
 		date: z.date(),
 		amount: z.number(),
-		type: z.literal("Equipment"),
+		type: z.literal(PaymentType.Equipment),
 		description: z.string(),
 		provider: z.string(),
 	}),
 	z.object({
 		date: z.date(),
 		amount: z.number(),
-		type: z.literal("Intervention"),
+		type: z.literal(PaymentType.Intervention),
 		description: z.string(),
 		maker: z.string(),
 		startingTime: z.date(),
@@ -281,7 +281,7 @@ export default function PaymentsPage() {
 						render={({ field }) => {
 							const type = field.value as PaymentType;
 							switch (type) {
-								case "Salary":
+								case PaymentType.Salary:
 									return (
 										<FormField
 											name="employeeId"
@@ -300,8 +300,8 @@ export default function PaymentsPage() {
 											)}
 										/>
 									);
-								case "Bill":
-								case "Equipment":
+								case PaymentType.Bill:
+								case PaymentType.Equipment:
 									return (
 										<>
 											<FormField
@@ -330,7 +330,7 @@ export default function PaymentsPage() {
 											/>
 										</>
 									);
-								case "Intervention":
+								case PaymentType.Intervention:
 									return (
 										<>
 											<FormField
@@ -396,7 +396,12 @@ export default function PaymentsPage() {
 				formSchema: z.object({
 					date: z.date(),
 					amount: z.number().min(0),
-					type: z.enum(["Salary", "Bill", "Equipment", "Intervention"]),
+					type: z.enum([
+						PaymentType.Salary,
+						PaymentType.Bill,
+						PaymentType.Equipment,
+						PaymentType.Intervention,
+					]),
 					employeeId: z.number().optional(),
 					description: z.string().optional(),
 					provider: z.string().optional(),
@@ -407,7 +412,7 @@ export default function PaymentsPage() {
 				defaultValues: {
 					date: new Date(),
 					amount: 0,
-					type: "Salary" as const,
+					type: PaymentType.Salary,
 				},
 				submitAction: handleCreatePayment,
 			},

@@ -1,5 +1,5 @@
 import { getAccount } from "@/data-access/accounts";
-import { isAppRole } from "@/data/nav-routes";
+import { toAppRole } from "@/lib/domain/roles";
 import bcrypt from "bcryptjs";
 import { createSessionValue, getSessionCookieName, getSessionTtlSeconds, signSessionValue } from "@/lib/session";
 import { NextRequest, NextResponse } from "next/server";
@@ -21,16 +21,17 @@ export async function POST(req: NextRequest) {
 		if (!account.approved) {
 			return NextResponse.json({ message: "Account non ancora autorizzato", success: false }, { status: 403 });
 		}
-		if (!isAppRole(account.role)) {
+		const role = toAppRole(account.role);
+		if (!role) {
 			return NextResponse.json({ message: "Ruolo account non valido", success: false }, { status: 403 });
 		}
 
 		const now = Math.floor(Date.now() / 1000);
-		const { payloadB64, payload } = createSessionValue(username, account.role, now);
+		const { payloadB64, payload } = createSessionValue(username, role, now);
 		const value = await signSessionValue(payloadB64);
 
 		const res = NextResponse.json(
-			{ message: "Accesso effettuato", success: true, role: account.role },
+			{ message: "Accesso effettuato", success: true, role },
 			{ status: 200 }
 		);
 		res.cookies.set(getSessionCookieName(), value, {
