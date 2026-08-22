@@ -42,6 +42,7 @@ import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { HighlightValueCell } from "@/components/ui/highlight-text";
 import { OverflowText } from "@/components/ui/overflow-text";
 
+import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ListFacetedFilter, ListFilters } from "@/lib/list";
 import { cn } from "@/lib/utils";
@@ -619,25 +620,29 @@ function DataTableInner<TData, TValue>({
 			className="flex h-full min-h-0 min-w-0 flex-col"
 			aria-busy={isLoading || undefined}
 		>
-			<TableToolbar
-				table={table}
-				filters={filters}
-				facetedFilters={facetedFilters}
-				filterLabels={filterLabels}
-				toolbarActions={toolbarActions}
-				serverList={
-					isServer
-						? {
-								draftFilters: serverList.draftFilters,
-								onDraftFilterChange: serverList.onDraftFilterChange,
-								onApplyFilters: serverList.onApplyFilters,
-								onResetFilters: serverList.onResetFilters,
-								filtersDirty: serverList.filtersDirty,
-								appliedFilters: serverList.appliedFilters,
-							}
-						: undefined
-				}
-			/>
+			<div className="flex h-14 shrink-0 items-center gap-2 px-4 py-2">
+				<TableToolbar
+					table={table}
+					filters={filters}
+					facetedFilters={facetedFilters}
+					filterLabels={filterLabels}
+					toolbarActions={toolbarActions}
+					serverList={
+						isServer
+							? {
+									draftFilters: serverList.draftFilters,
+									onDraftFilterChange: serverList.onDraftFilterChange,
+									onApplyFilters: serverList.onApplyFilters,
+									onResetFilters: serverList.onResetFilters,
+									filtersDirty: serverList.filtersDirty,
+									appliedFilters: serverList.appliedFilters,
+								}
+							: undefined
+					}
+				/>
+			</div>
+			<Separator className="shrink-0" />
+			<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4">
 			<div className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border">
 				<Table
 					className={cn(
@@ -764,6 +769,7 @@ function DataTableInner<TData, TValue>({
 					) : null}
 				</div>
 				<TablePagination table={table} />
+			</div>
 			</div>
 		</div>
 		</ColumnLayoutProvider>

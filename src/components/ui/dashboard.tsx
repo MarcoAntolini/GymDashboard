@@ -60,10 +60,8 @@ export default function Dashboard({
 			}
 		>
 			<div className="flex h-full min-h-0 min-w-0 flex-col">
-				<div className="min-h-0 min-w-0 flex-1 overflow-hidden">
-					<div className="h-full min-h-0 min-w-0 overflow-hidden bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-						{table}
-					</div>
+				<div className="min-h-0 min-w-0 flex-1 overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+					{table}
 				</div>
 			</div>
 		</TableChromeActionsProvider>
