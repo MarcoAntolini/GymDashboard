@@ -92,7 +92,8 @@ export function TableSortableHeader<TData, TValue>({
 }: TableSortableHeaderProps<TData, TValue>) {
 	const columnLayout = useColumnLayout();
 	const rootRef = React.useRef<HTMLDivElement>(null);
-	const alignClass = align === "right" ? "justify-end" : "justify-start";
+	const alignClass =
+		align === "right" ? "w-full justify-end" : "w-max max-w-none justify-start";
 	const canSort = column.getCanSort();
 	const canPin = column.getCanPin();
 	const canReorder = !!columnLayout && !LOCKED_COLUMN_IDS.has(column.id);
@@ -115,7 +116,7 @@ export function TableSortableHeader<TData, TValue>({
 			<div
 				ref={rootRef}
 				className={cn(
-					"flex h-8 w-max max-w-none shrink-0 items-center px-0 text-sm font-medium whitespace-nowrap",
+					"flex h-8 shrink-0 items-center px-0 text-sm font-medium whitespace-nowrap",
 					alignClass,
 					className
 				)}
@@ -130,7 +131,7 @@ export function TableSortableHeader<TData, TValue>({
 		<div
 			ref={rootRef}
 			className={cn(
-				"flex w-max max-w-none shrink-0 items-center gap-2 whitespace-nowrap",
+				"flex shrink-0 items-center gap-2 whitespace-nowrap",
 				alignClass,
 				className
 			)}

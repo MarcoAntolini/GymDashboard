@@ -12,27 +12,43 @@ function isoDate(value: Date | string | number): string {
 	return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
-/** Chiave numerica (ID riga, FK). Meta, non identità. */
+/** Chiave numerica (ID riga, FK). Meta, non identità. Colonna: allineata a destra. */
 export function TableId({
 	value,
 	pad,
 	prefix,
 	filterKeys,
 	className,
+	align = "right",
 }: {
 	value: number | string;
 	pad?: number;
 	prefix?: string;
 	filterKeys?: string | string[];
 	className?: string;
+	/** `left` per ID in linea (es. accanto al nome). */
+	align?: "left" | "right";
 }) {
 	const digits = pad != null ? String(value).padStart(pad, "0") : String(value);
 	const text = prefix ? `${prefix}${digits}` : digits;
-	const classes = cn(META, "whitespace-nowrap", className);
+	const classes = cn(
+		META,
+		"whitespace-nowrap",
+		align === "right" && "block w-full text-right",
+		className
+	);
 	if (filterKeys) {
-		return <HighlightText text={text} filterKeys={filterKeys} className={classes} />;
+		return (
+			<HighlightText
+				text={text}
+				filterKeys={filterKeys}
+				className={classes}
+				as={align === "right" ? "div" : "span"}
+			/>
+		);
 	}
-	return <span className={classes}>{text}</span>;
+	const Comp = align === "right" ? "div" : "span";
+	return <Comp className={classes}>{text}</Comp>;
 }
 
 /** Codice fiscale / codice prodotto. Mono + muted. CF: `compact`. */
@@ -122,7 +138,13 @@ export function TablePerson({
 				<span className="min-w-0 truncate">{name}</span>
 			)}
 			{person.id != null ? (
-				<TableId value={person.id} prefix="#" filterKeys={idFilterKeys} className="shrink-0" />
+				<TableId
+					value={person.id}
+					prefix="#"
+					filterKeys={idFilterKeys}
+					align="left"
+					className="shrink-0"
+				/>
 			) : null}
 		</span>
 	);

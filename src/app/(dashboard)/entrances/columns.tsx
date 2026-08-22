@@ -35,7 +35,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={Hash} />
+			<TableSortableHeader column={column} title="ID" icon={Hash} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableId value={row.original.id} filterKeys="id" />,
@@ -79,7 +79,7 @@ export const columns = (
 	{
 		accessorKey: "saleId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Vendita" icon={ShoppingBag} />
+			<TableSortableHeader column={column} title="Vendita" icon={ShoppingBag} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
