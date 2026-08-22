@@ -135,6 +135,30 @@ function hasAppliedFilters(filters: ListFilters | undefined): boolean {
 	});
 }
 
+/** Chiave stabile per invalidare la selezione quando cambia il working set (filtri). */
+function listFiltersIdentity(filters: ListFilters | undefined): string {
+	if (!filters) return "";
+	const keys = Object.keys(filters).sort();
+	if (keys.length === 0) return "";
+	return keys
+		.map((key) => {
+			const value = filters[key];
+			if (value == null) return `${key}=`;
+			if (Array.isArray(value)) return `${key}=${value.map(String).sort().join(",")}`;
+			if (typeof value === "boolean") return `${key}=${value ? "1" : "0"}`;
+			return `${key}=${String(value)}`;
+		})
+		.join("&");
+}
+
+function columnFiltersIdentity(filters: ColumnFiltersState): string {
+	if (filters.length === 0) return "";
+	return filters
+		.map((filter) => `${filter.id}:${JSON.stringify(filter.value)}`)
+		.sort()
+		.join("|");
+}
+
 /** Colonne senza `cell` custom: evidenzia il value se c'è filtro applicato sulla stessa chiave. */
 function withDefaultSearchHighlightCell<TData, TValue>(
 	col: ColumnDef<TData, TValue>
@@ -540,21 +564,56 @@ function DataTableInner<TData, TValue>({
 
 	const pageIndex = isServer ? serverList.pagination.pageIndex : pagination.pageIndex;
 	const pageSize = isServer ? serverList.pagination.pageSize : pagination.pageSize;
+	const hasStableRowId = typeof getRowId === "function";
 	const dataIdentity = React.useMemo(
 		() => data.map((_, i) => (getRowId ? getRowId(data[i], i) : String(i))).join("|"),
 		[data, getRowId]
 	);
 
+	const selectionScopeKey = isServer
+		? listFiltersIdentity(serverList?.appliedFilters)
+		: columnFiltersIdentity(columnFilters);
+	const prevSelectionScopeKeyRef = React.useRef(selectionScopeKey);
+	if (selectionScopeKey !== prevSelectionScopeKeyRef.current) {
+		prevSelectionScopeKeyRef.current = selectionScopeKey;
+		if (Object.keys(rowSelection).length > 0) {
+			setRowSelection({});
+		}
+	}
+
 	React.useEffect(() => {
-		setRowSelection({});
 		setRowPinning({ top: [], bottom: [] });
 	}, [pageIndex, pageSize, dataIdentity]);
+
+	React.useEffect(() => {
+		if (hasStableRowId) return;
+		setRowSelection({});
+	}, [pageIndex, pageSize, dataIdentity, hasStableRowId]);
+
+	const selectedBagRef = React.useRef(new Map<string, TData>());
+	const selectedBag = selectedBagRef.current;
+	for (let i = 0; i < data.length; i++) {
+		const id = getRowId ? getRowId(data[i], i) : String(i);
+		if (rowSelection[id]) selectedBag.set(id, data[i]);
+		else selectedBag.delete(id);
+	}
+	for (const id of [...selectedBag.keys()]) {
+		if (!rowSelection[id]) selectedBag.delete(id);
+	}
+	const selectedRows = React.useMemo(
+		() => [...selectedBagRef.current.values()],
+		[data, rowSelection, getRowId]
+	);
+
+	const clearSelection = React.useCallback(() => {
+		setRowSelection({});
+	}, []);
 
 	const topRows = table.getTopRows();
 	const centerRows = table.getCenterRows();
 	const bottomRows = table.getBottomRows();
 	const bottomPinnedCount = bottomRows.length;
-	const selectedRows = table.getSelectedRowModel().rows.map((r) => r.original);
+	const pageSelectedCount = table.getSelectedRowModel().rows.length;
 	const colSpan = tableColumns.length;
 	const orderedLeafColumns = getPinnedLeafColumnOrder(table);
 	const flexFillColumnId = getFlexFillColumnId(
@@ -763,11 +822,12 @@ function DataTableInner<TData, TValue>({
 					{enableSelection ? (
 						<TableBulkBar
 							selectedRows={selectedRows}
+							pageSelectedCount={pageSelectedCount}
 							entityLabel={entityLabel}
 							bulkDeleteRow={bulkDeleteRow}
 							bulkActions={bulkActions}
 							onComplete={() => onBulkComplete?.()}
-							onClearSelection={() => setRowSelection({})}
+							onClearSelection={clearSelection}
 						/>
 					) : null}
 				</div>

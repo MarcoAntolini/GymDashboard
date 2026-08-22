@@ -65,6 +65,7 @@ async function runSequential<TData>(
 
 export function TableBulkBar<TData>({
 	selectedRows,
+	pageSelectedCount,
 	entityLabel,
 	bulkDeleteRow,
 	bulkActions,
@@ -72,6 +73,8 @@ export function TableBulkBar<TData>({
 	onClearSelection,
 }: {
 	selectedRows: TData[];
+	/** Righe selezionate visibili nella pagina corrente (selezione cross-page). */
+	pageSelectedCount?: number;
 	entityLabel: string;
 	bulkDeleteRow?: (row: TData) => Promise<void>;
 	bulkActions?: DataTableBulkAction<TData>[];
@@ -188,6 +191,14 @@ export function TableBulkBar<TData>({
 									{count}
 								</span>{" "}
 								selezionat{count === 1 ? "o" : "i"}
+								{pageSelectedCount != null && pageSelectedCount < count ? (
+									<>
+										{" "}
+										<span className="tabular-nums">
+											({pageSelectedCount} in questa pagina)
+										</span>
+									</>
+								) : null}
 							</span>
 							<Button
 								type="button"
