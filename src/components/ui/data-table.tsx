@@ -120,6 +120,8 @@ interface DataTableProps<TData, TValue> {
 	bulkActions?: DataTableBulkAction<TData>[];
 	/** Dopo bulk riuscito (anche parziale) — tipicamente refetch. */
 	onBulkComplete?: () => void;
+	/** Azioni pagina a sinistra della riga chrome (Aggiungi, hint, …). */
+	toolbarActions?: React.ReactNode;
 }
 
 function hasAppliedFilters(filters: ListFilters | undefined): boolean {
@@ -306,6 +308,7 @@ function DataTableInner<TData, TValue>({
 	bulkDeleteRow,
 	bulkActions,
 	onBulkComplete,
+	toolbarActions,
 }: DataTableProps<TData, TValue>) {
 	const isServer = !!serverList?.manual;
 	const filtersActive = hasAppliedFilters(serverList?.appliedFilters);
@@ -621,6 +624,7 @@ function DataTableInner<TData, TValue>({
 				filters={filters}
 				facetedFilters={facetedFilters}
 				filterLabels={filterLabels}
+				toolbarActions={toolbarActions}
 				serverList={
 					isServer
 						? {
@@ -629,20 +633,11 @@ function DataTableInner<TData, TValue>({
 								onApplyFilters: serverList.onApplyFilters,
 								onResetFilters: serverList.onResetFilters,
 								filtersDirty: serverList.filtersDirty,
+								appliedFilters: serverList.appliedFilters,
 							}
 						: undefined
 				}
 			/>
-			{enableSelection ? (
-				<TableBulkBar
-					selectedRows={selectedRows}
-					entityLabel={entityLabel}
-					bulkDeleteRow={bulkDeleteRow}
-					bulkActions={bulkActions}
-					onComplete={() => onBulkComplete?.()}
-					onClearSelection={() => setRowSelection({})}
-				/>
-			) : null}
 			<div className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border">
 				<Table
 					className={cn(
@@ -755,7 +750,21 @@ function DataTableInner<TData, TValue>({
 					</TableBody>
 				</Table>
 			</div>
-			<TablePagination table={table} />
+			<div className="flex min-h-10 flex-wrap items-center justify-between gap-2 px-2 pt-4">
+				<div className="flex min-h-8 min-w-0 flex-1 flex-wrap items-center gap-2">
+					{enableSelection ? (
+						<TableBulkBar
+							selectedRows={selectedRows}
+							entityLabel={entityLabel}
+							bulkDeleteRow={bulkDeleteRow}
+							bulkActions={bulkActions}
+							onComplete={() => onBulkComplete?.()}
+							onClearSelection={() => setRowSelection({})}
+						/>
+					) : null}
+				</div>
+				<TablePagination table={table} />
+			</div>
 		</div>
 		</ColumnLayoutProvider>
 		</SearchHighlightProvider>

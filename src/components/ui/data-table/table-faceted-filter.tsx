@@ -27,6 +27,7 @@ interface TableFacetedFilterProps<TData, TValue> {
 	/** Controlled (server-list draft). Se assente → legge/scrive sulla column. */
 	value?: string[];
 	onValueChange?: (value: string[] | undefined) => void;
+	className?: string;
 }
 
 export function TableFacetedFilter<TData, TValue>({
@@ -35,6 +36,7 @@ export function TableFacetedFilter<TData, TValue>({
 	options,
 	value,
 	onValueChange,
+	className,
 }: TableFacetedFilterProps<TData, TValue>) {
 	const facets = column?.getFacetedUniqueValues() as Map<string, number> | undefined;
 	const selectedValues = new Set(
@@ -55,7 +57,7 @@ export function TableFacetedFilter<TData, TValue>({
 				<Button
 					variant="outline"
 					size="sm"
-					className="h-10 border-dashed"
+					className={cn("h-10 border-dashed", className)}
 				>
 					<Filter className="mr-2 h-4 w-4" />
 					{title}

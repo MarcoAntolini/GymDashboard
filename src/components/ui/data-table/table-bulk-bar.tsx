@@ -70,8 +70,6 @@ export function TableBulkBar<TData>({
 	const [pendingAction, setPendingAction] = useState<"delete" | string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	if (count === 0) return null;
-
 	const availableExtra = (bulkActions ?? []).filter(
 		(action) => action.isAvailable?.(selectedRows) ?? true
 	);
@@ -147,11 +145,11 @@ export function TableBulkBar<TData>({
 
 	return (
 		<>
-			<div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
-				<span className="font-medium tabular-nums">
-					{count} selezionat{count === 1 ? "o" : "i"}
-				</span>
-				<div className="ml-auto flex flex-wrap items-center gap-2">
+			{count > 0 ? (
+				<div className="flex min-h-8 flex-wrap items-center gap-2 text-sm">
+					<span className="font-medium tabular-nums">
+						{count} selezionat{count === 1 ? "o" : "i"}
+					</span>
 					{availableExtra.map((action) => (
 						<Button
 							key={action.id}
@@ -182,7 +180,7 @@ export function TableBulkBar<TData>({
 						Annulla selezione
 					</Button>
 				</div>
-			</div>
+			) : null}
 
 			<AlertDialog
 				open={pendingAction != null}

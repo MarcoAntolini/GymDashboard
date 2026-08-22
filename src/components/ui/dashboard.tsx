@@ -9,7 +9,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -18,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Form } from "./form";
+import { TableChromeActionsProvider } from "@/components/ui/data-table/table-chrome-actions-context";
 
 export type Action = {
 	title: string;
@@ -46,24 +46,27 @@ export default function Dashboard({
 	extraToolbar?: React.ReactNode;
 }) {
 	return (
-		<div className="flex h-full min-h-0 min-w-0 flex-col">
-			<div className="flex h-14 shrink-0 items-center gap-2 px-4 py-2">
-				{extraToolbar}
-				{actions &&
-					actions.map((action, index) => (
+		<TableChromeActionsProvider
+			actions={
+				<>
+					{extraToolbar}
+					{actions?.map((action, index) => (
 						<DialogAction
 							key={`${action.title}-${index}`}
 							action={action}
 						/>
 					))}
-			</div>
-			<Separator />
-			<div className="min-h-0 min-w-0 flex-1 overflow-hidden">
-				<div className="h-full min-h-0 min-w-0 overflow-hidden bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-					{table}
+				</>
+			}
+		>
+			<div className="flex h-full min-h-0 min-w-0 flex-col">
+				<div className="min-h-0 min-w-0 flex-1 overflow-hidden">
+					<div className="h-full min-h-0 min-w-0 overflow-hidden bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+						{table}
+					</div>
 				</div>
 			</div>
-		</div>
+		</TableChromeActionsProvider>
 	);
 }
 
