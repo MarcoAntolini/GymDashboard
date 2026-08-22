@@ -6,11 +6,11 @@ import {
 	NumericCell,
 	RemainingEntrancesBadge,
 } from "@/components/ui/domain-badge";
+import { TableCode, TableDate, TableId, TablePerson } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,7 +22,7 @@ import {
 	productKindFromSnapshot,
 } from "@/lib/domain/product-kind";
 import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
-import { formatDateIt, formatEur } from "@/lib/format";
+import { formatEur } from "@/lib/format";
 import { Prisma } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Banknote, Calendar, Hash, Package, Tag, Ticket, Timer, User } from "lucide-react";
@@ -57,9 +57,7 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">
-				<HighlightText text={String(row.original.id)} filterKeys="id" />
-			</div>
+			<TableId value={row.original.id} filterKeys="id" />
 		),
 	},
 	{
@@ -70,21 +68,13 @@ export const columns = (
 			<TableSortableHeader column={column} title="Cliente" icon={User} />
 		),
 		meta: columnMeta(ColumnClass.Join),
-		cell: ({ row }) => {
-			const client = row.original.client;
-			return (
-				<div className="font-medium">
-					<HighlightText
-						text={`${client.surname} ${client.name}`}
-						filterKeys="client"
-					/>{" "}
-					<span className="text-muted-foreground">
-						#
-						<HighlightText text={String(client.id)} filterKeys="clientId" />
-					</span>
-				</div>
-			);
-		},
+		cell: ({ row }) => (
+			<TablePerson
+				person={{ ...row.original.client, id: row.original.clientId }}
+				nameFilterKeys="client"
+				idFilterKeys="clientId"
+			/>
+		),
 	},
 	{
 		accessorKey: "date",
@@ -92,9 +82,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Data" icon={Calendar} />
 		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.date)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.date} />,
 	},
 	{
 		accessorKey: "amount",
@@ -135,6 +123,9 @@ export const columns = (
 			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
 		),
 		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<TableCode value={row.original.productCode} filterKeys="productCode" />
+		),
 	},
 	{
 		accessorKey: "duration",

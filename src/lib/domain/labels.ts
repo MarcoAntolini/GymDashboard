@@ -21,11 +21,18 @@ export const ROLE_LABEL: Record<Role, string> = {
 	Employee: "Dipendente",
 };
 
+export function formatPersonName(person: {
+	name: string;
+	surname: string;
+}): string {
+	return `${person.surname} ${person.name}`;
+}
+
 export function formatPersonLabel(person: {
 	name: string;
 	surname: string;
 	id?: number;
 }): string {
-	const name = `${person.surname} ${person.name}`;
+	const name = formatPersonName(person);
 	return person.id != null ? `${name} (#${person.id})` : name;
 }

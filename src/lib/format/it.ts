@@ -18,12 +18,26 @@ const DATETIME_IT: Intl.DateTimeFormatOptions = {
 	minute: "2-digit",
 };
 
+const TIME_IT: Intl.DateTimeFormatOptions = {
+	hour: "2-digit",
+	minute: "2-digit",
+	hour12: false,
+};
+
+function toDate(value: Date | string | number): Date {
+	return value instanceof Date ? value : new Date(value);
+}
+
 export function formatDateIt(value: Date | string | number): string {
-	return new Date(value).toLocaleDateString("it-IT", DATE_IT);
+	return toDate(value).toLocaleDateString("it-IT", DATE_IT);
+}
+
+export function formatTimeIt(value: Date | string | number): string {
+	return toDate(value).toLocaleTimeString("it-IT", TIME_IT);
 }
 
 export function formatDateTimeIt(value: Date | string | number): string {
-	return new Date(value).toLocaleString("it-IT", DATETIME_IT);
+	return toDate(value).toLocaleString("it-IT", DATETIME_IT);
 }
 
 export function formatEur(amount: number | string | { toString(): string }): string {

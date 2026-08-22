@@ -4,14 +4,14 @@ import {
 	MoneyTone,
 	NumericCell,
 } from "@/components/ui/domain-badge";
+import { TableDate, TableId } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import type { EquipmentRow } from "@/data-access/equipment";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
-import { formatDateIt, formatEur } from "@/lib/format";
+import { formatEur } from "@/lib/format";
 import { Equipment } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Banknote, Building2, Calendar, FileText, Hash } from "lucide-react";
@@ -48,9 +48,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Data" icon={Calendar} />
 		),
 		meta: columnMeta(ColumnClass.Join),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.payment.date)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.payment.date} />,
 	},
 	{
 		id: "paymentAmount",
@@ -72,9 +70,7 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">
-				<HighlightText text={String(row.original.paymentId)} filterKeys="paymentId" />
-			</div>
+			<TableId value={row.original.paymentId} filterKeys="paymentId" />
 		),
 	},
 	{

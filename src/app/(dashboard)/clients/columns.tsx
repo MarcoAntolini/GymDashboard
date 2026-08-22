@@ -1,12 +1,12 @@
 "use client";
 
+import { TableCode, TableDate, TableId } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
-import { formatDateIt } from "@/lib/format";
 import { Client } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -43,7 +43,7 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">{row.original.id}</div>
+			<TableId value={row.original.id} filterKeys="id" />
 		),
 	},
 	{
@@ -52,6 +52,9 @@ export const columns = (
 			<TableSortableHeader column={column} title="Codice fiscale" icon={IdCard} />
 		),
 		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<TableCode value={row.original.taxCode} filterKeys="taxCode" compact />
+		),
 	},
 	{
 		accessorKey: "name",
@@ -73,9 +76,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Data di nascita" icon={Calendar} />
 		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.birthDate)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.birthDate} />,
 	},
 	{
 		accessorKey: "city",
@@ -97,9 +98,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Data iscrizione" icon={Calendar} />
 		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.enrollmentDate)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.enrollmentDate} />,
 	},
 	{
 		id: "actions",

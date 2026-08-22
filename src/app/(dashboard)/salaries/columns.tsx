@@ -4,15 +4,15 @@ import {
 	MoneyTone,
 	NumericCell,
 } from "@/components/ui/domain-badge";
+import { TableDate, TableId, TablePerson } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import type { SalaryRow } from "@/data-access/salaries";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel } from "@/lib/domain/labels";
-import { formatDateIt, formatEur } from "@/lib/format";
+import { formatEur } from "@/lib/format";
 import { Salary } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Banknote, Calendar, Hash, User } from "lucide-react";
@@ -35,12 +35,10 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">
-				<HighlightText
-					text={formatPersonLabel(row.original.employee)}
-					filterKeys="employee"
-				/>
-			</div>
+			<TablePerson
+				person={{ ...row.original.employee, id: row.original.employeeId }}
+				nameFilterKeys="employee"
+			/>
 		),
 	},
 	{
@@ -50,9 +48,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Data pagamento" icon={Calendar} />
 		),
 		meta: columnMeta(ColumnClass.Join),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.payment.date)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.payment.date} />,
 	},
 	{
 		id: "paymentAmount",
@@ -74,9 +70,7 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">
-				<HighlightText text={String(row.original.paymentId)} filterKeys="paymentId" />
-			</div>
+			<TableId value={row.original.paymentId} filterKeys="paymentId" />
 		),
 	},
 	{

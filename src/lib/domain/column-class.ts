@@ -17,6 +17,10 @@ export type ColumnClass = (typeof ColumnClass)[keyof typeof ColumnClass];
 
 export type ViewColumnMeta = {
 	columnClass: ColumnClass;
+	/** Cella con controlli (es. mostra/nascondi password): niente wrap OverflowText sulla cella intera. */
+	noCellOverflow?: boolean;
+	/** Due righe (data + ora): niente ellipsis a riga unica, consente wrap dentro h-12. */
+	stacked?: boolean;
 };
 
 declare module "@tanstack/react-table" {
@@ -24,9 +28,14 @@ declare module "@tanstack/react-table" {
 		columnClass?: ColumnClass;
 		/** Cella con controlli (es. mostra/nascondi password): niente wrap OverflowText sulla cella intera. */
 		noCellOverflow?: boolean;
+		/** Due righe (data + ora): niente ellipsis a riga unica, consente wrap dentro h-12. */
+		stacked?: boolean;
 	}
 }
 
-export function columnMeta(columnClass: ColumnClass): { columnClass: ColumnClass } {
-	return { columnClass };
+export function columnMeta(
+	columnClass: ColumnClass,
+	extra?: Pick<ViewColumnMeta, "noCellOverflow" | "stacked">
+): ViewColumnMeta {
+	return extra ? { columnClass, ...extra } : { columnClass };
 }

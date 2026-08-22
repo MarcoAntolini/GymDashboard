@@ -6,11 +6,11 @@ import {
 	MoneyTone,
 	NumericCell,
 } from "@/components/ui/domain-badge";
+import { TableDate, TablePerson } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ContractRow } from "@/data-access/contracts";
@@ -18,12 +18,11 @@ import {
 	contractRequiresEndingDate,
 	ENDING_DATE_BEFORE_START,
 	FIXED_TERM_ENDING_DATE_REQUIRED,
-	formatContractEndingDateLabel,
 } from "@/lib/contract-term";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { CONTRACT_TYPE_LABEL, formatPersonLabel } from "@/lib/domain/labels";
 import { CONTRACT_TYPE_TONE } from "@/lib/domain/visual";
-import { formatDateIt, formatEur } from "@/lib/format";
+import { formatEur } from "@/lib/format";
 import { Contract, ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Banknote, Calendar, CirclePlay, FileText, Tag, User } from "lucide-react";
@@ -72,12 +71,10 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">
-				<HighlightText
-					text={formatPersonLabel(row.original.employee)}
-					filterKeys="employee"
-				/>
-			</div>
+			<TablePerson
+				person={{ ...row.original.employee, id: row.original.employeeId }}
+				nameFilterKeys="employee"
+			/>
 		),
 	},
 	{
@@ -114,9 +111,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Data inizio" icon={Calendar} />
 		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.startingDate)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.startingDate} />,
 	},
 	{
 		accessorKey: "endingDate",
@@ -125,16 +120,13 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => {
+			const endingDate = row.original.endingDate;
 			const open =
-				row.original.type === ContractType.OpenEnded || row.original.endingDate == null;
-			if (open) {
+				row.original.type === ContractType.OpenEnded || endingDate == null;
+			if (open || endingDate == null) {
 				return <DomainBadge label="In corso" tone="info" icon={CirclePlay} />;
 			}
-			return (
-				<div className="font-medium">
-					{formatContractEndingDateLabel(row.original.type, row.original.endingDate)}
-				</div>
-			);
+			return <TableDate value={endingDate} />;
 		},
 	},
 	{

@@ -1,12 +1,12 @@
 "use client";
 
+import { TableCode, TableDate, TableId } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
-import { formatDateIt } from "@/lib/format";
 import { Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Briefcase, Calendar, Hash, IdCard, MapPin, User } from "lucide-react";
@@ -39,7 +39,7 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">{row.original.id.toString().padStart(4, "0")}</div>
+			<TableId value={row.original.id} pad={4} filterKeys="id" />
 		),
 	},
 	{
@@ -48,6 +48,9 @@ export const columns = (
 			<TableSortableHeader column={column} title="CF" icon={IdCard} />
 		),
 		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<TableCode value={row.original.taxCode} filterKeys="taxCode" compact />
+		),
 	},
 	{
 		accessorKey: "name",
@@ -69,9 +72,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Nascita" icon={Calendar} />
 		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.birthDate)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.birthDate} />,
 	},
 	{
 		accessorKey: "city",
@@ -99,9 +100,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Data assunzione" icon={Briefcase} />
 		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.hiringDate)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.hiringDate} />,
 	},
 	{
 		id: "actions",

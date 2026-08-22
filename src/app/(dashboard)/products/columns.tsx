@@ -1,5 +1,6 @@
 "use client";
 
+import { TableCode } from "@/components/ui/data-table/table-cells";
 import { DotBadge } from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
@@ -34,6 +35,9 @@ export const columns = (
 			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
 		),
 		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<TableCode value={row.original.code} filterKeys="code" />
+		),
 	},
 	{
 		id: "kind",

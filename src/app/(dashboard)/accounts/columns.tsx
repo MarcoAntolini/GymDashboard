@@ -6,10 +6,10 @@ import {
 	DotBadge,
 } from "@/components/ui/domain-badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TablePerson } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import { OverflowText } from "@/components/ui/overflow-text";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -107,16 +107,14 @@ export const columns = (
 			),
 			meta: columnMeta(ColumnClass.Join),
 			cell: ({ row }) => (
-				<div className="font-medium">
-					{row.original.employee ? (
-						<HighlightText
-							text={formatPersonLabel(row.original.employee)}
-							filterKeys="employee"
-						/>
-					) : (
-						"—"
-					)}
-				</div>
+				<TablePerson
+					person={
+						row.original.employee
+							? { ...row.original.employee, id: row.original.employeeId }
+							: null
+					}
+					nameFilterKeys="employee"
+				/>
 			),
 		},
 		{

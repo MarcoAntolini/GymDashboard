@@ -1,5 +1,6 @@
 "use client";
 
+import { TableCode } from "@/components/ui/data-table/table-cells";
 import {
 	DotBadge,
 	MoneyTone,
@@ -66,6 +67,9 @@ export const columns = (
 			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
 		),
 		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<TableCode value={row.original.productCode} filterKeys="productCode" />
+		),
 	},
 	{
 		accessorKey: "price",

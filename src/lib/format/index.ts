@@ -1,1 +1,1 @@
-export { formatDateIt, formatDateTimeIt, formatEur } from "./it";
+export { formatDateIt, formatDateTimeIt, formatEur, formatTimeIt } from "./it";

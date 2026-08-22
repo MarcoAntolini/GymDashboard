@@ -25,8 +25,8 @@ colors:
   dark-primary: "#ea580c"
   dark-secondary: "#292524"
   dark-muted: "#292524"
-  dark-muted-foreground: "#a8a29e"
-  dark-border: "#292524"
+  dark-muted-foreground: "#8c8680"
+  dark-border: "#3b3634"
   dark-success: "#2db85c"
   dark-warning: "#f59e0b"
   dark-info: "#38bdf8"
@@ -90,21 +90,21 @@ Roles map 1:1 to shadcn semantic tokens:
 | foreground | `#0c0a09` | Near-black, slight warm hue |
 | primary / ring | `#f97316` | Orange CTA and focus ring |
 | secondary / muted / accent | `#f5f5f4` | Subtle fills, hover rows |
-| muted-foreground | `#78716c` | Secondary labels, nav section titles |
+| muted-foreground | `#78716c` | Secondary labels, nav, table meta (ID, CF, date-only) |
 | destructive | `#ef4444` | Delete / logout danger; uscite / saldo negativo |
 | success | `#1a9a4a` | Entrate, approvato, residuo Pacchetto ok |
 | warning | `#c26a05` | In attesa, residuo basso, bolletta |
 | info | `#0a8bbd` | Pacchetto, attrezzatura, Ingressi accent |
 | border / input | `#e7e5e4` | Dividers and field chrome |
 
-Dark mode shifts background/foreground to `#0c0a09` / `#fafaf9`, primary to `#ea580c`, and surfaces/borders to `#292524`. Semantic success/warning/info keep the same roles with slightly higher lightness. Do not invent brand hues beyond primary; extend via these semantic roles.
+Dark mode shifts background/foreground to `#0c0a09` / `#fafaf9`, primary to `#ea580c`, surfaces to `#292524`, muted text to `#8c8680` (distinct from foreground), and borders to `#3b3634` so row dividers remain visible. Semantic success/warning/info keep the same roles with slightly higher lightness. Do not invent brand hues beyond primary; extend via these semantic roles.
 
 Domain category chips live in `domain-badge.tsx`:
 
 - **`DotBadge`** — outline neutra + quadratino colorato (categorie: Tipo Pagamento, Tipo Prodotto, Ruolo, Tipo Contratto). Stile “Department” della tabella di riferimento.
 - **`DomainBadge`** — fill soft + icona (stati: Approvazione, residuo Ingressi, “In corso”). Stile “Active / Inactive”.
 
-Date in lista: `formatDateIt` / `formatDateTimeIt` usano mese abbreviato italiano (`24 ott 2018`), non `gg/mm/aaaa`.
+Date in lista: `formatDateIt` / `formatTimeIt` / `formatDateTimeIt` usano mese abbreviato italiano (`24 ott 2018`), non `gg/mm/aaaa`. Celle: `TableDate` (muted, tabular) per date-only; `TableDateTime` (data muted + ora in evidenza, due righe in `h-12`) per timestamp. ID/CF/codici: `TableId` / `TableCode`. Persone: `TablePerson` (nome + `#id` muted).
 
 Column headers: `TableSortableHeader` accetta `icon` (Lucide muted a sinistra del titolo).
 
@@ -121,7 +121,7 @@ No dedicated shadow scale in tokens. Separation is mostly **borders** (`border`)
 - **App shell:** header + collapsible sidebar (`Nav` from `links.ts`) + main content inside a bordered Card.
 - **Primary actions:** shadcn `Button` default/primary (orange).
 - **Danger:** destructive variant (logout, delete confirms via AlertDialog).
-- **Data surfaces:** TanStack data tables with toolbar filters, faceted filters, pagination — density over card grids. Category/status cells use `DomainBadge` (soft tint + Lucide icon).
+- **Data surfaces:** TanStack data tables with toolbar filters, faceted filters, pagination — density over card grids. Cell roles in `table-cells.tsx` (`TableId`, `TableCode`, `TableDate`, `TableDateTime`, `TablePerson`). Category/status cells use `DomainBadge` (soft tint + Lucide icon).
 - **Feedback:** Sonner toasts (`richColors`); loading via spinners on nav fetch.
 - **Theming:** `next-themes` class strategy (`light` / `dark` / system).
 - **Money direction:** `MoneyTone` — green for Entrate/Vendite, red for Uscite/Pagamenti, signed for Saldo.

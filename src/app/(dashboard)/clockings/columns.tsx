@@ -1,16 +1,15 @@
 "use client";
 
 import { DomainBadge } from "@/components/ui/domain-badge";
+import { TableDateTime, TablePerson } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import type { ClockingRow } from "@/data-access/clockings";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel } from "@/lib/domain/labels";
-import { formatDateTimeIt } from "@/lib/format";
 import { Clocking } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { CirclePlay, LogIn, LogOut, User } from "lucide-react";
@@ -34,12 +33,10 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
-			<div className="font-medium">
-				<HighlightText
-					text={formatPersonLabel(row.original.employee)}
-					filterKeys="employee"
-				/>
-			</div>
+			<TablePerson
+				person={{ ...row.original.employee, id: row.original.employeeId }}
+				nameFilterKeys="employee"
+			/>
 		),
 	},
 	{
@@ -47,9 +44,9 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Entrata" icon={LogIn} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, { stacked: true }),
 		cell: ({ row }) => (
-			<div className="font-medium">{formatDateTimeIt(row.original.entranceTime)}</div>
+			<TableDateTime value={row.original.entranceTime} />
 		),
 	},
 	{
@@ -57,11 +54,11 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Uscita" icon={LogOut} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, { stacked: true }),
 		cell: ({ row }) => {
 			const exitTime = row.original.exitTime;
 			return exitTime ? (
-				<div className="font-medium">{formatDateTimeIt(exitTime)}</div>
+				<TableDateTime value={exitTime} />
 			) : (
 				<DomainBadge label="In corso" tone="info" icon={CirclePlay} />
 			);

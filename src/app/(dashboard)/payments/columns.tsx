@@ -5,17 +5,17 @@ import {
 	MoneyTone,
 	NumericCell,
 } from "@/components/ui/domain-badge";
+import { TableDate, TableId } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { HighlightText } from "@/components/ui/highlight-text";
 import { Input } from "@/components/ui/input";
 import type { PaymentRow } from "@/data-access/payments";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { PAYMENT_TYPE_TONE } from "@/lib/domain/visual";
-import { formatDateIt, formatDateTimeIt, formatEur } from "@/lib/format";
+import { formatDateTimeIt, formatEur } from "@/lib/format";
 import { PaymentType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Banknote, Calendar, FileText, Hash, Tag } from "lucide-react";
@@ -127,9 +127,7 @@ export const columns = (
 			<TableSortableHeader column={column} title="Data" icon={Calendar} />
 		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<div className="font-medium">{formatDateIt(row.original.date)}</div>
-		),
+		cell: ({ row }) => <TableDate value={row.original.date} />,
 	},
 	{
 		accessorKey: "amount",
@@ -175,9 +173,7 @@ export const columns = (
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">
-				<HighlightText text={String(row.original.id)} filterKeys="id" />
-			</div>
+			<TableId value={row.original.id} filterKeys="id" />
 		),
 	},
 	{

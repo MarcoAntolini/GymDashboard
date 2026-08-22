@@ -180,16 +180,19 @@ function DataTableRow<TData>({
 			getColumnPinningStyle(cell.column),
 			rowSticky
 		);
+		const stacked = cell.column.columnDef.meta?.stacked === true;
 		const skipOverflow =
 			cell.column.id === ACTIONS_COLUMN_ID ||
 			cell.column.id === SELECT_COLUMN_ID ||
+			stacked ||
 			cell.column.columnDef.meta?.noCellOverflow === true;
 		const rendered = flexRender(cell.column.columnDef.cell, cell.getContext());
 		return (
 			<TableCell
 				key={cell.id}
 				className={cn(
-					"box-border h-12 max-h-12 overflow-hidden whitespace-nowrap py-0",
+					"box-border h-12 max-h-12 overflow-hidden py-0",
+					!stacked && "whitespace-nowrap",
 					colPinned && "shadow-[inset_-1px_0_0] shadow-border",
 					rowPinned === "top" && "shadow-[inset_0_-1px_0] shadow-border",
 					selected
