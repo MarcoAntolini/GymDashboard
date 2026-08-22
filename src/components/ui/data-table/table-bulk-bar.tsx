@@ -145,42 +145,44 @@ export function TableBulkBar<TData>({
 
 	return (
 		<>
-			{count > 0 ? (
-				<div className="flex min-h-8 flex-wrap items-center gap-2 text-sm">
-					<span className="font-medium tabular-nums">
-						{count} selezionat{count === 1 ? "o" : "i"}
-					</span>
-					{availableExtra.map((action) => (
+			<div className="flex min-h-9 flex-wrap items-center gap-2 text-sm">
+				{count > 0 ? (
+					<>
+						<span className="font-medium tabular-nums">
+							{count} selezionat{count === 1 ? "o" : "i"}
+						</span>
+						{availableExtra.map((action) => (
+							<Button
+								key={action.id}
+								type="button"
+								size="sm"
+								variant={action.variant === "destructive" ? "destructive" : "secondary"}
+								onClick={() => setPendingAction(action.id)}
+							>
+								{action.label}
+							</Button>
+						))}
+						{bulkDeleteRow ? (
+							<Button
+								type="button"
+								size="sm"
+								variant="destructive"
+								onClick={() => setPendingAction("delete")}
+							>
+								Elimina
+							</Button>
+						) : null}
 						<Button
-							key={action.id}
 							type="button"
 							size="sm"
-							variant={action.variant === "destructive" ? "destructive" : "secondary"}
-							onClick={() => setPendingAction(action.id)}
+							variant="ghost"
+							onClick={onClearSelection}
 						>
-							{action.label}
+							Annulla selezione
 						</Button>
-					))}
-					{bulkDeleteRow ? (
-						<Button
-							type="button"
-							size="sm"
-							variant="destructive"
-							onClick={() => setPendingAction("delete")}
-						>
-							Elimina
-						</Button>
-					) : null}
-					<Button
-						type="button"
-						size="sm"
-						variant="ghost"
-						onClick={onClearSelection}
-					>
-						Annulla selezione
-					</Button>
-				</div>
-			) : null}
+					</>
+				) : null}
+			</div>
 
 			<AlertDialog
 				open={pendingAction != null}
