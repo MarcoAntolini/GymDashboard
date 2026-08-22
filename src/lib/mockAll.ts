@@ -16,6 +16,18 @@ import { mockProducts } from "./mocks/mockProducts";
 import { mockSales } from "./mocks/mockSales";
 import { mockSalaries } from "./mocks/mockSalaries";
 
+export async function hasExistingData() {
+	const [clients, employees, products, payments, sales, entrances] = await Promise.all([
+		db.client.count(),
+		db.employee.count(),
+		db.product.count(),
+		db.payment.count(),
+		db.sale.count(),
+		db.entrance.count(),
+	]);
+	return clients + employees + products + payments + sales + entrances > 0;
+}
+
 export async function mockAllData() {
 	if (process.env.NODE_ENV !== "development") {
 		throw new Error("mockAllData is development-only");

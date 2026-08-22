@@ -1,9 +1,25 @@
-import { mockAllData } from "@/lib/mockAll";
+import { hasExistingData, mockAllData } from "@/lib/mockAll";
 import { NextResponse } from "next/server";
+
+function notFound() {
+	return NextResponse.json({ message: "Non trovato" }, { status: 404 });
+}
+
+export async function GET() {
+	if (process.env.NODE_ENV !== "development") {
+		return notFound();
+	}
+	try {
+		return NextResponse.json({ hasExistingData: await hasExistingData() });
+	} catch (error) {
+		console.error("Error checking existing data:", error);
+		return NextResponse.json({ message: "Errore nel controllo dei dati esistenti" }, { status: 500 });
+	}
+}
 
 export async function POST() {
 	if (process.env.NODE_ENV !== "development") {
-		return NextResponse.json({ message: "Non trovato" }, { status: 404 });
+		return notFound();
 	}
 	try {
 		await mockAllData();
