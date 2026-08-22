@@ -1,6 +1,7 @@
 "use client";
 
 import { HighlightText } from "@/components/ui/highlight-text";
+import { OverflowText } from "@/components/ui/overflow-text";
 import { formatPersonName } from "@/lib/domain/labels";
 import { formatDateIt, formatTimeIt } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -107,11 +108,35 @@ export function TableDateTime({
 	return (
 		<time
 			dateTime={isoDate(value)}
-			className={cn("flex min-w-0 flex-col justify-center leading-tight", className)}
+			className={cn("flex min-w-0 w-full flex-col justify-center leading-tight", className)}
 		>
-			<span className={cn(META, "text-xs")}>{formatDateIt(value)}</span>
-			<span className="tabular-nums text-foreground">{formatTimeIt(value)}</span>
+			<OverflowText always fit="line" className={cn(META, "text-xs")}>
+				{formatDateIt(value)}
+			</OverflowText>
+			<OverflowText always fit="line" className="tabular-nums text-foreground">
+				{formatTimeIt(value)}
+			</OverflowText>
 		</time>
+	);
+}
+
+/** Due righe (es. indirizzo / contatto). Tooltip per riga, anche se non troncata. */
+export function TableStackedPair({
+	primary,
+	secondary,
+}: {
+	primary: string;
+	secondary: string;
+}) {
+	return (
+		<div className="flex min-w-0 w-full flex-col justify-center leading-tight">
+			<OverflowText always fit="line" className="text-foreground">
+				{primary}
+			</OverflowText>
+			<OverflowText always fit="line" className={cn(META, "text-xs")}>
+				{secondary}
+			</OverflowText>
+		</div>
 	);
 }
 

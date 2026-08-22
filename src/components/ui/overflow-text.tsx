@@ -69,10 +69,16 @@ export function OverflowText({
 	children,
 	className,
 	tooltipClassName,
+	always = false,
+	fit = "cell",
 }: {
 	children: React.ReactNode;
 	className?: string;
 	tooltipClassName?: string;
+	/** Tooltip al hover anche se la riga non è troncata (celle stacked / testi lunghi). */
+	always?: boolean;
+	/** `line` = riga in cella stacked, senza riempire l’altezza della cella. */
+	fit?: "cell" | "line";
 }) {
 	const visibleRef = React.useRef<HTMLDivElement>(null);
 	const [open, setOpen] = React.useState(false);
@@ -89,7 +95,7 @@ export function OverflowText({
 		const el = visibleRef.current;
 		if (!el) return;
 		const text = (el.innerText ?? "").replace(/\s+/g, " ").trim();
-		if (!text || !isOverflowing(el)) {
+		if (!text || (!always && !isOverflowing(el))) {
 			setOpen(false);
 			return;
 		}
@@ -102,7 +108,7 @@ export function OverflowText({
 			side,
 		});
 		setOpen(true);
-	}, []);
+	}, [always]);
 
 	React.useEffect(() => {
 		if (!open) return;
@@ -115,7 +121,10 @@ export function OverflowText({
 
 	return (
 		<div
-			className="relative flex h-full min-w-0 w-full max-w-full items-center"
+			className={cn(
+				"relative min-w-0 w-full max-w-full",
+				fit === "cell" && "flex h-full items-center"
+			)}
 			onMouseEnter={tryOpen}
 			onMouseLeave={close}
 		>

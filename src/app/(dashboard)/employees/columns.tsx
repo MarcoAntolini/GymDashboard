@@ -1,6 +1,7 @@
 "use client";
 
 import { TableCode, TableDate, TableId } from "@/components/ui/data-table/table-cells";
+import { contactAddressColumns } from "@/components/ui/data-table/table-contact-address-columns";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Briefcase, Calendar, Hash, IdCard, MapPin, User } from "lucide-react";
+import { Briefcase, Calendar, Hash, IdCard, User } from "lucide-react";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -74,26 +75,7 @@ export const columns = (
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableDate value={row.original.birthDate} />,
 	},
-	{
-		accessorKey: "city",
-		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Città" icon={MapPin} />
-		),
-		meta: columnMeta(ColumnClass.Native),
-		filterFn: (row, id, value) => {
-			return value.includes(row.getValue(id));
-		},
-	},
-	{
-		accessorKey: "province",
-		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Provincia" icon={MapPin} />
-		),
-		meta: columnMeta(ColumnClass.Native),
-		filterFn: (row, id, value) => {
-			return value.includes(row.getValue(id));
-		},
-	},
+	...contactAddressColumns<Employee>(),
 	{
 		accessorKey: "hiringDate",
 		header: ({ column }) => (

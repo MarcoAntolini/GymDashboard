@@ -7,8 +7,6 @@ export const EMPLOYEE_SORT_ALLOWLIST = [
 	"name",
 	"surname",
 	"birthDate",
-	"city",
-	"province",
 	"hiringDate",
 ] as const;
 

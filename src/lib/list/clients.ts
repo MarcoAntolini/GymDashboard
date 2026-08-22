@@ -7,8 +7,6 @@ export const CLIENT_SORT_ALLOWLIST = [
 	"name",
 	"surname",
 	"birthDate",
-	"city",
-	"province",
 	"enrollmentDate",
 ] as const;
 

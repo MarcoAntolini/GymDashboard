@@ -55,6 +55,8 @@ export const COLUMN_LABELS: Record<string, string> = {
 	paymentAmount: "Importo pagamento",
 	paymentDate: "Data pagamento",
 	paymentId: "ID Pagamento",
+	address: "Indirizzo",
+	contact: "Contatto",
 };
 
 export function columnLabel(columnId: string): string {

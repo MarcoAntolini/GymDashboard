@@ -239,7 +239,7 @@ function DataTableRow<TData>({
 						{rendered}
 					</div>
 				) : (
-					<OverflowText>{rendered}</OverflowText>
+					<OverflowText always>{rendered}</OverflowText>
 				)}
 			</TableCell>
 		);
