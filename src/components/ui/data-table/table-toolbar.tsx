@@ -259,9 +259,6 @@ export default function TableToolbar<TData>({
 							>
 								<SheetHeader className="flex flex-col gap-1 pr-8 text-left">
 									<SheetTitle>Filtri</SheetTitle>
-									<SheetDescription>
-										Chiudi senza Applica per scartare le modifiche.
-									</SheetDescription>
 								</SheetHeader>
 								<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-1">
 									{textFilters.map((filter) => {
