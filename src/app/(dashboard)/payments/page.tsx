@@ -246,7 +246,11 @@ export default function PaymentsPage() {
 										type="number"
 										step="0.01"
 										{...field}
-										onChange={(e) => field.onChange(parseFloat(e.target.value))}
+										value={field.value ?? ""}
+										onChange={(e) => {
+											const raw = e.target.value;
+											field.onChange(raw === "" ? undefined : Number.parseFloat(raw));
+										}}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -292,7 +296,13 @@ export default function PaymentsPage() {
 														<Input
 															type="number"
 															{...field}
-															onChange={(e) => field.onChange(parseInt(e.target.value))}
+															value={field.value ?? ""}
+															onChange={(e) => {
+																const raw = e.target.value;
+																field.onChange(
+																	raw === "" ? undefined : Number.parseInt(raw, 10)
+																);
+															}}
 														/>
 													</FormControl>
 													<FormMessage />
@@ -310,7 +320,7 @@ export default function PaymentsPage() {
 													<FormItem>
 														<FormLabel>Descrizione</FormLabel>
 														<FormControl>
-															<Input {...field} />
+															<Input {...field} value={field.value ?? ""} />
 														</FormControl>
 														<FormMessage />
 													</FormItem>
@@ -322,7 +332,7 @@ export default function PaymentsPage() {
 													<FormItem>
 														<FormLabel>Fornitore</FormLabel>
 														<FormControl>
-															<Input {...field} />
+															<Input {...field} value={field.value ?? ""} />
 														</FormControl>
 														<FormMessage />
 													</FormItem>
@@ -339,7 +349,7 @@ export default function PaymentsPage() {
 													<FormItem>
 														<FormLabel>Descrizione</FormLabel>
 														<FormControl>
-															<Input {...field} />
+															<Input {...field} value={field.value ?? ""} />
 														</FormControl>
 														<FormMessage />
 													</FormItem>
@@ -351,7 +361,7 @@ export default function PaymentsPage() {
 													<FormItem>
 														<FormLabel>Produttore</FormLabel>
 														<FormControl>
-															<Input {...field} />
+															<Input {...field} value={field.value ?? ""} />
 														</FormControl>
 														<FormMessage />
 													</FormItem>
@@ -413,6 +423,10 @@ export default function PaymentsPage() {
 					date: new Date(),
 					amount: 0,
 					type: PaymentType.Salary,
+					employeeId: undefined,
+					description: "",
+					provider: "",
+					maker: "",
 				},
 				submitAction: handleCreatePayment,
 			},
