@@ -53,7 +53,7 @@ export const links: NavSection[] = [
 	},
 	{
 		section: "Listino",
-		group: linksFor(["/products", "/memberships", "/entrance-sets", "/catalogs"]),
+		group: linksFor(["/products", "/catalogs"]),
 	},
 	{
 		section: "Movimenti",

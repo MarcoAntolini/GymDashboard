@@ -123,8 +123,12 @@ export default function SalesPage() {
 
 	const filteredProducts = useMemo(
 		() =>
-			products.filter((product) =>
-				selectedType === ProductKind.Membership ? product.membership : product.entranceSet
+			products.filter(
+				(product) =>
+					product.active &&
+					(selectedType === ProductKind.Membership
+						? product.membership
+						: product.entranceSet)
 			),
 		[products, selectedType]
 	);
@@ -299,6 +303,9 @@ export default function SalesPage() {
 										{filteredProducts.map((product) => (
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}
+												{product.description
+													? ` — ${product.description}`
+													: ""}
 												{selectedType === ProductKind.Membership
 													? ` (${product.membership?.duration} giorni)`
 													: ` (${product.entranceSet?.entranceNumber} ingressi)`}

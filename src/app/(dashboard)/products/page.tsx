@@ -1,9 +1,10 @@
 "use client";
 
-import Dashboard from "@/components/ui/dashboard";
+import Dashboard, { Action, FormData } from "@/components/ui/dashboard";
 import { DataTable } from "@/components/ui/data-table";
 import { TableEmptyState } from "@/components/ui/data-table/table-empty-state";
 import {
+	createProduct,
 	deleteProduct,
 	editProduct,
 	listProducts,
@@ -11,13 +12,17 @@ import {
 import { useServerList } from "@/hooks/useServerList";
 import {
 	PRODUCT_DEFAULT_SORT,
+	PRODUCT_FACETED_FILTERS,
 	PRODUCT_FILTER_ALLOWLIST,
 	PRODUCT_FILTER_LABELS,
 	PRODUCT_SORT_ALLOWLIST,
 } from "@/lib/list/products";
-import Link from "next/link";
+import { ProductKind } from "@/lib/domain/product-kind";
+import { PlusCircle } from "lucide-react";
 import { useCallback } from "react";
-import { columns, type ProductRow } from "./columns";
+import { z } from "zod";
+import { columns, formSchema, type ProductRow } from "./columns";
+import { ProductFormFields } from "./product-form-fields";
 
 export default function ProductsPage() {
 	const list = useServerList<ProductRow>({
@@ -37,41 +42,49 @@ export default function ProductsPage() {
 	);
 
 	const handleEdit = useCallback(
-		async (product: ProductRow) => {
-			const updated = await editProduct({ code: product.code });
+		async (product: z.infer<typeof formSchema>) => {
+			const updated = await editProduct(product);
 			setItems((prev) =>
 				prev.map((item) =>
-					item.code === updated.code
-						? { ...item, code: updated.code }
-						: item
+					item.code === updated.code ? updated : item
 				)
 			);
 		},
 		[setItems]
 	);
 
+	const handleCreate = useCallback(
+		async (values: z.infer<typeof formSchema>) => {
+			await createProduct(values);
+			refetch();
+		},
+		[refetch]
+	);
+
+	const actions: Action[] = [
+		{
+			title: "Aggiungi prodotto",
+			description:
+				"Definisci il prodotto e i dettagli specifici per Abbonamento o Pacchetto ingressi.",
+			icon: PlusCircle,
+			dialogContent: <ProductFormFields />,
+			formData: {
+				formSchema,
+				defaultValues: {
+					code: "",
+					kind: ProductKind.Membership,
+					description: "",
+					detail: 30,
+					active: true,
+				},
+				submitAction: handleCreate,
+			} as FormData<typeof formSchema>,
+		},
+	];
+
 	return (
 		<Dashboard
-			actions={[]}
-			extraToolbar={
-				<p className="text-sm text-muted-foreground">
-					I Prodotti si creano da{" "}
-					<Link
-						href="/memberships"
-						className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
-					>
-						Abbonamenti
-					</Link>{" "}
-					o{" "}
-					<Link
-						href="/entrance-sets"
-						className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
-					>
-						Pacchetti ingressi
-					</Link>
-					.
-				</p>
-			}
+			actions={actions}
 			table={
 				<DataTable
 					columns={columns(handleDelete, handleEdit)}
@@ -86,11 +99,12 @@ export default function ProductsPage() {
 					error={list.error}
 					onRetry={list.refetch}
 					filters={[...PRODUCT_FILTER_ALLOWLIST]}
+					facetedFilters={[...PRODUCT_FACETED_FILTERS]}
 					filterLabels={PRODUCT_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState
 							title="Nessun prodotto"
-							hint="Crea un Abbonamento o un Pacchetto ingressi: il Prodotto correlato compare qui."
+							hint="Usa Aggiungi prodotto per creare un Abbonamento o un Pacchetto ingressi."
 						/>
 					}
 					serverList={{

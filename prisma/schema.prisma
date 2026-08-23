@@ -178,7 +178,9 @@ model Sale {
 }
 
 model Product {
-  code String @map("codice")
+  code        String  @map("codice")
+  description String  @default("") @map("descrizione")
+  active      Boolean @default(true) @map("attivo")
 
   membership  Membership?
   sales       Sale[]

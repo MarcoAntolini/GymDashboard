@@ -52,6 +52,8 @@ export const COLUMN_LABELS: Record<string, string> = {
 	entranceNumber: "Numero ingressi",
 	hiringDate: "Data assunzione",
 	kind: "Tipo",
+	detail: "Dettagli",
+	active: "Stato",
 	paymentAmount: "Importo pagamento",
 	paymentDate: "Data pagamento",
 	paymentId: "ID Pagamento",

@@ -1,10 +1,19 @@
-import type { ListSort } from "@/lib/list";
+import type { ListFacetedFilter, ListSort } from "@/lib/list";
+import {
+	PRODUCT_KIND_LABEL,
+	ProductKind,
+} from "@/lib/domain/product-kind";
 
 /** Colonne ammesse in ORDER BY (native; `kind` è derivato → escluso). */
-export const PRODUCT_SORT_ALLOWLIST = ["code"] as const;
+export const PRODUCT_SORT_ALLOWLIST = ["code", "description", "active"] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
-export const PRODUCT_FILTER_ALLOWLIST = ["code"] as const;
+export const PRODUCT_FILTER_ALLOWLIST = [
+	"code",
+	"description",
+	"kind",
+	"active",
+] as const;
 
 /** Placeholder toolbar. */
 export const PRODUCT_FILTER_LABELS: Record<
@@ -12,7 +21,35 @@ export const PRODUCT_FILTER_LABELS: Record<
 	string
 > = {
 	code: "Codice prodotto",
+	description: "Descrizione",
+	kind: "Tipo",
+	active: "Stato",
 };
+
+export const PRODUCT_FACETED_FILTERS: ListFacetedFilter[] = [
+	{
+		key: "kind",
+		title: "Tipo",
+		options: [
+			{
+				label: PRODUCT_KIND_LABEL[ProductKind.Membership],
+				value: ProductKind.Membership,
+			},
+			{
+				label: PRODUCT_KIND_LABEL[ProductKind.EntranceSet],
+				value: ProductKind.EntranceSet,
+			},
+		],
+	},
+	{
+		key: "active",
+		title: "Stato",
+		options: [
+			{ label: "Attivo", value: "true" },
+			{ label: "Archiviato", value: "false" },
+		],
+	},
+];
 
 export const PRODUCT_DEFAULT_SORT: readonly ListSort[] = [
 	{ id: "code", desc: false },

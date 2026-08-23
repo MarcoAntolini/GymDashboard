@@ -215,10 +215,14 @@ function SaleRowActions({
 	);
 	const filteredProducts = useMemo(
 		() =>
-			products.filter((product) =>
-				selectedType === ProductKind.Membership ? product.membership : product.entranceSet
+			products.filter(
+				(product) =>
+					(product.active || product.code === sale.productCode) &&
+					(selectedType === ProductKind.Membership
+						? product.membership
+						: product.entranceSet)
 			),
-		[products, selectedType]
+		[products, sale.productCode, selectedType]
 	);
 
 	return (
@@ -309,9 +313,13 @@ function SaleRowActions({
 										{filteredProducts.map((product) => (
 											<SelectItem key={product.code} value={product.code}>
 												{product.code}
+												{product.description
+													? ` — ${product.description}`
+													: ""}
 												{selectedType === ProductKind.Membership
 													? ` (${product.membership?.duration} gg)`
 													: ` (${product.entranceSet?.entranceNumber} ingressi)`}
+												{product.active ? "" : " · archiviato"}
 											</SelectItem>
 										))}
 									</SelectContent>

@@ -92,8 +92,11 @@ export const MUTATION_ALLOWLIST = {
 	},
 	product: {
 		code: { create: true, update: true },
+		description: { create: true, update: true },
+		active: { create: true, update: true },
 		type: { immutable: true },
-		kind: { immutable: true },
+		kind: { create: true, update: true },
+		detail: { create: true, update: true },
 		membership: { strip: true },
 		entranceSet: { strip: true },
 	},

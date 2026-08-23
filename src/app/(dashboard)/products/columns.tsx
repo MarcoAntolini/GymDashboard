@@ -1,33 +1,47 @@
 "use client";
 
 import { TableCode } from "@/components/ui/data-table/table-cells";
-import { DotBadge } from "@/components/ui/domain-badge";
+import {
+	DomainBadge,
+	DotBadge,
+	NumericCell,
+} from "@/components/ui/domain-badge";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { OverflowText } from "@/components/ui/overflow-text";
+import type { ProductListRow } from "@/data-access/products";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
-	productKindFromProduct,
+	ProductKind,
 } from "@/lib/domain/product-kind";
 import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
-import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
+import { Archive } from "lucide-react";
 import { z } from "zod";
+import { ProductFormFields } from "./product-form-fields";
 
-export type ProductRow = Prisma.ProductGetPayload<{
-	include: { membership: true; entranceSet: true };
-}>;
+export type ProductRow = ProductListRow;
 
 export const formSchema = z.object({
 	code: z.string().min(1, "Il codice prodotto è obbligatorio"),
+	kind: z.enum([ProductKind.Membership, ProductKind.EntranceSet]),
+	description: z
+		.string()
+		.trim()
+		.min(1, "La descrizione è obbligatoria")
+		.max(191, "La descrizione può contenere al massimo 191 caratteri"),
+	detail: z
+		.number()
+		.int()
+		.positive("Il valore deve essere un intero positivo"),
+	active: z.boolean(),
 });
 
 export const columns = (
 	handleDelete: (product: Pick<ProductRow, "code">) => Promise<void>,
-	handleEdit: (product: ProductRow) => Promise<void>
+	handleEdit: (product: z.infer<typeof formSchema>) => Promise<void>
 ): ColumnDef<ProductRow>[] => [
 	{
 		accessorKey: "code",
@@ -40,20 +54,73 @@ export const columns = (
 		),
 	},
 	{
-		id: "kind",
-		accessorFn: (row) => {
-			const kind = productKindFromProduct(row);
-			return kind ? PRODUCT_KIND_LABEL[kind] : "—";
-		},
+		accessorKey: "kind",
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
-			const kind = productKindFromProduct(row.original);
-			if (!kind) return <div>—</div>;
+			const kind = row.original.kind;
+			if (!kind) return <DomainBadge label="Configurazione mancante" tone="warning" />;
 			return <DotBadge label={PRODUCT_KIND_LABEL[kind]} tone={PRODUCT_KIND_TONE[kind]} />;
 		},
+	},
+	{
+		accessorKey: "description",
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Descrizione"
+				icon={ATTR_ICON.description}
+			/>
+		),
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<OverflowText>{row.original.description || "—"}</OverflowText>
+		),
+	},
+	{
+		accessorKey: "detail",
+		enableSorting: false,
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Dettagli"
+				icon={ATTR_ICON.duration}
+				align="right"
+			/>
+		),
+		meta: columnMeta(ColumnClass.Derived),
+		cell: ({ row }) => (
+			<NumericCell muted>
+				{row.original.detail == null
+					? "—"
+					: row.original.kind === ProductKind.Membership
+						? `${row.original.detail} gg`
+						: `${row.original.detail} ingressi`}
+			</NumericCell>
+		),
+	},
+	{
+		accessorKey: "active",
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Stato"
+				icon={ATTR_ICON.approved}
+			/>
+		),
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) =>
+			row.original.active ? (
+				<DomainBadge
+					label="Attivo"
+					tone="success"
+					icon={ATTR_ICON.approved}
+				/>
+			) : (
+				<DomainBadge label="Archiviato" tone="muted" icon={Archive} />
+			),
 	},
 	{
 		id: "actions",
@@ -63,28 +130,11 @@ export const columns = (
 				formSchema={formSchema}
 				entityLabel="Prodotto"
 				deleteDescription="Se il Prodotto ha Vendite o voci di Listino collegati, l'eliminazione viene rifiutata (vincolo Restrict)."
-				editFormContent={
-					<>
-						<FormField
-							name="code"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Codice prodotto</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</>
-				}
+				editDescription="Aggiorna descrizione, dettagli e disponibilità del Prodotto."
+				editUnavailable={!row.original.kind}
+				editFormContent={<ProductFormFields editing />}
 				editAction={async ({ values }) => {
-					const updatedProduct = {
-						...row.original,
-						...values,
-					};
-					await handleEdit(updatedProduct);
+					await handleEdit(values);
 				}}
 				deleteAction={() => handleDelete({ code: row.original.code })}
 			/>

@@ -16,7 +16,11 @@ import {
 	PRODUCT_FILTER_ALLOWLIST,
 	PRODUCT_SORT_ALLOWLIST,
 } from "@/lib/list/products";
-import { Prisma, Product } from "@prisma/client";
+import {
+	ProductKind,
+	productKindFromProduct,
+} from "@/lib/domain/product-kind";
+import { Prisma } from "@prisma/client";
 
 const PRODUCT_HAS_DEPENDENTS_MESSAGE =
 	"Impossibile eliminare il Prodotto: esistono Vendite o voci di Listino collegate (vincolo Restrict).";
@@ -26,9 +30,36 @@ const productInclude = {
 	entranceSet: true,
 } as const;
 
-export type ProductListRow = Prisma.ProductGetPayload<{
+type ProductRecord = Prisma.ProductGetPayload<{
 	include: typeof productInclude;
 }>;
+
+export type ProductListRow = ProductRecord & {
+	kind: ProductKind | null;
+	detail: number | null;
+};
+
+export type ProductWriteInput = {
+	code: string;
+	description: string;
+	active: boolean;
+	kind: ProductKind;
+	detail: number;
+};
+
+function toProductListRow(product: ProductRecord): ProductListRow {
+	const kind = productKindFromProduct(product);
+	return {
+		...product,
+		kind,
+		detail:
+			kind === ProductKind.Membership
+				? product.membership?.duration ?? null
+				: kind === ProductKind.EntranceSet
+					? product.entranceSet?.entranceNumber ?? null
+					: null,
+	};
+}
 
 function buildProductWhere(filters: ListFilters): Prisma.ProductWhereInput {
 	const where: Prisma.ProductWhereInput = {};
@@ -37,6 +68,32 @@ function buildProductWhere(filters: ListFilters): Prisma.ProductWhereInput {
 		const value = code.trim();
 		if (value) where.code = { contains: value };
 	}
+	const description = filters.description;
+	if (typeof description === "string") {
+		const value = description.trim();
+		if (value) where.description = { contains: value };
+	}
+	const rawActive = Array.isArray(filters.active)
+		? filters.active
+		: typeof filters.active === "string"
+			? [filters.active]
+			: [];
+	if (rawActive.length === 1) {
+		where.active = rawActive[0] === "true";
+	}
+	const rawKinds = Array.isArray(filters.kind)
+		? filters.kind
+		: typeof filters.kind === "string"
+			? [filters.kind]
+			: [];
+	const kindConditions: Prisma.ProductWhereInput[] = [];
+	if (rawKinds.includes(ProductKind.Membership)) {
+		kindConditions.push({ membership: { isNot: null } });
+	}
+	if (rawKinds.includes(ProductKind.EntranceSet)) {
+		kindConditions.push({ entranceSet: { isNot: null } });
+	}
+	if (kindConditions.length) where.OR = kindConditions;
 	return where;
 }
 
@@ -68,17 +125,29 @@ export async function listProducts(
 			include: productInclude,
 		}),
 	]);
-	return buildListResult(items, total, query);
+	return buildListResult(items.map(toProductListRow), total, query);
 }
 
-export async function createProduct(input: Omit<Product, "id">) {
+export async function createProduct(input: ProductWriteInput) {
 	assertMutationPayload("product", "create", input);
-	const { code } = input;
-	return await db.product.create({
+	const { code, description, active, kind, detail } = input;
+	const product = await db.product.create({
 		data: {
 			code,
+			description,
+			active,
+			membership:
+				kind === ProductKind.Membership
+					? { create: { duration: detail } }
+					: undefined,
+			entranceSet:
+				kind === ProductKind.EntranceSet
+					? { create: { entranceNumber: detail } }
+					: undefined,
 		},
+		include: productInclude,
 	});
+	return toProductListRow(product);
 }
 
 export async function getAllProducts() {
@@ -96,18 +165,39 @@ export async function getProduct(code: string) {
 	});
 }
 
-export async function editProduct(input: Product) {
+export async function editProduct(input: ProductWriteInput) {
 	assertMutationPayload("product", "update", input);
-	const { code } = input;
-	return await db.product.update({
-		where: {
-			code,
-		},
-		data: {
-			code,
-		},
-		include: productInclude,
+	const { code, description, active, kind, detail } = input;
+	const updated = await db.$transaction(async (tx) => {
+		const current = await tx.product.findUnique({
+			where: { code },
+			include: productInclude,
+		});
+		if (!current) throw new Error(`Prodotto non trovato: ${code}`);
+		if (productKindFromProduct(current) !== kind) {
+			throw new Error("Il tipo del Prodotto non può essere modificato");
+		}
+		await tx.product.update({
+			where: { code },
+			data: { description, active },
+		});
+		if (kind === ProductKind.Membership) {
+			await tx.membership.update({
+				where: { productCode: code },
+				data: { duration: detail },
+			});
+		} else {
+			await tx.entranceSet.update({
+				where: { productCode: code },
+				data: { entranceNumber: detail },
+			});
+		}
+		return tx.product.findUniqueOrThrow({
+			where: { code },
+			include: productInclude,
+		});
 	});
+	return toProductListRow(updated);
 }
 
 export async function deleteProduct({ code }: { code: string }) {

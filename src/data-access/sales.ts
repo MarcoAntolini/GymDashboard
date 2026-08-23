@@ -207,13 +207,21 @@ type SaleWriteInput = {
 	productCode: string;
 };
 
-async function resolveSnapshot(productCode: string) {
+async function resolveSnapshot(
+	productCode: string,
+	{ allowArchived = false }: { allowArchived?: boolean } = {}
+) {
 	const product = await db.product.findUnique({
 		where: { code: productCode },
 		include: { membership: true, entranceSet: true },
 	});
 	if (!product) {
 		throw new Error(`Prodotto non trovato: ${productCode}`);
+	}
+	if (!product.active && !allowArchived) {
+		throw new Error(
+			`Il Prodotto ${productCode} è archiviato e non può essere usato per una nuova Vendita`
+		);
 	}
 	return snapshotFromProduct(product);
 }
@@ -279,7 +287,14 @@ export async function getSale(id: number) {
 export async function editSale(input: SaleWriteInput & { id: number }) {
 	assertMutationPayload("sale", "update", input);
 	const { id, clientId, date, amount, productCode } = input;
-	const snapshot = await resolveSnapshot(productCode);
+	const current = await db.sale.findUnique({
+		where: { id },
+		select: { productCode: true },
+	});
+	if (!current) throw new Error(`Vendita non trovata: ${id}`);
+	const snapshot = await resolveSnapshot(productCode, {
+		allowArchived: current.productCode === productCode,
+	});
 	return toSaleListRow(
 		await db.sale.update({
 			where: { id },

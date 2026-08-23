@@ -18,6 +18,8 @@ export const MOCK_SCALE = {
 export type MockProductDefinition =
 	| {
 			code: string;
+			description: string;
+			active?: boolean;
 			kind: "membership";
 			duration: number;
 			basePrice: number;
@@ -25,6 +27,8 @@ export type MockProductDefinition =
 		}
 	| {
 			code: string;
+			description: string;
+			active?: boolean;
 			kind: "entranceSet";
 			entranceNumber: number;
 			basePrice: number;
@@ -32,19 +36,19 @@ export type MockProductDefinition =
 		};
 
 export const MOCK_PRODUCTS: readonly MockProductDefinition[] = [
-	{ code: "ABB-MENSILE", kind: "membership", duration: 30, basePrice: 59, weight: 9 },
-	{ code: "ABB-TRIMESTRALE", kind: "membership", duration: 90, basePrice: 159, weight: 10 },
-	{ code: "ABB-SEMESTRALE", kind: "membership", duration: 180, basePrice: 289, weight: 15 },
-	{ code: "ABB-ANNUALE", kind: "membership", duration: 365, basePrice: 519, weight: 24 },
-	{ code: "ABB-STUDENTI", kind: "membership", duration: 365, basePrice: 429, weight: 8 },
-	{ code: "ABB-OVER65", kind: "membership", duration: 365, basePrice: 399, weight: 4 },
-	{ code: "ABB-OFFPEAK", kind: "membership", duration: 180, basePrice: 229, weight: 5 },
-	{ code: "ABB-AZIENDALE", kind: "membership", duration: 365, basePrice: 459, weight: 3 },
-	{ code: "PAC-005", kind: "entranceSet", entranceNumber: 5, basePrice: 69, weight: 4 },
-	{ code: "PAC-010", kind: "entranceSet", entranceNumber: 10, basePrice: 129, weight: 7 },
-	{ code: "PAC-020", kind: "entranceSet", entranceNumber: 20, basePrice: 239, weight: 7 },
-	{ code: "PAC-030", kind: "entranceSet", entranceNumber: 30, basePrice: 329, weight: 3 },
-	{ code: "PAC-050", kind: "entranceSet", entranceNumber: 50, basePrice: 499, weight: 1 },
+	{ code: "ABB-MENSILE", description: "Abbonamento mensile", kind: "membership", duration: 30, basePrice: 59, weight: 9 },
+	{ code: "ABB-TRIMESTRALE", description: "Abbonamento trimestrale", kind: "membership", duration: 90, basePrice: 159, weight: 10 },
+	{ code: "ABB-SEMESTRALE", description: "Abbonamento semestrale", kind: "membership", duration: 180, basePrice: 289, weight: 15 },
+	{ code: "ABB-ANNUALE", description: "Abbonamento annuale", kind: "membership", duration: 365, basePrice: 519, weight: 24 },
+	{ code: "ABB-STUDENTI", description: "Tariffa studenti under 26", kind: "membership", duration: 365, basePrice: 429, weight: 8 },
+	{ code: "ABB-OVER65", description: "Tariffa over 65", kind: "membership", duration: 365, basePrice: 399, weight: 4 },
+	{ code: "ABB-OFFPEAK", description: "Accesso fascia oraria ridotta", active: false, kind: "membership", duration: 180, basePrice: 229, weight: 5 },
+	{ code: "ABB-AZIENDALE", description: "Convenzione aziendale", kind: "membership", duration: 365, basePrice: 459, weight: 3 },
+	{ code: "PAC-005", description: "Carnet 5 ingressi", kind: "entranceSet", entranceNumber: 5, basePrice: 69, weight: 4 },
+	{ code: "PAC-010", description: "Carnet 10 ingressi", kind: "entranceSet", entranceNumber: 10, basePrice: 129, weight: 7 },
+	{ code: "PAC-020", description: "Carnet 20 ingressi", kind: "entranceSet", entranceNumber: 20, basePrice: 239, weight: 7 },
+	{ code: "PAC-030", description: "Carnet 30 ingressi", kind: "entranceSet", entranceNumber: 30, basePrice: 329, weight: 3 },
+	{ code: "PAC-050", description: "Carnet 50 ingressi", kind: "entranceSet", entranceNumber: 50, basePrice: 499, weight: 1 },
 ] as const;
 
 const now = new Date();
