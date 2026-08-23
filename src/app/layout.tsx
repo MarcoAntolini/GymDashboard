@@ -1,5 +1,6 @@
 import { DesktopOnly } from "@/components/desktop-only";
 import { Header } from "@/components/header";
+import { MockDataLauncher } from "@/components/mock-data-launcher";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -31,6 +32,7 @@ export default function RootLayout({
 							{children}
 						</DesktopOnly>
 					</main>
+					{process.env.NODE_ENV === "development" ? <MockDataLauncher /> : null}
 					{/* <Footer /> */}
 					<Toaster richColors />
 				</ThemeProvider>

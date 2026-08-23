@@ -5,7 +5,6 @@ import {
 	AlertDialogAction,
 	AlertDialogCancel,
 	AlertDialogContent,
-	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
@@ -24,7 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ENTITY_ICON } from "@/lib/domain/icons";
-import { ArrowLeftFromLine, ArrowRightFromLine, Database, LogOut } from "lucide-react";
+import { ArrowLeftFromLine, ArrowRightFromLine, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -40,9 +39,7 @@ export default function DashboardLayout({
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [username, setUsername] = useState("");
 	const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
-	const [isMockConfirmOpen, setIsMockConfirmOpen] = useState(false);
 	const [isProfileOpen, setIsProfileOpen] = useState(false);
-	const [isGeneratingMock, setIsGeneratingMock] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -84,40 +81,6 @@ export default function DashboardLayout({
 			});
 	}
 
-	async function handleGenerateMockData() {
-		setIsGeneratingMock(true);
-		try {
-			const response = await fetch("/api/mock-data", { method: "POST" });
-			if (!response.ok) {
-				throw new Error("Generazione dati di prova non riuscita");
-			}
-			toast.success("Dati di prova generati");
-			router.refresh();
-		} catch {
-			toast.error("Errore nella generazione dei dati di prova");
-		} finally {
-			setIsGeneratingMock(false);
-		}
-	}
-
-	async function requestGenerateMockData() {
-		if (isGeneratingMock) return;
-		try {
-			const response = await fetch("/api/mock-data");
-			if (!response.ok) {
-				throw new Error("Controllo dati esistenti non riuscito");
-			}
-			const { hasExistingData } = (await response.json()) as { hasExistingData?: boolean };
-			if (hasExistingData) {
-				setIsMockConfirmOpen(true);
-				return;
-			}
-			await handleGenerateMockData();
-		} catch {
-			toast.error("Errore nella generazione dei dati di prova");
-		}
-	}
-
 	return (
 		<div className="box-border flex h-full min-h-0 min-w-0 flex-col p-4">
 			<TooltipProvider delayDuration={0}>
@@ -155,14 +118,6 @@ export default function DashboardLayout({
 												<ENTITY_ICON.account className="size-4" />
 												Profilo
 											</DropdownMenuItem>
-											<DropdownMenuItem
-												onClick={requestGenerateMockData}
-												disabled={isGeneratingMock}
-												className="flex items-center gap-3 cursor-pointer text-muted-foreground focus:text-muted-foreground"
-											>
-												<Database className="size-4" />
-												{isGeneratingMock ? "Generazione…" : "Dati di prova"}
-											</DropdownMenuItem>
 										</DropdownMenuGroup>
 										<DropdownMenuSeparator />
 										<DropdownMenuGroup>
@@ -193,26 +148,6 @@ export default function DashboardLayout({
 												className="bg-destructive hover:bg-destructive/90"
 											>
 												Esci
-											</AlertDialogAction>
-										</AlertDialogFooter>
-									</AlertDialogContent>
-								</AlertDialog>
-								<AlertDialog open={isMockConfirmOpen} onOpenChange={setIsMockConfirmOpen}>
-									<AlertDialogContent>
-										<AlertDialogHeader>
-											<AlertDialogTitle>Sostituire i dati esistenti?</AlertDialogTitle>
-											<AlertDialogDescription>
-												Nel sistema ci sono già dati. Generare i dati di prova cancellerà tutto
-												e lo sostituirà con record fittizi.
-											</AlertDialogDescription>
-										</AlertDialogHeader>
-										<AlertDialogFooter>
-											<AlertDialogCancel>Annulla</AlertDialogCancel>
-											<AlertDialogAction
-												onClick={handleGenerateMockData}
-												className="bg-destructive hover:bg-destructive/90"
-											>
-												Genera dati di prova
 											</AlertDialogAction>
 										</AlertDialogFooter>
 									</AlertDialogContent>
