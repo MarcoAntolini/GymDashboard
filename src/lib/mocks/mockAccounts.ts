@@ -1,6 +1,8 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { faker } from "./faker";
+import { MOCK_ROLE } from "./prisma-enums";
+import { chunksOf } from "./scenario";
 
 const SALT_ROUNDS = 10;
 const OWNER_USERNAME = "owner";
@@ -8,45 +10,76 @@ const OWNER_PASSWORD = "Password1";
 
 export async function mockAccounts(db: PrismaClient) {
 	console.log("Mocking accounts...");
-	const employees = await db.employee.findMany();
+	const employees = await db.employee.findMany({
+		where: { contracts: { some: { endingDate: null } } },
+		orderBy: { id: "asc" },
+	});
 
 	if (employees.length === 0) {
-		console.log("No employees found; skipping accounts.");
+		console.log("No active employees found; skipping accounts.");
 		return;
 	}
 
 	const [ownerEmployee, ...otherEmployees] = employees;
-	const ownerPasswordHash = await bcrypt.hash(OWNER_PASSWORD, SALT_ROUNDS);
+	const usernames = new Set([OWNER_USERNAME]);
+	const unapprovedEmployeeIds = new Set(
+		faker.helpers
+			.shuffle(otherEmployees.map((employee) => employee.id))
+			.slice(0, Math.min(2, otherEmployees.length))
+	);
 
-	await db.account.create({
-		data: {
+	const credentials = [
+		{
+			employee: ownerEmployee,
 			username: OWNER_USERNAME,
-			password: ownerPasswordHash,
-			role: Role.Owner,
+			plainPassword: OWNER_PASSWORD,
+			role: MOCK_ROLE.Owner,
 			approved: true,
-			employeeId: ownerEmployee.id,
 		},
-	});
+		...otherEmployees.map((employee) => {
+			const base =
+				`${employee.name}.${employee.surname}`
+					.normalize("NFD")
+					.replace(/[\u0300-\u036f]/g, "")
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, ".")
+					.replace(/^\.+|\.+$/g, "")
+					.slice(0, 24) || `dipendente${employee.id}`;
+			let username = base;
+			let suffix = 2;
+			while (usernames.has(username)) {
+				username = `${base.slice(0, 20)}${suffix}`;
+				suffix++;
+			}
+			usernames.add(username);
+			return {
+				employee,
+				username,
+				plainPassword: faker.internet.password({ length: 14 }),
+				role:
+					faker.number.int({ min: 1, max: 100 }) <= 15
+						? MOCK_ROLE.Admin
+						: MOCK_ROLE.Employee,
+				approved: !unapprovedEmployeeIds.has(employee.id),
+			};
+		}),
+	];
+	const rows: Prisma.AccountCreateManyInput[] = await Promise.all(
+		credentials.map(async ({ employee, plainPassword, ...account }) => ({
+			...account,
+			password: await bcrypt.hash(plainPassword, SALT_ROUNDS),
+			employeeId: employee.id,
+		}))
+	);
 
-	for (const employee of otherEmployees) {
-		const role = faker.helpers.arrayElement([Role.Admin, Role.Employee]);
-		const usernameBase = faker.internet
-			.username()
-			.toLowerCase()
-			.replace(/[^a-z0-9._]/g, "")
-			.slice(0, 20);
-		await db.account.create({
-			data: {
-				username: `${usernameBase}${faker.number.int({ min: 10, max: 99 })}`,
-				password: await bcrypt.hash(faker.internet.password(), SALT_ROUNDS),
-				role,
-				approved: role === Role.Admin ? true : faker.datatype.boolean(),
-				employeeId: employee.id,
-			},
-		});
+	for (const batch of chunksOf(rows)) {
+		// Prisma 7 does not currently translate mapped enum values in createMany.
+		await db.$transaction(
+			batch.map((data) => db.account.create({ data }))
+		);
 	}
 
 	console.log(
-		`Created ${employees.length} mock accounts (login Owner: ${OWNER_USERNAME} / ${OWNER_PASSWORD}).`
+		`Created ${rows.length} mock accounts for active personnel (${unapprovedEmployeeIds.size} awaiting approval; login Owner: ${OWNER_USERNAME} / ${OWNER_PASSWORD}).`
 	);
 }

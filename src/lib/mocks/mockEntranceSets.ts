@@ -1,18 +1,18 @@
 import { PrismaClient } from "@prisma/client";
-import { faker } from "./faker";
+import { MOCK_PRODUCTS } from "./scenario";
 
 export async function mockEntranceSets(db: PrismaClient) {
-  console.log("Mocking entrance sets...");
-  const products = await db.product.findMany({ where: { membership: null } });
+	console.log("Mocking entrance sets...");
+	const entranceSets = MOCK_PRODUCTS.filter(
+		(product) => product.kind === "entranceSet"
+	);
 
-  for (const product of products) {
-    await db.entranceSet.create({
-      data: {
-        productCode: product.code,
-        entranceNumber: faker.number.int({ min: 5, max: 50 }),
-      },
-    });
-  }
+	await db.entranceSet.createMany({
+		data: entranceSets.map(({ code, entranceNumber }) => ({
+			productCode: code,
+			entranceNumber,
+		})),
+	});
 
-  console.log(`Created ${products.length} mock entrance sets.`);
+	console.log(`Created ${entranceSets.length} mock entrance sets.`);
 }

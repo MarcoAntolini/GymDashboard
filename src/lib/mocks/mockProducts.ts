@@ -1,17 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import { italianProductCode } from "./italian";
+import { MOCK_PRODUCTS } from "./scenario";
 
 export async function mockProducts(db: PrismaClient) {
 	console.log("Mocking products...");
-	const productsToCreate = 40;
 
-	for (let i = 0; i < productsToCreate; i++) {
-		await db.product.create({
-			data: {
-				code: italianProductCode(i),
-			},
-		});
-	}
+	await db.product.createMany({
+		data: MOCK_PRODUCTS.map(({ code }) => ({ code })),
+	});
 
-	console.log(`Created ${productsToCreate} mock products.`);
+	console.log(`Created ${MOCK_PRODUCTS.length} mock products.`);
 }

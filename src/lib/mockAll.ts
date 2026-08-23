@@ -15,6 +15,7 @@ import { mockPayments } from "./mocks/mockPayments";
 import { mockProducts } from "./mocks/mockProducts";
 import { mockSales } from "./mocks/mockSales";
 import { mockSalaries } from "./mocks/mockSalaries";
+import { resetMockRandomness } from "./mocks/scenario";
 
 export async function hasExistingData() {
 	const [clients, employees, products, payments, sales, entrances] = await Promise.all([
@@ -33,6 +34,7 @@ export async function mockAllData() {
 		throw new Error("mockAllData is development-only");
 	}
 	console.log("Starting to mock all data...");
+	resetMockRandomness();
 
 	await clearAllData();
 

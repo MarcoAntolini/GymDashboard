@@ -2,7 +2,6 @@
 
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { PRODUCT_KIND_LABEL, ProductKind, productKindFromSnapshot } from "@/lib/domain/product-kind";
 import {
 	computeFidelityProxy,
@@ -65,12 +64,32 @@ export type OverviewStats = {
 	isEmpty: boolean;
 };
 
-const PAYMENT_TYPE_ORDER: PaymentType[] = [
-	PaymentType.Salary,
-	PaymentType.Bill,
-	PaymentType.Equipment,
-	PaymentType.Intervention,
-];
+const PAYMENT_TYPE_ORDER = ["Salary", "Bill", "Equipment", "Intervention"] as const;
+type PaymentTypeKey = (typeof PAYMENT_TYPE_ORDER)[number];
+
+const PAYMENT_TYPE_LABEL: Record<PaymentTypeKey, string> = {
+	Salary: "Stipendio",
+	Bill: "Bolletta",
+	Equipment: "Attrezzatura",
+	Intervention: "Intervento",
+};
+
+const PAYMENT_TYPE_KEY_BY_VALUE = new Map<string, PaymentTypeKey>([
+	["Salary", "Salary"],
+	["Bill", "Bill"],
+	["Equipment", "Equipment"],
+	["Intervention", "Intervention"],
+	[String(PaymentType.Salary), "Salary"],
+	[String(PaymentType.Bill), "Bill"],
+	[String(PaymentType.Equipment), "Equipment"],
+	[String(PaymentType.Intervention), "Intervention"],
+]);
+
+function paymentTypeKey(type: PaymentType): PaymentTypeKey {
+	const key = PAYMENT_TYPE_KEY_BY_VALUE.get(String(type));
+	if (!key) throw new Error(`Tipo pagamento non riconosciuto: ${String(type)}`);
+	return key;
+}
 
 const SALE_KIND_ORDER: ProductKind[] = [ProductKind.Membership, ProductKind.EntranceSet];
 
@@ -199,10 +218,11 @@ export async function getOverviewStats(preset: OverviewPeriodPreset): Promise<Ov
 	for (const row of payments) {
 		const amount = Number(row.amount);
 		uscite += amount;
-		const bucket = usciteByTypeMap.get(row.type) ?? { amount: 0, count: 0 };
+		const key = paymentTypeKey(row.type);
+		const bucket = usciteByTypeMap.get(key) ?? { amount: 0, count: 0 };
 		bucket.amount += amount;
 		bucket.count += 1;
-		usciteByTypeMap.set(row.type, bucket);
+		usciteByTypeMap.set(key, bucket);
 	}
 
 	const entrateByKind: OverviewBreakdownRow[] = SALE_KIND_ORDER.map((kind) => {

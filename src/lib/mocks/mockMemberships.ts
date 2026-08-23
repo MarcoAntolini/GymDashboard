@@ -1,20 +1,18 @@
 import { PrismaClient } from "@prisma/client";
-import { faker } from "./faker";
+import { MOCK_PRODUCTS } from "./scenario";
 
 export async function mockMemberships(db: PrismaClient) {
-  console.log("Mocking memberships...");
-  const products = await db.product.findMany({
-    where: { membership: null, entranceSet: null },
-  });
+	console.log("Mocking memberships...");
+	const memberships = MOCK_PRODUCTS.filter(
+		(product) => product.kind === "membership"
+	);
 
-  for (const product of products.slice(0, 10)) {
-    await db.membership.create({
-      data: {
-        productCode: product.code,
-        duration: faker.number.int({ min: 30, max: 365 }),
-      },
-    });
-  }
+	await db.membership.createMany({
+		data: memberships.map(({ code, duration }) => ({
+			productCode: code,
+			duration,
+		})),
+	});
 
-  console.log(`Created ${products.slice(0, 10).length} mock memberships.`);
+	console.log(`Created ${memberships.length} mock memberships.`);
 }

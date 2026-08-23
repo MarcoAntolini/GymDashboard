@@ -37,9 +37,14 @@ for (const file of files) {
 }
 
 const accounts = readFileSync(join(mocksDir, "mockAccounts.ts"), "utf8");
-assert.match(accounts, /Role\.Owner/);
+assert.match(accounts, /MOCK_ROLE\.Owner/);
 assert.match(accounts, /OWNER_USERNAME\s*=\s*"owner"/);
 assert.match(accounts, /OWNER_PASSWORD\s*=\s*"Password1"/);
+
+const prismaEnums = readFileSync(join(mocksDir, "prisma-enums.ts"), "utf8");
+assert.match(prismaEnums, /OpenEnded:\s*"OpenEnded"/);
+assert.match(prismaEnums, /Salary:\s*"Salary"/);
+assert.match(prismaEnums, /Owner:\s*"Owner"/);
 
 const italian = readFileSync(join(mocksDir, "italian.ts"), "utf8");
 assert.match(italian, /ITALIAN_PROVINCES/);
@@ -69,5 +74,11 @@ const employees = readFileSync(join(mocksDir, "mockEmployees.ts"), "utf8");
 assert.match(employees, /italianFirstName/);
 assert.match(employees, /italianLastName/);
 assert.doesNotMatch(employees, /faker\.person\.(firstName|lastName)/);
+
+const scenario = readFileSync(join(mocksDir, "scenario.ts"), "utf8");
+assert.match(scenario, /MOCK_SEED\s*=/, "mock generation must be reproducible");
+assert.match(scenario, /subYears\(now,\s*5\)/, "mock history must follow the current date");
+assert.match(scenario, /ABB-ANNUALE/, "realistic membership catalog is required");
+assert.match(scenario, /PAC-010/, "realistic entrance package catalog is required");
 
 console.log("smoke-mock-italian: ok");
