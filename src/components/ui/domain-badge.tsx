@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Ban, Minus, Ticket } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -133,11 +133,11 @@ export function RemainingEntrancesBadge({
 }) {
 	if (remaining == null) {
 		return (
-			<DomainBadge label="Non applicabile" tone="muted" icon={Minus} />
+			<DomainBadge label="Non applicabile" tone="muted" icon={ATTR_ICON.remainingEmpty} />
 		);
 	}
 	if (remaining <= 0) {
-		return <DomainBadge label="Esaurito" tone="destructive" icon={Ban} />;
+		return <DomainBadge label="Esaurito" tone="destructive" icon={ATTR_ICON.remainingExhausted} />;
 	}
 	const label =
 		snapshotN != null ? `${remaining} / ${snapshotN}` : `${remaining} rimanenti`;
@@ -145,7 +145,7 @@ export function RemainingEntrancesBadge({
 		<DomainBadge
 			label={label}
 			tone={remainingEntrancesTone(remaining)}
-			icon={Ticket}
+			icon={ENTITY_ICON.entrance}
 		/>
 	);
 }

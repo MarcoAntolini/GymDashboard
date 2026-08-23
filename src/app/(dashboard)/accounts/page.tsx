@@ -29,7 +29,8 @@ import {
 	ACCOUNT_FILTER_LABELS,
 } from "@/lib/list/accounts";
 import { Account, Employee } from "@prisma/client";
-import { BadgeCheck, PlusCircle } from "lucide-react";
+import { ATTR_ICON } from "@/lib/domain/icons";
+import { PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { ApprovalQueueToolbarButton } from "./approval-queue-sheet";
@@ -110,7 +111,7 @@ export default function Accounts() {
 			{
 				id: "approve",
 				label: "Approva",
-				icon: BadgeCheck,
+				icon: ATTR_ICON.approved,
 				variant: "success",
 				isAvailable: (rows) =>
 					rows.some((row) => {

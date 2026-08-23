@@ -25,7 +25,7 @@ import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
 import { Prisma } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { Banknote, Calendar, Hash, Package, Tag, Ticket, Timer, User } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 
@@ -53,7 +53,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={Hash} align="right" />
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -65,7 +65,7 @@ export const columns = (
 		accessorFn: (row) =>
 			`${row.client.surname} ${row.client.name} (#${row.clientId})`,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Cliente" icon={User} />
+			<TableSortableHeader column={column} title="Cliente" icon={ENTITY_ICON.client} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -79,7 +79,7 @@ export const columns = (
 	{
 		accessorKey: "date",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data" icon={Calendar} />
+			<TableSortableHeader column={column} title="Data" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableDate value={row.original.date} />,
@@ -90,7 +90,7 @@ export const columns = (
 			<TableSortableHeader
 				column={column}
 				title="Importo"
-				icon={Banknote}
+				icon={ATTR_ICON.amount}
 				align="right"
 			/>
 		),
@@ -105,7 +105,7 @@ export const columns = (
 		id: "type",
 		accessorFn: (row) => productKindFromSnapshot(row),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
@@ -120,7 +120,7 @@ export const columns = (
 	{
 		accessorKey: "productCode",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
+			<TableSortableHeader column={column} title="Codice prodotto" icon={ENTITY_ICON.product} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -133,7 +133,7 @@ export const columns = (
 			<TableSortableHeader
 				column={column}
 				title="Durata"
-				icon={Timer}
+				icon={ATTR_ICON.duration}
 				align="right"
 			/>
 		),
@@ -153,7 +153,7 @@ export const columns = (
 			<TableSortableHeader
 				column={column}
 				title="N ingressi"
-				icon={Hash}
+				icon={ENTITY_ICON.entrance}
 				align="right"
 			/>
 		),
@@ -171,7 +171,7 @@ export const columns = (
 			<TableSortableHeader
 				column={column}
 				title="Ingressi rimanenti"
-				icon={Ticket}
+				icon={ENTITY_ICON.entrance}
 				align="right"
 			/>
 		),

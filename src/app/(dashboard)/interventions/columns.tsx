@@ -14,7 +14,7 @@ import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatEur } from "@/lib/format";
 import { Intervention } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Banknote, Calendar, Clock, FileText, Hash, User } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -32,21 +32,21 @@ export const columns = (
 	{
 		accessorKey: "maker",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Attuatore" icon={User} />
+			<TableSortableHeader column={column} title="Attuatore" icon={ATTR_ICON.maker} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "description",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Descrizione" icon={FileText} />
+			<TableSortableHeader column={column} title="Descrizione" icon={ATTR_ICON.description} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "startingTime",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Inizio" icon={Clock} />
+			<TableSortableHeader column={column} title="Inizio" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native, { stacked: true }),
 		cell: ({ row }) => (
@@ -56,7 +56,7 @@ export const columns = (
 	{
 		accessorKey: "endingTime",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Fine" icon={Clock} />
+			<TableSortableHeader column={column} title="Fine" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native, { stacked: true }),
 		cell: ({ row }) => (
@@ -67,7 +67,7 @@ export const columns = (
 		id: "paymentDate",
 		accessorFn: (row) => row.payment.date,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data pagamento" icon={Calendar} />
+			<TableSortableHeader column={column} title="Data pagamento" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => <TableDate value={row.original.payment.date} />,
@@ -76,7 +76,7 @@ export const columns = (
 		id: "paymentAmount",
 		accessorFn: (row) => Number(row.payment.amount),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Importo" icon={Banknote} align="right" />
+			<TableSortableHeader column={column} title="Importo" icon={ATTR_ICON.amount} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -88,7 +88,7 @@ export const columns = (
 	{
 		accessorKey: "paymentId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID Pagamento" icon={Hash} align="right" />
+			<TableSortableHeader column={column} title="ID Pagamento" icon={ENTITY_ICON.payment} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

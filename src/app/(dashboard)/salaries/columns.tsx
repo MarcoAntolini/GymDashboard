@@ -15,7 +15,7 @@ import { formatPersonLabel } from "@/lib/domain/labels";
 import { formatEur } from "@/lib/format";
 import { Salary } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Banknote, Calendar, Hash, User } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -31,7 +31,7 @@ export const columns = (
 		id: "employee",
 		accessorFn: (row) => formatPersonLabel(row.employee),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Dipendente" icon={User} />
+			<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -45,7 +45,7 @@ export const columns = (
 		id: "paymentDate",
 		accessorFn: (row) => row.payment.date,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data pagamento" icon={Calendar} />
+			<TableSortableHeader column={column} title="Data pagamento" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => <TableDate value={row.original.payment.date} />,
@@ -54,7 +54,7 @@ export const columns = (
 		id: "paymentAmount",
 		accessorFn: (row) => Number(row.payment.amount),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Importo" icon={Banknote} align="right" />
+			<TableSortableHeader column={column} title="Importo" icon={ATTR_ICON.amount} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -66,7 +66,7 @@ export const columns = (
 	{
 		accessorKey: "paymentId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID Pagamento" icon={Hash} align="right" />
+			<TableSortableHeader column={column} title="ID Pagamento" icon={ENTITY_ICON.payment} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

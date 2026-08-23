@@ -25,7 +25,7 @@ import { CONTRACT_TYPE_TONE } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
 import { Contract, ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Banknote, Calendar, CirclePlay, FileText, Tag, User } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 import { ContractEndingDateField } from "./contract-ending-date-field";
 
@@ -67,7 +67,7 @@ export const columns = (
 		id: "employee",
 		accessorFn: (row) => formatPersonLabel(row.employee),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Dipendente" icon={User} />
+			<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -80,7 +80,7 @@ export const columns = (
 	{
 		accessorKey: "type",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -96,7 +96,7 @@ export const columns = (
 	{
 		accessorKey: "hourlyFee",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Compenso orario" icon={Banknote} align="right" />
+			<TableSortableHeader column={column} title="Compenso orario" icon={ATTR_ICON.amount} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -108,7 +108,7 @@ export const columns = (
 	{
 		accessorKey: "startingDate",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data inizio" icon={Calendar} />
+			<TableSortableHeader column={column} title="Data inizio" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableDate value={row.original.startingDate} />,
@@ -116,7 +116,7 @@ export const columns = (
 	{
 		accessorKey: "endingDate",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data fine" icon={FileText} />
+			<TableSortableHeader column={column} title="Data fine" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => {
@@ -124,7 +124,7 @@ export const columns = (
 			const open =
 				row.original.type === ContractType.OpenEnded || endingDate == null;
 			if (open || endingDate == null) {
-				return <DomainBadge label="In corso" tone="info" icon={CirclePlay} />;
+				return <DomainBadge label="In corso" tone="info" icon={ATTR_ICON.inProgress} />;
 			}
 			return <TableDate value={endingDate} />;
 		},

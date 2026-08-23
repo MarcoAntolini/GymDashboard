@@ -23,7 +23,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ArrowLeftFromLine, ArrowRightFromLine, Database, LogOut, User, UserRound } from "lucide-react";
+import { ENTITY_ICON } from "@/lib/domain/icons";
+import { ArrowLeftFromLine, ArrowRightFromLine, Database, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -142,7 +143,7 @@ export default function DashboardLayout({
 												"flex size-10 shrink-0 items-center justify-center p-0 px-0 [&>svg]:w-auto [&>span]:hidden"
 										)}
 									>
-										<User className="size-4" />
+										<ENTITY_ICON.account className="size-4" />
 										<span>{username}</span>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="start" className="w-56">
@@ -151,7 +152,7 @@ export default function DashboardLayout({
 												onClick={() => setIsProfileOpen(true)}
 												className="flex items-center gap-3 cursor-pointer"
 											>
-												<UserRound className="size-4" />
+												<ENTITY_ICON.account className="size-4" />
 												Profilo
 											</DropdownMenuItem>
 											<DropdownMenuItem

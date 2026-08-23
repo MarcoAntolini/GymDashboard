@@ -15,7 +15,8 @@ import {
 } from "@/data-access/accounts";
 import { canManageRole, roleAllows, roleLabelIt, type AppRole } from "@/data/nav-routes";
 import { toAppRole } from "@/lib/domain/roles";
-import { Check, Loader2, UserCheck, X } from "lucide-react";
+import { ATTR_ICON } from "@/lib/domain/icons";
+import { Check, Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -114,7 +115,7 @@ export function ApprovalQueueToolbarButton({
 				variant="ghost"
 				onClick={() => setOpen(true)}
 			>
-				<UserCheck className="mr-2 h-4 w-4 text-muted-foreground" />
+				<ATTR_ICON.approved className="mr-2 h-4 w-4 text-muted-foreground" />
 				Coda approvazione
 			</Button>
 			<Sheet

@@ -4,7 +4,7 @@ import { TableStackedPair } from "@/components/ui/data-table/table-cells";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { ColumnDef } from "@tanstack/react-table";
-import { Mail, MapPin } from "lucide-react";
+import { ATTR_ICON } from "@/lib/domain/icons";
 
 export type ContactAddressFields = {
 	street: string;
@@ -30,7 +30,7 @@ export function contactAddressColumns<T extends ContactAddressFields>(): ColumnD
 			accessorFn: (row) => `${lineStreet(row)} ${lineCity(row)}`,
 			enableSorting: false,
 			header: ({ column }) => (
-				<TableSortableHeader column={column} title="Indirizzo" icon={MapPin} />
+				<TableSortableHeader column={column} title="Indirizzo" icon={ATTR_ICON.address} />
 			),
 			meta: columnMeta(ColumnClass.Native, { stacked: true }),
 			size: 180,
@@ -47,7 +47,7 @@ export function contactAddressColumns<T extends ContactAddressFields>(): ColumnD
 			accessorFn: (row) => `${row.phoneNumber} ${row.email}`,
 			enableSorting: false,
 			header: ({ column }) => (
-				<TableSortableHeader column={column} title="Contatto" icon={Mail} />
+				<TableSortableHeader column={column} title="Contatto" icon={ATTR_ICON.contact} />
 			),
 			meta: columnMeta(ColumnClass.Native, { stacked: true }),
 			size: 176,

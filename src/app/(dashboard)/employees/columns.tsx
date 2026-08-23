@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Briefcase, Calendar, Hash, IdCard, User } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -36,7 +36,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={Hash} align="right" />
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -46,7 +46,7 @@ export const columns = (
 	{
 		accessorKey: "taxCode",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="CF" icon={IdCard} />
+			<TableSortableHeader column={column} title="CF" icon={ATTR_ICON.taxCode} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -56,21 +56,21 @@ export const columns = (
 	{
 		accessorKey: "name",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Nome" icon={User} />
+			<TableSortableHeader column={column} title="Nome" icon={ENTITY_ICON.employee} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "surname",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Cognome" icon={User} />
+			<TableSortableHeader column={column} title="Cognome" icon={ENTITY_ICON.employee} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "birthDate",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Nascita" icon={Calendar} />
+			<TableSortableHeader column={column} title="Nascita" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableDate value={row.original.birthDate} />,
@@ -79,7 +79,7 @@ export const columns = (
 	{
 		accessorKey: "hiringDate",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data assunzione" icon={Briefcase} />
+			<TableSortableHeader column={column} title="Data assunzione" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableDate value={row.original.hiringDate} />,

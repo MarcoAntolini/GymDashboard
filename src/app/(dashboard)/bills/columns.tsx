@@ -14,7 +14,7 @@ import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatEur } from "@/lib/format";
 import { Bill } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Banknote, Building2, Calendar, FileText, Hash } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -30,14 +30,14 @@ export const columns = (
 	{
 		accessorKey: "provider",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Fornitore" icon={Building2} />
+			<TableSortableHeader column={column} title="Fornitore" icon={ATTR_ICON.provider} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "description",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Descrizione" icon={FileText} />
+			<TableSortableHeader column={column} title="Descrizione" icon={ATTR_ICON.description} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
@@ -45,7 +45,7 @@ export const columns = (
 		id: "paymentDate",
 		accessorFn: (row) => row.payment.date,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data" icon={Calendar} />
+			<TableSortableHeader column={column} title="Data" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => <TableDate value={row.original.payment.date} />,
@@ -54,7 +54,7 @@ export const columns = (
 		id: "paymentAmount",
 		accessorFn: (row) => Number(row.payment.amount),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Importo" icon={Banknote} align="right" />
+			<TableSortableHeader column={column} title="Importo" icon={ATTR_ICON.amount} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -66,7 +66,7 @@ export const columns = (
 	{
 		accessorKey: "paymentId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID Pagamento" icon={Hash} align="right" />
+			<TableSortableHeader column={column} title="ID Pagamento" icon={ENTITY_ICON.payment} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

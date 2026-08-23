@@ -24,7 +24,8 @@ import { columnLabel } from "@/lib/domain/column-labels";
 import type { ListFacetedFilter, ListFilters } from "@/lib/list";
 import { cn } from "@/lib/utils";
 import { ColumnFiltersState, Table } from "@tanstack/react-table";
-import { Funnel, X } from "lucide-react";
+import { ATTR_ICON } from "@/lib/domain/icons";
+import { X } from "lucide-react";
 import * as React from "react";
 import { TableFacetedFilter } from "./table-faceted-filter";
 
@@ -241,7 +242,7 @@ export default function TableToolbar<TData>({
 						<Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
 							<SheetTrigger asChild>
 								<Button type="button" variant="outline">
-									<Funnel className="mr-2 h-4 w-4" />
+									<ATTR_ICON.filter className="mr-2 h-4 w-4" />
 									Filtri
 									{appliedCount > 0 ? (
 										<Badge

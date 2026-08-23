@@ -37,7 +37,8 @@ import { cn } from "@/lib/utils";
 import { Contract, ContractType, Employee } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatDateIt, formatEur } from "@/lib/format";
-import { Banknote, Calculator, Calendar as CalendarIcon, IdCard, PlusCircle, User } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
+import { Calculator, Calendar as CalendarIcon, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -425,7 +426,7 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		id: "employee",
 		accessorFn: (row) => formatPersonLabel(row.employee),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Dipendente" icon={User} />
+			<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -436,7 +437,7 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		id: "taxCode",
 		accessorFn: (row) => row.employee.taxCode,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="CF" icon={IdCard} />
+			<TableSortableHeader column={column} title="CF" icon={ATTR_ICON.taxCode} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -449,7 +450,7 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 			<TableSortableHeader
 				column={column}
 				title="Compenso orario"
-				icon={Banknote}
+				icon={ATTR_ICON.amount}
 				align="right"
 			/>
 		),

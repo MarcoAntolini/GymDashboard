@@ -14,7 +14,7 @@ import {
 import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Package, Tag } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export type ProductRow = Prisma.ProductGetPayload<{
@@ -32,7 +32,7 @@ export const columns = (
 	{
 		accessorKey: "code",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
+			<TableSortableHeader column={column} title="Codice prodotto" icon={ENTITY_ICON.product} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -46,7 +46,7 @@ export const columns = (
 			return kind ? PRODUCT_KIND_LABEL[kind] : "—";
 		},
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {

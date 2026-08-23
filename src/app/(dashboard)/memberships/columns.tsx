@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Package, Timer } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export type MembershipRow = Prisma.MembershipGetPayload<{
@@ -34,7 +34,7 @@ export const columns = (
 	{
 		accessorKey: "productCode",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
+			<TableSortableHeader column={column} title="Codice prodotto" icon={ENTITY_ICON.product} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -47,7 +47,7 @@ export const columns = (
 			<TableSortableHeader
 				column={column}
 				title="Durata (giorni)"
-				icon={Timer}
+				icon={ATTR_ICON.duration}
 				align="right"
 			/>
 		),

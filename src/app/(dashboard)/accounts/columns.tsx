@@ -21,15 +21,10 @@ import { toAppRole } from "@/lib/domain/roles";
 import { ROLE_TONE } from "@/lib/domain/visual";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import {
-	AtSign,
-	BadgeCheck,
-	Clock,
 	Eye,
 	EyeOff,
-	KeyRound,
-	Shield,
-	User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -104,7 +99,7 @@ export const columns = (
 			accessorFn: (row) =>
 				row.employee ? formatPersonLabel(row.employee) : "",
 			header: ({ column }) => (
-				<TableSortableHeader column={column} title="Dipendente" icon={User} />
+				<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 			),
 			meta: columnMeta(ColumnClass.Join),
 			cell: ({ row }) => (
@@ -121,14 +116,14 @@ export const columns = (
 		{
 			accessorKey: "username",
 			header: ({ column }) => (
-				<TableSortableHeader column={column} title="Nome utente" icon={AtSign} />
+				<TableSortableHeader column={column} title="Nome utente" icon={ATTR_ICON.username} />
 			),
 			meta: columnMeta(ColumnClass.Native),
 		},
 		{
 			accessorKey: "password",
 			header: ({ column }) => (
-				<TableSortableHeader column={column} title="Password" icon={KeyRound} />
+				<TableSortableHeader column={column} title="Password" icon={ATTR_ICON.password} />
 			),
 			meta: { ...columnMeta(ColumnClass.Native), noCellOverflow: true },
 			enableSorting: false,
@@ -137,7 +132,7 @@ export const columns = (
 		{
 			accessorKey: "role",
 			header: ({ column }) => (
-				<TableSortableHeader column={column} title="Ruolo" icon={Shield} />
+				<TableSortableHeader column={column} title="Ruolo" icon={ATTR_ICON.role} />
 			),
 			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
@@ -157,15 +152,15 @@ export const columns = (
 		{
 			accessorKey: "approved",
 			header: ({ column }) => (
-				<TableSortableHeader column={column} title="Approvazione" icon={BadgeCheck} />
+				<TableSortableHeader column={column} title="Approvazione" icon={ATTR_ICON.approved} />
 			),
 			meta: columnMeta(ColumnClass.Native),
 			enableSorting: false,
 			cell: ({ row }) =>
 				row.original.approved ? (
-					<DomainBadge label="Approvato" tone="success" icon={BadgeCheck} />
+					<DomainBadge label="Approvato" tone="success" icon={ATTR_ICON.approved} />
 				) : (
-					<DomainBadge label="In attesa" tone="warning" icon={Clock} />
+					<DomainBadge label="In attesa" tone="warning" icon={ATTR_ICON.pending} />
 				),
 			filterFn: (row, id, value) => {
 				return value.includes(row.getValue(id));
@@ -265,9 +260,9 @@ export const columns = (
 												<div className="space-y-1">
 													<FormLabel>Approvato</FormLabel>
 													{field.value === "true" ? (
-														<DomainBadge label="Approvato" tone="success" icon={BadgeCheck} />
+														<DomainBadge label="Approvato" tone="success" icon={ATTR_ICON.approved} />
 													) : (
-														<DomainBadge label="In attesa" tone="warning" icon={Clock} />
+														<DomainBadge label="In attesa" tone="warning" icon={ATTR_ICON.pending} />
 													)}
 												</div>
 												<FormControl>

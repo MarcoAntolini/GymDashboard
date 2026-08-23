@@ -1,44 +1,6 @@
 import { NAV_ROUTES, type AppRole } from "@/data/nav-routes";
-import {
-	BookOpen,
-	BriefcaseBusiness,
-	Clock,
-	DoorOpen,
-	Dumbbell,
-	FileText,
-	HandCoins,
-	LayoutDashboard,
-	type LucideIcon,
-	Package,
-	ShoppingBag,
-	ShoppingCart,
-	Ticket,
-	UserCog,
-	UserRound,
-	Wallet,
-	Wrench,
-	Zap,
-} from "lucide-react";
-
-const ICONS: Record<string, LucideIcon> = {
-	"/": LayoutDashboard,
-	"/accounts": UserCog,
-	"/employees": BriefcaseBusiness,
-	"/contracts": FileText,
-	"/clockings": Clock,
-	"/salaries": HandCoins,
-	"/equipment": Dumbbell,
-	"/bills": Zap,
-	"/interventions": Wrench,
-	"/clients": UserRound,
-	"/entrances": DoorOpen,
-	"/products": ShoppingBag,
-	"/memberships": Ticket,
-	"/entrance-sets": Package,
-	"/catalogs": BookOpen,
-	"/payments": Wallet,
-	"/sales": ShoppingCart,
-};
+import { NAV_ENTITY_ICON } from "@/lib/domain/icons";
+import type { LucideIcon } from "lucide-react";
 
 const ADMIN_HREFS = new Set(["/accounts", "/employees", "/contracts", "/clockings", "/salaries"]);
 
@@ -56,7 +18,7 @@ export type NavSection = {
 };
 
 function toLink(route: (typeof NAV_ROUTES)[number]): LinkItem {
-	const icon = ICONS[route.href];
+	const icon = NAV_ENTITY_ICON[route.href];
 	if (!icon) {
 		throw new Error(`Missing icon for nav route ${route.href}`);
 	}

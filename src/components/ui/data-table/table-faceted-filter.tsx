@@ -13,7 +13,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Column } from "@tanstack/react-table";
-import { Check, Filter } from "lucide-react";
+import { ATTR_ICON } from "@/lib/domain/icons";
+import { Check } from "lucide-react";
 
 export type FacetedFilterOption = {
 	label: string;
@@ -59,7 +60,7 @@ export function TableFacetedFilter<TData, TValue>({
 					size="sm"
 					className={cn("h-10 border-dashed", className)}
 				>
-					<Filter className="mr-2 h-4 w-4" />
+					<ATTR_ICON.filter className="mr-2 h-4 w-4" />
 					{title}
 					{selectedValues.size > 0 && (
 						<>

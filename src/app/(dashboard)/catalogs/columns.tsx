@@ -19,7 +19,7 @@ import {
 import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
 import { ColumnDef } from "@tanstack/react-table";
-import { Banknote, Calendar, Package, Tag } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export type CatalogRow = CatalogListRow;
@@ -40,7 +40,7 @@ export const columns = (
 	{
 		accessorKey: "year",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Anno" icon={Calendar} align="right" />
+			<TableSortableHeader column={column} title="Anno" icon={ATTR_ICON.date} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <NumericCell>{row.original.year}</NumericCell>,
@@ -52,7 +52,7 @@ export const columns = (
 			return kind ? PRODUCT_KIND_LABEL[kind] : "—";
 		},
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Tipo" icon={Tag} />
+			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
@@ -64,7 +64,7 @@ export const columns = (
 	{
 		accessorKey: "productCode",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
+			<TableSortableHeader column={column} title="Codice prodotto" icon={ENTITY_ICON.product} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -74,7 +74,7 @@ export const columns = (
 	{
 		accessorKey: "price",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Prezzo" icon={Banknote} align="right" />
+			<TableSortableHeader column={column} title="Prezzo" icon={ATTR_ICON.amount} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

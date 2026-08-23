@@ -108,6 +108,32 @@ Date in lista: `formatDateIt` / `formatTimeIt` / `formatDateTimeIt` usano mese a
 
 Column headers: `TableSortableHeader` accetta `icon` (Lucide muted a sinistra del titolo).
 
+## Icons
+
+Canonical Lucide map in `src/lib/domain/icons.ts`. **One glyph = one domain entity** (nav, join columns, badges). Do not reuse an entity icon for another entity or for a generic attribute.
+
+| Entity | Icon |
+| --- | --- |
+| Panoramica | `LayoutDashboard` |
+| Account | `UserCog` |
+| Dipendente | `BriefcaseBusiness` |
+| Contratto | `FileText` |
+| Timbratura | `Clock` |
+| Stipendio | `HandCoins` |
+| Attrezzatura | `Dumbbell` |
+| Bolletta | `Zap` |
+| Intervento | `Wrench` |
+| Cliente | `UserRound` |
+| Ingresso | `DoorOpen` |
+| Prodotto | `ShoppingBag` |
+| Abbonamento | `Ticket` |
+| Pacchetto ingressi | `Package` |
+| Listino | `BookOpen` |
+| Pagamento | `Wallet` |
+| Vendita | `ShoppingCart` |
+
+Attribute icons (`ATTR_ICON`) never collide with that set: date (`Calendar`), importo (`Banknote`), tipo (`Tag`), descrizione (`AlignLeft`), ID (`Hash`), CF (`IdCard`), in attesa (`Hourglass`), filtri (`Funnel`). Chrome (chiudi, sort, plus, loader) stays local to the control.
+
 ## Typography
 
 Single family: **Inter** loaded as `--font-sans` (Next `next/font/google`). No display/serif pairing. Hierarchy is weight + size only: body ~16px, form labels ~14px medium, nav section headings ~12px medium with slight tracking. Tables and forms dominate; avoid marketing-scale clamp headlines.

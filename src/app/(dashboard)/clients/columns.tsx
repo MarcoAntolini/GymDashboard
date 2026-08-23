@@ -10,12 +10,7 @@ import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { Client } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-	Calendar,
-	Hash,
-	IdCard,
-	User,
-} from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -39,7 +34,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={Hash} align="right" />
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -49,7 +44,7 @@ export const columns = (
 	{
 		accessorKey: "taxCode",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Codice fiscale" icon={IdCard} />
+			<TableSortableHeader column={column} title="Codice fiscale" icon={ATTR_ICON.taxCode} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -59,21 +54,21 @@ export const columns = (
 	{
 		accessorKey: "name",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Nome" icon={User} />
+			<TableSortableHeader column={column} title="Nome" icon={ENTITY_ICON.client} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "surname",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Cognome" icon={User} />
+			<TableSortableHeader column={column} title="Cognome" icon={ENTITY_ICON.client} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 	},
 	{
 		accessorKey: "birthDate",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data di nascita" icon={Calendar} />
+			<TableSortableHeader column={column} title="Data di nascita" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableDate value={row.original.birthDate} />,
@@ -82,7 +77,7 @@ export const columns = (
 	{
 		accessorKey: "enrollmentDate",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data iscrizione" icon={Calendar} />
+			<TableSortableHeader column={column} title="Data iscrizione" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableDate value={row.original.enrollmentDate} />,

@@ -12,7 +12,7 @@ import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel } from "@/lib/domain/labels";
 import { Clocking } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { CirclePlay, LogIn, LogOut, User } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -29,7 +29,7 @@ export const columns = (
 		id: "employee",
 		accessorFn: (row) => formatPersonLabel(row.employee),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Dipendente" icon={User} />
+			<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -42,7 +42,7 @@ export const columns = (
 	{
 		accessorKey: "entranceTime",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Entrata" icon={LogIn} />
+			<TableSortableHeader column={column} title="Entrata" icon={ATTR_ICON.clockIn} />
 		),
 		meta: columnMeta(ColumnClass.Native, { stacked: true }),
 		cell: ({ row }) => (
@@ -52,7 +52,7 @@ export const columns = (
 	{
 		accessorKey: "exitTime",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Uscita" icon={LogOut} />
+			<TableSortableHeader column={column} title="Uscita" icon={ATTR_ICON.clockOut} />
 		),
 		meta: columnMeta(ColumnClass.Native, { stacked: true }),
 		cell: ({ row }) => {
@@ -60,7 +60,7 @@ export const columns = (
 			return exitTime ? (
 				<TableDateTime value={exitTime} />
 			) : (
-				<DomainBadge label="In corso" tone="info" icon={CirclePlay} />
+				<DomainBadge label="In corso" tone="info" icon={ATTR_ICON.inProgress} />
 			);
 		},
 	},

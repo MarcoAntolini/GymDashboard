@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Hash, Package } from "lucide-react";
+import { ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export type EntranceSetRow = Prisma.EntranceSetGetPayload<{
@@ -39,7 +39,7 @@ export const columns = (
 	{
 		accessorKey: "productCode",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Codice prodotto" icon={Package} />
+			<TableSortableHeader column={column} title="Codice prodotto" icon={ENTITY_ICON.product} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -52,7 +52,7 @@ export const columns = (
 			<TableSortableHeader
 				column={column}
 				title="N ingressi"
-				icon={Hash}
+				icon={ENTITY_ICON.entrance}
 				align="right"
 			/>
 		),

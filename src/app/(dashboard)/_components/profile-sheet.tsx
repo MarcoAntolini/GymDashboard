@@ -15,7 +15,8 @@ import {
 	updateOwnCredentials,
 	updateOwnEmployeeProfile,
 } from "@/data-access/profile";
-import { Loader2, UserRound } from "lucide-react";
+import { ENTITY_ICON } from "@/lib/domain/icons";
+import { Loader2 } from "lucide-react";
 import {
 	useCallback,
 	useEffect,
@@ -251,7 +252,7 @@ export function ProfileSheet({
 											className="h-full w-full object-cover"
 										/>
 									) : (
-										<UserRound className="h-7 w-7 text-muted-foreground" />
+										<ENTITY_ICON.account className="h-7 w-7 text-muted-foreground" />
 									)}
 								</div>
 								<div className="flex flex-col gap-2">

@@ -8,7 +8,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import type { EntranceRow } from "@/data-access/entrances";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { ColumnDef } from "@tanstack/react-table";
-import { Calendar, Hash, Package, ShoppingBag, User } from "lucide-react";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 /** Create: solo Cliente (+ data opzionale in form; default now lato server). Niente saleId. */
@@ -35,7 +35,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={Hash} align="right" />
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableId value={row.original.id} filterKeys="id" />,
@@ -43,7 +43,7 @@ export const columns = (
 	{
 		accessorKey: "date",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data" icon={Calendar} />
+			<TableSortableHeader column={column} title="Data" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native, { stacked: true }),
 		cell: ({ row }) => (
@@ -55,7 +55,7 @@ export const columns = (
 		accessorFn: (row) =>
 			`${row.sale.client.surname} ${row.sale.client.name} (#${row.sale.clientId})`,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Cliente" icon={User} />
+			<TableSortableHeader column={column} title="Cliente" icon={ENTITY_ICON.client} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -69,7 +69,7 @@ export const columns = (
 		id: "product",
 		accessorFn: (row) => row.sale.productCode,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Prodotto" icon={Package} />
+			<TableSortableHeader column={column} title="Prodotto" icon={ENTITY_ICON.product} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (
@@ -79,7 +79,7 @@ export const columns = (
 	{
 		accessorKey: "saleId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Vendita" icon={ShoppingBag} align="right" />
+			<TableSortableHeader column={column} title="Vendita" icon={ENTITY_ICON.sale} align="right" />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
