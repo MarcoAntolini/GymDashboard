@@ -9,9 +9,9 @@ interface DataTablePaginationProps<TData> {
 
 export default function DataTablePagination<TData>({ table }: DataTablePaginationProps<TData>) {
 	return (
-		<div className="flex flex-wrap items-center justify-end gap-4 lg:gap-8">
-			<div className="flex items-center gap-2">
-				<p className="text-sm font-medium">Righe per pagina</p>
+		<div className="flex shrink-0 flex-nowrap items-center justify-end gap-4 lg:gap-8">
+			<div className="flex shrink-0 items-center gap-2">
+				<p className="whitespace-nowrap text-sm font-medium">Righe per pagina</p>
 				<Select
 					value={`${table.getState().pagination.pageSize}`}
 					onValueChange={(value) => {
@@ -33,10 +33,10 @@ export default function DataTablePagination<TData>({ table }: DataTablePaginatio
 					</SelectContent>
 				</Select>
 			</div>
-			<div className="flex w-[100px] items-center justify-center text-sm font-medium">
+			<div className="whitespace-nowrap text-sm font-medium tabular-nums">
 				Pagina {table.getState().pagination.pageIndex + 1} di {table.getPageCount()}
 			</div>
-			<div className="flex items-center gap-2">
+			<div className="flex shrink-0 items-center gap-2">
 				<Button
 					variant="outline"
 					className="hidden size-8 p-0 lg:flex"
