@@ -12,8 +12,7 @@ export const SELECT_COLUMN_SIZE = 48;
 export const ACTIONS_COLUMN_SIZE = 56;
 
 /**
- * Ancora `__select` a sinistra e `actions` a destra.
- * Così un pin utente resta seconda (dopo select) o penultima (prima di actions).
+ * Ancora `__select` a sinistra. `actions` è host nascosto (menu contestuale), non in layout.
  */
 export function normalizeColumnPinning(
 	pinning: ColumnPinningState,

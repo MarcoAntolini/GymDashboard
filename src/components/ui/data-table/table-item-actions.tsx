@@ -11,14 +11,6 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Form } from "@/components/ui/form";
 import {
 	Sheet,
@@ -34,7 +26,7 @@ import {
 } from "@/components/ui/data-table/table-row-actions-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Row } from "@tanstack/react-table";
-import { Loader2, MoreHorizontal } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -79,7 +71,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 	deleteUnavailable?: boolean;
 	editUnavailabe?: boolean;
 	deleteUnavailabe?: boolean;
-	/** Azioni extra (dropdown + context menu), es. Approva. */
+	/** Azioni extra nel menu contestuale, es. Approva. */
 	extraMenuItems?: RowExtraAction[];
 }) {
 	const editBlocked = editUnavailable ?? editUnavailabe;
@@ -169,69 +161,8 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 		setIsDeleteOpen(open);
 	}
 
-	const hasExtra = (extraMenuItems?.length ?? 0) > 0;
-	const canPin = row.getCanPin?.() ?? false;
-	const isPinned = row.getIsPinned?.() ?? false;
-	const menuDisabled =
-		!!editBlocked && !!deleteBlocked && !hasExtra && !canPin;
-
 	return (
 		<>
-			<DropdownMenu modal={false}>
-				<DropdownMenuTrigger asChild>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="size-7 shrink-0 p-0"
-						disabled={menuDisabled}
-					>
-						<span className="sr-only">Apri menu</span>
-						<MoreHorizontal className="h-4 w-4" />
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="w-48">
-					<DropdownMenuLabel>Azioni</DropdownMenuLabel>
-					<DropdownMenuSeparator />
-					{!editBlocked && (
-						<DropdownMenuItem onClick={() => setIsEditOpen(true)}>Modifica</DropdownMenuItem>
-					)}
-					{extraMenuItems?.map((item) => (
-						<DropdownMenuItem
-							key={item.id}
-							disabled={item.disabled}
-							className={item.destructive ? "text-destructive focus:text-destructive" : undefined}
-							onClick={item.onSelect}
-						>
-							{item.label}
-						</DropdownMenuItem>
-					))}
-					{!deleteBlocked && (
-						<DropdownMenuItem
-							className="text-destructive focus:text-destructive"
-							onClick={() => setIsDeleteOpen(true)}
-						>
-							Elimina
-						</DropdownMenuItem>
-					)}
-					{canPin ? (
-						<>
-							{(!editBlocked || !deleteBlocked || hasExtra) && (
-								<DropdownMenuSeparator />
-							)}
-							{isPinned ? (
-								<DropdownMenuItem onClick={() => row.pin(false)}>
-									Sblocca riga
-								</DropdownMenuItem>
-							) : (
-								<DropdownMenuItem onClick={() => row.pin("top")}>
-									Fissa in alto
-								</DropdownMenuItem>
-							)}
-						</>
-					) : null}
-				</DropdownMenuContent>
-			</DropdownMenu>
-
 			<Sheet
 				open={isEditOpen}
 				onOpenChange={handleEditOpenChange}

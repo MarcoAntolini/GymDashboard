@@ -69,6 +69,7 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import * as React from "react";
+import { createPortal } from "react-dom";
 
 export type { DataTableBulkAction };
 
@@ -182,10 +183,12 @@ function DataTableRow<TData>({
 	row,
 	flexFillColumnId,
 	bottomPinnedCount,
+	mountHiddenActions,
 }: {
 	row: Row<TData>;
 	flexFillColumnId: string | null;
 	bottomPinnedCount: number;
+	mountHiddenActions: boolean;
 }) {
 	const registry = useRowActionsRegistry();
 	const [menuActions, setMenuActions] = React.useState<
@@ -196,6 +199,19 @@ function DataTableRow<TData>({
 	const rowPinned = row.getIsPinned();
 	const rowSticky = getRowPinningStyle(row, { bottomPinnedCount });
 	const canPin = row.getCanPin();
+
+	const actionCell = row
+		.getAllCells()
+		.find((cell) => cell.column.id === ACTIONS_COLUMN_ID);
+	const actionHost =
+		mountHiddenActions && actionCell
+			? createPortal(
+					<div hidden>
+						{flexRender(actionCell.column.columnDef.cell, actionCell.getContext())}
+					</div>,
+					document.body
+				)
+			: null;
 
 	const cells = row.getVisibleCells().map((cell) => {
 		const colPinned = cell.column.getIsPinned();
@@ -251,12 +267,14 @@ function DataTableRow<TData>({
 		(menuActions?.extraActions?.length ?? 0) > 0;
 
 	return (
-		<ContextMenu
-			onOpenChange={(open) => {
-				if (open) setMenuActions(registry.get(row.id));
-				else setMenuActions(undefined);
-			}}
-		>
+		<>
+			{actionHost}
+			<ContextMenu
+				onOpenChange={(open) => {
+					if (open) setMenuActions(registry.get(row.id));
+					else setMenuActions(undefined);
+				}}
+			>
 			<ContextMenuTrigger asChild>
 				<TableRow
 					className="hover:bg-transparent data-[state=selected]:bg-transparent"
@@ -315,6 +333,7 @@ function DataTableRow<TData>({
 				) : null}
 			</ContextMenuContent>
 		</ContextMenu>
+		</>
 	);
 }
 
@@ -344,18 +363,16 @@ function DataTableInner<TData, TValue>({
 
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+		[ACTIONS_COLUMN_ID]: false,
+	});
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([]);
 	const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>(() =>
 		normalizeColumnPinning(
 			{ left: [], right: [] },
 			{
 				hasSelect: !!bulkDeleteRow || (bulkActions?.length ?? 0) > 0,
-				hasActions: columns.some(
-					(col) =>
-						col.id === ACTIONS_COLUMN_ID ||
-						("accessorKey" in col && col.accessorKey === ACTIONS_COLUMN_ID)
-				),
+				hasActions: false,
 			}
 		)
 	);
@@ -372,6 +389,10 @@ function DataTableInner<TData, TValue>({
 		pageIndex: 0,
 		pageSize: 10,
 	});
+	const [mountHiddenActions, setMountHiddenActions] = React.useState(false);
+	React.useLayoutEffect(() => {
+		setMountHiddenActions(true);
+	}, []);
 
 	const ensureHeaderMinSize = React.useCallback((columnId: string, minSize: number) => {
 		if (!columnId || minSize <= 0) return;
@@ -473,16 +494,14 @@ function DataTableInner<TData, TValue>({
 		[tableColumns]
 	);
 
-	const hasActionsColumn = leafColumnIds.includes(ACTIONS_COLUMN_ID);
-
 	React.useEffect(() => {
 		setColumnPinning((prev) =>
 			normalizeColumnPinning(prev, {
 				hasSelect: enableSelection,
-				hasActions: hasActionsColumn,
+				hasActions: false,
 			})
 		);
-	}, [enableSelection, hasActionsColumn]);
+	}, [enableSelection]);
 
 	const onColumnPinningChange = React.useCallback<OnChangeFn<ColumnPinningState>>(
 		(updater) => {
@@ -490,11 +509,11 @@ function DataTableInner<TData, TValue>({
 				const next = typeof updater === "function" ? updater(prev) : updater;
 				return normalizeColumnPinning(next, {
 					hasSelect: enableSelection,
-					hasActions: hasActionsColumn,
+					hasActions: false,
 				});
 			});
 		},
-		[enableSelection, hasActionsColumn]
+		[enableSelection]
 	);
 
 	const table = useReactTable({
@@ -529,7 +548,12 @@ function DataTableInner<TData, TValue>({
 		getFilteredRowModel: isServer ? undefined : getFilteredRowModel(),
 		getFacetedRowModel: isServer ? undefined : getFacetedRowModel(),
 		getFacetedUniqueValues: isServer ? undefined : getFacetedUniqueValues(),
-		onColumnVisibilityChange: setColumnVisibility,
+		onColumnVisibilityChange: (updater) => {
+			setColumnVisibility((prev) => {
+				const next = typeof updater === "function" ? updater(prev) : updater;
+				return { ...next, [ACTIONS_COLUMN_ID]: false };
+			});
+		},
 		onColumnOrderChange: (updater) => {
 			setColumnOrder((prev) => {
 				const next = typeof updater === "function" ? updater(prev) : updater;
@@ -614,7 +638,7 @@ function DataTableInner<TData, TValue>({
 	const bottomRows = table.getBottomRows();
 	const bottomPinnedCount = bottomRows.length;
 	const pageSelectedCount = table.getSelectedRowModel().rows.length;
-	const colSpan = tableColumns.length;
+	const colSpan = table.getVisibleLeafColumns().length;
 	const orderedLeafColumns = getPinnedLeafColumnOrder(table);
 	const flexFillColumnId = getFlexFillColumnId(
 		orderedLeafColumns.map((column) => column.id)
@@ -794,6 +818,7 @@ function DataTableInner<TData, TValue>({
 										row={row}
 										flexFillColumnId={flexFillColumnId}
 										bottomPinnedCount={bottomPinnedCount}
+										mountHiddenActions={mountHiddenActions}
 									/>
 								))}
 								{centerRows.map((row) => (
@@ -802,6 +827,7 @@ function DataTableInner<TData, TValue>({
 										row={row}
 										flexFillColumnId={flexFillColumnId}
 										bottomPinnedCount={bottomPinnedCount}
+										mountHiddenActions={mountHiddenActions}
 									/>
 								))}
 								{bottomRows.map((row) => (
@@ -810,6 +836,7 @@ function DataTableInner<TData, TValue>({
 										row={row}
 										flexFillColumnId={flexFillColumnId}
 										bottomPinnedCount={bottomPinnedCount}
+										mountHiddenActions={mountHiddenActions}
 									/>
 								))}
 							</>
