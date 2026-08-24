@@ -73,6 +73,8 @@ import { createPortal } from "react-dom";
 
 export type { DataTableBulkAction };
 
+const TABLE_HEADER_SURFACE = "table-header-surface";
+
 /** Controlli server-side (ticket 19). Se assente → comportamento client legacy. */
 export type DataTableServerListProps = {
 	manual: true;
@@ -227,6 +229,7 @@ function DataTableRow<TData>({
 			stacked ||
 			cell.column.columnDef.meta?.noCellOverflow === true;
 		const rendered = flexRender(cell.column.columnDef.cell, cell.getContext());
+		const stickyCover = Boolean(colPinned || rowPinned);
 		return (
 			<TableCell
 				key={cell.id}
@@ -238,9 +241,11 @@ function DataTableRow<TData>({
 					selected
 						? "bg-muted"
 						: hovered
-							? "bg-muted/50"
+							? stickyCover
+								? "bg-muted"
+								: "bg-muted/50"
 							: rowPinned
-								? "bg-muted/40"
+								? "bg-muted"
 								: colPinned
 									? "bg-background"
 									: undefined
@@ -749,9 +754,9 @@ function DataTableInner<TData, TValue>({
 							/>
 						))}
 					</colgroup>
-					<TableHeader className="sticky top-0 z-20 bg-background [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
+					<TableHeader className="sticky top-0 z-20 isolate bg-background [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="bg-stone-600/25">
+							<TableRow key={headerGroup.id} className={TABLE_HEADER_SURFACE}>
 								{headerGroup.headers.map((header) => {
 									const pinned = header.column.getIsPinned();
 									const size = header.getSize();
@@ -760,7 +765,8 @@ function DataTableInner<TData, TValue>({
 											key={header.id}
 											colSpan={header.colSpan}
 											className={cn(
-												"relative box-border group/col overflow-hidden bg-stone-600/25",
+												"relative box-border group/col overflow-hidden",
+												TABLE_HEADER_SURFACE,
 												pinned && "shadow-[inset_-1px_0_0] shadow-border"
 											)}
 											style={{
@@ -770,7 +776,7 @@ function DataTableInner<TData, TValue>({
 													flexFillColumnId
 												),
 												...getColumnPinningStyle(header.column),
-												zIndex: pinned ? 3 : undefined,
+												zIndex: pinned ? 3 : 1,
 											}}
 										>
 											{header.isPlaceholder

@@ -63,6 +63,13 @@
 	}
 }
 
+@layer components {
+	/* Opaco: mix stone-600 25% su --background (equiv. bg-stone-600/25 senza trasparenza). */
+	.table-header-surface {
+		background-color: color-mix(in srgb, rgb(87 83 78) 25%, hsl(var(--background)));
+	}
+}
+
 @layer base {
 	* {
 		@apply border-border;
