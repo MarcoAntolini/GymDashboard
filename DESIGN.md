@@ -101,7 +101,7 @@ Dark mode shifts background/foreground to `#0c0a09` / `#fafaf9`, primary to `#ea
 
 Domain category chips live in `domain-badge.tsx`:
 
-- **`DotBadge`** — outline neutra + icona Lucide monocroma piccola + etichetta (categorie: Tipo Pagamento, Tipo Prodotto, Ruolo, Tipo Contratto). Nessun fill e nessun tone: il colore resta sugli stati (`DomainBadge`).
+- **`DotBadge`** — outline neutra + etichetta foreground + icona Lucide piccola colorata col tone di categoria (Tipo Pagamento, Tipo Prodotto, Ruolo, Tipo Contratto). Il fill colorato resta sugli stati (`DomainBadge`).
 - **`DomainBadge`** — fill soft + icona (stati: Approvazione, residuo Ingressi, “In corso”, titolo valido/scaduto). Stile “Active / Inactive”.
 
 Date in lista: `formatDateIt` / `formatTimeIt` / `formatDateTimeIt` usano mese abbreviato italiano (`24 ott 2018`), non `gg/mm/aaaa`. Celle: `TableDate` (muted, tabular) per date-only; `TableDateTime` (data muted + ora in evidenza, due righe in `h-12`) per timestamp. ID/CF/codici: `TableId` / `TableCode`. Persone: `TablePerson` (nome + `#id` muted).

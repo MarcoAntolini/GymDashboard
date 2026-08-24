@@ -22,7 +22,7 @@ import {
 	type OverviewStats,
 } from "@/data-access/overview";
 import { ATTR_ICON } from "@/lib/domain/icons";
-import { PRODUCT_KIND_ICON } from "@/lib/domain/visual";
+import { PRODUCT_KIND_ICON, PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import type { BanconeDailyPoint, FrequencyPoint } from "@/lib/frequency-aggregation";
 import type { ProductRankingRow } from "@/lib/product-ranking";
 import { formatEur } from "@/lib/format";
@@ -121,6 +121,7 @@ function ProductRankingTable({ rows }: { rows: ProductRankingRow[] }) {
 											<DotBadge
 												label={row.kindLabel}
 												icon={PRODUCT_KIND_ICON[row.kind]}
+												tone={PRODUCT_KIND_TONE[row.kind]}
 											/>
 										</OverflowText>
 									</TableCell>

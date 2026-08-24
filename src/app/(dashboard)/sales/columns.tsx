@@ -21,7 +21,7 @@ import {
 	ProductKind,
 	productKindFromSnapshot,
 } from "@/lib/domain/product-kind";
-import { PRODUCT_KIND_ICON } from "@/lib/domain/visual";
+import { PRODUCT_KIND_ICON, PRODUCT_KIND_TONE } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
 import { Prisma } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
@@ -110,7 +110,13 @@ export const columns = (
 		meta: columnMeta(ColumnClass.Derived),
 		cell: ({ row }) => {
 			const kind = productKindFromSnapshot(row.original);
-			return <DotBadge label={PRODUCT_KIND_LABEL[kind]} icon={PRODUCT_KIND_ICON[kind]} />;
+			return (
+				<DotBadge
+					label={PRODUCT_KIND_LABEL[kind]}
+					icon={PRODUCT_KIND_ICON[kind]}
+					tone={PRODUCT_KIND_TONE[kind]}
+				/>
+			);
 		},
 		filterFn: (row, _id, value: string[]) => {
 			const kind = productKindFromSnapshot(row.original);

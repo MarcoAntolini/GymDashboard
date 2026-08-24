@@ -21,7 +21,7 @@ import {
 } from "@/lib/contract-term";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { CONTRACT_TYPE_LABEL, formatPersonLabel } from "@/lib/domain/labels";
-import { CONTRACT_TYPE_ICON } from "@/lib/domain/visual";
+import { CONTRACT_TYPE_ICON, CONTRACT_TYPE_TONE } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
 import { Contract, ContractType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -87,6 +87,7 @@ export const columns = (
 			<DotBadge
 				label={CONTRACT_TYPE_LABEL[row.original.type]}
 				icon={CONTRACT_TYPE_ICON[row.original.type]}
+				tone={CONTRACT_TYPE_TONE[row.original.type]}
 			/>
 		),
 		filterFn: (row, id, value) => {

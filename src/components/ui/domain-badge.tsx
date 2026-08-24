@@ -15,6 +15,15 @@ const SOFT_TONE: Record<SemanticTone, string> = {
 	primary: "border-primary/25 bg-primary/10 text-primary",
 };
 
+const ICON_TONE: Record<SemanticTone, string> = {
+	success: "text-success",
+	warning: "text-warning",
+	info: "text-info",
+	destructive: "text-destructive",
+	muted: "text-muted-foreground",
+	primary: "text-primary",
+};
+
 const MONEY_TONE: Record<"income" | "expense" | "neutral", string> = {
 	income: "text-success",
 	expense: "text-destructive",
@@ -22,16 +31,18 @@ const MONEY_TONE: Record<"income" | "expense" | "neutral", string> = {
 };
 
 /**
- * Chip categoria: outline neutra + icona monocroma + etichetta sempre presente.
+ * Chip categoria: outline neutra + icona (tone solo sul glifo) + etichetta foreground.
  * Uso: Tipo Pagamento, Tipo Prodotto, Ruolo, Tipo Contratto.
  */
 export function DotBadge({
 	label,
 	icon: Icon,
+	tone = "muted",
 	className,
 }: {
 	label: string;
 	icon: LucideIcon;
+	tone?: SemanticTone;
 	className?: string;
 }) {
 	return (
@@ -41,7 +52,7 @@ export function DotBadge({
 				className
 			)}
 		>
-			<Icon aria-hidden className="size-3 shrink-0 text-muted-foreground" />
+			<Icon aria-hidden className={cn("size-3 shrink-0", ICON_TONE[tone])} />
 			<span className="truncate">{label}</span>
 		</span>
 	);
