@@ -1,6 +1,6 @@
 "use client";
 
-import { DomainBadge } from "@/components/ui/domain-badge";
+import { DomainBadge, NumericCell } from "@/components/ui/domain-badge";
 import { TableDateTime, TablePerson } from "@/components/ui/data-table/table-cells";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
@@ -9,10 +9,11 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import type { ClockingRow } from "@/data-access/clockings";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { formatPersonLabel } from "@/lib/domain/labels";
+import { formatDurationIt } from "@/lib/format";
 import { Clocking } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -62,6 +63,36 @@ export const columns = (
 			) : (
 				<DomainBadge label="In corso" tone="info" icon={ATTR_ICON.inProgress} />
 			);
+		},
+	},
+	{
+		id: "elapsedTime",
+		accessorFn: (row) => {
+			if (!row.exitTime) return null;
+			const duration = row.exitTime.getTime() - row.entranceTime.getTime();
+			return duration >= 0 ? duration : null;
+		},
+		enableSorting: false,
+		header: ({ column }) => (
+			<TableSortableHeader
+				column={column}
+				title="Totale"
+				icon={ATTR_ICON.duration}
+				align="right"
+			/>
+		),
+		meta: columnMeta(ColumnClass.Derived),
+		cell: ({ row }) => {
+			const duration = row.getValue("elapsedTime") as number | null;
+			if (duration != null) {
+				return <NumericCell>{formatDurationIt(duration)}</NumericCell>;
+			}
+			if (!row.original.exitTime) {
+				return (
+					<DomainBadge label="In corso" tone="info" icon={ATTR_ICON.inProgress} />
+				);
+			}
+			return <NumericCell muted>—</NumericCell>;
 		},
 	},
 	{

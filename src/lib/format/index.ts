@@ -1,1 +1,7 @@
-export { formatDateIt, formatDateTimeIt, formatEur, formatTimeIt } from "./it";
+export {
+	formatDateIt,
+	formatDateTimeIt,
+	formatDurationIt,
+	formatEur,
+	formatTimeIt,
+} from "./it";

@@ -71,7 +71,7 @@ In codice: `src/lib/domain/column-class.ts` → `ColumnDef.meta.columnClass`.
 | Employees | anagrafica | native |
 | Accounts | username, role, approved, employeeId | native; nome dipendente = **join** (non ancora in lista) |
 | Contracts | type, hourlyFee, dates, employeeId | native; label endingDate OpenEnded = presentazione |
-| Clockings | employeeId, entrance/exit | native |
+| Clockings | employeeId, entrance/exit | native; totale trascorso = **derived** |
 
 ### Pagamento e specializzazioni
 
