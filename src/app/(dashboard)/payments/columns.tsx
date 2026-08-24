@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import type { PaymentRow } from "@/data-access/payments";
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
-import { PAYMENT_TYPE_TONE } from "@/lib/domain/visual";
+import { PAYMENT_TYPE_ICON } from "@/lib/domain/visual";
 import { formatDateTimeIt, formatEur } from "@/lib/format";
 import { PaymentType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -150,7 +150,7 @@ export const columns = (
 		cell: ({ row }) => (
 			<DotBadge
 				label={PAYMENT_TYPE_LABEL[row.original.type]}
-				tone={PAYMENT_TYPE_TONE[row.original.type]}
+				icon={PAYMENT_TYPE_ICON[row.original.type]}
 			/>
 		),
 	},
@@ -230,7 +230,7 @@ export const columns = (
 							<div className="pt-1">
 								<DotBadge
 									label={PAYMENT_TYPE_LABEL[row.original.type]}
-									tone={PAYMENT_TYPE_TONE[row.original.type]}
+									icon={PAYMENT_TYPE_ICON[row.original.type]}
 								/>
 								<p className="mt-1.5 text-sm text-muted-foreground">
 									Bloccato — crea un nuovo Pagamento per cambiare tipo

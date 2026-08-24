@@ -44,6 +44,8 @@ import {
 /**
  * Icone canoniche per entità di dominio (CONTEXT.md).
  * Una icona = una entità. Non riusare questi glyph per attributi o altre entità.
+ * Eccezione: celle tipo (`DotBadge`) riusano il glifo quando il tipo è quella entità
+ * (kind prodotto, tipo pagamento). Ruolo e tipo contratto hanno glifi propri in `visual.ts`.
  */
 export const ENTITY_ICON = {
 	overview: LayoutDashboard,

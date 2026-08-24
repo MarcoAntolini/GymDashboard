@@ -6,15 +6,6 @@ import type { ReactNode } from "react";
 /** Semantica colore fissa (DESIGN.md): entrate/success, uscite/danger, warning, info. */
 export type SemanticTone = "success" | "warning" | "info" | "destructive" | "muted" | "primary";
 
-const DOT_TONE: Record<SemanticTone, string> = {
-	success: "bg-success",
-	warning: "bg-warning",
-	info: "bg-info",
-	destructive: "bg-destructive",
-	muted: "bg-muted-foreground",
-	primary: "bg-primary",
-};
-
 const SOFT_TONE: Record<SemanticTone, string> = {
 	success: "border-success/25 bg-success/10 text-success",
 	warning: "border-warning/25 bg-warning/10 text-warning",
@@ -31,16 +22,16 @@ const MONEY_TONE: Record<"income" | "expense" | "neutral", string> = {
 };
 
 /**
- * Chip categoria: outline neutra + quadratino colorato + etichetta sempre presente.
+ * Chip categoria: outline neutra + icona monocroma + etichetta sempre presente.
  * Uso: Tipo Pagamento, Tipo Prodotto, Ruolo, Tipo Contratto.
  */
 export function DotBadge({
 	label,
-	tone = "muted",
+	icon: Icon,
 	className,
 }: {
 	label: string;
-	tone?: SemanticTone;
+	icon: LucideIcon;
 	className?: string;
 }) {
 	return (
@@ -50,10 +41,7 @@ export function DotBadge({
 				className
 			)}
 		>
-			<span
-				aria-hidden
-				className={cn("size-2 shrink-0 rounded-[2px]", DOT_TONE[tone])}
-			/>
+			<Icon aria-hidden className="size-3 shrink-0 text-muted-foreground" />
 			<span className="truncate">{label}</span>
 		</span>
 	);

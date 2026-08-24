@@ -18,7 +18,7 @@ import { assignableRoles, canManageRole, type AppRole } from "@/data/nav-routes"
 import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel, ROLE_LABEL } from "@/lib/domain/labels";
 import { toAppRole } from "@/lib/domain/roles";
-import { ROLE_TONE } from "@/lib/domain/visual";
+import { ROLE_ICON } from "@/lib/domain/visual";
 import { Account, Role } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
@@ -138,11 +138,9 @@ export const columns = (
 			enableSorting: false,
 			cell: ({ row }) => {
 				const appRole = toAppRole(row.original.role);
+				if (!appRole) return <span className="text-muted-foreground">—</span>;
 				return (
-					<DotBadge
-						label={appRole ? ROLE_LABEL[appRole] : "—"}
-						tone={appRole ? ROLE_TONE[appRole] : "muted"}
-					/>
+					<DotBadge label={ROLE_LABEL[appRole]} icon={ROLE_ICON[appRole]} />
 				);
 			},
 			filterFn: (row, id, value) => {

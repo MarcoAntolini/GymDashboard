@@ -39,6 +39,7 @@ import {
 	PRODUCT_KIND_LABEL,
 	ProductKind,
 } from "@/lib/domain/product-kind";
+import { PRODUCT_KIND_ICON } from "@/lib/domain/visual";
 import { formatDateIt, formatEur } from "@/lib/format";
 import {
 	PERIOD_TYPE_LABELS,
@@ -618,9 +619,7 @@ export default function SalesPage() {
 															<OverflowText>
 																<DotBadge
 																	label={row.kindLabel}
-																	tone={
-																		row.kind === ProductKind.Membership ? "info" : "primary"
-																	}
+																	icon={PRODUCT_KIND_ICON[row.kind]}
 																/>
 															</OverflowText>
 														</TableCell>

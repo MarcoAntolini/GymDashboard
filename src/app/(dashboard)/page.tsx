@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { DotBadge, MoneyTone, NumericCell } from "@/components/ui/domain-badge";
+import { DomainBadge, DotBadge, MoneyTone, NumericCell } from "@/components/ui/domain-badge";
 import { Separator } from "@/components/ui/separator";
 import {
 	Table,
@@ -21,7 +21,8 @@ import {
 	type OverviewBreakdownRow,
 	type OverviewStats,
 } from "@/data-access/overview";
-import { ProductKind } from "@/lib/domain/product-kind";
+import { ATTR_ICON } from "@/lib/domain/icons";
+import { PRODUCT_KIND_ICON } from "@/lib/domain/visual";
 import type { BanconeDailyPoint, FrequencyPoint } from "@/lib/frequency-aggregation";
 import type { ProductRankingRow } from "@/lib/product-ranking";
 import { formatEur } from "@/lib/format";
@@ -30,6 +31,7 @@ import {
 	OVERVIEW_PERIOD_LABELS,
 	type OverviewPeriodPreset,
 } from "@/lib/overview-period";
+import { CalendarX } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -42,10 +44,6 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-
-function kindTone(kind: ProductKind): "info" | "primary" {
-	return kind === ProductKind.Membership ? "info" : "primary";
-}
 
 function BreakdownTable({
 	caption,
@@ -120,7 +118,10 @@ function ProductRankingTable({ rows }: { rows: ProductRankingRow[] }) {
 									</TableCell>
 									<TableCell className="h-12 max-h-12 overflow-hidden py-0">
 										<OverflowText>
-											<DotBadge label={row.kindLabel} tone={kindTone(row.kind)} />
+											<DotBadge
+												label={row.kindLabel}
+												icon={PRODUCT_KIND_ICON[row.kind]}
+											/>
 										</OverflowText>
 									</TableCell>
 									<TableCell>
@@ -393,13 +394,18 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 											</TableCell>
 											<TableCell className="h-12 max-h-12 overflow-hidden py-0">
 												<OverflowText>
-													<DotBadge
+													<DomainBadge
 														label={
 															row.titleStatus === "valid"
 																? "Valido"
 																: "Scaduto di recente"
 														}
-														tone={row.titleStatus === "valid" ? "warning" : "info"}
+														tone={row.titleStatus === "valid" ? "success" : "warning"}
+														icon={
+															row.titleStatus === "valid"
+																? ATTR_ICON.approved
+																: CalendarX
+														}
 													/>
 												</OverflowText>
 											</TableCell>

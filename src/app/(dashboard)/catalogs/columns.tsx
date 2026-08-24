@@ -16,7 +16,7 @@ import {
 	PRODUCT_KIND_LABEL,
 	productKindFromProduct,
 } from "@/lib/domain/product-kind";
-import { PRODUCT_KIND_TONE } from "@/lib/domain/visual";
+import { PRODUCT_KIND_ICON } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
 import { ColumnDef } from "@tanstack/react-table";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
@@ -58,7 +58,9 @@ export const columns = (
 		cell: ({ row }) => {
 			const kind = productKindFromProduct(row.original.product);
 			if (!kind) return <div>—</div>;
-			return <DotBadge label={PRODUCT_KIND_LABEL[kind]} tone={PRODUCT_KIND_TONE[kind]} />;
+			return (
+				<DotBadge label={PRODUCT_KIND_LABEL[kind]} icon={PRODUCT_KIND_ICON[kind]} />
+			);
 		},
 	},
 	{
