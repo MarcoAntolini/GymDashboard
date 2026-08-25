@@ -32,6 +32,8 @@
 		--radius: 0.5rem;
 		--z-dev-tools: 45;
 		--z-overlay: 50;
+		/* Opaco: sotto selected (muted) e sopra hover (muted/50). */
+		--table-row-pinned: color-mix(in srgb, rgb(87 83 78) 5%, hsl(var(--background)));
 	}
 
 	.dark {
@@ -60,6 +62,7 @@
 		--border: 12 6% 22%;
 		--input: 12 6.5% 15.1%;
 		--ring: 20.5 90.2% 48.2%;
+		--table-row-pinned: color-mix(in srgb, rgb(87 83 78) 22%, hsl(var(--background)));
 	}
 }
 
@@ -67,6 +70,10 @@
 	/* Opaco: mix stone-600 25% su --background (equiv. bg-stone-600/25 senza trasparenza). */
 	.table-header-surface {
 		background-color: color-mix(in srgb, rgb(87 83 78) 25%, hsl(var(--background)));
+	}
+
+	.table-row-pinned-surface {
+		background-color: var(--table-row-pinned);
 	}
 }
 

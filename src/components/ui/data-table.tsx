@@ -83,6 +83,7 @@ import { createPortal } from "react-dom";
 export type { DataTableBulkAction };
 
 const TABLE_HEADER_SURFACE = "table-header-surface";
+const TABLE_ROW_PINNED_SURFACE = "table-row-pinned-surface";
 
 /** Controlli server-side (ticket 19). Se assente → comportamento client legacy. */
 export type DataTableServerListProps = {
@@ -256,7 +257,7 @@ function DataTableRow<TData>({
 								? "bg-muted"
 								: "bg-muted/50"
 							: rowPinned
-								? "bg-muted"
+								? TABLE_ROW_PINNED_SURFACE
 								: colPinned
 									? "bg-background"
 									: undefined
