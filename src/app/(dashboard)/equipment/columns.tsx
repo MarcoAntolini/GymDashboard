@@ -47,7 +47,7 @@ export const columns = (
 		id: "paymentDate",
 		accessorFn: (row) => row.payment.date,
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Data" icon={ATTR_ICON.date} />
+			<TableSortableHeader column={column} title="Data pagamento" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => <TableDate value={row.original.payment.date} />,
