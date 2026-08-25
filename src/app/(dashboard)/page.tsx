@@ -62,8 +62,8 @@ function BreakdownTable({
 					<TableHeader>
 						<TableRow>
 							<TableHead>Tipo</TableHead>
-							<TableHead className="w-16 text-right">N°</TableHead>
-							<TableHead className="w-28 text-right">Importo</TableHead>
+							<TableHead className="w-16">N°</TableHead>
+							<TableHead className="w-28">Importo</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -106,8 +106,8 @@ function ProductRankingTable({ rows }: { rows: ProductRankingRow[] }) {
 							<TableRow>
 								<TableHead>Prodotto</TableHead>
 								<TableHead className="w-36">Tipo</TableHead>
-								<TableHead className="w-16 text-right">N°</TableHead>
-								<TableHead className="w-28 text-right">Ricavo</TableHead>
+								<TableHead className="w-16">N°</TableHead>
+								<TableHead className="w-28">Ricavo</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -374,7 +374,7 @@ function OverviewBody({ stats }: { stats: OverviewStats }) {
 								<TableHeader>
 									<TableRow>
 										<TableHead>Cliente</TableHead>
-										<TableHead className="w-36 text-right">Gg senza Ingresso</TableHead>
+										<TableHead className="w-36">Gg senza Ingresso</TableHead>
 										<TableHead className="w-40">Titolo</TableHead>
 									</TableRow>
 								</TableHeader>

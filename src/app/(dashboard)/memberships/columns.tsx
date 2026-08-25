@@ -48,7 +48,6 @@ export const columns = (
 				column={column}
 				title="Durata (giorni)"
 				icon={ATTR_ICON.duration}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Native),

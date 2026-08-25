@@ -28,8 +28,6 @@ interface TableSortableHeaderProps<TData, TValue>
 	title: string;
 	/** Lucide muted a sinistra del titolo (anche colonne non-sortable). */
 	icon?: LucideIcon;
-	/** Allinea header a destra (colonne numeriche). */
-	align?: "left" | "right";
 }
 
 function HeaderIcon({ icon: Icon }: { icon?: LucideIcon }) {
@@ -46,7 +44,6 @@ function useReportHeaderMinSize(
 		hasIcon: boolean;
 		hasTrigger: boolean;
 		sorted: false | "asc" | "desc";
-		align: "left" | "right";
 	}
 ) {
 	const columnLayout = useColumnLayout();
@@ -59,7 +56,7 @@ function useReportHeaderMinSize(
 		if (!el) return;
 
 		// scrollWidth = larghezza intrinseca (non dipende da allineamento in th larghi).
-		// Th `px-4`; il trigger ghost usa -ml-3/-mr-3 (12px) dentro quel padding.
+		// Th `px-4`; il trigger ghost usa -ml-3 (12px) dentro quel padding.
 		const trigger = el.querySelector("button");
 		const negativeInset = trigger ? 12 : 0;
 		const contentWidth = Math.ceil((trigger ?? el).scrollWidth);
@@ -74,7 +71,6 @@ function useReportHeaderMinSize(
 		opts.hasIcon,
 		opts.hasTrigger,
 		opts.sorted,
-		opts.align,
 	]);
 }
 
@@ -82,13 +78,10 @@ export function TableSortableHeader<TData, TValue>({
 	column,
 	title,
 	icon,
-	align = "left",
 	className,
 }: TableSortableHeaderProps<TData, TValue>) {
 	const columnLayout = useColumnLayout();
 	const rootRef = React.useRef<HTMLDivElement>(null);
-	const alignClass =
-		align === "right" ? "w-full justify-end" : "w-max max-w-none justify-start";
 	const canSort = column.getCanSort();
 	const canReorder = !!columnLayout && !LOCKED_COLUMN_IDS.has(column.id);
 	const sorted = column.getIsSorted();
@@ -98,7 +91,6 @@ export function TableSortableHeader<TData, TValue>({
 		hasIcon: !!icon,
 		hasTrigger: canSort || canReorder,
 		sorted,
-		align,
 	});
 
 	if (!canSort && !canReorder) {
@@ -106,8 +98,7 @@ export function TableSortableHeader<TData, TValue>({
 			<div
 				ref={rootRef}
 				className={cn(
-					"flex h-8 shrink-0 items-center px-0 text-sm font-medium whitespace-nowrap",
-					alignClass,
+					"flex h-8 w-max max-w-none shrink-0 items-center justify-start px-0 text-sm font-medium whitespace-nowrap",
 					className
 				)}
 			>
@@ -121,8 +112,7 @@ export function TableSortableHeader<TData, TValue>({
 		<div
 			ref={rootRef}
 			className={cn(
-				"flex shrink-0 items-center gap-2 whitespace-nowrap",
-				alignClass,
+				"flex w-max max-w-none shrink-0 items-center justify-start gap-2 whitespace-nowrap",
 				className
 			)}
 		>
@@ -131,10 +121,7 @@ export function TableSortableHeader<TData, TValue>({
 					<Button
 						variant="ghost"
 						size="sm"
-						className={cn(
-							"h-8 shrink-0 data-[state=open]:bg-accent",
-							align === "right" ? "-mr-3 ml-auto" : "-ml-3"
-						)}
+						className="h-8 shrink-0 -ml-3 data-[state=open]:bg-accent"
 						aria-label={`Opzioni colonna ${title}`}
 					>
 						<HeaderIcon icon={icon} />
@@ -150,7 +137,7 @@ export function TableSortableHeader<TData, TValue>({
 						) : null}
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align={align === "right" ? "end" : "start"}>
+				<DropdownMenuContent align="start">
 					{canSort ? (
 						<>
 							<DropdownMenuItem onClick={() => column.toggleSorting(false)}>

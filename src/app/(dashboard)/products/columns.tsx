@@ -105,7 +105,6 @@ export const columns = (
 				column={column}
 				title="Dettagli"
 				icon={ATTR_ICON.duration}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Derived),

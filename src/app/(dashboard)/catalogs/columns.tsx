@@ -87,7 +87,7 @@ export const columns = (
 	{
 		accessorKey: "price",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Prezzo" icon={ATTR_ICON.amount} align="right" />
+			<TableSortableHeader column={column} title="Prezzo" icon={ATTR_ICON.amount} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

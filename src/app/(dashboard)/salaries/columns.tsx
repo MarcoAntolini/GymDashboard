@@ -54,7 +54,7 @@ export const columns = (
 		id: "paymentAmount",
 		accessorFn: (row) => Number(row.payment.amount),
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Importo" icon={ATTR_ICON.amount} align="right" />
+			<TableSortableHeader column={column} title="Importo" icon={ATTR_ICON.amount} />
 		),
 		meta: columnMeta(ColumnClass.Join),
 		cell: ({ row }) => (

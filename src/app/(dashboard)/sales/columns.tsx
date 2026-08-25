@@ -83,7 +83,6 @@ export const columns = (
 				column={column}
 				title="Importo"
 				icon={ATTR_ICON.amount}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Snapshot),
@@ -152,7 +151,6 @@ export const columns = (
 				column={column}
 				title="Durata"
 				icon={ATTR_ICON.duration}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Snapshot),
@@ -172,7 +170,6 @@ export const columns = (
 				column={column}
 				title="N ingressi"
 				icon={ENTITY_ICON.entrance}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Snapshot),
@@ -189,7 +186,6 @@ export const columns = (
 				column={column}
 				title="Ingressi rimanenti"
 				icon={ENTITY_ICON.entrance}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Derived, {

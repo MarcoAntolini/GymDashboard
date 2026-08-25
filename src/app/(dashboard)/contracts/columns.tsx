@@ -105,7 +105,7 @@ export const columns = (
 	{
 		accessorKey: "hourlyFee",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Compenso orario" icon={ATTR_ICON.amount} align="right" />
+			<TableSortableHeader column={column} title="Compenso orario" icon={ATTR_ICON.amount} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

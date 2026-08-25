@@ -53,7 +53,6 @@ export const columns = (
 				column={column}
 				title="N ingressi"
 				icon={ENTITY_ICON.entrance}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Native),

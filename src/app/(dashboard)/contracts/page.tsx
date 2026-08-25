@@ -455,7 +455,6 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 				column={column}
 				title="Compenso orario"
 				icon={ATTR_ICON.amount}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Native),
@@ -472,7 +471,6 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 				column={column}
 				title="Guadagni totali"
 				icon={Calculator}
-				align="right"
 			/>
 		),
 		meta: columnMeta(ColumnClass.Derived),

@@ -570,8 +570,8 @@ export default function SalesPage() {
 										<TableHeader>
 											<TableRow>
 												<TableHead>Tipo</TableHead>
-												<TableHead className="w-16 text-right">N°</TableHead>
-												<TableHead className="w-28 text-right">Ricavo</TableHead>
+												<TableHead className="w-16">N°</TableHead>
+												<TableHead className="w-28">Ricavo</TableHead>
 											</TableRow>
 										</TableHeader>
 										<TableBody>
@@ -605,8 +605,8 @@ export default function SalesPage() {
 												<TableRow>
 													<TableHead>Prodotto</TableHead>
 													<TableHead className="w-36">Tipo</TableHead>
-													<TableHead className="w-16 text-right">N°</TableHead>
-													<TableHead className="w-28 text-right">Ricavo</TableHead>
+													<TableHead className="w-16">N°</TableHead>
+													<TableHead className="w-28">Ricavo</TableHead>
 												</TableRow>
 											</TableHeader>
 											<TableBody>
