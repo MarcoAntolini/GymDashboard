@@ -10,7 +10,8 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { BillRow } from "@/data-access/bills";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { LONG_TEXT_COLUMN_SIZE } from "@/components/ui/data-table/table-column-layout";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { formatEur } from "@/lib/format";
 import { Bill } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -32,14 +33,15 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Fornitore" icon={ATTR_ICON.provider} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, { width: ColumnWidth.Text }),
 	},
 	{
 		accessorKey: "description",
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Descrizione" icon={ATTR_ICON.description} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, { width: ColumnWidth.Text }),
+		size: LONG_TEXT_COLUMN_SIZE,
 	},
 	{
 		id: "paymentDate",
@@ -66,7 +68,7 @@ export const columns = (
 	{
 		accessorKey: "paymentId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID Pagamento" icon={ENTITY_ICON.payment} align="right" />
+			<TableSortableHeader column={column} title="ID Pagamento" icon={ENTITY_ICON.payment} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

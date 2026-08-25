@@ -21,7 +21,7 @@ import {
 	type LucideIcon,
 } from "lucide-react";
 import * as React from "react";
-import { LOCKED_COLUMN_IDS } from "./table-column-layout";
+import { LOCKED_COLUMN_IDS, TABLE_CELL_PAD_X } from "./table-column-layout";
 import { useColumnLayout } from "./table-column-layout-context";
 
 interface TableSortableHeaderProps<TData, TValue>
@@ -33,9 +33,6 @@ interface TableSortableHeaderProps<TData, TValue>
 	/** Allinea header a destra (colonne numeriche). */
 	align?: "left" | "right";
 }
-
-/** Padding orizzontale di `TableHead` (`px-4`). */
-const TABLE_HEAD_PAD_X = 16;
 
 function HeaderIcon({ icon: Icon }: { icon?: LucideIcon }) {
 	if (!Icon) return null;
@@ -56,10 +53,11 @@ function useReportHeaderMinSize(
 	}
 ) {
 	const columnLayout = useColumnLayout();
-	const ensureHeaderMinSize = columnLayout?.ensureHeaderMinSize;
+	const setColumnMinSize = columnLayout?.setColumnMinSize;
+	const fontsReady = columnLayout?.fontsReady;
 
 	React.useLayoutEffect(() => {
-		if (!ensureHeaderMinSize || LOCKED_COLUMN_IDS.has(columnId)) return;
+		if (!setColumnMinSize || LOCKED_COLUMN_IDS.has(columnId)) return;
 		const el = ref.current;
 		if (!el) return;
 
@@ -68,12 +66,13 @@ function useReportHeaderMinSize(
 		const trigger = el.querySelector("button");
 		const negativeInset = trigger ? 12 : 0;
 		const contentWidth = Math.ceil((trigger ?? el).scrollWidth);
-		const needed = contentWidth + TABLE_HEAD_PAD_X * 2 - negativeInset;
-		if (needed > 0) ensureHeaderMinSize(columnId, needed);
+		const needed = contentWidth + TABLE_CELL_PAD_X * 2 - negativeInset;
+		if (needed > 0) setColumnMinSize("header", columnId, needed);
 	}, [
 		columnId,
 		ref,
-		ensureHeaderMinSize,
+		setColumnMinSize,
+		fontsReady,
 		opts.title,
 		opts.hasIcon,
 		opts.hasTrigger,

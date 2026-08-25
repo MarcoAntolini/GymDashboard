@@ -7,7 +7,8 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { taxCodeSample } from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { Client } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
@@ -34,7 +35,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} align="right" />
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -46,7 +47,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Codice fiscale" icon={ATTR_ICON.taxCode} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: [taxCodeSample()],
+		}),
 		cell: ({ row }) => (
 			<TableCode value={row.original.taxCode} filterKeys="taxCode" compact />
 		),
@@ -56,14 +60,14 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Nome" icon={ENTITY_ICON.client} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, { width: ColumnWidth.Text }),
 	},
 	{
 		accessorKey: "surname",
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Cognome" icon={ENTITY_ICON.client} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, { width: ColumnWidth.Text }),
 	},
 	{
 		accessorKey: "birthDate",

@@ -10,7 +10,13 @@ import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { OverflowText } from "@/components/ui/overflow-text";
 import type { ProductListRow } from "@/data-access/products";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { LONG_TEXT_COLUMN_SIZE } from "@/components/ui/data-table/table-column-layout";
+import {
+	missingKindBadgeSample,
+	productKindBadgeSamples,
+	productStatusBadgeSamples,
+} from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
 	ProductKind,
@@ -58,7 +64,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
-		meta: columnMeta(ColumnClass.Derived),
+		meta: columnMeta(ColumnClass.Derived, {
+			width: ColumnWidth.Content,
+			widthSamples: [...productKindBadgeSamples(), missingKindBadgeSample()],
+		}),
 		cell: ({ row }) => {
 			const kind = row.original.kind;
 			if (!kind) return <DomainBadge label="Configurazione mancante" tone="warning" />;
@@ -80,7 +89,8 @@ export const columns = (
 				icon={ATTR_ICON.description}
 			/>
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, { width: ColumnWidth.Text }),
+		size: LONG_TEXT_COLUMN_SIZE,
 		cell: ({ row }) => (
 			<OverflowText>{row.original.description || "—"}</OverflowText>
 		),
@@ -116,7 +126,10 @@ export const columns = (
 				icon={ATTR_ICON.approved}
 			/>
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: productStatusBadgeSamples(),
+		}),
 		cell: ({ row }) =>
 			row.original.active ? (
 				<DomainBadge

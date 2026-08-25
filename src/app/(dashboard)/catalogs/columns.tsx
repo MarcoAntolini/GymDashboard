@@ -11,7 +11,8 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { CatalogListRow } from "@/data-access/catalogs";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { productKindBadgeSamples } from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
 	productKindFromProduct,
@@ -40,10 +41,12 @@ export const columns = (
 	{
 		accessorKey: "year",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Anno" icon={ATTR_ICON.date} align="right" />
+			<TableSortableHeader column={column} title="Anno" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => <NumericCell>{row.original.year}</NumericCell>,
+		cell: ({ row }) => (
+			<NumericCell className="text-left">{row.original.year}</NumericCell>
+		),
 	},
 	{
 		id: "kind",
@@ -54,7 +57,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
-		meta: columnMeta(ColumnClass.Derived),
+		meta: columnMeta(ColumnClass.Derived, {
+			width: ColumnWidth.Content,
+			widthSamples: productKindBadgeSamples(),
+		}),
 		cell: ({ row }) => {
 			const kind = productKindFromProduct(row.original.product);
 			if (!kind) return <div>—</div>;

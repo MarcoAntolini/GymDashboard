@@ -10,7 +10,7 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { SalaryRow } from "@/data-access/salaries";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel } from "@/lib/domain/labels";
 import { formatEur } from "@/lib/format";
 import { Salary } from "@prisma/client";
@@ -33,7 +33,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 		),
-		meta: columnMeta(ColumnClass.Join),
+		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
 		cell: ({ row }) => (
 			<TablePerson
 				person={{ ...row.original.employee, id: row.original.employeeId }}
@@ -66,7 +66,7 @@ export const columns = (
 	{
 		accessorKey: "paymentId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID Pagamento" icon={ENTITY_ICON.payment} align="right" />
+			<TableSortableHeader column={column} title="ID Pagamento" icon={ENTITY_ICON.payment} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

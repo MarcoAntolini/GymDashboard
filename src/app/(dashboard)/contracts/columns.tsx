@@ -19,7 +19,11 @@ import {
 	ENDING_DATE_BEFORE_START,
 	FIXED_TERM_ENDING_DATE_REQUIRED,
 } from "@/lib/contract-term";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import {
+	contractTypeBadgeSamples,
+	inProgressBadgeSample,
+} from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { CONTRACT_TYPE_LABEL, formatPersonLabel } from "@/lib/domain/labels";
 import { CONTRACT_TYPE_ICON, CONTRACT_TYPE_TONE } from "@/lib/domain/visual";
 import { formatEur } from "@/lib/format";
@@ -69,7 +73,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 		),
-		meta: columnMeta(ColumnClass.Join),
+		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
 		cell: ({ row }) => (
 			<TablePerson
 				person={{ ...row.original.employee, id: row.original.employeeId }}
@@ -82,7 +86,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: contractTypeBadgeSamples(),
+		}),
 		cell: ({ row }) => (
 			<DotBadge
 				label={CONTRACT_TYPE_LABEL[row.original.type]}
@@ -119,7 +126,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Data fine" icon={ATTR_ICON.date} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: [inProgressBadgeSample()],
+		}),
 		cell: ({ row }) => {
 			const endingDate = row.original.endingDate;
 			const open =

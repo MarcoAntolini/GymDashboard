@@ -2,7 +2,7 @@
 
 import { TableStackedPair } from "@/components/ui/data-table/table-cells";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { ColumnDef } from "@tanstack/react-table";
 import { ATTR_ICON } from "@/lib/domain/icons";
 
@@ -32,9 +32,11 @@ export function contactAddressColumns<T extends ContactAddressFields>(): ColumnD
 			header: ({ column }) => (
 				<TableSortableHeader column={column} title="Indirizzo" icon={ATTR_ICON.address} />
 			),
-			meta: columnMeta(ColumnClass.Native, { stacked: true }),
+			meta: columnMeta(ColumnClass.Native, {
+				stacked: true,
+				width: ColumnWidth.Text,
+			}),
 			size: 180,
-			minSize: 140,
 			cell: ({ row }) => (
 				<TableStackedPair
 					primary={lineStreet(row.original)}
@@ -49,9 +51,11 @@ export function contactAddressColumns<T extends ContactAddressFields>(): ColumnD
 			header: ({ column }) => (
 				<TableSortableHeader column={column} title="Contatto" icon={ATTR_ICON.contact} />
 			),
-			meta: columnMeta(ColumnClass.Native, { stacked: true }),
+			meta: columnMeta(ColumnClass.Native, {
+				stacked: true,
+				width: ColumnWidth.Text,
+			}),
 			size: 176,
-			minSize: 140,
 			cell: ({ row }) => (
 				<TableStackedPair
 					primary={row.original.phoneNumber}

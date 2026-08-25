@@ -6,7 +6,7 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import type { EntranceRow } from "@/data-access/entrances";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { ColumnDef } from "@tanstack/react-table";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { z } from "zod";
@@ -35,7 +35,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} align="right" />
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableId value={row.original.id} filterKeys="id" />,
@@ -57,7 +57,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Cliente" icon={ENTITY_ICON.client} />
 		),
-		meta: columnMeta(ColumnClass.Join),
+		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
 		cell: ({ row }) => (
 			<TablePerson
 				person={{ ...row.original.sale.client, id: row.original.sale.clientId }}
@@ -79,7 +79,7 @@ export const columns = (
 	{
 		accessorKey: "saleId",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Vendita" icon={ENTITY_ICON.sale} align="right" />
+			<TableSortableHeader column={column} title="Vendita" icon={ENTITY_ICON.sale} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

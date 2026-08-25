@@ -22,17 +22,27 @@ import {
 import {
 	ACTIONS_COLUMN_ID,
 	ACTIONS_COLUMN_SIZE,
+	FALLBACK_COLUMN_SIZE,
+	MIN_COLUMN_SIZE,
 	SELECT_COLUMN_ID,
 	ensureActionsTrailing,
 	getColumnPinningStyle,
 	getColumnWidthStyle,
-	getFlexFillColumnId,
 	getPinnedLeafColumnOrder,
 	moveColumnInOrder,
 	normalizeColumnPinning,
+	resolveColumnSize,
 	SELECT_COLUMN_SIZE,
 } from "@/components/ui/data-table/table-column-layout";
-import { ColumnLayoutProvider } from "@/components/ui/data-table/table-column-layout-context";
+import {
+	ColumnLayoutProvider,
+	useFontsReady,
+	type ColumnMinSizeSource,
+} from "@/components/ui/data-table/table-column-layout-context";
+import {
+	ColumnWidthProbe,
+	type ColumnWidthSample,
+} from "@/components/ui/data-table/table-column-width-probe";
 import { SearchHighlightProvider } from "@/components/ui/data-table/search-highlight-context";
 import {
 	getRowPinningStyle,
@@ -51,7 +61,6 @@ import {
 	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnPinningState,
-	ColumnSizingState,
 	OnChangeFn,
 	PaginationState,
 	Row,
@@ -162,16 +171,20 @@ function columnFiltersIdentity(filters: ColumnFiltersState): string {
 		.join("|");
 }
 
+function columnDefId<TData, TValue>(
+	col: ColumnDef<TData, TValue>
+): string | undefined {
+	if (col.id) return col.id;
+	if ("accessorKey" in col && col.accessorKey != null) return String(col.accessorKey);
+	return undefined;
+}
+
 /** Colonne senza `cell` custom: evidenzia il value se c'è filtro applicato sulla stessa chiave. */
 function withDefaultSearchHighlightCell<TData, TValue>(
 	col: ColumnDef<TData, TValue>
 ): ColumnDef<TData, TValue> {
 	if (col.cell) return col;
-	const id =
-		col.id ??
-		("accessorKey" in col && col.accessorKey != null
-			? String(col.accessorKey)
-			: undefined);
+	const id = columnDefId(col);
 	if (!id || id === ACTIONS_COLUMN_ID || id === SELECT_COLUMN_ID) return col;
 	return {
 		...col,
@@ -183,12 +196,10 @@ function withDefaultSearchHighlightCell<TData, TValue>(
 
 function DataTableRow<TData>({
 	row,
-	flexFillColumnId,
 	bottomPinnedCount,
 	mountHiddenActions,
 }: {
 	row: Row<TData>;
-	flexFillColumnId: string | null;
 	bottomPinnedCount: number;
 	mountHiddenActions: boolean;
 }) {
@@ -251,7 +262,7 @@ function DataTableRow<TData>({
 									: undefined
 				)}
 				style={{
-					...getColumnWidthStyle(cell.column.id, size, flexFillColumnId),
+					...getColumnWidthStyle(size),
 					...sticky,
 				}}
 			>
@@ -381,10 +392,9 @@ function DataTableInner<TData, TValue>({
 			}
 		)
 	);
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({});
-	const [headerMinSizes, setHeaderMinSizes] = React.useState<Record<string, number>>(
-		{}
-	);
+	const [columnMinSizes, setColumnMinSizes] = React.useState<
+		Record<string, Partial<Record<ColumnMinSizeSource, number>>>
+	>({});
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 	const [rowPinning, setRowPinning] = React.useState<RowPinningState>({
 		top: [],
@@ -399,25 +409,32 @@ function DataTableInner<TData, TValue>({
 		setMountHiddenActions(true);
 	}, []);
 
-	const ensureHeaderMinSize = React.useCallback((columnId: string, minSize: number) => {
-		if (!columnId || minSize <= 0) return;
-		setHeaderMinSizes((prev) => {
-			if ((prev[columnId] ?? 0) >= minSize) return prev;
-			return { ...prev, [columnId]: minSize };
-		});
-		setColumnSizing((prev) => {
-			const current = prev[columnId];
-			if (current == null || current >= minSize) return prev;
-			return { ...prev, [columnId]: minSize };
-		});
-	}, []);
+	const fontsReady = useFontsReady();
+
+	const setColumnMinSize = React.useCallback(
+		(source: ColumnMinSizeSource, columnId: string, minSize: number) => {
+			if (!columnId || minSize <= 0) return;
+			const next = Math.ceil(minSize);
+			setColumnMinSizes((prev) => {
+				if (prev[columnId]?.[source] === next) return prev;
+				return { ...prev, [columnId]: { ...prev[columnId], [source]: next } };
+			});
+		},
+		[]
+	);
+
+	const measureContentMinSize = React.useCallback(
+		(columnId: string, minSize: number) => {
+			setColumnMinSize("content", columnId, minSize);
+		},
+		[setColumnMinSize]
+	);
 
 	const selectColumn = React.useMemo<ColumnDef<TData, TValue>>(
 		() => ({
 			id: "__select",
 			enableSorting: false,
 			enableHiding: false,
-			enableResizing: false,
 			enablePinning: false,
 			header: ({ table }) => (
 				<div className="flex items-center justify-center">
@@ -456,15 +473,10 @@ function DataTableInner<TData, TValue>({
 		const base = enableSelection ? [selectColumn, ...columns] : [...columns];
 		return base.map((col) => {
 			const withHighlight = withDefaultSearchHighlightCell(col);
-			const id =
-				withHighlight.id ??
-				("accessorKey" in withHighlight && withHighlight.accessorKey != null
-					? String(withHighlight.accessorKey)
-					: undefined);
+			const id = columnDefId(withHighlight);
 			if (id === ACTIONS_COLUMN_ID) {
 				return {
 					...withHighlight,
-					enableResizing: false,
 					enableHiding: false,
 					enablePinning: false,
 					size: ACTIONS_COLUMN_SIZE,
@@ -472,30 +484,32 @@ function DataTableInner<TData, TValue>({
 					maxSize: ACTIONS_COLUMN_SIZE,
 				};
 			}
-			const headerMin = id ? headerMinSizes[id] : undefined;
-			if (headerMin == null) return withHighlight;
-			const nextMin = Math.max(withHighlight.minSize ?? 64, headerMin);
-			const nextSize = Math.max(withHighlight.size ?? 160, headerMin);
-			const nextMax = Math.max(withHighlight.maxSize ?? 480, nextMin);
-			return {
-				...withHighlight,
-				minSize: nextMin,
-				size: nextSize,
-				maxSize: nextMax,
-			};
+			if (!id || id === SELECT_COLUMN_ID) return withHighlight;
+
+			const measured = columnMinSizes[id];
+			const size = resolveColumnSize({
+				width: withHighlight.meta?.width,
+				measuredMinSize: Math.max(measured?.header ?? 0, measured?.content ?? 0),
+				declaredSize: withHighlight.size,
+			});
+			// size === minSize === maxSize: la colonna non è negoziabile né ridimensionabile.
+			return { ...withHighlight, size, minSize: size, maxSize: size };
 		});
-	}, [enableSelection, selectColumn, columns, headerMinSizes]);
+	}, [enableSelection, selectColumn, columns, columnMinSizes]);
+
+	const widthSamples = React.useMemo(() => {
+		const collected: ColumnWidthSample[] = [];
+		for (const col of columns) {
+			const id = columnDefId(col);
+			const samples = col.meta?.widthSamples;
+			if (!id || !samples?.length) continue;
+			for (const node of samples) collected.push({ columnId: id, node });
+		}
+		return collected;
+	}, [columns]);
 
 	const leafColumnIds = React.useMemo(
-		() =>
-			tableColumns
-				.map((col) =>
-					col.id ??
-					("accessorKey" in col && col.accessorKey != null
-						? String(col.accessorKey)
-						: "")
-				)
-				.filter(Boolean),
+		() => tableColumns.map((col) => columnDefId(col) ?? "").filter(Boolean),
 		[tableColumns]
 	);
 
@@ -525,12 +539,10 @@ function DataTableInner<TData, TValue>({
 		data,
 		columns: tableColumns,
 		defaultColumn: {
-			minSize: 64,
-			size: 160,
-			maxSize: 480,
+			minSize: MIN_COLUMN_SIZE,
+			size: FALLBACK_COLUMN_SIZE,
 		},
-		columnResizeMode: "onChange",
-		enableColumnResizing: true,
+		enableColumnResizing: false,
 		enableColumnPinning: true,
 		enableRowPinning: true,
 		/** Pin solo sulle righe della pagina corrente (server-side + client). */
@@ -566,14 +578,12 @@ function DataTableInner<TData, TValue>({
 			});
 		},
 		onColumnPinningChange,
-		onColumnSizingChange: setColumnSizing,
 		state: {
 			sorting: isServer ? serverList.sorting : sorting,
 			columnFilters: isServer ? [] : columnFilters,
 			columnVisibility,
 			columnOrder,
 			columnPinning,
-			columnSizing,
 			pagination: isServer ? serverList.pagination : pagination,
 			rowSelection,
 			rowPinning,
@@ -645,9 +655,6 @@ function DataTableInner<TData, TValue>({
 	const pageSelectedCount = table.getSelectedRowModel().rows.length;
 	const colSpan = table.getVisibleLeafColumns().length;
 	const orderedLeafColumns = getPinnedLeafColumnOrder(table);
-	const flexFillColumnId = getFlexFillColumnId(
-		orderedLeafColumns.map((column) => column.id)
-	);
 	const hasBodyRows =
 		topRows.length + centerRows.length + bottomRows.length > 0;
 	const showLoading = isLoading && !hasBodyRows && !error;
@@ -705,12 +712,18 @@ function DataTableInner<TData, TValue>({
 		<SearchHighlightProvider filters={isServer ? serverList?.appliedFilters : undefined}>
 		<ColumnLayoutProvider
 			moveColumn={moveColumn}
-			ensureHeaderMinSize={ensureHeaderMinSize}
+			setColumnMinSize={setColumnMinSize}
+			fontsReady={fontsReady}
 		>
 		<div
 			className="flex h-full min-h-0 min-w-0 flex-col"
 			aria-busy={isLoading || undefined}
 		>
+			<ColumnWidthProbe
+				samples={widthSamples}
+				fontsReady={fontsReady}
+				onMeasure={measureContentMinSize}
+			/>
 			<div className="flex h-14 shrink-0 items-center gap-2 px-4 py-2">
 				<TableToolbar
 					table={table}
@@ -733,24 +746,23 @@ function DataTableInner<TData, TValue>({
 				/>
 			</div>
 			<Separator className="shrink-0" />
-			<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4">
-			<div className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint rounded-md border">
+			<div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+			<div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-md border">
+				<div className="min-h-0 min-w-0 flex-1 overflow-auto contain-paint">
+				<div className="w-max border-r border-border">
 				<Table
+					// `w-auto`: la larghezza è la somma delle colonne, non quella del parent.
 					className={cn(
-						"w-full table-fixed [&_tr_td:last-child]:w-auto [&_tr_th:last-child]:w-auto",
+						"w-auto table-fixed [&_tr_td:last-child]:w-auto [&_tr_th:last-child]:w-auto",
 						className
 					)}
-					style={{ minWidth: table.getTotalSize() }}
+					style={{ width: table.getTotalSize() }}
 				>
 					<colgroup>
 						{orderedLeafColumns.map((column) => (
 							<col
 								key={column.id}
-								style={getColumnWidthStyle(
-									column.id,
-									column.getSize(),
-									flexFillColumnId
-								)}
+								style={getColumnWidthStyle(column.getSize())}
 							/>
 						))}
 					</colgroup>
@@ -765,16 +777,12 @@ function DataTableInner<TData, TValue>({
 											key={header.id}
 											colSpan={header.colSpan}
 											className={cn(
-												"relative box-border group/col overflow-hidden",
+												"box-border overflow-hidden",
 												TABLE_HEADER_SURFACE,
 												pinned && "shadow-[inset_-1px_0_0] shadow-border"
 											)}
 											style={{
-												...getColumnWidthStyle(
-													header.column.id,
-													size,
-													flexFillColumnId
-												),
+												...getColumnWidthStyle(size),
 												...getColumnPinningStyle(header.column),
 												zIndex: pinned ? 3 : 1,
 											}}
@@ -785,21 +793,6 @@ function DataTableInner<TData, TValue>({
 														header.column.columnDef.header,
 														header.getContext()
 													)}
-											{header.column.getCanResize() &&
-											header.column.id !== flexFillColumnId ? (
-												<div
-													role="separator"
-													aria-orientation="vertical"
-													aria-label={`Ridimensiona colonna ${header.column.id}`}
-													onMouseDown={header.getResizeHandler()}
-													onTouchStart={header.getResizeHandler()}
-													className={cn(
-														"absolute right-0 top-0 z-10 h-full w-1 cursor-col-resize touch-none select-none",
-														"opacity-0 group-hover/col:opacity-100 bg-border hover:bg-primary",
-														header.column.getIsResizing() && "opacity-100 bg-primary"
-													)}
-												/>
-											) : null}
 										</TableHead>
 									);
 								})}
@@ -822,7 +815,6 @@ function DataTableInner<TData, TValue>({
 									<DataTableRow
 										key={`pin-top-${row.id}`}
 										row={row}
-										flexFillColumnId={flexFillColumnId}
 										bottomPinnedCount={bottomPinnedCount}
 										mountHiddenActions={mountHiddenActions}
 									/>
@@ -831,7 +823,6 @@ function DataTableInner<TData, TValue>({
 									<DataTableRow
 										key={row.id}
 										row={row}
-										flexFillColumnId={flexFillColumnId}
 										bottomPinnedCount={bottomPinnedCount}
 										mountHiddenActions={mountHiddenActions}
 									/>
@@ -840,7 +831,6 @@ function DataTableInner<TData, TValue>({
 									<DataTableRow
 										key={`pin-bottom-${row.id}`}
 										row={row}
-										flexFillColumnId={flexFillColumnId}
 										bottomPinnedCount={bottomPinnedCount}
 										mountHiddenActions={mountHiddenActions}
 									/>
@@ -849,6 +839,8 @@ function DataTableInner<TData, TValue>({
 						)}
 					</TableBody>
 				</Table>
+				</div>
+				</div>
 			</div>
 			<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-2 pt-4">
 				<div className="flex min-h-9 min-w-0 flex-1 flex-wrap items-center gap-2">

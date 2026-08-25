@@ -8,7 +8,8 @@ import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { ClockingRow } from "@/data-access/clockings";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { inProgressBadgeSample } from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import { formatPersonLabel } from "@/lib/domain/labels";
 import { formatDurationIt } from "@/lib/format";
@@ -32,7 +33,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 		),
-		meta: columnMeta(ColumnClass.Join),
+		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
 		cell: ({ row }) => (
 			<TablePerson
 				person={{ ...row.original.employee, id: row.original.employeeId }}
@@ -55,7 +56,11 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Uscita" icon={ATTR_ICON.clockOut} />
 		),
-		meta: columnMeta(ColumnClass.Native, { stacked: true }),
+		meta: columnMeta(ColumnClass.Native, {
+			stacked: true,
+			width: ColumnWidth.Content,
+			widthSamples: [inProgressBadgeSample()],
+		}),
 		cell: ({ row }) => {
 			const exitTime = row.original.exitTime;
 			return exitTime ? (
@@ -74,25 +79,25 @@ export const columns = (
 		},
 		enableSorting: false,
 		header: ({ column }) => (
-			<TableSortableHeader
-				column={column}
-				title="Totale"
-				icon={ATTR_ICON.duration}
-				align="right"
-			/>
+			<TableSortableHeader column={column} title="Totale" icon={ATTR_ICON.duration} />
 		),
-		meta: columnMeta(ColumnClass.Derived),
+		meta: columnMeta(ColumnClass.Derived, {
+			width: ColumnWidth.Content,
+			widthSamples: [inProgressBadgeSample()],
+		}),
 		cell: ({ row }) => {
 			const duration = row.getValue("elapsedTime") as number | null;
 			if (duration != null) {
-				return <NumericCell>{formatDurationIt(duration)}</NumericCell>;
+				return (
+					<NumericCell className="text-left">{formatDurationIt(duration)}</NumericCell>
+				);
 			}
 			if (!row.original.exitTime) {
 				return (
 					<DomainBadge label="In corso" tone="info" icon={ATTR_ICON.inProgress} />
 				);
 			}
-			return <NumericCell muted>—</NumericCell>;
+			return <NumericCell muted className="text-left">—</NumericCell>;
 		},
 	},
 	{

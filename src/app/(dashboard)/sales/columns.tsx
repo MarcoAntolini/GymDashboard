@@ -15,7 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { SaleListRow } from "@/data-access/sales";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import {
+	productKindBadgeSamples,
+	remainingEntrancesBadgeSamples,
+} from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import {
 	PRODUCT_KIND_LABEL,
 	ProductKind,
@@ -53,7 +57,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} align="right" />
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (
@@ -67,7 +71,7 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Cliente" icon={ENTITY_ICON.client} />
 		),
-		meta: columnMeta(ColumnClass.Join),
+		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
 		cell: ({ row }) => (
 			<TablePerson
 				person={{ ...row.original.client, id: row.original.clientId }}
@@ -107,7 +111,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
-		meta: columnMeta(ColumnClass.Derived),
+		meta: columnMeta(ColumnClass.Derived, {
+			width: ColumnWidth.Content,
+			widthSamples: productKindBadgeSamples(),
+		}),
 		cell: ({ row }) => {
 			const kind = productKindFromSnapshot(row.original);
 			return (
@@ -181,7 +188,10 @@ export const columns = (
 				align="right"
 			/>
 		),
-		meta: columnMeta(ColumnClass.Derived),
+		meta: columnMeta(ColumnClass.Derived, {
+			width: ColumnWidth.Content,
+			widthSamples: remainingEntrancesBadgeSamples(),
+		}),
 		cell: ({ row }) => (
 			<NumericCell>
 				<RemainingEntrancesBadge

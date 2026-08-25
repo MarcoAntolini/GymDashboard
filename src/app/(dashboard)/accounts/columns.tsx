@@ -15,7 +15,11 @@ import { OverflowText } from "@/components/ui/overflow-text";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { AccountRow } from "@/data-access/accounts";
 import { assignableRoles, canManageRole, type AppRole } from "@/data/nav-routes";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import {
+	approvalBadgeSamples,
+	roleBadgeSamples,
+} from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel, ROLE_LABEL } from "@/lib/domain/labels";
 import { toAppRole } from "@/lib/domain/roles";
 import { ROLE_ICON, ROLE_TONE } from "@/lib/domain/visual";
@@ -101,7 +105,7 @@ export const columns = (
 			header: ({ column }) => (
 				<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 			),
-			meta: columnMeta(ColumnClass.Join),
+			meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
 			cell: ({ row }) => (
 				<TablePerson
 					person={
@@ -118,14 +122,17 @@ export const columns = (
 			header: ({ column }) => (
 				<TableSortableHeader column={column} title="Nome utente" icon={ATTR_ICON.username} />
 			),
-			meta: columnMeta(ColumnClass.Native),
+			meta: columnMeta(ColumnClass.Native, { width: ColumnWidth.Text }),
 		},
 		{
 			accessorKey: "password",
 			header: ({ column }) => (
 				<TableSortableHeader column={column} title="Password" icon={ATTR_ICON.password} />
 			),
-			meta: { ...columnMeta(ColumnClass.Native), noCellOverflow: true },
+			meta: columnMeta(ColumnClass.Native, {
+				noCellOverflow: true,
+				width: ColumnWidth.Text,
+			}),
 			enableSorting: false,
 			cell: ({ row }) => <MaskedPasswordCell password={row.original.password} />,
 		},
@@ -134,7 +141,10 @@ export const columns = (
 			header: ({ column }) => (
 				<TableSortableHeader column={column} title="Ruolo" icon={ATTR_ICON.role} />
 			),
-			meta: columnMeta(ColumnClass.Native),
+			meta: columnMeta(ColumnClass.Native, {
+				width: ColumnWidth.Content,
+				widthSamples: roleBadgeSamples(),
+			}),
 			enableSorting: false,
 			cell: ({ row }) => {
 				const appRole = toAppRole(row.original.role);
@@ -156,7 +166,10 @@ export const columns = (
 			header: ({ column }) => (
 				<TableSortableHeader column={column} title="Approvazione" icon={ATTR_ICON.approved} />
 			),
-			meta: columnMeta(ColumnClass.Native),
+			meta: columnMeta(ColumnClass.Native, {
+				width: ColumnWidth.Content,
+				widthSamples: approvalBadgeSamples(),
+			}),
 			enableSorting: false,
 			cell: ({ row }) =>
 				row.original.approved ? (

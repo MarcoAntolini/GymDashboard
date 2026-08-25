@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Column, ColumnPinningState } from "@tanstack/react-table";
+import { ColumnWidth } from "@/lib/domain/column-class";
 
 /** Colonne strutturali: non riordinabili dall'operatore. */
 export const LOCKED_COLUMN_IDS = new Set(["__select", "actions"]);
@@ -10,6 +11,42 @@ export const ACTIONS_COLUMN_ID = "actions";
 /** Checkbox 16px + padding cella 16px per lato (come `p-4` verticale). */
 export const SELECT_COLUMN_SIZE = 48;
 export const ACTIONS_COLUMN_SIZE = 56;
+
+/** Padding orizzontale per lato di `TableHead`/`TableCell` (`px-4`). */
+export const TABLE_CELL_PAD_X = 16;
+
+/** Pavimento assoluto: sotto questa soglia una colonna non è più leggibile. */
+export const MIN_COLUMN_SIZE = 64;
+
+/** Usata solo finché le misure DOM non sono disponibili (primo layout, SSR). */
+export const FALLBACK_COLUMN_SIZE = 160;
+
+/** `ColumnWidth.Text`: spazio di lettura di default per il testo libero. */
+export const TEXT_COLUMN_SIZE = 200;
+
+/** `ColumnWidth.Text` su descrizioni e dettagli: da passare come `ColumnDef.size`. */
+export const LONG_TEXT_COLUMN_SIZE = 280;
+
+/**
+ * Larghezza definitiva della colonna. `measuredMinSize` è il pavimento misurato a
+ * runtime (header + eventuali `meta.widthSamples`, padding incluso): nessuna
+ * categoria può scendere sotto, così header e badge non vengono mai tagliati.
+ * Solo `ColumnWidth.Text` aggiunge spazio oltre quel pavimento.
+ */
+export function resolveColumnSize({
+	width,
+	measuredMinSize,
+	declaredSize,
+}: {
+	width: ColumnWidth | undefined;
+	measuredMinSize: number;
+	declaredSize: number | undefined;
+}): number {
+	if (measuredMinSize <= 0) return declaredSize ?? FALLBACK_COLUMN_SIZE;
+	const readingSpace =
+		width === ColumnWidth.Text ? (declaredSize ?? TEXT_COLUMN_SIZE) : (declaredSize ?? 0);
+	return Math.max(MIN_COLUMN_SIZE, measuredMinSize, readingSpace);
+}
 
 /**
  * Ancora `__select` a sinistra. `actions` è host nascosto (menu contestuale), non in layout.
@@ -31,32 +68,8 @@ export function normalizeColumnPinning(
 	};
 }
 
-/** Colonna che assorbe lo spazio libero a destra (prima di `actions`, o ultima se manca). */
-export function getFlexFillColumnId(leafColumnIds: string[]): string | null {
-	const actionsIndex = leafColumnIds.indexOf(ACTIONS_COLUMN_ID);
-	if (actionsIndex > 0) {
-		const candidate = leafColumnIds[actionsIndex - 1];
-		if (candidate !== SELECT_COLUMN_ID) return candidate;
-	}
-
-	// Senza actions: ultima colonna dati assorbe lo spazio (evita redistribuzione table-fixed).
-	for (let i = leafColumnIds.length - 1; i >= 0; i--) {
-		const id = leafColumnIds[i];
-		if (id !== SELECT_COLUMN_ID && id !== ACTIONS_COLUMN_ID) return id;
-	}
-	return null;
-}
-
-/** Stili larghezza: la flex-fill cresce; le altre restano a px fissi. */
-export function getColumnWidthStyle(
-	columnId: string,
-	size: number,
-	flexFillColumnId: string | null
-): CSSProperties {
-	if (flexFillColumnId && columnId === flexFillColumnId) {
-		// In table-fixed, width 100% claims leftover space after fixed columns.
-		return { width: "100%", minWidth: size };
-	}
+/** Larghezza fissa: nessuna colonna assorbe lo spazio residuo, la tabella si adatta alle colonne. */
+export function getColumnWidthStyle(size: number): CSSProperties {
 	return {
 		width: size,
 		minWidth: size,

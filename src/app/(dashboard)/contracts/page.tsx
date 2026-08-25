@@ -24,7 +24,8 @@ import {
 import { getEmployeesWithoutContract } from "@/data-access/employees";
 import { useEntityData } from "@/hooks/useEntityData";
 import { useServerList } from "@/hooks/useServerList";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { taxCodeSample } from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { formatPersonLabel } from "@/lib/domain/labels";
 import {
 	CONTRACT_DEFAULT_SORT,
@@ -428,7 +429,7 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Dipendente" icon={ENTITY_ICON.employee} />
 		),
-		meta: columnMeta(ColumnClass.Join),
+		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
 		cell: ({ row }) => (
 			<div className="font-medium">{formatPersonLabel(row.original.employee)}</div>
 		),
@@ -439,7 +440,10 @@ const earningsColumns = (): ColumnDef<EmployeesEarningsInPeriod>[] => [
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="CF" icon={ATTR_ICON.taxCode} />
 		),
-		meta: columnMeta(ColumnClass.Join),
+		meta: columnMeta(ColumnClass.Join, {
+			width: ColumnWidth.Content,
+			widthSamples: [taxCodeSample({ compact: false })],
+		}),
 		cell: ({ row }) => (
 			<div className="text-muted-foreground">{row.original.employee.taxCode}</div>
 		),

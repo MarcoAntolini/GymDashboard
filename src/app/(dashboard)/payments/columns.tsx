@@ -12,7 +12,9 @@ import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { PaymentRow } from "@/data-access/payments";
-import { ColumnClass, columnMeta } from "@/lib/domain/column-class";
+import { LONG_TEXT_COLUMN_SIZE } from "@/components/ui/data-table/table-column-layout";
+import { paymentTypeBadgeSamples } from "@/components/ui/data-table/table-width-samples";
+import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { PAYMENT_TYPE_ICON, PAYMENT_TYPE_TONE } from "@/lib/domain/visual";
 import { formatDateTimeIt, formatEur } from "@/lib/format";
@@ -146,7 +148,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: paymentTypeBadgeSamples(),
+		}),
 		cell: ({ row }) => (
 			<DotBadge
 				label={PAYMENT_TYPE_LABEL[row.original.type]}
@@ -161,7 +166,8 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Dettaglio" icon={ATTR_ICON.description} />
 		),
-		meta: columnMeta(ColumnClass.Join),
+		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
+		size: LONG_TEXT_COLUMN_SIZE,
 		enableSorting: false,
 		cell: ({ row }) => (
 			<div className="text-muted-foreground">{specializationSummary(row.original)}</div>
@@ -170,7 +176,7 @@ export const columns = (
 	{
 		accessorKey: "id",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} align="right" />
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => (

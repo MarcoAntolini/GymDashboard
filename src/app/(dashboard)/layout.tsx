@@ -84,7 +84,8 @@ export default function DashboardLayout({
 	return (
 		<div className="box-border flex h-full min-h-0 min-w-0 flex-col p-4">
 			<TooltipProvider delayDuration={0}>
-				<Card className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
+				<Card className="min-h-0 min-w-0 flex-1">
+					<div className="flex h-full min-h-0 min-w-0 flex-row overflow-hidden rounded-[inherit]">
 					<div className="flex min-h-0 shrink-0 flex-col items-stretch border-r">
 						<div
 							className={cn(
@@ -175,6 +176,7 @@ export default function DashboardLayout({
 						</div>
 					</div>
 					<div className="min-h-0 min-w-0 flex-1 overflow-hidden">{children}</div>
+					</div>
 				</Card>
 			</TooltipProvider>
 		</div>

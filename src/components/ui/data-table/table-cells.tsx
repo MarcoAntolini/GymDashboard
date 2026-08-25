@@ -13,21 +13,20 @@ function isoDate(value: Date | string | number): string {
 	return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
-/** Chiave numerica (ID riga, FK). Meta, non identità. Colonna: allineata a destra. */
+/** Chiave numerica (ID riga, FK). Meta, non identità. Colonna: allineata a sinistra. */
 export function TableId({
 	value,
 	pad,
 	prefix,
 	filterKeys,
 	className,
-	align = "right",
+	align = "left",
 }: {
 	value: number | string;
 	pad?: number;
 	prefix?: string;
 	filterKeys?: string | string[];
 	className?: string;
-	/** `left` per ID in linea (es. accanto al nome). */
 	align?: "left" | "right";
 }) {
 	const digits = pad != null ? String(value).padStart(pad, "0") : String(value);
