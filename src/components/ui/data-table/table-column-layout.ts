@@ -48,31 +48,12 @@ export function resolveColumnSize({
 	return Math.max(MIN_COLUMN_SIZE, measuredMinSize, readingSpace);
 }
 
-/**
- * Ancora `__select` a sinistra. `actions` è host nascosto (menu contestuale), non in layout.
- */
-export function normalizeColumnPinning(
-	pinning: ColumnPinningState,
-	options: { hasSelect: boolean; hasActions: boolean }
-): ColumnPinningState {
-	const left = (pinning.left ?? []).filter(
-		(id) => id !== SELECT_COLUMN_ID && id !== ACTIONS_COLUMN_ID
-	);
-	const right = (pinning.right ?? []).filter(
-		(id) => id !== SELECT_COLUMN_ID && id !== ACTIONS_COLUMN_ID
-	);
-
+/** Ancora solo `__select` a sinistra (sticky in scroll orizzontale). */
+export function structuralColumnPinning(hasSelect: boolean): ColumnPinningState {
 	return {
-		left: options.hasSelect ? [SELECT_COLUMN_ID, ...left] : left,
-		right: options.hasActions ? [...right, ACTIONS_COLUMN_ID] : right,
+		left: hasSelect ? [SELECT_COLUMN_ID] : [],
+		right: [],
 	};
-}
-
-/** Colonne fissate dall’operatore (esclude checkbox / actions strutturali). */
-export function countUserPinnedColumns(pinning: ColumnPinningState): number {
-	const left = (pinning.left ?? []).filter((id) => !LOCKED_COLUMN_IDS.has(id));
-	const right = (pinning.right ?? []).filter((id) => !LOCKED_COLUMN_IDS.has(id));
-	return left.length + right.length;
 }
 
 export function countPinnedRows(pinning: RowPinningState): number {

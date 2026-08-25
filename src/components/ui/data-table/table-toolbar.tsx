@@ -22,10 +22,7 @@ import {
 import { useTableChromeActions } from "@/components/ui/data-table/table-chrome-actions-context";
 import {
 	ACTIONS_COLUMN_ID,
-	SELECT_COLUMN_ID,
 	countPinnedRows,
-	countUserPinnedColumns,
-	normalizeColumnPinning,
 } from "@/components/ui/data-table/table-column-layout";
 import { columnLabel } from "@/lib/domain/column-labels";
 import type { ListFacetedFilter, ListFilters } from "@/lib/list";
@@ -238,22 +235,10 @@ export default function TableToolbar<TData>({
 		setClientDraft({});
 	};
 
-	const columnPinning = table.getState().columnPinning;
-	const rowPinning = table.getState().rowPinning;
-	const pinnedCount =
-		countUserPinnedColumns(columnPinning) + countPinnedRows(rowPinning);
+	const pinnedCount = countPinnedRows(table.getState().rowPinning);
 
 	const handleClearPins = () => {
 		table.resetRowPinning();
-		table.setColumnPinning(
-			normalizeColumnPinning(
-				{ left: [], right: [] },
-				{
-					hasSelect: !!table.getColumn(SELECT_COLUMN_ID),
-					hasActions: table.getColumn(ACTIONS_COLUMN_ID)?.getIsVisible() === true,
-				}
-			)
-		);
 	};
 
 	return (
@@ -268,7 +253,7 @@ export default function TableToolbar<TData>({
 						variant="ghost"
 						onClick={handleClearPins}
 						className="h-10 px-2 lg:px-3"
-						aria-label="Sblocca righe e colonne fissate"
+						aria-label="Sblocca righe fissate"
 					>
 						<PinOff className="mr-2 h-4 w-4" />
 						Sblocca

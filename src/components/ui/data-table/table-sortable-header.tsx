@@ -16,8 +16,6 @@ import {
 	ArrowRightIcon,
 	ArrowUpIcon,
 	ChevronsUpDown,
-	Pin,
-	PinOff,
 	type LucideIcon,
 } from "lucide-react";
 import * as React from "react";
@@ -47,7 +45,6 @@ function useReportHeaderMinSize(
 		title: string;
 		hasIcon: boolean;
 		hasTrigger: boolean;
-		pinned: false | "left" | "right";
 		sorted: false | "asc" | "desc";
 		align: "left" | "right";
 	}
@@ -76,7 +73,6 @@ function useReportHeaderMinSize(
 		opts.title,
 		opts.hasIcon,
 		opts.hasTrigger,
-		opts.pinned,
 		opts.sorted,
 		opts.align,
 	]);
@@ -94,23 +90,18 @@ export function TableSortableHeader<TData, TValue>({
 	const alignClass =
 		align === "right" ? "w-full justify-end" : "w-max max-w-none justify-start";
 	const canSort = column.getCanSort();
-	const canPin = column.getCanPin();
 	const canReorder = !!columnLayout && !LOCKED_COLUMN_IDS.has(column.id);
-	const pinned = column.getIsPinned();
 	const sorted = column.getIsSorted();
-
-	const hasLayoutActions = canPin || canReorder;
 
 	useReportHeaderMinSize(column.id, rootRef, {
 		title,
 		hasIcon: !!icon,
-		hasTrigger: canSort || hasLayoutActions,
-		pinned,
+		hasTrigger: canSort || canReorder,
 		sorted,
 		align,
 	});
 
-	if (!canSort && !hasLayoutActions) {
+	if (!canSort && !canReorder) {
 		return (
 			<div
 				ref={rootRef}
@@ -148,9 +139,6 @@ export function TableSortableHeader<TData, TValue>({
 					>
 						<HeaderIcon icon={icon} />
 						<span className="whitespace-nowrap">{title}</span>
-						{pinned ? (
-							<Pin className="ml-2 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
-						) : null}
 						{canSort ? (
 							sorted === "desc" ? (
 								<ArrowDownIcon className="ml-2 h-4 w-4 shrink-0" />
@@ -175,7 +163,7 @@ export function TableSortableHeader<TData, TValue>({
 							</DropdownMenuItem>
 						</>
 					) : null}
-					{canSort && hasLayoutActions ? <DropdownMenuSeparator /> : null}
+					{canSort && canReorder ? <DropdownMenuSeparator /> : null}
 					{canReorder ? (
 						<>
 							<DropdownMenuItem
@@ -190,29 +178,6 @@ export function TableSortableHeader<TData, TValue>({
 								<ArrowRightIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
 								Sposta a destra
 							</DropdownMenuItem>
-						</>
-					) : null}
-					{canReorder && canPin ? <DropdownMenuSeparator /> : null}
-					{canPin ? (
-						<>
-							{pinned !== "left" ? (
-								<DropdownMenuItem onClick={() => column.pin("left")}>
-									<Pin className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-									Fissa a sinistra
-								</DropdownMenuItem>
-							) : null}
-							{pinned !== "right" ? (
-								<DropdownMenuItem onClick={() => column.pin("right")}>
-									<Pin className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-									Fissa a destra
-								</DropdownMenuItem>
-							) : null}
-							{pinned ? (
-								<DropdownMenuItem onClick={() => column.pin(false)}>
-									<PinOff className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-									Sblocca colonna
-								</DropdownMenuItem>
-							) : null}
 						</>
 					) : null}
 				</DropdownMenuContent>

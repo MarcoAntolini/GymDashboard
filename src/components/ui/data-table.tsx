@@ -30,7 +30,7 @@ import {
 	getColumnWidthStyle,
 	getPinnedLeafColumnOrder,
 	moveColumnInOrder,
-	normalizeColumnPinning,
+	structuralColumnPinning,
 	resolveColumnSize,
 	SELECT_COLUMN_SIZE,
 } from "@/components/ui/data-table/table-column-layout";
@@ -71,8 +71,6 @@ import {
 	ColumnDef,
 	ColumnFiltersState,
 	ColumnOrderState,
-	ColumnPinningState,
-	OnChangeFn,
 	PaginationState,
 	Row,
 	RowPinningState,
@@ -253,7 +251,7 @@ function DataTableRow<TData>({
 				className={cn(
 					"box-border h-12 max-h-12 overflow-hidden py-0",
 					!stacked && "whitespace-nowrap",
-					colPinned && "table-col-pin-edge",
+					cell.column.id === SELECT_COLUMN_ID && "table-col-pin-edge",
 					selected
 						? "bg-muted"
 						: hovered
@@ -394,14 +392,9 @@ function DataTableInner<TData, TValue>({
 		[ACTIONS_COLUMN_ID]: false,
 	});
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([]);
-	const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>(() =>
-		normalizeColumnPinning(
-			{ left: [], right: [] },
-			{
-				hasSelect: !!bulkDeleteRow || (bulkActions?.length ?? 0) > 0,
-				hasActions: false,
-			}
-		)
+	const columnPinning = React.useMemo(
+		() => structuralColumnPinning(enableSelection),
+		[enableSelection]
 	);
 	const [columnMinSizes, setColumnMinSizes] = React.useState<
 		Record<string, Partial<Record<ColumnMinSizeSource, number>>>
@@ -537,34 +530,13 @@ function DataTableInner<TData, TValue>({
 		[tableColumns]
 	);
 
-	React.useEffect(() => {
-		setColumnPinning((prev) =>
-			normalizeColumnPinning(prev, {
-				hasSelect: enableSelection,
-				hasActions: false,
-			})
-		);
-	}, [enableSelection]);
-
-	const onColumnPinningChange = React.useCallback<OnChangeFn<ColumnPinningState>>(
-		(updater) => {
-			setColumnPinning((prev) => {
-				const next = typeof updater === "function" ? updater(prev) : updater;
-				return normalizeColumnPinning(next, {
-					hasSelect: enableSelection,
-					hasActions: false,
-				});
-			});
-		},
-		[enableSelection]
-	);
-
 	const table = useReactTable({
 		data: tableData,
 		columns: tableColumns,
 		defaultColumn: {
 			minSize: MIN_COLUMN_SIZE,
 			size: FALLBACK_COLUMN_SIZE,
+			enablePinning: false,
 		},
 		enableColumnResizing: false,
 		enableColumnPinning: true,
@@ -607,7 +579,6 @@ function DataTableInner<TData, TValue>({
 				return ensureActionsTrailing(next);
 			});
 		},
-		onColumnPinningChange,
 		state: {
 			sorting: isServer ? serverList.sorting : sorting,
 			columnFilters: isServer ? [] : columnFilters,
@@ -811,7 +782,8 @@ function DataTableInner<TData, TValue>({
 											className={cn(
 												"box-border overflow-hidden",
 												TABLE_HEADER_SURFACE,
-												pinned && "table-col-pin-edge"
+												header.column.id === SELECT_COLUMN_ID &&
+													"table-col-pin-edge"
 											)}
 											style={{
 												...getColumnWidthStyle(size),
