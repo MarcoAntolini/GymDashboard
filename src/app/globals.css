@@ -75,6 +75,15 @@
 	.table-row-pinned-surface {
 		background-color: var(--table-row-pinned);
 	}
+
+	/* Divisorio verticale colonna sticky: background, non box-shadow.
+	   Cambiare le layer di shadow su td sticky lascia artefatti finché un hover non ripinta. */
+	.table-col-pin-edge {
+		background-image: linear-gradient(hsl(var(--border)), hsl(var(--border)));
+		background-repeat: no-repeat;
+		background-size: 1px 100%;
+		background-position: 100% 0;
+	}
 }
 
 @layer base {

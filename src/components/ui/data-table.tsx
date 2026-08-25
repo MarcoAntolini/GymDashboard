@@ -252,8 +252,7 @@ function DataTableRow<TData>({
 				className={cn(
 					"box-border h-12 max-h-12 overflow-hidden py-0",
 					!stacked && "whitespace-nowrap",
-					colPinned && "shadow-[inset_-1px_0_0] shadow-border",
-					rowPinned && "shadow-[inset_0_-1px_0] shadow-border",
+					colPinned && "table-col-pin-edge",
 					selected
 						? "bg-muted"
 						: hovered
@@ -298,7 +297,7 @@ function DataTableRow<TData>({
 			>
 			<ContextMenuTrigger asChild>
 				<TableRow
-					className="hover:bg-transparent data-[state=selected]:bg-transparent"
+					className="transition-none hover:bg-transparent data-[state=selected]:bg-transparent"
 					data-state={selected && "selected"}
 					data-pinned={rowPinned || undefined}
 					onMouseEnter={() => setHovered(true)}
@@ -803,7 +802,7 @@ function DataTableInner<TData, TValue>({
 											className={cn(
 												"box-border overflow-hidden",
 												TABLE_HEADER_SURFACE,
-												pinned && "shadow-[inset_-1px_0_0] shadow-border"
+												pinned && "table-col-pin-edge"
 											)}
 											style={{
 												...getColumnWidthStyle(size),
