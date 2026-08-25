@@ -13,7 +13,10 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import type { PaymentRow } from "@/data-access/payments";
 import { LONG_TEXT_COLUMN_SIZE } from "@/components/ui/data-table/table-column-layout";
-import { paymentTypeBadgeSamples } from "@/components/ui/data-table/table-width-samples";
+import {
+	paymentTypeBadgeSamples,
+	tableDateSamples,
+} from "@/components/ui/data-table/table-width-samples";
 import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { PAYMENT_TYPE_ICON, PAYMENT_TYPE_TONE } from "@/lib/domain/visual";
@@ -128,7 +131,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Data" icon={ATTR_ICON.date} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: tableDateSamples(),
+		}),
 		cell: ({ row }) => <TableDate value={row.original.date} />,
 	},
 	{

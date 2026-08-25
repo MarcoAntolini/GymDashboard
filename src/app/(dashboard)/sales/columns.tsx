@@ -18,6 +18,7 @@ import type { SaleListRow } from "@/data-access/sales";
 import {
 	productKindBadgeSamples,
 	remainingEntrancesBadgeSamples,
+	tableDateSamples,
 } from "@/components/ui/data-table/table-width-samples";
 import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import {
@@ -85,7 +86,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Data" icon={ATTR_ICON.date} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: tableDateSamples(),
+		}),
 		cell: ({ row }) => <TableDate value={row.original.date} />,
 	},
 	{

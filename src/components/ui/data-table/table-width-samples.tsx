@@ -1,6 +1,6 @@
 "use client";
 
-import { TableCode } from "@/components/ui/data-table/table-cells";
+import { TableCode, TableDate } from "@/components/ui/data-table/table-cells";
 import { DomainBadge, DotBadge } from "@/components/ui/domain-badge";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import {
@@ -123,4 +123,13 @@ export function remainingEntrancesBadgeSamples(): ReactNode[] {
 /** Codice fiscale: 16 caratteri mono, lunghezza fissa a prescindere dall'header. */
 export function taxCodeSample({ compact = true }: { compact?: boolean } = {}): ReactNode {
 	return <TableCode value="MMMMMM00M00M000M" compact={compact} />;
+}
+
+/** Date-only: l'header «Data» è più stretto di `31 mag 2018` (e varianti it-IT con punto). */
+export function tableDateSamples(): ReactNode[] {
+	return [
+		<TableDate key="mag" value={new Date(2018, 4, 31, 12)} />,
+		<TableDate key="nov" value={new Date(2018, 10, 30, 12)} />,
+		<TableDate key="dic" value={new Date(2018, 11, 31, 12)} />,
+	];
 }
