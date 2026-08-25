@@ -74,7 +74,7 @@ export const columns = (
 	{
 		accessorKey: "birthDate",
 		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Nascita" icon={ATTR_ICON.date} />
+			<TableSortableHeader column={column} title="Data di nascita" icon={ATTR_ICON.date} />
 		),
 		meta: columnMeta(ColumnClass.Native),
 		cell: ({ row }) => <TableDate value={row.original.birthDate} />,
