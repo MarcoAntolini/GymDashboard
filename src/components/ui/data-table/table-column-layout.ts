@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Column, ColumnPinningState } from "@tanstack/react-table";
+import type { Column, ColumnPinningState, RowPinningState } from "@tanstack/react-table";
 import { ColumnWidth } from "@/lib/domain/column-class";
 
 /** Colonne strutturali: non riordinabili dall'operatore. */
@@ -66,6 +66,17 @@ export function normalizeColumnPinning(
 		left: options.hasSelect ? [SELECT_COLUMN_ID, ...left] : left,
 		right: options.hasActions ? [...right, ACTIONS_COLUMN_ID] : right,
 	};
+}
+
+/** Colonne fissate dall’operatore (esclude checkbox / actions strutturali). */
+export function countUserPinnedColumns(pinning: ColumnPinningState): number {
+	const left = (pinning.left ?? []).filter((id) => !LOCKED_COLUMN_IDS.has(id));
+	const right = (pinning.right ?? []).filter((id) => !LOCKED_COLUMN_IDS.has(id));
+	return left.length + right.length;
+}
+
+export function countPinnedRows(pinning: RowPinningState): number {
+	return (pinning.top?.length ?? 0) + (pinning.bottom?.length ?? 0);
 }
 
 /** Larghezza fissa: nessuna colonna assorbe lo spazio residuo, la tabella si adatta alle colonne. */
