@@ -45,8 +45,13 @@ import {
 } from "@/components/ui/data-table/table-column-width-probe";
 import { SearchHighlightProvider } from "@/components/ui/data-table/search-highlight-context";
 import {
+	MAX_PINNED_ROWS,
+	clampRowPinning,
 	getRowPinningStyle,
 	mergeCellStickyStyles,
+	mergeOffPagePinnedRows,
+	pinnedRowIdSet,
+	syncPinnedRowBag,
 } from "@/components/ui/data-table/table-row-pinning";
 import TableToolbar from "@/components/ui/data-table/table-toolbar";
 import { HighlightValueCell } from "@/components/ui/highlight-text";
@@ -331,23 +336,21 @@ function DataTableRow<TData>({
 						Elimina
 					</ContextMenuItem>
 				) : null}
-				{canPin ? (
-					<>
-						{hasRowCrud ? <ContextMenuSeparator /> : null}
-						{rowPinned ? (
-							<ContextMenuItem onSelect={() => row.pin(false)}>
-								Sblocca riga
-							</ContextMenuItem>
-						) : (
-							<ContextMenuItem onSelect={() => row.pin("top")}>
-								Fissa in alto
-							</ContextMenuItem>
-						)}
-					</>
-				) : null}
-				{!hasRowCrud && !canPin ? (
-					<ContextMenuItem disabled>Nessuna azione</ContextMenuItem>
-				) : null}
+				{hasRowCrud ? <ContextMenuSeparator /> : null}
+				{rowPinned ? (
+					<ContextMenuItem onSelect={() => row.pin(false)}>
+						Sblocca riga
+					</ContextMenuItem>
+				) : (
+					<ContextMenuItem
+						disabled={!canPin}
+						onSelect={() => row.pin("top")}
+					>
+						{canPin
+							? "Fissa in alto"
+							: `Fissa in alto (max ${MAX_PINNED_ROWS})`}
+					</ContextMenuItem>
+				)}
 			</ContextMenuContent>
 		</ContextMenu>
 		</>
@@ -411,6 +414,19 @@ function DataTableInner<TData, TValue>({
 	}, []);
 
 	const fontsReady = useFontsReady();
+	const hasStableRowId = typeof getRowId === "function";
+	const pinnedBagRef = React.useRef(new Map<string, TData>());
+	const pinnedIds = React.useMemo(() => pinnedRowIdSet(rowPinning), [rowPinning]);
+	syncPinnedRowBag(pinnedBagRef.current, data, getRowId, pinnedIds);
+	const tableData = React.useMemo(() => {
+		if (!isServer || !hasStableRowId) return data;
+		return mergeOffPagePinnedRows(
+			data,
+			getRowId,
+			rowPinning,
+			pinnedBagRef.current
+		);
+	}, [isServer, hasStableRowId, data, getRowId, rowPinning, pinnedIds]);
 
 	const setColumnMinSize = React.useCallback(
 		(source: ColumnMinSizeSource, columnId: string, minSize: number) => {
@@ -537,7 +553,7 @@ function DataTableInner<TData, TValue>({
 	);
 
 	const table = useReactTable({
-		data,
+		data: tableData,
 		columns: tableColumns,
 		defaultColumn: {
 			minSize: MIN_COLUMN_SIZE,
@@ -545,14 +561,20 @@ function DataTableInner<TData, TValue>({
 		},
 		enableColumnResizing: false,
 		enableColumnPinning: true,
-		enableRowPinning: true,
-		/** Pin solo sulle righe della pagina corrente (server-side + client). */
-		keepPinnedRows: false,
+		enableRowPinning: (row) =>
+			Boolean(row.getIsPinned()) || pinnedIds.size < MAX_PINNED_ROWS,
+		/** Con getRowId stabile le righe restano fissate anche cambiando pagina. */
+		keepPinnedRows: hasStableRowId,
 		getCoreRowModel: getCoreRowModel(),
 		getRowId,
 		enableRowSelection: enableSelection,
 		onRowSelectionChange: setRowSelection,
-		onRowPinningChange: setRowPinning,
+		onRowPinningChange: (updater) => {
+			setRowPinning((prev) => {
+				const next = typeof updater === "function" ? updater(prev) : updater;
+				return clampRowPinning(next);
+			});
+		},
 		manualSorting: isServer,
 		manualFiltering: isServer,
 		manualPagination: isServer,
@@ -604,7 +626,6 @@ function DataTableInner<TData, TValue>({
 
 	const pageIndex = isServer ? serverList.pagination.pageIndex : pagination.pageIndex;
 	const pageSize = isServer ? serverList.pagination.pageSize : pagination.pageSize;
-	const hasStableRowId = typeof getRowId === "function";
 	const dataIdentity = React.useMemo(
 		() => data.map((_, i) => (getRowId ? getRowId(data[i], i) : String(i))).join("|"),
 		[data, getRowId]
@@ -619,11 +640,15 @@ function DataTableInner<TData, TValue>({
 		if (Object.keys(rowSelection).length > 0) {
 			setRowSelection({});
 		}
+		if ((rowPinning.top?.length ?? 0) > 0 || (rowPinning.bottom?.length ?? 0) > 0) {
+			setRowPinning({ top: [], bottom: [] });
+		}
 	}
 
 	React.useEffect(() => {
+		if (hasStableRowId) return;
 		setRowPinning({ top: [], bottom: [] });
-	}, [pageIndex, pageSize, dataIdentity]);
+	}, [pageIndex, pageSize, dataIdentity, hasStableRowId]);
 
 	React.useEffect(() => {
 		if (hasStableRowId) return;
