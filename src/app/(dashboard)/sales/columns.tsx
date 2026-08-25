@@ -66,22 +66,6 @@ export const columns = (
 		),
 	},
 	{
-		id: "client",
-		accessorFn: (row) =>
-			`${row.client.surname} ${row.client.name} (#${row.clientId})`,
-		header: ({ column }) => (
-			<TableSortableHeader column={column} title="Cliente" icon={ENTITY_ICON.client} />
-		),
-		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
-		cell: ({ row }) => (
-			<TablePerson
-				person={{ ...row.original.client, id: row.original.clientId }}
-				nameFilterKeys="client"
-				idFilterKeys="clientId"
-			/>
-		),
-	},
-	{
 		accessorKey: "date",
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Data" icon={ATTR_ICON.date} />
@@ -110,7 +94,24 @@ export const columns = (
 		),
 	},
 	{
+		id: "client",
+		accessorFn: (row) =>
+			`${row.client.surname} ${row.client.name} (#${row.clientId})`,
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="Cliente" icon={ENTITY_ICON.client} />
+		),
+		meta: columnMeta(ColumnClass.Join, { width: ColumnWidth.Text }),
+		cell: ({ row }) => (
+			<TablePerson
+				person={{ ...row.original.client, id: row.original.clientId }}
+				nameFilterKeys="client"
+				idFilterKeys="clientId"
+			/>
+		),
+	},
+	{
 		id: "type",
+		enableSorting: false,
 		accessorFn: (row) => productKindFromSnapshot(row),
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
@@ -183,7 +184,6 @@ export const columns = (
 	{
 		id: "remainingEntrances",
 		accessorKey: "remainingEntrances",
-		enableSorting: false,
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}

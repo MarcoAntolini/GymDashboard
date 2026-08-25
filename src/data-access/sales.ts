@@ -186,6 +186,41 @@ export async function listSales(
 	});
 	const where = buildSaleWhere(query.filters);
 	const { skip, take } = toPrismaPage(query);
+	const remainingSort = query.sort.find((entry) => entry.id === "remainingEntrances");
+
+	if (remainingSort) {
+		const [total, ranked] = await Promise.all([
+			db.sale.count({ where }),
+			db.sale.findMany({
+				where,
+				select: {
+					id: true,
+					entranceNumber: true,
+					_count: { select: { entrance: true } },
+				},
+			}),
+		]);
+		ranked.sort((a, b) => {
+			const ra = packageResidual(a, a._count.entrance);
+			const rb = packageResidual(b, b._count.entrance);
+			if (ra == null && rb == null) return a.id - b.id;
+			if (ra == null) return 1;
+			if (rb == null) return -1;
+			const diff = remainingSort.desc ? rb - ra : ra - rb;
+			return diff !== 0 ? diff : a.id - b.id;
+		});
+		const pageIds = ranked.slice(skip, skip + take).map((row) => row.id);
+		const pageItems = await db.sale.findMany({
+			where: { id: { in: pageIds } },
+			include: saleInclude,
+		});
+		const byId = new Map(pageItems.map((sale) => [sale.id, sale]));
+		const items = pageIds
+			.map((id) => byId.get(id))
+			.filter((sale): sale is SaleRecord => sale != null);
+		return buildListResult(items.map(toSaleListRow), total, query);
+	}
+
 	const orderBy = buildSaleOrderBy(query.sort);
 	const [total, items] = await Promise.all([
 		db.sale.count({ where }),

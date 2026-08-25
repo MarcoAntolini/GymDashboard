@@ -3,7 +3,7 @@ import type { ListFacetedFilter, ListSort } from "@/lib/list";
 import { PaymentType } from "@prisma/client";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
-export const PAYMENT_SORT_ALLOWLIST = ["id", "date", "amount", "type"] as const;
+export const PAYMENT_SORT_ALLOWLIST = ["id", "date", "amount"] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
 export const PAYMENT_FILTER_ALLOWLIST = ["type", "id"] as const;

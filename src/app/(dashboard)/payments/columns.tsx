@@ -127,6 +127,16 @@ export const columns = (
 	}) => Promise<void>
 ): ColumnDef<PaymentRow>[] => [
 	{
+		accessorKey: "id",
+		header: ({ column }) => (
+			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
+		),
+		meta: columnMeta(ColumnClass.Native),
+		cell: ({ row }) => (
+			<TableId value={row.original.id} filterKeys="id" />
+		),
+	},
+	{
 		accessorKey: "date",
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Data" icon={ATTR_ICON.date} />
@@ -151,6 +161,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "type",
+		enableSorting: false,
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
@@ -177,16 +188,6 @@ export const columns = (
 		enableSorting: false,
 		cell: ({ row }) => (
 			<div className="text-muted-foreground">{specializationSummary(row.original)}</div>
-		),
-	},
-	{
-		accessorKey: "id",
-		header: ({ column }) => (
-			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
-		),
-		meta: columnMeta(ColumnClass.Native),
-		cell: ({ row }) => (
-			<TableId value={row.original.id} filterKeys="id" />
 		),
 	},
 	{

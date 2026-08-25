@@ -10,6 +10,14 @@ export function toPrismaPage(query: Pick<ListQuery, "page" | "pageSize">): {
 	return { skip, take };
 }
 
+/** Join Dipendente: cognome, poi nome (stesso ordine di `formatPersonName`). */
+export function employeeJoinOrderBy(dir: SortDirection) {
+	return [
+		{ employee: { surname: dir } },
+		{ employee: { name: dir } },
+	] as const;
+}
+
 /**
  * Costruisce `orderBy` Prisma da sort allowlist-sanitizzato.
  * Ritorna `undefined` se vuoto (lascia default entity).

@@ -5,11 +5,13 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
+	employeeJoinOrderBy,
 	normalizeListQuery,
-	toPrismaListArgs,
+	toPrismaPage,
 	type ListFilters,
 	type ListQueryInput,
 	type ListResult,
+	type ListSort,
 } from "@/lib/list";
 import {
 	CLOCKING_DEFAULT_SORT,
@@ -60,6 +62,35 @@ function buildClockingWhere(filters: ListFilters): Prisma.ClockingWhereInput {
 	return where;
 }
 
+function buildClockingOrderBy(
+	sort: ListSort[]
+): Prisma.ClockingOrderByWithRelationInput[] {
+	const orderBy: Prisma.ClockingOrderByWithRelationInput[] = [];
+	for (const entry of sort) {
+		const dir = entry.desc ? ("desc" as const) : ("asc" as const);
+		switch (entry.id) {
+			case "employee":
+				orderBy.push(...employeeJoinOrderBy(dir));
+				break;
+			case "entranceTime":
+				orderBy.push({ entranceTime: dir });
+				break;
+			case "exitTime":
+				orderBy.push({ exitTime: dir });
+				break;
+			default:
+				break;
+		}
+	}
+	if (!orderBy.some((o) => "employeeId" in o)) {
+		orderBy.push({ employeeId: "asc" });
+	}
+	if (!orderBy.some((o) => "entranceTime" in o)) {
+		orderBy.push({ entranceTime: "asc" });
+	}
+	return orderBy;
+}
+
 /**
  * Lista Timbrature server-side: filtri su Conferma, sort + paginazione via DB.
  */
@@ -72,17 +103,8 @@ export async function listClockings(
 		defaultSort: [...CLOCKING_DEFAULT_SORT],
 	});
 	const where = buildClockingWhere(query.filters);
-	const { skip, take, orderBy } = toPrismaListArgs(query);
-	// Tie-break stabile su PK composta (evita overlap OFFSET con sort non unico).
-	const orderByStable = [
-		...(orderBy ?? []),
-		...(orderBy?.some((o) => "employeeId" in o)
-			? []
-			: [{ employeeId: "asc" as const }]),
-		...(orderBy?.some((o) => "entranceTime" in o)
-			? []
-			: [{ entranceTime: "asc" as const }]),
-	];
+	const { skip, take } = toPrismaPage(query);
+	const orderByStable = buildClockingOrderBy(query.sort);
 	const [total, items] = await Promise.all([
 		db.clocking.count({ where }),
 		db.clocking.findMany({

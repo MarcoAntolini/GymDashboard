@@ -83,6 +83,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "type",
+		enableSorting: false,
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),

@@ -13,6 +13,7 @@ export const SALE_SORT_ALLOWLIST = [
 	"amount",
 	"duration",
 	"entranceNumber",
+	"remainingEntrances",
 	"client",
 ] as const;
 

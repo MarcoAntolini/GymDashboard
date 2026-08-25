@@ -61,6 +61,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "kind",
+		enableSorting: false,
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Tipo" icon={ATTR_ICON.type} />
 		),
@@ -82,6 +83,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "description",
+		enableSorting: false,
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}
@@ -119,6 +121,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "active",
+		enableSorting: false,
 		header: ({ column }) => (
 			<TableSortableHeader
 				column={column}

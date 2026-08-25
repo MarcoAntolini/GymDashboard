@@ -1,11 +1,7 @@
 import type { ListSort } from "@/lib/list";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
-export const EQUIPMENT_SORT_ALLOWLIST = [
-	"paymentId",
-	"description",
-	"provider",
-] as const;
+export const EQUIPMENT_SORT_ALLOWLIST = ["paymentId", "provider"] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
 export const EQUIPMENT_FILTER_ALLOWLIST = [

@@ -12,11 +12,13 @@ import { resolveContractEndingDate } from "@/lib/contract-term";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
+	employeeJoinOrderBy,
 	normalizeListQuery,
-	toPrismaListArgs,
+	toPrismaPage,
 	type ListFilters,
 	type ListQueryInput,
 	type ListResult,
+	type ListSort,
 } from "@/lib/list";
 import {
 	CONTRACT_DEFAULT_SORT,
@@ -101,6 +103,38 @@ function buildContractWhere(filters: ListFilters): Prisma.ContractWhereInput {
 	return where;
 }
 
+function buildContractOrderBy(
+	sort: ListSort[]
+): Prisma.ContractOrderByWithRelationInput[] {
+	const orderBy: Prisma.ContractOrderByWithRelationInput[] = [];
+	for (const entry of sort) {
+		const dir = entry.desc ? ("desc" as const) : ("asc" as const);
+		switch (entry.id) {
+			case "employee":
+				orderBy.push(...employeeJoinOrderBy(dir));
+				break;
+			case "hourlyFee":
+				orderBy.push({ hourlyFee: dir });
+				break;
+			case "startingDate":
+				orderBy.push({ startingDate: dir });
+				break;
+			case "endingDate":
+				orderBy.push({ endingDate: dir });
+				break;
+			default:
+				break;
+		}
+	}
+	if (!orderBy.some((o) => "employeeId" in o)) {
+		orderBy.push({ employeeId: "asc" });
+	}
+	if (!orderBy.some((o) => "startingDate" in o)) {
+		orderBy.push({ startingDate: "asc" });
+	}
+	return orderBy;
+}
+
 /**
  * Lista Contratti server-side: filtri su Conferma, sort + paginazione via DB.
  */
@@ -113,17 +147,8 @@ export async function listContracts(
 		defaultSort: [...CONTRACT_DEFAULT_SORT],
 	});
 	const where = buildContractWhere(query.filters);
-	const { skip, take, orderBy } = toPrismaListArgs(query);
-	// Tie-break stabile su PK composta (evita overlap OFFSET con sort non unico).
-	const orderByStable = [
-		...(orderBy ?? []),
-		...(orderBy?.some((o) => "employeeId" in o)
-			? []
-			: [{ employeeId: "asc" as const }]),
-		...(orderBy?.some((o) => "startingDate" in o)
-			? []
-			: [{ startingDate: "asc" as const }]),
-	];
+	const { skip, take } = toPrismaPage(query);
+	const orderByStable = buildContractOrderBy(query.sort);
 	const [total, items] = await Promise.all([
 		db.contract.count({ where }),
 		db.contract.findMany({

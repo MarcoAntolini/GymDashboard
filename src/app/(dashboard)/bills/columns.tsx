@@ -37,6 +37,7 @@ export const columns = (
 	},
 	{
 		accessorKey: "description",
+		enableSorting: false,
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="Descrizione" icon={ATTR_ICON.description} />
 		),

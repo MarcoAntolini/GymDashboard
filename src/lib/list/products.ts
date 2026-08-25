@@ -4,8 +4,8 @@ import {
 	ProductKind,
 } from "@/lib/domain/product-kind";
 
-/** Colonne ammesse in ORDER BY (native; `kind` è derivato → escluso). */
-export const PRODUCT_SORT_ALLOWLIST = ["code", "description", "active"] as const;
+/** Colonne ammesse in ORDER BY (`kind`/`description`/`active` non sortable in UI). */
+export const PRODUCT_SORT_ALLOWLIST = ["code"] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
 export const PRODUCT_FILTER_ALLOWLIST = [

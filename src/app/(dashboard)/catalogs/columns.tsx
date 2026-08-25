@@ -50,6 +50,7 @@ export const columns = (
 	},
 	{
 		id: "kind",
+		enableSorting: false,
 		accessorFn: (row) => {
 			const kind = productKindFromProduct(row.product);
 			return kind ? PRODUCT_KIND_LABEL[kind] : "—";

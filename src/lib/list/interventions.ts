@@ -3,7 +3,6 @@ import type { ListSort } from "@/lib/list";
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
 export const INTERVENTION_SORT_ALLOWLIST = [
 	"paymentId",
-	"description",
 	"maker",
 	"startingTime",
 	"endingTime",

@@ -1,7 +1,12 @@
 import type { ListSort } from "@/lib/list";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
-export const SALARY_SORT_ALLOWLIST = ["paymentId", "employeeId"] as const;
+export const SALARY_SORT_ALLOWLIST = [
+	"employee",
+	"paymentDate",
+	"paymentAmount",
+	"paymentId",
+] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). Preferisci Dipendente rispetto al solo ID. */
 export const SALARY_FILTER_ALLOWLIST = ["employee", "paymentId"] as const;

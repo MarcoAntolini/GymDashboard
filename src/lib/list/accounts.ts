@@ -3,7 +3,7 @@ import { ROLE_LABEL } from "@/lib/domain/labels";
 import type { ListFacetedFilter, ListSort } from "@/lib/list";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
-export const ACCOUNT_SORT_ALLOWLIST = ["employeeId", "username"] as const;
+export const ACCOUNT_SORT_ALLOWLIST = ["employee", "username"] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
 export const ACCOUNT_FILTER_ALLOWLIST = [

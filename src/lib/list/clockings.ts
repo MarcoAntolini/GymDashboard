@@ -2,7 +2,7 @@ import type { ListSort } from "@/lib/list";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
 export const CLOCKING_SORT_ALLOWLIST = [
-	"employeeId",
+	"employee",
 	"entranceTime",
 	"exitTime",
 ] as const;

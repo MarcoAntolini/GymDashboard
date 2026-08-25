@@ -11,11 +11,13 @@ import { assertMutationPayload } from "@/lib/domain/mutation-allowlist";
 import { db } from "@/lib/db";
 import {
 	buildListResult,
+	employeeJoinOrderBy,
 	normalizeListQuery,
-	toPrismaListArgs,
+	toPrismaPage,
 	type ListFilters,
 	type ListQueryInput,
 	type ListResult,
+	type ListSort,
 } from "@/lib/list";
 import {
 	ACCOUNT_DEFAULT_SORT,
@@ -95,6 +97,29 @@ function buildAccountWhere(filters: ListFilters): Prisma.AccountWhereInput {
 	return where;
 }
 
+function buildAccountOrderBy(
+	sort: ListSort[]
+): Prisma.AccountOrderByWithRelationInput[] {
+	const orderBy: Prisma.AccountOrderByWithRelationInput[] = [];
+	for (const entry of sort) {
+		const dir = entry.desc ? ("desc" as const) : ("asc" as const);
+		switch (entry.id) {
+			case "employee":
+				orderBy.push(...employeeJoinOrderBy(dir));
+				break;
+			case "username":
+				orderBy.push({ username: dir });
+				break;
+			default:
+				break;
+		}
+	}
+	if (!orderBy.some((o) => "username" in o)) {
+		orderBy.push({ username: "asc" });
+	}
+	return orderBy;
+}
+
 const accountInclude = { employee: true } as const;
 
 export type AccountRow = Prisma.AccountGetPayload<{
@@ -113,12 +138,8 @@ export async function listAccounts(
 		defaultSort: [...ACCOUNT_DEFAULT_SORT],
 	});
 	const where = buildAccountWhere(query.filters);
-	const { skip, take, orderBy } = toPrismaListArgs(query);
-	// Tie-break stabile su PK username (evita overlap OFFSET con sort non unico).
-	const orderByStable = [
-		...(orderBy ?? []),
-		...(orderBy?.some((o) => "username" in o) ? [] : [{ username: "asc" as const }]),
-	];
+	const { skip, take } = toPrismaPage(query);
+	const orderByStable = buildAccountOrderBy(query.sort);
 	const [total, items] = await Promise.all([
 		db.account.count({ where }),
 		db.account.findMany({

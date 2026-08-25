@@ -4,8 +4,7 @@ import { ContractType } from "@prisma/client";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
 export const CONTRACT_SORT_ALLOWLIST = [
-	"employeeId",
-	"type",
+	"employee",
 	"hourlyFee",
 	"startingDate",
 	"endingDate",
@@ -34,6 +33,6 @@ export const CONTRACT_FACETED_FILTERS: ListFacetedFilter[] = [
 ];
 
 export const CONTRACT_DEFAULT_SORT: readonly ListSort[] = [
-	{ id: "employeeId", desc: false },
+	{ id: "employee", desc: false },
 	{ id: "startingDate", desc: false },
 ];

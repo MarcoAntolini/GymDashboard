@@ -21,4 +21,9 @@ export {
 	pageCountFromTotal,
 	type NormalizeListQueryOptions,
 } from "./normalize";
-export { toPrismaListArgs, toPrismaOrderBy, toPrismaPage } from "./prisma";
+export {
+	employeeJoinOrderBy,
+	toPrismaListArgs,
+	toPrismaOrderBy,
+	toPrismaPage,
+} from "./prisma";
