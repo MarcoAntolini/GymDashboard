@@ -23,6 +23,7 @@ import {
 	ACTIONS_COLUMN_ID,
 	ACTIONS_COLUMN_SIZE,
 	FALLBACK_COLUMN_SIZE,
+	LOCKED_COLUMN_IDS,
 	MIN_COLUMN_SIZE,
 	SELECT_COLUMN_ID,
 	ensureActionsTrailing,
@@ -36,6 +37,7 @@ import {
 } from "@/components/ui/data-table/table-column-layout";
 import {
 	ColumnLayoutProvider,
+	useColumnLayout,
 	useFontsReady,
 	type ColumnMinSizeSource,
 } from "@/components/ui/data-table/table-column-layout-context";
@@ -71,6 +73,7 @@ import {
 	ColumnDef,
 	ColumnFiltersState,
 	ColumnOrderState,
+	Header,
 	PaginationState,
 	Row,
 	RowPinningState,
@@ -86,7 +89,16 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { Pencil, Pin, PinOff, Trash2 } from "lucide-react";
+import {
+	ArrowDownIcon,
+	ArrowLeftIcon,
+	ArrowRightIcon,
+	ArrowUpIcon,
+	Pencil,
+	Pin,
+	PinOff,
+	Trash2,
+} from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
@@ -94,6 +106,80 @@ export type { DataTableBulkAction };
 
 const TABLE_HEADER_SURFACE = "table-header-surface";
 const TABLE_ROW_PINNED_SURFACE = "table-row-pinned-surface";
+
+function DataTableHeaderCell<TData, TValue>({
+	header,
+}: {
+	header: Header<TData, TValue>;
+}) {
+	const columnLayout = useColumnLayout();
+	const column = header.column;
+	const canSort = column.getCanSort();
+	const canReorder = !!columnLayout && !LOCKED_COLUMN_IDS.has(column.id);
+	const pinned = column.getIsPinned();
+	const size = header.getSize();
+	const hasMenu = !header.isPlaceholder && (canSort || canReorder);
+
+	const head = (
+		<TableHead
+			colSpan={header.colSpan}
+			className={cn(
+				"box-border overflow-hidden",
+				TABLE_HEADER_SURFACE,
+				hasMenu && "cursor-context-menu",
+				column.id === SELECT_COLUMN_ID && "table-col-pin-edge"
+			)}
+			style={{
+				...getColumnWidthStyle(size),
+				...getColumnPinningStyle(column),
+				zIndex: pinned ? 3 : 1,
+			}}
+		>
+			{header.isPlaceholder
+				? null
+				: flexRender(column.columnDef.header, header.getContext())}
+		</TableHead>
+	);
+
+	if (!hasMenu) return head;
+
+	return (
+		<ContextMenu>
+			<ContextMenuTrigger asChild>{head}</ContextMenuTrigger>
+			<ContextMenuContent className="min-w-48">
+				{canSort ? (
+					<>
+						<ContextMenuItem onSelect={() => column.toggleSorting(false)}>
+							<ArrowUpIcon />
+							Asc
+						</ContextMenuItem>
+						<ContextMenuItem onSelect={() => column.toggleSorting(true)}>
+							<ArrowDownIcon />
+							Desc
+						</ContextMenuItem>
+					</>
+				) : null}
+				{canSort && canReorder ? <ContextMenuSeparator /> : null}
+				{canReorder ? (
+					<>
+						<ContextMenuItem
+							onSelect={() => columnLayout?.moveColumn(column.id, -1)}
+						>
+							<ArrowLeftIcon />
+							Sposta a sinistra
+						</ContextMenuItem>
+						<ContextMenuItem
+							onSelect={() => columnLayout?.moveColumn(column.id, 1)}
+						>
+							<ArrowRightIcon />
+							Sposta a destra
+						</ContextMenuItem>
+					</>
+				) : null}
+			</ContextMenuContent>
+		</ContextMenu>
+	);
+}
 
 /** Controlli server-side (ticket 19). Se assente → comportamento client legacy. */
 export type DataTableServerListProps = {
@@ -771,35 +857,13 @@ function DataTableInner<TData, TValue>({
 					</colgroup>
 					<TableHeader className="sticky top-0 z-20 isolate bg-background [&_tr]:border-0 [&_tr]:shadow-[inset_0_-1px_0] [&_tr]:shadow-border">
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className={TABLE_HEADER_SURFACE}>
-								{headerGroup.headers.map((header) => {
-									const pinned = header.column.getIsPinned();
-									const size = header.getSize();
-									return (
-										<TableHead
-											key={header.id}
-											colSpan={header.colSpan}
-											className={cn(
-												"box-border overflow-hidden",
-												TABLE_HEADER_SURFACE,
-												header.column.id === SELECT_COLUMN_ID &&
-													"table-col-pin-edge"
-											)}
-											style={{
-												...getColumnWidthStyle(size),
-												...getColumnPinningStyle(header.column),
-												zIndex: pinned ? 3 : 1,
-											}}
-										>
-											{header.isPlaceholder
-												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext()
-													)}
-										</TableHead>
-									);
-								})}
+							<TableRow
+								key={headerGroup.id}
+								className={cn(TABLE_HEADER_SURFACE, "hover:bg-transparent")}
+							>
+								{headerGroup.headers.map((header) => (
+									<DataTableHeaderCell key={header.id} header={header} />
+								))}
 							</TableRow>
 						))}
 						{!bodyContent

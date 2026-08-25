@@ -1,23 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Column } from "@tanstack/react-table";
-import {
-	ArrowDownIcon,
-	ArrowLeftIcon,
-	ArrowRightIcon,
-	ArrowUpIcon,
-	ChevronsUpDown,
-	type LucideIcon,
-} from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, type LucideIcon } from "lucide-react";
 import * as React from "react";
 import { LOCKED_COLUMN_IDS, TABLE_CELL_PAD_X } from "./table-column-layout";
 import { useColumnLayout } from "./table-column-layout-context";
@@ -42,7 +27,6 @@ function useReportHeaderMinSize(
 	opts: {
 		title: string;
 		hasIcon: boolean;
-		hasTrigger: boolean;
 		sorted: false | "asc" | "desc";
 	}
 ) {
@@ -55,12 +39,8 @@ function useReportHeaderMinSize(
 		const el = ref.current;
 		if (!el) return;
 
-		// scrollWidth = larghezza intrinseca (non dipende da allineamento in th larghi).
-		// Th `px-4`; il trigger ghost usa -ml-3 (12px) dentro quel padding.
-		const trigger = el.querySelector("button");
-		const negativeInset = trigger ? 12 : 0;
-		const contentWidth = Math.ceil((trigger ?? el).scrollWidth);
-		const needed = contentWidth + TABLE_CELL_PAD_X * 2 - negativeInset;
+		const contentWidth = Math.ceil(el.scrollWidth);
+		const needed = contentWidth + TABLE_CELL_PAD_X * 2;
 		if (needed > 0) setColumnMinSize("header", columnId, needed);
 	}, [
 		columnId,
@@ -69,7 +49,6 @@ function useReportHeaderMinSize(
 		fontsReady,
 		opts.title,
 		opts.hasIcon,
-		opts.hasTrigger,
 		opts.sorted,
 	]);
 }
@@ -80,95 +59,31 @@ export function TableSortableHeader<TData, TValue>({
 	icon,
 	className,
 }: TableSortableHeaderProps<TData, TValue>) {
-	const columnLayout = useColumnLayout();
 	const rootRef = React.useRef<HTMLDivElement>(null);
 	const canSort = column.getCanSort();
-	const canReorder = !!columnLayout && !LOCKED_COLUMN_IDS.has(column.id);
 	const sorted = column.getIsSorted();
 
 	useReportHeaderMinSize(column.id, rootRef, {
 		title,
 		hasIcon: !!icon,
-		hasTrigger: canSort || canReorder,
 		sorted,
 	});
-
-	if (!canSort && !canReorder) {
-		return (
-			<div
-				ref={rootRef}
-				className={cn(
-					"flex h-8 w-max max-w-none shrink-0 items-center justify-start px-0 text-sm font-medium whitespace-nowrap",
-					className
-				)}
-			>
-				<HeaderIcon icon={icon} />
-				<span className="whitespace-nowrap">{title}</span>
-			</div>
-		);
-	}
 
 	return (
 		<div
 			ref={rootRef}
 			className={cn(
-				"flex w-max max-w-none shrink-0 items-center justify-start gap-2 whitespace-nowrap",
+				"flex h-8 w-max max-w-none shrink-0 items-center justify-start px-0 text-sm font-medium whitespace-nowrap",
 				className
 			)}
 		>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button
-						variant="ghost"
-						size="sm"
-						className="h-8 shrink-0 -ml-3 data-[state=open]:bg-accent"
-						aria-label={`Opzioni colonna ${title}`}
-					>
-						<HeaderIcon icon={icon} />
-						<span className="whitespace-nowrap">{title}</span>
-						{canSort ? (
-							sorted === "desc" ? (
-								<ArrowDownIcon className="ml-2 h-4 w-4 shrink-0" />
-							) : sorted === "asc" ? (
-								<ArrowUpIcon className="ml-2 h-4 w-4 shrink-0" />
-							) : (
-								<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0" />
-							)
-						) : null}
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="start">
-					{canSort ? (
-						<>
-							<DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-								<ArrowUpIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-								Asc
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-								<ArrowDownIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-								Desc
-							</DropdownMenuItem>
-						</>
-					) : null}
-					{canSort && canReorder ? <DropdownMenuSeparator /> : null}
-					{canReorder ? (
-						<>
-							<DropdownMenuItem
-								onClick={() => columnLayout.moveColumn(column.id, -1)}
-							>
-								<ArrowLeftIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-								Sposta a sinistra
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => columnLayout.moveColumn(column.id, 1)}
-							>
-								<ArrowRightIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-								Sposta a destra
-							</DropdownMenuItem>
-						</>
-					) : null}
-				</DropdownMenuContent>
-			</DropdownMenu>
+			<HeaderIcon icon={icon} />
+			<span className="whitespace-nowrap">{title}</span>
+			{canSort && sorted === "desc" ? (
+				<ArrowDownIcon aria-hidden className="ml-2 h-4 w-4 shrink-0" />
+			) : canSort && sorted === "asc" ? (
+				<ArrowUpIcon aria-hidden className="ml-2 h-4 w-4 shrink-0" />
+			) : null}
 		</div>
 	);
 }
