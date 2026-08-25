@@ -200,6 +200,7 @@ export const columns = (
 										{
 											id: "approve",
 											label: "Approva",
+											icon: ATTR_ICON.approved,
 											onSelect: () => {
 												void (async () => {
 													try {

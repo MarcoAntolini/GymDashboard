@@ -88,6 +88,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
+import { Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
@@ -306,37 +307,44 @@ function DataTableRow<TData>({
 					{cells}
 				</TableRow>
 			</ContextMenuTrigger>
-			<ContextMenuContent className="w-48">
+			<ContextMenuContent className="min-w-48">
 				<ContextMenuLabel>Azioni</ContextMenuLabel>
 				<ContextMenuSeparator />
 				{menuActions?.canEdit ? (
 					<ContextMenuItem onSelect={() => menuActions.openEdit()}>
+						<Pencil />
 						Modifica
 					</ContextMenuItem>
 				) : null}
-				{menuActions?.extraActions?.map((item) => (
-					<ContextMenuItem
-						key={item.id}
-						disabled={item.disabled}
-						className={
-							item.destructive ? "text-destructive focus:text-destructive" : undefined
-						}
-						onSelect={() => item.onSelect()}
-					>
-						{item.label}
-					</ContextMenuItem>
-				))}
+				{menuActions?.extraActions?.map((item) => {
+					const ExtraIcon = item.icon;
+					return (
+						<ContextMenuItem
+							key={item.id}
+							disabled={item.disabled}
+							className={
+								item.destructive ? "text-destructive focus:text-destructive" : undefined
+							}
+							onSelect={() => item.onSelect()}
+						>
+							{ExtraIcon ? <ExtraIcon /> : null}
+							{item.label}
+						</ContextMenuItem>
+					);
+				})}
 				{menuActions?.canDelete ? (
 					<ContextMenuItem
 						className="text-destructive focus:text-destructive"
 						onSelect={() => menuActions.openDelete()}
 					>
+						<Trash2 />
 						Elimina
 					</ContextMenuItem>
 				) : null}
 				{hasRowCrud ? <ContextMenuSeparator /> : null}
 				{rowPinned ? (
 					<ContextMenuItem onSelect={() => row.pin(false)}>
+						<PinOff />
 						Sblocca riga
 					</ContextMenuItem>
 				) : (
@@ -344,6 +352,7 @@ function DataTableRow<TData>({
 						disabled={!canPin}
 						onSelect={() => row.pin("top")}
 					>
+						<Pin />
 						{canPin
 							? "Fissa in alto"
 							: `Fissa in alto (max ${MAX_PINNED_ROWS})`}

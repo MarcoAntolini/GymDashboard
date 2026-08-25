@@ -1,10 +1,12 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import * as React from "react";
 
 export type RowExtraAction = {
 	id: string;
 	label: string;
+	icon?: LucideIcon;
 	destructive?: boolean;
 	disabled?: boolean;
 	onSelect: () => void;
