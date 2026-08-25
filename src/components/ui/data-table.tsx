@@ -47,8 +47,6 @@ import { SearchHighlightProvider } from "@/components/ui/data-table/search-highl
 import {
 	MAX_PINNED_ROWS,
 	clampRowPinning,
-	getRowPinningStyle,
-	mergeCellStickyStyles,
 	mergeOffPagePinnedRows,
 	pinnedRowIdSet,
 	syncPinnedRowBag,
@@ -58,7 +56,15 @@ import { HighlightValueCell } from "@/components/ui/highlight-text";
 import { OverflowText } from "@/components/ui/overflow-text";
 
 import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableFooter,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import type { ListFacetedFilter, ListFilters } from "@/lib/list";
 import { cn } from "@/lib/utils";
 import {
@@ -202,11 +208,9 @@ function withDefaultSearchHighlightCell<TData, TValue>(
 
 function DataTableRow<TData>({
 	row,
-	bottomPinnedCount,
 	mountHiddenActions,
 }: {
 	row: Row<TData>;
-	bottomPinnedCount: number;
 	mountHiddenActions: boolean;
 }) {
 	const registry = useRowActionsRegistry();
@@ -216,7 +220,6 @@ function DataTableRow<TData>({
 	const [hovered, setHovered] = React.useState(false);
 	const selected = row.getIsSelected();
 	const rowPinned = row.getIsPinned();
-	const rowSticky = getRowPinningStyle(row, { bottomPinnedCount });
 	const canPin = row.getCanPin();
 
 	const actionCell = row
@@ -235,10 +238,6 @@ function DataTableRow<TData>({
 	const cells = row.getVisibleCells().map((cell) => {
 		const colPinned = cell.column.getIsPinned();
 		const size = cell.column.getSize();
-		const sticky = mergeCellStickyStyles(
-			getColumnPinningStyle(cell.column),
-			rowSticky
-		);
 		const stacked = cell.column.columnDef.meta?.stacked === true;
 		const skipOverflow =
 			cell.column.id === ACTIONS_COLUMN_ID ||
@@ -254,7 +253,7 @@ function DataTableRow<TData>({
 					"box-border h-12 max-h-12 overflow-hidden py-0",
 					!stacked && "whitespace-nowrap",
 					colPinned && "shadow-[inset_-1px_0_0] shadow-border",
-					rowPinned === "top" && "shadow-[inset_0_-1px_0] shadow-border",
+					rowPinned && "shadow-[inset_0_-1px_0] shadow-border",
 					selected
 						? "bg-muted"
 						: hovered
@@ -269,7 +268,7 @@ function DataTableRow<TData>({
 				)}
 				style={{
 					...getColumnWidthStyle(size),
-					...sticky,
+					...getColumnPinningStyle(cell.column),
 				}}
 			>
 				{skipOverflow ? (
@@ -677,7 +676,6 @@ function DataTableInner<TData, TValue>({
 	const topRows = table.getTopRows();
 	const centerRows = table.getCenterRows();
 	const bottomRows = table.getBottomRows();
-	const bottomPinnedCount = bottomRows.length;
 	const pageSelectedCount = table.getSelectedRowModel().rows.length;
 	const colSpan = table.getVisibleLeafColumns().length;
 	const orderedLeafColumns = getPinnedLeafColumnOrder(table);
@@ -824,6 +822,15 @@ function DataTableInner<TData, TValue>({
 								})}
 							</TableRow>
 						))}
+						{!bodyContent
+							? topRows.map((row) => (
+									<DataTableRow
+										key={`pin-top-${row.id}`}
+										row={row}
+										mountHiddenActions={mountHiddenActions}
+									/>
+								))
+							: null}
 					</TableHeader>
 					<TableBody>
 						{bodyContent ? (
@@ -837,33 +844,27 @@ function DataTableInner<TData, TValue>({
 							</TableRow>
 						) : (
 							<>
-								{topRows.map((row) => (
-									<DataTableRow
-										key={`pin-top-${row.id}`}
-										row={row}
-										bottomPinnedCount={bottomPinnedCount}
-										mountHiddenActions={mountHiddenActions}
-									/>
-								))}
 								{centerRows.map((row) => (
 									<DataTableRow
 										key={row.id}
 										row={row}
-										bottomPinnedCount={bottomPinnedCount}
-										mountHiddenActions={mountHiddenActions}
-									/>
-								))}
-								{bottomRows.map((row) => (
-									<DataTableRow
-										key={`pin-bottom-${row.id}`}
-										row={row}
-										bottomPinnedCount={bottomPinnedCount}
 										mountHiddenActions={mountHiddenActions}
 									/>
 								))}
 							</>
 						)}
 					</TableBody>
+					{!bodyContent && bottomRows.length > 0 ? (
+						<TableFooter className="sticky bottom-0 z-20 isolate bg-background font-normal [&_tr]:border-0 [&_tr]:shadow-[inset_0_1px_0] [&_tr]:shadow-border">
+							{bottomRows.map((row) => (
+								<DataTableRow
+									key={`pin-bottom-${row.id}`}
+									row={row}
+									mountHiddenActions={mountHiddenActions}
+								/>
+							))}
+						</TableFooter>
+					) : null}
 				</Table>
 				</div>
 				</div>
