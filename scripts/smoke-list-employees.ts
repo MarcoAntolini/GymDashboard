@@ -29,10 +29,10 @@ async function main() {
 		"pageCount from total"
 	);
 	assert(
-		page1.sort[0]?.id === "surname" && page1.sort[0]?.desc === false,
-		"default sort surname asc"
+		page1.sort[0]?.id === "id" && page1.sort[0]?.desc === false,
+		"default sort id asc"
 	);
-	assert(page1.sort[1]?.id === "name", "default sort name secondary");
+	assert(page1.sort.length === 1, "default sort is a single column");
 
 	const filtered = await listEmployees({
 		filters: { surname: "__no_such_employee_zzz__" },

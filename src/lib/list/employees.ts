@@ -31,6 +31,5 @@ export const EMPLOYEE_FILTER_LABELS: Record<
 };
 
 export const EMPLOYEE_DEFAULT_SORT: readonly ListSort[] = [
-	{ id: "surname", desc: false },
-	{ id: "name", desc: false },
+	{ id: "id", desc: false },
 ];

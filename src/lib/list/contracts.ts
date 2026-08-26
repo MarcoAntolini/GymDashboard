@@ -38,5 +38,4 @@ export const CONTRACT_FACETED_FILTERS: ListFacetedFilter[] = [
 
 export const CONTRACT_DEFAULT_SORT: readonly ListSort[] = [
 	{ id: "employee", desc: false },
-	{ id: "startingDate", desc: false },
 ];
