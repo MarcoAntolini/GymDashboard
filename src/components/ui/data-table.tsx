@@ -115,6 +115,7 @@ function DataTableHeaderCell<TData, TValue>({
 	const columnLayout = useColumnLayout();
 	const column = header.column;
 	const canSort = column.getCanSort();
+	const sorted = column.getIsSorted();
 	const canReorder = !!columnLayout && !LOCKED_COLUMN_IDS.has(column.id);
 	const pinned = column.getIsPinned();
 	const size = header.getSize();
@@ -123,10 +124,20 @@ function DataTableHeaderCell<TData, TValue>({
 	const head = (
 		<TableHead
 			colSpan={header.colSpan}
+			aria-sort={
+				sorted === "asc"
+					? "ascending"
+					: sorted === "desc"
+						? "descending"
+						: canSort
+							? "none"
+							: undefined
+			}
 			className={cn(
 				"box-border overflow-hidden",
 				TABLE_HEADER_SURFACE,
-				hasMenu && "cursor-context-menu",
+				canSort && "cursor-pointer",
+				!canSort && hasMenu && "cursor-context-menu",
 				column.id === SELECT_COLUMN_ID && "table-col-pin-edge"
 			)}
 			style={{
@@ -151,11 +162,11 @@ function DataTableHeaderCell<TData, TValue>({
 					<>
 						<ContextMenuItem onSelect={() => column.toggleSorting(false)}>
 							<ArrowUpIcon />
-							Asc
+							Ordina crescente
 						</ContextMenuItem>
 						<ContextMenuItem onSelect={() => column.toggleSorting(true)}>
 							<ArrowDownIcon />
-							Desc
+							Ordina decrescente
 						</ContextMenuItem>
 					</>
 				) : null}
@@ -643,6 +654,8 @@ function DataTableInner<TData, TValue>({
 		manualSorting: isServer,
 		manualFiltering: isServer,
 		manualPagination: isServer,
+		/** Click header: solo ASC ↔ DESC, senza tornare al sort di default. */
+		enableSortingRemoval: false,
 		pageCount: isServer ? serverList.pageCount : undefined,
 		rowCount: isServer ? serverList.rowCount : undefined,
 		onSortingChange: isServer ? serverList.onSortingChange : setSorting,

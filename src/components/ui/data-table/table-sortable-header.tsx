@@ -2,17 +2,17 @@
 
 import { cn } from "@/lib/utils";
 import { Column } from "@tanstack/react-table";
-import { ArrowDownIcon, ArrowUpIcon, type LucideIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon, type LucideIcon } from "lucide-react";
 import * as React from "react";
 import { LOCKED_COLUMN_IDS, TABLE_CELL_PAD_X } from "./table-column-layout";
 import { useColumnLayout } from "./table-column-layout-context";
 
-interface TableSortableHeaderProps<TData, TValue>
-	extends React.HTMLAttributes<HTMLDivElement> {
+interface TableSortableHeaderProps<TData, TValue> {
 	column: Column<TData, TValue>;
 	title: string;
 	/** Lucide muted a sinistra del titolo (anche colonne non-sortable). */
 	icon?: LucideIcon;
+	className?: string;
 }
 
 function HeaderIcon({ icon: Icon }: { icon?: LucideIcon }) {
@@ -65,9 +65,28 @@ export function TableSortableHeader<TData, TValue>({
 
 	useReportHeaderMinSize(column.id, rootRef, {
 		title,
-		hasIcon: !!icon,
+		hasIcon: !!icon || canSort,
 		sorted,
 	});
+
+	const sortIcon = !canSort ? null : sorted === "desc" ? (
+		<ArrowDownIcon aria-hidden className="ml-2 h-4 w-4 shrink-0" />
+	) : sorted === "asc" ? (
+		<ArrowUpIcon aria-hidden className="ml-2 h-4 w-4 shrink-0" />
+	) : (
+		<ArrowUpDownIcon
+			aria-hidden
+			className="ml-2 h-4 w-4 shrink-0 opacity-70 group-hover:opacity-100 group-focus-visible:opacity-100"
+		/>
+	);
+
+	const chrome = (
+		<>
+			<HeaderIcon icon={icon} />
+			<span className="whitespace-nowrap">{title}</span>
+			{sortIcon}
+		</>
+	);
 
 	return (
 		<div
@@ -77,13 +96,18 @@ export function TableSortableHeader<TData, TValue>({
 				className
 			)}
 		>
-			<HeaderIcon icon={icon} />
-			<span className="whitespace-nowrap">{title}</span>
-			{canSort && sorted === "desc" ? (
-				<ArrowDownIcon aria-hidden className="ml-2 h-4 w-4 shrink-0" />
-			) : canSort && sorted === "asc" ? (
-				<ArrowUpIcon aria-hidden className="ml-2 h-4 w-4 shrink-0" />
-			) : null}
+			{canSort ? (
+				<button
+					type="button"
+					className="group inline-flex h-8 cursor-pointer items-center rounded-sm bg-transparent p-0 font-medium text-inherit whitespace-nowrap hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+					onClick={() => column.toggleSorting()}
+					aria-label={`Ordina per ${title}`}
+				>
+					{chrome}
+				</button>
+			) : (
+				chrome
+			)}
 		</div>
 	);
 }
