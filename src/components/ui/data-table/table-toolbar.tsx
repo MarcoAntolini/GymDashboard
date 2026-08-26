@@ -19,17 +19,25 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
+import { Calendar } from "@/components/ui/calendar";
 import { useTableChromeActions } from "@/components/ui/data-table/table-chrome-actions-context";
 import {
 	ACTIONS_COLUMN_ID,
 	countPinnedRows,
 } from "@/components/ui/data-table/table-column-layout";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { columnLabel } from "@/lib/domain/column-labels";
-import type { ListFacetedFilter, ListFilters } from "@/lib/list";
+import { formatDateIt } from "@/lib/format";
+import {
+	formatFilterDay,
+	parseFilterDay,
+	type ListFacetedFilter,
+	type ListFilters,
+} from "@/lib/list";
 import { cn } from "@/lib/utils";
 import { ColumnFiltersState, Table } from "@tanstack/react-table";
 import { ATTR_ICON } from "@/lib/domain/icons";
-import { PinOff, X } from "lucide-react";
+import { CalendarIcon, PinOff, X } from "lucide-react";
 import * as React from "react";
 import { TableFacetedFilter } from "./table-faceted-filter";
 
@@ -48,6 +56,8 @@ interface TableToolbarProps<TData> {
 	table: Table<TData>;
 	filters: string[];
 	facetedFilters?: ListFacetedFilter[];
+	/** Filtri giorno (Calendar); esclusi automaticamente dalle textbox. */
+	dateFilters?: string[];
 	filterLabels?: Record<string, string>;
 	serverList?: TableToolbarServerListProps;
 	/** Override del slot sinistro (altrimenti azioni dal Dashboard). */
@@ -58,10 +68,6 @@ function filterPlaceholder(filter: string, labels?: Record<string, string>): str
 	const labeled = labels?.[filter];
 	if (labeled) return labeled;
 	return columnLabel(filter);
-}
-
-function isIdFilter(filter: string): boolean {
-	return filter === "id" || filter.endsWith("Id");
 }
 
 function draftFacetValue(raw: ListFilters[string]): string[] {
@@ -144,6 +150,7 @@ export default function TableToolbar<TData>({
 	table,
 	filters,
 	facetedFilters,
+	dateFilters,
 	filterLabels,
 	serverList,
 	toolbarActions,
@@ -152,10 +159,18 @@ export default function TableToolbar<TData>({
 	const leftActions = toolbarActions ?? chromeActions;
 	const isServer = !!serverList;
 	const facetedKeys = new Set(facetedFilters?.map((filter) => filter.key) ?? []);
-	const textFilters = filters.filter((key) => !facetedKeys.has(key));
+	const dateKeys = new Set(dateFilters ?? []);
+	const textFilters = filters.filter(
+		(key) => !facetedKeys.has(key) && !dateKeys.has(key)
+	);
+	const visibleDateFilters = dateFilters ?? [];
 	const filterKeys = React.useMemo(
-		() => [...textFilters, ...(facetedFilters?.map((filter) => filter.key) ?? [])],
-		[textFilters, facetedFilters]
+		() => [
+			...textFilters,
+			...visibleDateFilters,
+			...(facetedFilters?.map((filter) => filter.key) ?? []),
+		],
+		[textFilters, visibleDateFilters, facetedFilters]
 	);
 	const hasFilterFields = filterKeys.length > 0;
 
@@ -305,8 +320,51 @@ export default function TableToolbar<TData>({
 															handleApply();
 														}
 													}}
-													className={cn(isIdFilter(filter) && "max-w-32")}
 												/>
+											</div>
+										);
+									})}
+									{visibleDateFilters.map((filter) => {
+										const id = `table-filter-${filter}`;
+										const selected = parseFilterDay(draftFilters[filter]);
+										const label = filterPlaceholder(filter, filterLabels);
+										return (
+											<div key={filter} className="flex flex-col gap-2">
+												<Label htmlFor={id}>{label}</Label>
+												<Popover>
+													<PopoverTrigger asChild>
+														<Button
+															id={id}
+															type="button"
+															variant="outline"
+															className={cn(
+																"w-full justify-start pl-3 text-left font-normal",
+																!selected && "text-muted-foreground"
+															)}
+														>
+															{selected ? (
+																formatDateIt(selected)
+															) : (
+																<span>{label}</span>
+															)}
+															<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+														</Button>
+													</PopoverTrigger>
+													<PopoverContent className="w-auto p-0" align="start">
+														<Calendar
+															mode="single"
+															selected={selected}
+															onSelect={(date) => {
+																setDraftKey(
+																	filter,
+																	date ? formatFilterDay(date) : undefined
+																);
+															}}
+															defaultMonth={selected}
+															initialFocus
+														/>
+													</PopoverContent>
+												</Popover>
 											</div>
 										);
 									})}

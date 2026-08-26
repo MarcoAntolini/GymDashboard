@@ -8,6 +8,7 @@ import {
 	ENTRANCE_FILTER_ALLOWLIST,
 	ENTRANCE_SORT_ALLOWLIST,
 } from "../src/lib/list/entrances";
+import { formatFilterDay } from "../src/lib/list";
 
 function assert(cond: unknown, msg: string): asserts cond {
 	if (!cond) throw new Error(msg);
@@ -76,6 +77,18 @@ async function main() {
 		assert(
 			entranceIdAsSale.items.every((e) => e.saleId === sample.id),
 			"saleId does not silently match entrance id"
+		);
+
+		const localDay = formatFilterDay(sample.date);
+		const byDay = await listEntrances({
+			filters: { date: localDay },
+			page: 1,
+			pageSize: 50,
+		});
+		assert(byDay.total > 0, "date filter finds rows");
+		assert(
+			byDay.items.every((e) => formatFilterDay(e.date) === localDay),
+			"date filter matches calendar day"
 		);
 	}
 

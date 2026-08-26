@@ -28,6 +28,7 @@ import {
 import { useServerList } from "@/hooks/useServerList";
 import {
 	ENTRANCE_DEFAULT_SORT,
+	ENTRANCE_DATE_FILTERS,
 	ENTRANCE_FILTER_ALLOWLIST,
 	ENTRANCE_FILTER_LABELS,
 	ENTRANCE_SORT_ALLOWLIST,
@@ -334,6 +335,7 @@ export default function EntrancesPage() {
 						error={list.error}
 						onRetry={list.refetch}
 						filters={[...ENTRANCE_FILTER_ALLOWLIST]}
+						dateFilters={[...ENTRANCE_DATE_FILTERS]}
 						filterLabels={ENTRANCE_FILTER_LABELS}
 						emptyState={
 							<TableEmptyState

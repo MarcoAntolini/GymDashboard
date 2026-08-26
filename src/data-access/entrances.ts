@@ -19,6 +19,7 @@ import {
 } from "@/lib/domain/product-kind";
 import {
 	buildListResult,
+	filterDayRange,
 	normalizeListQuery,
 	toPrismaPage,
 	type ListFilters,
@@ -84,6 +85,9 @@ function buildEntranceWhere(filters: ListFilters): Prisma.EntranceWhereInput {
 
 	const saleId = parsePositiveIntFilter(filters.saleId);
 	if (saleId !== undefined) where.saleId = saleId;
+
+	const day = filterDayRange(filters.date);
+	if (day) where.date = day;
 
 	const client = filters.client;
 	if (typeof client === "string") {

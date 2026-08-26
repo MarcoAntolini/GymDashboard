@@ -15,7 +15,11 @@ export const ENTRANCE_FILTER_ALLOWLIST = [
 	"saleId",
 	"client",
 	"product",
+	"date",
 ] as const;
+
+/** Filtri data (Calendar shadcn), esclusi dalle textbox. */
+export const ENTRANCE_DATE_FILTERS = ["date"] as const;
 
 /** Placeholder toolbar (evita confusione ID ingresso vs ID vendita). */
 export const ENTRANCE_FILTER_LABELS: Record<
@@ -26,6 +30,7 @@ export const ENTRANCE_FILTER_LABELS: Record<
 	saleId: "ID Vendita",
 	client: "Cliente",
 	product: "Prodotto",
+	date: "Giornata",
 };
 
 export const ENTRANCE_DEFAULT_SORT: readonly ListSort[] = [

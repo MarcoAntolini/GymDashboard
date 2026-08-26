@@ -3,6 +3,7 @@
  * Run: npx tsx scripts/smoke-list-clockings.ts
  */
 import { listClockings } from "../src/data-access/clockings";
+import { formatFilterDay } from "../src/lib/list";
 import {
 	CLOCKING_DEFAULT_SORT,
 	CLOCKING_FILTER_ALLOWLIST,
@@ -74,6 +75,18 @@ async function main() {
 		assert(
 			byEmployee.items.every((c) => c.employeeId === sampleId),
 			"employeeId exact filter"
+		);
+
+		const localDay = formatFilterDay(page1.items[0].entranceTime);
+		const byDay = await listClockings({
+			filters: { date: localDay },
+			page: 1,
+			pageSize: 50,
+		});
+		assert(byDay.total > 0, "date filter finds rows");
+		assert(
+			byDay.items.every((c) => formatFilterDay(c.entranceTime) === localDay),
+			"date filter matches calendar day of entranceTime"
 		);
 	}
 

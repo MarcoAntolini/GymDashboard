@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import {
 	buildListResult,
 	employeeJoinOrderBy,
+	filterDayRange,
 	normalizeListQuery,
 	toPrismaPage,
 	type ListFilters,
@@ -58,6 +59,9 @@ function buildClockingWhere(filters: ListFilters): Prisma.ClockingWhereInput {
 			};
 		}
 	}
+
+	const day = filterDayRange(filters.date);
+	if (day) where.entranceTime = day;
 
 	return where;
 }

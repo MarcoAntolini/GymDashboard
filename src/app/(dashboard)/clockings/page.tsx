@@ -16,6 +16,7 @@ import {
 import { getEmployee } from "@/data-access/employees";
 import { useServerList } from "@/hooks/useServerList";
 import {
+	CLOCKING_DATE_FILTERS,
 	CLOCKING_DEFAULT_SORT,
 	CLOCKING_FILTER_ALLOWLIST,
 	CLOCKING_SORT_ALLOWLIST,
@@ -148,6 +149,7 @@ export default function Clockings() {
 					error={list.error}
 					onRetry={list.refetch}
 					filters={[...CLOCKING_FILTER_ALLOWLIST]}
+					dateFilters={[...CLOCKING_DATE_FILTERS]}
 					filterLabels={CLOCKING_FILTER_LABELS}
 					emptyState={
 						<TableEmptyState

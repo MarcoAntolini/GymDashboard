@@ -218,6 +218,8 @@ interface DataTableProps<TData, TValue> {
 	filters: string[];
 	/** Filtri enum/boolean a multi-select (esclusi automaticamente dalle textbox). */
 	facetedFilters?: ListFacetedFilter[];
+	/** Filtri giorno (Calendar shadcn); esclusi automaticamente dalle textbox. */
+	dateFilters?: string[];
 	/** Override placeholder per chiave filtro. */
 	filterLabels?: Record<string, string>;
 	/** Empty dataset (zero record, senza filtri applicati). */
@@ -464,6 +466,7 @@ function DataTableInner<TData, TValue>({
 	data,
 	filters,
 	facetedFilters,
+	dateFilters,
 	filterLabels,
 	emptyState,
 	filteredEmptyState,
@@ -831,6 +834,7 @@ function DataTableInner<TData, TValue>({
 					table={table}
 					filters={filters}
 					facetedFilters={facetedFilters}
+					dateFilters={dateFilters}
 					filterLabels={filterLabels}
 					toolbarActions={toolbarActions}
 					serverList={
