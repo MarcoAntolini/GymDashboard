@@ -16,6 +16,7 @@ import { LONG_TEXT_COLUMN_SIZE } from "@/components/ui/data-table/table-column-l
 import {
 	paymentTypeBadgeSamples,
 	tableDateSamples,
+	tableIdSample,
 } from "@/components/ui/data-table/table-width-samples";
 import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { PAYMENT_TYPE_LABEL } from "@/lib/domain/labels";
@@ -131,7 +132,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: [tableIdSample()],
+		}),
 		cell: ({ row }) => (
 			<TableId value={row.original.id} filterKeys="id" />
 		),

@@ -24,7 +24,7 @@ export type ColumnClass = (typeof ColumnClass)[keyof typeof ColumnClass];
  * sempre dalla min-width misurata sull'header.
  */
 export const ColumnWidth = {
-	/** Contenuto mai più lungo dell'header (date, importi, id): resta alla min-width misurata. */
+	/** Contenuto mai più lungo dell'header (importi, etichette corte): resta alla min-width misurata. */
 	Fit: "fit",
 	/** Larghezza dettata dal contenuto peggiore dichiarato in `widthSamples` (badge, codici a lunghezza fissa). */
 	Content: "content",

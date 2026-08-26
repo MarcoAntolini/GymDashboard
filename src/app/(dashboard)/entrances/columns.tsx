@@ -6,6 +6,7 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import type { EntranceRow } from "@/data-access/entrances";
+import { tableIdSample } from "@/components/ui/data-table/table-width-samples";
 import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { ColumnDef } from "@tanstack/react-table";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
@@ -37,7 +38,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: [tableIdSample()],
+		}),
 		cell: ({ row }) => <TableId value={row.original.id} filterKeys="id" />,
 	},
 	{

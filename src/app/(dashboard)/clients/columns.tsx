@@ -7,7 +7,7 @@ import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-h
 import { FormDateField } from "@/components/ui/form-date-field";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { taxCodeSample } from "@/components/ui/data-table/table-width-samples";
+import { tableIdSample, taxCodeSample } from "@/components/ui/data-table/table-width-samples";
 import { ColumnClass, ColumnWidth, columnMeta } from "@/lib/domain/column-class";
 import { Client } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -37,7 +37,10 @@ export const columns = (
 		header: ({ column }) => (
 			<TableSortableHeader column={column} title="ID" icon={ATTR_ICON.id} />
 		),
-		meta: columnMeta(ColumnClass.Native),
+		meta: columnMeta(ColumnClass.Native, {
+			width: ColumnWidth.Content,
+			widthSamples: [tableIdSample()],
+		}),
 		cell: ({ row }) => (
 			<TableId value={row.original.id} filterKeys="id" />
 		),
