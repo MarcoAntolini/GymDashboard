@@ -20,5 +20,5 @@ export const SALARY_FILTER_LABELS: Record<
 };
 
 export const SALARY_DEFAULT_SORT: readonly ListSort[] = [
-	{ id: "paymentId", desc: true },
+	{ id: "paymentDate", desc: true },
 ];

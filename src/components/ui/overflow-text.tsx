@@ -1,8 +1,16 @@
 "use client";
 
+import { HighlightText } from "@/components/ui/highlight-text";
 import { cn } from "@/lib/utils";
 import * as React from "react";
 import { createPortal } from "react-dom";
+
+function withSearchHighlight(children: React.ReactNode): React.ReactNode {
+	if (typeof children === "string" || typeof children === "number") {
+		return <HighlightText text={String(children)} />;
+	}
+	return children;
+}
 
 function contentBoxWidth(el: HTMLElement): number {
 	const cs = getComputedStyle(el);
@@ -135,7 +143,7 @@ export function OverflowText({
 					className
 				)}
 			>
-				{children}
+				{withSearchHighlight(children)}
 			</div>
 			{open && fullText
 				? createPortal(

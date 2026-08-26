@@ -37,18 +37,14 @@ export function TableId({
 		align === "right" && "block w-full text-right",
 		className
 	);
-	if (filterKeys) {
-		return (
-			<HighlightText
-				text={text}
-				filterKeys={filterKeys}
-				className={classes}
-				as={align === "right" ? "div" : "span"}
-			/>
-		);
-	}
-	const Comp = align === "right" ? "div" : "span";
-	return <Comp className={classes}>{text}</Comp>;
+	return (
+		<HighlightText
+			text={text}
+			filterKeys={filterKeys}
+			className={classes}
+			as={align === "right" ? "div" : "span"}
+		/>
+	);
 }
 
 /** Codice fiscale / codice prodotto. Mono + muted. CF: `compact`. */
@@ -69,16 +65,9 @@ export function TableCode({
 		compact ? "text-[0.8125rem]" : "text-sm",
 		className
 	);
-	if (filterKeys) {
-		return (
-			<HighlightText
-				text={value}
-				filterKeys={filterKeys}
-				className={classes}
-			/>
-		);
-	}
-	return <span className={classes}>{value}</span>;
+	return (
+		<HighlightText text={value} filterKeys={filterKeys} className={classes} />
+	);
 }
 
 /** Data-only: stesso `formatDateIt`, peso da metadato. */
@@ -156,11 +145,11 @@ export function TablePerson({
 	const name = formatPersonName(person);
 	return (
 		<span className={cn("inline-flex min-w-0 max-w-full items-baseline gap-1.5", className)}>
-			{nameFilterKeys ? (
-				<HighlightText text={name} filterKeys={nameFilterKeys} className="min-w-0 truncate" />
-			) : (
-				<span className="min-w-0 truncate">{name}</span>
-			)}
+			<HighlightText
+				text={name}
+				filterKeys={nameFilterKeys}
+				className="min-w-0 truncate"
+			/>
 			{person.id != null ? (
 				<TableId
 					value={person.id}

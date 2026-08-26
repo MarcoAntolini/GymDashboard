@@ -247,6 +247,17 @@ interface DataTableProps<TData, TValue> {
 	toolbarActions?: React.ReactNode;
 }
 
+function columnFiltersToListFilters(filters: ColumnFiltersState): ListFilters {
+	const next: ListFilters = {};
+	for (const filter of filters) {
+		const value = filter.value;
+		if (value == null || value === "") continue;
+		if (Array.isArray(value) && value.length === 0) continue;
+		next[filter.id] = value as ListFilters[string];
+	}
+	return next;
+}
+
 function hasAppliedFilters(filters: ListFilters | undefined): boolean {
 	if (!filters) return false;
 	return Object.keys(filters).some((key) => {
@@ -814,7 +825,13 @@ function DataTableInner<TData, TValue>({
 	}
 
 	return (
-		<SearchHighlightProvider filters={isServer ? serverList?.appliedFilters : undefined}>
+		<SearchHighlightProvider
+			filters={
+				isServer
+					? serverList?.appliedFilters
+					: columnFiltersToListFilters(columnFilters)
+			}
+		>
 		<ColumnLayoutProvider
 			moveColumn={moveColumn}
 			setColumnMinSize={setColumnMinSize}

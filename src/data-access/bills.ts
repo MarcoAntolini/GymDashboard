@@ -6,10 +6,11 @@ import { db } from "@/lib/db";
 import {
 	buildListResult,
 	normalizeListQuery,
-	toPrismaListArgs,
+	toPrismaPage,
 	type ListFilters,
 	type ListQueryInput,
 	type ListResult,
+	type ListSort,
 } from "@/lib/list";
 import {
 	BILL_DEFAULT_SORT,
@@ -57,6 +58,35 @@ function buildBillWhere(filters: ListFilters): Prisma.BillWhereInput {
 	return where;
 }
 
+function buildBillOrderBy(
+	sort: ListSort[]
+): Prisma.BillOrderByWithRelationInput[] {
+	const orderBy: Prisma.BillOrderByWithRelationInput[] = [];
+	for (const entry of sort) {
+		const dir = entry.desc ? ("desc" as const) : ("asc" as const);
+		switch (entry.id) {
+			case "provider":
+				orderBy.push({ provider: dir });
+				break;
+			case "paymentDate":
+				orderBy.push({ payment: { date: dir } });
+				break;
+			case "paymentAmount":
+				orderBy.push({ payment: { amount: dir } });
+				break;
+			case "paymentId":
+				orderBy.push({ paymentId: dir });
+				break;
+			default:
+				break;
+		}
+	}
+	if (!orderBy.some((o) => "paymentId" in o)) {
+		orderBy.push({ paymentId: "asc" });
+	}
+	return orderBy;
+}
+
 /**
  * Lista Bollette server-side: filtri su Conferma, sort + paginazione via DB.
  */
@@ -69,14 +99,8 @@ export async function listBills(
 		defaultSort: [...BILL_DEFAULT_SORT],
 	});
 	const where = buildBillWhere(query.filters);
-	const { skip, take, orderBy } = toPrismaListArgs(query);
-	// Tie-break stabile su PK (evita overlap OFFSET con sort non unico).
-	const orderByStable = [
-		...(orderBy ?? []),
-		...(orderBy?.some((o) => "paymentId" in o)
-			? []
-			: [{ paymentId: "asc" as const }]),
-	];
+	const { skip, take } = toPrismaPage(query);
+	const orderByStable = buildBillOrderBy(query.sort);
 	const [total, items] = await Promise.all([
 		db.bill.count({ where }),
 		db.bill.findMany({

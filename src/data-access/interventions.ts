@@ -6,10 +6,11 @@ import { db } from "@/lib/db";
 import {
 	buildListResult,
 	normalizeListQuery,
-	toPrismaListArgs,
+	toPrismaPage,
 	type ListFilters,
 	type ListQueryInput,
 	type ListResult,
+	type ListSort,
 } from "@/lib/list";
 import {
 	INTERVENTION_DEFAULT_SORT,
@@ -63,6 +64,41 @@ function buildInterventionWhere(
 	return where;
 }
 
+function buildInterventionOrderBy(
+	sort: ListSort[]
+): Prisma.InterventionOrderByWithRelationInput[] {
+	const orderBy: Prisma.InterventionOrderByWithRelationInput[] = [];
+	for (const entry of sort) {
+		const dir = entry.desc ? ("desc" as const) : ("asc" as const);
+		switch (entry.id) {
+			case "maker":
+				orderBy.push({ maker: dir });
+				break;
+			case "startingTime":
+				orderBy.push({ startingTime: dir });
+				break;
+			case "endingTime":
+				orderBy.push({ endingTime: dir });
+				break;
+			case "paymentDate":
+				orderBy.push({ payment: { date: dir } });
+				break;
+			case "paymentAmount":
+				orderBy.push({ payment: { amount: dir } });
+				break;
+			case "paymentId":
+				orderBy.push({ paymentId: dir });
+				break;
+			default:
+				break;
+		}
+	}
+	if (!orderBy.some((o) => "paymentId" in o)) {
+		orderBy.push({ paymentId: "asc" });
+	}
+	return orderBy;
+}
+
 /**
  * Lista Interventi server-side: filtri su Conferma, sort + paginazione via DB.
  */
@@ -75,14 +111,8 @@ export async function listInterventions(
 		defaultSort: [...INTERVENTION_DEFAULT_SORT],
 	});
 	const where = buildInterventionWhere(query.filters);
-	const { skip, take, orderBy } = toPrismaListArgs(query);
-	// Tie-break stabile su PK (evita overlap OFFSET con sort non unico).
-	const orderByStable = [
-		...(orderBy ?? []),
-		...(orderBy?.some((o) => "paymentId" in o)
-			? []
-			: [{ paymentId: "asc" as const }]),
-	];
+	const { skip, take } = toPrismaPage(query);
+	const orderByStable = buildInterventionOrderBy(query.sort);
 	const [total, items] = await Promise.all([
 		db.intervention.count({ where }),
 		db.intervention.findMany({

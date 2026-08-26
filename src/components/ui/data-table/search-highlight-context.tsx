@@ -1,6 +1,6 @@
 "use client";
 
-import { stringFilterTerm } from "@/lib/highlight-matches";
+import { stringFilterTerms } from "@/lib/highlight-matches";
 import type { ListFilters } from "@/lib/list";
 import * as React from "react";
 
@@ -21,8 +21,15 @@ export function SearchHighlightProvider({
 	);
 }
 
+/**
+ * Termini da evidenziare. Con `keys`: solo quelle chiavi; senza: tutti i filtri testuali.
+ */
+export function useSearchHighlightTerms(keys?: string | string[]): string[] {
+	const filters = React.useContext(SearchHighlightContext);
+	return stringFilterTerms(filters, keys);
+}
+
 /** Termine da evidenziare per le chiavi filtro indicate; null se assente. */
 export function useSearchHighlightTerm(keys: string | string[]): string | null {
-	const filters = React.useContext(SearchHighlightContext);
-	return stringFilterTerm(filters, keys);
+	return useSearchHighlightTerms(keys)[0] ?? null;
 }

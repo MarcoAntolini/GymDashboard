@@ -2,10 +2,12 @@ import type { ListSort } from "@/lib/list";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
 export const INTERVENTION_SORT_ALLOWLIST = [
-	"paymentId",
 	"maker",
 	"startingTime",
 	"endingTime",
+	"paymentDate",
+	"paymentAmount",
+	"paymentId",
 ] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
@@ -25,5 +27,5 @@ export const INTERVENTION_FILTER_LABELS: Record<
 };
 
 export const INTERVENTION_DEFAULT_SORT: readonly ListSort[] = [
-	{ id: "paymentId", desc: true },
+	{ id: "paymentDate", desc: true },
 ];

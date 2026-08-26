@@ -97,6 +97,30 @@ function parsePaymentTypeFilter(
 	return collect(raw);
 }
 
+function parseTextContains(raw: ListFilters[string]): string | undefined {
+	if (typeof raw !== "string") return undefined;
+	const value = raw.trim();
+	return value || undefined;
+}
+
+function employeeIdsFromDetailQuery(value: string): number[] {
+	const ids = new Set<number>();
+	const whole = parsePositiveIntFilter(value);
+	if (whole !== undefined) ids.add(whole);
+	for (const match of value.matchAll(/\d+/g)) {
+		const n = parsePositiveIntFilter(match[0]);
+		if (n !== undefined) ids.add(n);
+	}
+	return [...ids];
+}
+
+/** Prefisso dell’etichetta UI stipendio (`Dipendente #42`) senza cifra. */
+function isSalaryDetailLabelQuery(value: string): boolean {
+	const normalized = value.trim().toLowerCase().replace(/\s+/g, " ");
+	if (!normalized) return false;
+	return "dipendente #".startsWith(normalized);
+}
+
 function buildPaymentWhere(filters: ListFilters): Prisma.PaymentWhereInput {
 	const where: Prisma.PaymentWhereInput = {};
 
@@ -106,6 +130,27 @@ function buildPaymentWhere(filters: ListFilters): Prisma.PaymentWhereInput {
 	const type = parsePaymentTypeFilter(filters.type);
 	if (type !== undefined) {
 		where.type = Array.isArray(type) ? { in: type } : type;
+	}
+
+	const detail = parseTextContains(filters.specialization);
+	if (detail) {
+		const or: Prisma.PaymentWhereInput[] = [
+			{ bill: { is: { provider: { contains: detail } } } },
+			{ bill: { is: { description: { contains: detail } } } },
+			{ equipment: { is: { provider: { contains: detail } } } },
+			{ equipment: { is: { description: { contains: detail } } } },
+			{ intervention: { is: { maker: { contains: detail } } } },
+			{ intervention: { is: { description: { contains: detail } } } },
+		];
+		const employeeIds = employeeIdsFromDetailQuery(detail);
+		if (employeeIds.length === 1) {
+			or.push({ salary: { is: { employeeId: employeeIds[0]! } } });
+		} else if (employeeIds.length > 1) {
+			or.push({ salary: { is: { employeeId: { in: employeeIds } } } });
+		} else if (isSalaryDetailLabelQuery(detail)) {
+			or.push({ salary: { isNot: null } });
+		}
+		where.OR = or;
 	}
 
 	return where;

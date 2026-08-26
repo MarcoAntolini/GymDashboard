@@ -6,6 +6,7 @@ import {
 	NumericCell,
 } from "@/components/ui/domain-badge";
 import { TableDate, TableId } from "@/components/ui/data-table/table-cells";
+import { HighlightText } from "@/components/ui/highlight-text";
 import ItemActions from "@/components/ui/data-table/table-item-actions";
 import { TableSortableHeader } from "@/components/ui/data-table/table-sortable-header";
 import { FormDateField } from "@/components/ui/form-date-field";
@@ -191,7 +192,11 @@ export const columns = (
 		size: LONG_TEXT_COLUMN_SIZE,
 		enableSorting: false,
 		cell: ({ row }) => (
-			<div className="text-muted-foreground">{specializationSummary(row.original)}</div>
+			<HighlightText
+				text={specializationSummary(row.original)}
+				filterKeys="specialization"
+				className="text-muted-foreground"
+			/>
 		),
 	},
 	{

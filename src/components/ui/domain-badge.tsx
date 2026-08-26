@@ -1,3 +1,4 @@
+import { HighlightText } from "@/components/ui/highlight-text";
 import { cn } from "@/lib/utils";
 import { ATTR_ICON, ENTITY_ICON } from "@/lib/domain/icons";
 import type { LucideIcon } from "lucide-react";
@@ -159,6 +160,12 @@ export function NumericCell({
 	className?: string;
 	muted?: boolean;
 }) {
+	const content =
+		typeof children === "string" || typeof children === "number" ? (
+			<HighlightText text={String(children)} />
+		) : (
+			children
+		);
 	return (
 		<div
 			className={cn(
@@ -167,7 +174,7 @@ export function NumericCell({
 				className
 			)}
 		>
-			{children}
+			{content}
 		</div>
 	);
 }

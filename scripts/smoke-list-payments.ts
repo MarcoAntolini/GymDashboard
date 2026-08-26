@@ -92,6 +92,30 @@ async function main() {
 		);
 	}
 
+	const withBill = page1.items.find((p) => p.bill?.provider);
+	if (withBill?.bill) {
+		const needle = withBill.bill.provider.slice(0, Math.min(4, withBill.bill.provider.length));
+		if (needle) {
+			const byDetail = await listPayments({
+				filters: { specialization: needle },
+				page: 1,
+				pageSize: 10,
+			});
+			assert(byDetail.total >= 1, "specialization filter matches sample");
+			assert(
+				byDetail.items.some((p) => p.id === withBill.id),
+				"specialization filter includes sample row"
+			);
+		}
+	}
+
+	const unmatchedDetail = await listPayments({
+		filters: { specialization: "__no_such_detail_zzz__" },
+		page: 1,
+		pageSize: 10,
+	});
+	assert(unmatchedDetail.total === 0, "unmatched specialization → total 0");
+
 	if (page1.total > 10) {
 		const page2 = await listPayments({
 			page: 2,

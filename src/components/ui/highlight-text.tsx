@@ -1,20 +1,23 @@
 "use client";
 
-import { useSearchHighlightTerm } from "@/components/ui/data-table/search-highlight-context";
+import { useSearchHighlightTerms } from "@/components/ui/data-table/search-highlight-context";
 import { splitHighlightMatches } from "@/lib/highlight-matches";
 import { cn } from "@/lib/utils";
 import * as React from "react";
 
 type HighlightTextProps = {
 	text: string;
-	/** Chiavi in `appliedFilters` (di solito = id colonna / allowlist filtro). */
-	filterKeys: string | string[];
+	/**
+	 * Chiavi in `appliedFilters`. Se omesso, evidenzia tutti i filtri testuali
+	 * applicati (celle composite / testo libero).
+	 */
+	filterKeys?: string | string[];
 	className?: string;
 	as?: "span" | "div";
 };
 
 /**
- * Evidenzia i match del filtro server-side applicato nel testo della cella.
+ * Evidenzia i match dei filtri testuali applicati nel testo della cella.
  * Solo termini da `appliedFilters` (non draft) — niente highlight prima di Filtra.
  */
 export function HighlightText({
@@ -23,13 +26,10 @@ export function HighlightText({
 	className,
 	as: Comp = "span",
 }: HighlightTextProps) {
-	const term = useSearchHighlightTerm(filterKeys);
-	const segments = React.useMemo(
-		() => splitHighlightMatches(text, term ?? ""),
-		[text, term]
-	);
+	const terms = useSearchHighlightTerms(filterKeys);
+	const segments = splitHighlightMatches(text, terms);
 
-	if (!term) {
+	if (terms.length === 0) {
 		return <Comp className={className}>{text}</Comp>;
 	}
 

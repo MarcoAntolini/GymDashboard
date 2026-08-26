@@ -6,7 +6,7 @@ import { PaymentType } from "@prisma/client";
 export const PAYMENT_SORT_ALLOWLIST = ["id", "date", "amount"] as const;
 
 /** Chiavi filtro ammesse (Conferma/Filtra). */
-export const PAYMENT_FILTER_ALLOWLIST = ["type", "id"] as const;
+export const PAYMENT_FILTER_ALLOWLIST = ["type", "id", "specialization"] as const;
 
 export const PAYMENT_FILTER_LABELS: Record<
 	(typeof PAYMENT_FILTER_ALLOWLIST)[number],
@@ -14,6 +14,7 @@ export const PAYMENT_FILTER_LABELS: Record<
 > = {
 	type: "Tipo pagamento",
 	id: "ID Pagamento",
+	specialization: "Dettaglio",
 };
 
 export const PAYMENT_FACETED_FILTERS: ListFacetedFilter[] = [

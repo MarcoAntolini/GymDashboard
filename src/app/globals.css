@@ -76,15 +76,16 @@
 		background-color: var(--table-row-pinned);
 	}
 
-	/* Divisorio verticale tra colonne: hairline, senza border (non mangia padding). */
-	.table-col-divider:not(:last-child) {
+	/* Hairline sul bordo sinistro della colonna successiva: overflow:hidden sulla
+	   cella precedente (badge a larghezza contenuto) ritagliava il tratto a destra. */
+	.table-col-divider:not(:first-child) {
 		background-image: linear-gradient(
 			color-mix(in srgb, hsl(var(--foreground)) 8%, transparent),
 			color-mix(in srgb, hsl(var(--foreground)) 8%, transparent)
 		);
 		background-repeat: no-repeat;
 		background-size: 1px 100%;
-		background-position: 100% 0;
+		background-position: 0 0;
 	}
 
 	/* Divisorio verticale colonna sticky: background, non box-shadow.
@@ -94,6 +95,11 @@
 		background-repeat: no-repeat;
 		background-size: 1px 100%;
 		background-position: 100% 0;
+	}
+
+	/* Stesso confine del pin-edge: niente secondo hairline a sinistra della colonna dopo lo sticky. */
+	.table-col-pin-edge + .table-col-divider {
+		background-image: none;
 	}
 }
 
