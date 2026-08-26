@@ -25,6 +25,7 @@ import {
 	CONTRACT_FILTER_ALLOWLIST,
 	CONTRACT_SORT_ALLOWLIST,
 } from "@/lib/list/contracts";
+import { toAppContractType, toPrismaContractType } from "@/lib/domain/contract-type";
 import { Contract, ContractType, Prisma } from "@prisma/client";
 
 const contractInclude = { employee: true } as const;
@@ -36,8 +37,6 @@ export type ContractRow = ClientOf<
 >;
 
 type MoneyInput = Prisma.Decimal | number | string;
-
-const CONTRACT_TYPES = new Set<string>(Object.values(ContractType));
 
 function parsePositiveIntFilter(raw: ListFilters[string]): number | undefined {
 	if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -58,9 +57,8 @@ function parseContractTypeFilter(
 ): ContractType | ContractType[] | undefined {
 	const collect = (entry: unknown): ContractType | undefined => {
 		if (typeof entry !== "string") return undefined;
-		const value = entry.trim();
-		if (!value || !CONTRACT_TYPES.has(value)) return undefined;
-		return value as ContractType;
+		const appType = toAppContractType(entry.trim());
+		return appType ? toPrismaContractType(appType) : undefined;
 	};
 
 	if (Array.isArray(raw)) {

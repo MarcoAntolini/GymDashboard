@@ -1,6 +1,8 @@
-import { CONTRACT_TYPE_LABEL } from "@/lib/domain/labels";
+import {
+	APP_CONTRACT_TYPE_LABEL,
+	type AppContractType,
+} from "@/lib/domain/contract-type";
 import type { ListFacetedFilter, ListSort } from "@/lib/list";
-import { ContractType } from "@prisma/client";
 
 /** Colonne ammesse in ORDER BY (allineate agli header sortable UI). */
 export const CONTRACT_SORT_ALLOWLIST = [
@@ -25,10 +27,12 @@ export const CONTRACT_FACETED_FILTERS: ListFacetedFilter[] = [
 	{
 		key: "type",
 		title: "Tipo contratto",
-		options: (Object.keys(CONTRACT_TYPE_LABEL) as ContractType[]).map((value) => ({
-			value,
-			label: CONTRACT_TYPE_LABEL[value],
-		})),
+		options: (Object.keys(APP_CONTRACT_TYPE_LABEL) as AppContractType[]).map(
+			(value) => ({
+				value,
+				label: APP_CONTRACT_TYPE_LABEL[value],
+			})
+		),
 	},
 ];
 
