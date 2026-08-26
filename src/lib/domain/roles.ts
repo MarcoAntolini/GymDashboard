@@ -1,12 +1,15 @@
 import { isAppRole, type AppRole } from "@/data/nav-routes";
 import { Role } from "@prisma/client";
 
-/** Prisma 7: `@map` fa sì che `Role.Employee === "Dipendente"` (valore DB). */
+/**
+ * Prisma 7.2: `@map` fa sì che `Role.Owner === "Proprietario"` (valore DB / letture),
+ * ma il query compiler accetta solo i nomi schema (`Owner`) in where/data.
+ */
 const APP_TO_PRISMA = {
-	Owner: Role.Owner,
-	Admin: Role.Admin,
-	Employee: Role.Employee,
-} as const satisfies Record<AppRole, Role>;
+	Owner: "Owner" as Role,
+	Admin: "Admin" as Role,
+	Employee: "Employee" as Role,
+} as const;
 
 const PRISMA_TO_APP = {
 	[Role.Owner]: "Owner",

@@ -179,7 +179,7 @@ export default function ItemActions<TFormSchema extends z.ZodType<any, any>>({
 				>
 					<SheetHeader>
 						<SheetTitle>{resolvedEditTitle}</SheetTitle>
-						<SheetDescription>{resolvedEditDescription}</SheetDescription>
+						{/* <SheetDescription>{resolvedEditDescription}</SheetDescription> */}
 					</SheetHeader>
 					<Form {...form}>
 						<form
